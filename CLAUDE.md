@@ -2,7 +2,7 @@
 
 ## 🎯 Project Overview
 
-This is a dual-workshop platform hosting **AST (AllStarTeams)** and **IA (Imaginal Agility)** workshops. The application helps teams and individuals discover their strengths, achieve flow states, and build collaborative excellence through structured assessments and AI-powered insights.
+Dual-workshop platform hosting **AST (AllStarTeams)** and **IA (Imaginal Agility)** workshops for team development through structured assessments and AI-powered insights.
 
 **Key Technologies:** Node.js, React, TypeScript, PostgreSQL, Docker, AWS Lightsail, Claude API
 
@@ -10,1190 +10,244 @@ This is a dual-workshop platform hosting **AST (AllStarTeams)** and **IA (Imagin
 
 ```
 /Users/bradtopliff/Desktop/HI_Replit/
-├── client/                    # React frontend (Vite + TypeScript)
-│   ├── src/
-│   │   ├── components/       # React components
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── utils/           # Client utilities & feature flags
-│   │   └── pages/           # Route components
-│   ├── dist/                # Build output
-│   └── package.json
-├── server/                   # Node.js backend (Express + TypeScript)
-│   ├── src/
-│   │   ├── routes/          # API endpoints
-│   │   ├── middleware/      # Express middleware
-│   │   ├── utils/           # Server utilities & feature flags
-│   │   └── services/        # Business logic
-│   ├── dist/                # Build output
-│   └── package.json
+├── client/src/components/    # React components (see client/src/)
+├── server/routes/            # API endpoints (see server/routes/)
 ├── shared/                   # Shared TypeScript types & schemas
-├── docker-compose.yml        # Local development environment
-├── docs/                    # Project documentation
-├── JiraTickets/             # Jira ticket templates for issue tracking
-├── tempClaudecomms/         # Temporary command files for SSH operations
-└── Claude Code prompts/     # Custom prompts and instructions for Claude Code
+├── docs/                     # Project documentation
+├── JiraTickets/             # Jira ticket templates
+├── tempClaudecomms/         # SSH command files
+└── Claude Code Prompts/     # Specialized instructions
 ```
 
-## 🔧 Development Environment
+## 🚀 Quick Start
 
-### **Critical Requirements**
-- **Node.js**: 18.x.x or higher
-- **Port**: Always use **8080** (NOT 5000 - conflicts with macOS AirPlay)
-- **Database**: PostgreSQL (AWS Lightsail for dev, Neon for production)
-- **Workshop Separation**: AST and IA are completely separate systems
-
-### **Quick Start Commands**
 ```bash
-# Initial setup
-cd /Users/bradtopliff/Desktop/HI_Replit
-git checkout development
-git pull origin development
-
-# Install dependencies
-npm install
-
-# Start development environment
-# Single command from root (runs both server and client)
-npm run dev
-
-# Application runs on: http://localhost:8080
+npm install                   # Install dependencies
+npm run dev:hmr               # Start development (client+server with Vite HMR on :8080)
+npm run build                 # Production build
+npm test                      # Run tests
 ```
 
-### **Environment Files Required**
-```bash
-# Server environment
-server/.env.development
-server/.env.staging  
-server/.env.production
+**Requirements:** Node.js 18+, Port 8080 (NOT 5000), PostgreSQL
+**Environment Files:** `server/.env.*` and `client/.env.*`
+**Server-only note:** `npm run dev` runs only the Express API (no Vite/HMR). Use for backend-only work or when serving a prebuilt client.
 
-# Client environment
-client/.env.development
-client/.env.staging
-client/.env.production
-```
+## 🔄 Environment Progression
 
-## 🚨 Critical Workshop Separation Rules
+| Environment | Database | URL | Purpose | Commands |
+|-------------|----------|-----|---------|----------|
+| Development | Local/RDS | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
+| Staging | RDS | app2.heliotropeimaginal.com | Pre-production testing | See `DEPLOYMENT-QUICK-REFERENCE.md` |
+| Production | RDS | app.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
 
-### **NEVER MIX AST AND IA WORKSHOPS**
+**Deployment Flow**: Local development → Staging validation → Production release  
+**Database Strategy**: Local DB (destructive ops) / RDS (safe development) → RDS Staging → RDS Production  
+**Version Flow**: DEV builds → STAGING semantic → PRODUCTION release  
+**Testing Rule**: Always validate in staging before production deployment
 
-**AST (AllStarTeams):**
-- Blue color theme
-- Step IDs: `1-1`, `1-2`, `2-1`, `2-2`, `3-1`, `3-2`
-- Routes: `/workshop/ast/*`
-- API endpoints: `/api/ast/*`
+## 🚨 Workshop Separation
 
-**IA (Imaginal Agility):**
-- Purple color theme  
-- Step IDs: `ia-1-1`, `ia-1-2`, `ia-2-1`, `ia-2-2`
-- Routes: `/workshop/ia/*`
-- API endpoints: `/api/ia/*`
+| Workshop | Color | Routes | API | Step IDs |
+|----------|-------|--------|-----|----------|
+| **AST** (AllStarTeams) | Blue | `/workshop/ast/*` | `/api/ast/*` | `1-1`, `1-2`, `2-1`, `2-2`, `3-1`, `3-2` |
+| **IA** (Imaginal Agility) | Purple | `/workshop/ia/*` | `/api/ia/*` | `ia-1-1`, `ia-1-2`, `ia-2-1`, `ia-2-2` |
 
-**Always specify which workshop when working on features!**
+**RULE**: Never mix workshops - no cross-workshop data sharing or UI contamination  
+**REQUIREMENT**: Always specify workshop type when working on features
 
-## 🔄 Git Workflow Standards
+## 🔄 Git Workflow
 
-### **Important Git Rules**
-```bash
-# ✅ ALWAYS use explicit messages (avoid quote> prompts)
-git commit -m "Your message here"
-git tag -a v1.0.0 -m "Version message"
-git merge --no-ff branch-name -m "Merge message"
-
-# ❌ NEVER use these (causes terminal hangs)
-git commit
-git tag -a v1.0.0
-git merge --no-ff branch-name
-```
-
-### **Branch Strategy**
+**Branches:**
 - **main**: Production-ready code
-- **development**: Active development (primary branch)
+- **development**: Active development (primary branch)  
 - **feature/**: New features
 - **hotfix/**: Critical production fixes
 
-## 🗄️ Database & Environment Management
-
-### **Database Environments**
-- **Development**: AWS RDS PostgreSQL (`ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com`) - safe for testing
-- **Staging**: app2.heliotropeimaginal.com  
-- **Production**: app.heliotropeimaginal.com (PROTECTED)
-
-### **✅ UPDATED: Development Database Strategy**
-The development environment uses a **flexible database approach** based on the type of work being performed:
-
+**Safe Commands** (always use `-m` to avoid terminal hangs):
 ```bash
-# Local development database (for dangerous operations)
-DATABASE_URL=postgresql://bradtopliff@localhost:5432/heliotrope_dev
-
-# Production RDS database (for safe development)
-DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require
+git commit -m "Your message here"
+git tag -a v1.0.0 -m "Version message"  
+git merge --no-ff branch-name -m "Merge message"
 ```
 
-**Database Selection Guidelines:**
-- **Use LOCAL database when:**
-  - Testing schema migrations or database changes
-  - Experimenting with AI training documents
-  - Developing features that modify user data
-  - Running potentially destructive operations
-  - Testing data import/export scripts
+## 🗄️ Database & Environment Variables
 
-- **Use PRODUCTION RDS when:**
-  - Working on UI changes or frontend features
-  - Testing API endpoints that only read data
-  - Debugging with real data patterns
-  - Developing features that don't modify database structure
+**Required Environment Variables:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `SESSION_SECRET` - Session encryption key
+- `CLAUDE_API_KEY` - AI integration key
+- `OPENAI_API_KEY` - AI integration key
+- `NODE_ENV` - Environment (development/staging/production)
+- `ENVIRONMENT` - Deployment environment
+- `NODE_TLS_REJECT_UNAUTHORIZED` - SSL handling (0 for dev)
 
-**Key Points:**
-- **Development**: Switch between local (`heliotrope_dev`) and production RDS as needed
-- **Staging/Production**: Both use AWS RDS database (shared for beta testing continuity)
-- **Beta Testing**: Protected by using local database for dangerous development
-- **Data Safety**: Local database for experimentation, production RDS for safe development
+**Database Selection:**
+- **Local DB** (`postgresql://localhost:5432/heliotrope_dev`): Schema changes, AI training, destructive operations
+- **RDS DB**: UI development, read-only testing, staging/production
 
-**Local Database Management:**
+**Commands:**
 ```bash
-# Connect to local development database
-psql heliotrope_dev
-
-# Reset local database if needed (safe to do anytime)
-dropdb heliotrope_dev && createdb heliotrope_dev
-DATABASE_URL="postgresql://bradtopliff@localhost:5432/heliotrope_dev" npx drizzle-kit push
-
-# Check local database status
-psql heliotrope_dev -c "\dt"  # List tables
-psql heliotrope_dev -c "SELECT username, role FROM users LIMIT 10;"  # Check users
-
-# Switch to local database for dangerous operations
-export DATABASE_URL="postgresql://bradtopliff@localhost:5432/heliotrope_dev"
-npm run dev
-
-# Switch back to production RDS for normal development
-export DATABASE_URL="postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require"
-npm run dev
+npm run db:migrate      # Run migrations
+npm run db:seed        # Seed test data
+psql heliotrope_dev    # Connect to local DB
 ```
 
-**⚠️ IMPORTANT:** Always use local database when working with AI training documents, schema changes, or any operations that could affect live beta testing data.
+**Admin Access**: `/admin` (credentials in `.env` files)
 
-### **Environment Safety**
+## 🚩 Feature Flags
+
+**Configuration Files:**
+- **Server**: `server/utils/feature-flags.ts`
+- **Client**: `client/src/utils/featureFlags.ts`
+
+**Toggle Pattern:**
 ```bash
-# Safe development commands
-npm run dev              # Development server
-npm run build           # Production build
-npm run test            # Run tests
-
-# Database operations (RDS development database)
-npm run db:migrate      # Run migrations on RDS
-npm run db:seed        # Seed test data on RDS  
-npm run db:reset       # Reset RDS database (USE WITH CAUTION)
-
-# Direct RDS database access
-NODE_TLS_REJECT_UNAUTHORIZED=0 PGPASSWORD=HeliotropeDev2025 psql -h ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com -U dbmasteruser -d postgres
-```
-
-### **Admin Access**
-```bash
-# Admin credentials for development/staging
-Username: admin
-Password: Heliotrope@2025
-
-# Admin endpoints
-/admin                   # Admin dashboard
-/api/reports/holistic/admin/reset  # Reset all holistic reports (DELETE)
-/api/reports/holistic/admin/list   # List all reports (GET)
-```
-
-## 🚩 Feature Flag System
-
-### **Server Flags** (`server/utils/feature-flags.ts`)
-```typescript
-export const featureFlags = {
-  workshopLocking: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'Lock workshop inputs after completion'
-  },
-  holisticReports: {
-    enabled: process.env.FEATURE_HOLISTIC_REPORTS !== 'false',  // ✅ ENABLED BY DEFAULT
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'Claude API-powered personalized reports',
-    aiRelated: true
-  },
-  facilitatorConsole: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'Facilitator cohort management system'
-  },
-  aiCoaching: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'AI-powered coaching chatbot system',
-    aiRelated: true
-  },
-  videoManagement: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'Enhanced video management and progress tracking'
-  },
-  debugPanel: {
-    enabled: process.env.FEATURE_DEBUG_PANEL === 'true',  // ⚡ DEV ONLY
-    environment: 'development',
-    description: 'Development debugging panel and tools'
-  },
-  feedbackSystem: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'User feedback collection and management system'
-  }
-};
-```
-
-### **Client Flags** (`client/src/utils/featureFlags.ts`)
-```typescript
-export const clientFeatureFlags = {
-  debugPanel: {
-    enabled: import.meta.env.VITE_FEATURE_DEBUG_PANEL === 'true',  // ⚡ DEV ONLY
-    environment: 'development',
-    description: 'Development debugging panel and tools'
-  },
-  feedbackSystem: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'User feedback collection and management system'
-  },
-  videoManagement: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'Enhanced video management features'
-  },
-  reflectionModal: {
-    enabled: true,
-    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
-    description: 'Original modal-based Reflection Talia interface'
-  }
-};
-```
-
-### **Production Environment Variables**
-```bash
-# All features enabled for production
-NODE_ENV=production
-ENVIRONMENT=production
-CLAUDE_API_KEY=your-claude-api-key-here
+# Environment variables in .env files
 FEATURE_HOLISTIC_REPORTS=true
-FEATURE_DEBUG_PANEL=false  # Keep disabled in production
-DATABASE_URL=postgresql://production_connection_string
-SESSION_SECRET=production_secret_key
-```
-
-## 🔧 Common Development Tasks
-
-### **Adding New Features**
-1. **Create feature flag** (if needed)
-2. **Determine workshop type** (AST, IA, or both)
-3. **Create appropriate routes/API endpoints**
-4. **Implement with workshop separation**
-5. **Add comprehensive tests**
-
-### **API Development**
-```bash
-# API endpoint structure
-/api/ast/workshop-data/step     # AST-specific endpoints
-/api/ia/workshop-data/step      # IA-specific endpoints  
-/api/shared/users               # Shared endpoints
-/api/admin/dashboard            # Admin-only endpoints
-```
-
-### **Component Development**
-```bash
-# Component organization
-client/src/components/
-├── ui/                    # Reusable UI components
-├── content/
-│   ├── allstarteams/     # AST-specific components
-│   └── imaginal-agility/ # IA-specific components
-└── shared/               # Cross-workshop components
-```
-
-## 🧪 Testing Strategy
-
-### **Test Types**
-```bash
-# Unit tests
-npm run test                    # Run all tests
-npm run test:watch             # Watch mode
-npm run test:coverage          # Coverage report
-
-# Integration tests  
-npm run test:integration       # API integration tests
-
-# E2E tests
-npm run test:e2e              # End-to-end tests
-
-# Workshop separation tests
-npm run test:separation       # Validate AST/IA separation
-```
-
-### **Test Workshop Separation**
-```typescript
-// Always test both workshops when making changes
-describe('Feature X', () => {
-  it('should work for AST workshop', () => {
-    // Test AST-specific behavior
-  });
-  
-  it('should work for IA workshop', () => {
-    // Test IA-specific behavior  
-  });
-  
-  it('should not allow cross-workshop contamination', () => {
-    // Test data isolation
-  });
-});
-```
-
-## 📊 Performance Monitoring (KAN-147)
-
-### **Bundle Size Tracking**
-Automated performance monitoring tracks bundle sizes and enforces performance budgets.
-
-```bash
-# Check current bundle size (without rebuild)
-npm run bundle:analyze
-
-# Full build + bundle analysis
-npm run bundle:check
-
-# Normal build (includes automatic analysis)
-npm run build
-```
-
-### **Performance Budgets**
-- **Main Bundle**: 500 KB gzipped (⚠️ Currently **FAILING** at 639 KB)
-- **Total Assets**: 1000 KB gzipped (✅ Currently **PASSING** at 693 KB)
-- **Warning Threshold**: 90% of budget
-
-### **Current Bundle Status**
-```bash
-📦 Main bundle: 639KB gzipped  ❌ EXCEEDS BUDGET
-📦 Total assets: 693KB gzipped ✅ Within budget
-🎯 Budget status: Main=FAIL, Total=PASS
-```
-
-### **Performance History**
-All measurements tracked in `/docs/performance-tracking/bundle-size-history.json`:
-- **Retention**: Last 50 builds
-- **Metrics**: Bundle sizes, budget compliance, timestamps
-- **Trends**: Track size increases over time
-
-### **Code Splitting Potential**
-Based on KAN-147 experiments:
-- **72% reduction possible**: 639 KB → 165 KB gzipped
-- **Route-based splitting**: Separate chunks per workshop
-- **Implementation blocked**: Module resolution conflicts (see implementation report)
-
-### **Optimization Priority**
-1. **High**: Implement code splitting (see `/JiraTickets/KAN-147-implementation-report.md`)
-2. **Medium**: Audit and remove unused dependencies
-3. **Low**: Compress assets and static files
-
-### **Performance Monitoring Documentation**
-Detailed monitoring setup and analysis: `/docs/performance-tracking/README.md`
-
-## 🔍 Debugging & Troubleshooting
-
-### **Common Issues & Solutions**
-
-**Port Conflicts:**
-```bash
-# Check what's using port 8080
-lsof -i :8080
-
-# Kill process on port 8080
-lsof -ti:8080 | xargs kill -9
-
-# macOS AirPlay uses port 5000 - always use 8080
-```
-
-**Build Failures:**
-```bash
-# Clear all caches
-npm cache clean --force
-rm -rf node_modules package-lock.json client/dist client/.vite
-npm install
-
-# Memory issues
-export NODE_OPTIONS="--max-old-space-size=8192"
-npm run build
-```
-
-**Database Connection Issues:**
-```bash
-# Test database connection
-curl http://localhost:8080/api/health
-
-# Check environment variables
-echo $DATABASE_URL
-
-# Test PostgreSQL connection
-psql $DATABASE_URL -c "SELECT version();"
-```
-
-### **Health Check Endpoints**
-```bash
-# Basic health check (CORRECT ENDPOINT)
-curl http://localhost:8080/health
-
-# Feature flag status (development only)
-curl http://localhost:8080/api/workshop-data/feature-status
-
-# Production health check
-curl https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/health
-curl https://app2.heliotropeimaginal.com/health
-```
-
-**⚠️ IMPORTANT:** Health endpoint is `/health` NOT `/api/health`
-
-## 🤖 AI Integration (Claude API)
-
-### **AI Features**
-- **Holistic Reports**: AI-generated personalized development reports
-- **Coaching Interface**: Interactive AI coaching for workshop participants
-- **Content Generation**: Dynamic workshop content and insights
-
-### **Claude API Configuration**
-```bash
-# Environment variables required
-CLAUDE_API_KEY=your-claude-api-key-here
+FEATURE_DEBUG_PANEL=false  # Dev only
 FEATURE_AI_COACHING=true
-FEATURE_HOLISTIC_REPORTS=true
 ```
 
-### **API Key Location**
+**Main Features**: Workshop locking, holistic reports, AI coaching, video management, feedback system, facilitator console
+
+## 🔧 Development Tasks
+
+**Feature Development Checklist:**
+1. Create feature flag (if needed)
+2. Determine workshop type (AST, IA, or both)  
+3. Create appropriate routes/API endpoints
+4. Implement with workshop separation
+5. Add comprehensive tests
+
+**API Structure**: `/api/ast/*`, `/api/ia/*`, `/api/shared/*`, `/api/admin/*`  
+**Components**: `client/src/components/ui/` (shared), `content/allstarteams/` (AST), `content/imaginal-agility/` (IA)  
+**API Documentation**: See `docs/API-ROUTES.md`
+
+## 🧪 Testing
+
+**Commands:**
 ```bash
-# Claude API key stored in:
-/Users/bradtopliff/Desktop/HI_Replit/keys/HI-AST-KEY.txt
+npm test                       # Run all tests
+npm run test:watch            # Watch mode  
+npm run test:coverage         # Coverage report
 ```
 
-### **AI Development Guidelines**
-- Always validate AI responses for safety and accuracy
-- Implement rate limiting for API calls
-- Cache responses when appropriate
-- Provide fallback content when AI is unavailable
+**Workshop Coverage**: Always test both AST and IA workshops for any shared functionality  
+**Separation Testing**: Validate no cross-workshop data contamination  
+**Test Files**: See `__tests__/` directory for examples
 
-## 🚀 Deployment Process
+## 📊 Performance Monitoring
 
-### **AWS Lightsail Infrastructure**
-- **Service Name**: `hi-replit-v2` (⚠️ NEVER create new services)
-- **Container Name**: `allstarteams-app` (NOT hi-app)
-- **Port**: 8080 (NEVER 5000 due to macOS AirPlay conflict)
-- **Region**: us-west-2
+**Budgets:**
+- Main Bundle: 500 KB gzipped (⚠️ Currently 639 KB - FAILING)  
+- Total Assets: 1000 KB gzipped (✅ Currently 693 KB - PASSING)
 
-### **Staging Deployment (VM-Based)**
-⚠️ **UPDATE**: Staging now uses VM deployment due to ARM64/AMD64 compatibility issues with container services.
-
-#### **Option 1: Direct Build Deployment (Recommended)**
+**Commands:**
 ```bash
-# 1. Build application locally with proper structure
-npm run build  # Creates dist/ directory with correct static files
-
-# 2. Create deployment package
-mkdir staging-deploy-package
-cp -r dist/ staging-deploy-package/
-cp -r shared/ staging-deploy-package/
-cp package.json package-lock.json staging-deploy-package/
-
-# 3. Upload to staging VM
-scp -r -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem staging-deploy-package/ ubuntu@34.220.143.127:~/
-
-# 4. Deploy on VM (SSH: ssh -i keys/ubuntu-staging-key.pem ubuntu@34.220.143.127)
-cd ~/staging-deploy-package/
-
-# Create Dockerfile for proper structure
-cat > Dockerfile << 'EOF'
-FROM node:18-alpine
-RUN apk add --no-cache cairo-dev jpeg-dev pango-dev giflib-dev python3 make g++ dumb-init
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps && npm cache clean --force
-COPY dist/ ./dist/
-COPY shared/ ./shared/
-RUN adduser -D -s /bin/sh appuser && chown -R appuser:appuser /app
-USER appuser
-EXPOSE 8080
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/index.js"]
-EOF
-
-# Create environment file
-cat > staging.env << 'ENVEOF'
-NODE_ENV=staging
-DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require
-SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal
-NODE_TLS_REJECT_UNAUTHORIZED=0
-ENVIRONMENT=development
-CLAUDE_API_KEY=your-claude-api-key-here
-OPENAI_API_KEY=your-openai-api-key-here
-FEATURE_HOLISTIC_REPORTS=true
-FEATURE_DEBUG_PANEL=false
-ENVEOF
-
-# Stop old container and deploy new one
-sudo docker stop staging-app || true
-sudo docker rm staging-app || true
-sudo docker build -t staging-app .
-sudo docker run -d --name staging-app -p 8080:8080 --env-file staging.env --restart unless-stopped staging-app
-
-# ⚠️ CRITICAL FIX: Server expects static files at /dist/public but they're at /app/dist/public
-sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
-
-# Verify deployment
-curl http://34.220.143.127/health
-curl http://34.220.143.127/  # Should show HTML page
+npm run bundle:analyze         # Check bundle size
+npm run build                 # Build with analysis
 ```
 
-#### **Option 2: ECR-Based Deployment**
+**Optimization**: 72% reduction possible via code splitting (see `/JiraTickets/KAN-147-implementation-report.md`)  
+**Tracking**: See `docs/performance-tracking/README.md`
+
+## 🔍 Troubleshooting
+
+**Port Issues**: Use port 8080 (NOT 5000 - macOS AirPlay conflict)  
 ```bash
-# 1. Build with staging environment
-./update-version.sh 1.0.0 staging
-npm run build:staging
-
-# 2. Build AMD64-compatible Docker image
-docker build --platform linux/amd64 -t staging-amd64 .
-
-# 3. Tag and push to ECR
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
-docker tag staging-amd64 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-$(date +%Y%m%d-%H%M)
-docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-$(date +%Y%m%d-%H%M)
-
-# 4. Deploy to VM
-# Access: https://lightsail.aws.amazon.com/ → hi-staging-vm → Connect using SSH
-# VM IP: 34.220.143.127
-
-# Deploy container
-sudo docker stop staging-app || true
-sudo docker rm staging-app || true
-sudo docker run -d --name staging-app -p 8080:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-[TAG]
-
-# ⚠️ Apply static files fix if needed
-sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
-
-# Verify: http://34.220.143.127
+lsof -ti:8080 | xargs kill -9  # Kill process on port 8080
 ```
 
-#### **Common Staging Issues and Solutions**
-
-**Static Files Not Found Error:**
+**Build Issues**: Clear caches and reinstall
 ```bash
-# Symptom: "Error: ENOENT: no such file or directory, stat '/dist/public/index.html'"
-# Root Cause: Server hardcoded to serve from /dist/public but files are at /app/dist/public
-# Solution: Copy files to expected location
-sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
+npm cache clean --force && rm -rf node_modules && npm install
 ```
 
-**Port Already in Use Error:**
+**Health Check**: 
 ```bash
-# Symptom: "bind: address already in use" on port 80
-# Root Cause: nginx running on port 80, old Node.js process on port 8080  
-# Solution: Kill old process, use port 8080 (nginx proxies 80→8080)
-sudo kill [OLD_PID]  # Find PID with: sudo ss -tulnp | grep :8080
-sudo docker run -d --name staging-app -p 8080:8080 --env-file staging.env --restart unless-stopped [IMAGE]
+curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 ```
 
-**Container Build Failures:**
-```bash
-# Symptom: "COPY failed: file not found in build context: stat dist/"
-# Root Cause: Wrong Dockerfile structure for actual files
-# Solution: Match Dockerfile COPY commands to actual file structure
-# Check files: ls -la [deploy-directory]/
-# Update Dockerfile COPY commands accordingly
-```
-
-### **SSH Command Guidelines**
-When providing SSH commands:
-- **Single short command**: Display it directly in the conversation for immediate copy/paste
-- **Multiple commands or long commands**: Save to `/tempClaudecomms/` folder to prevent line break issues
-  - Always tell the user which file contains the commands
-  - Include timestamp and clear description in the file
-  - Keep each command on a single line for easy copy/paste
-
-### **SSH Access to Staging VM**
-```bash
-ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
-```
-
-### **Production Deployment Options**
-
-#### **Option 1: Quick Patch Deployment (Recommended for small fixes)**
-```bash
-# For UI fixes, small bug fixes, configuration updates
-# 1. Make changes locally and build
-npm run build
-
-# 2. Build lightweight Docker image
-docker build -t quick-patch .
-PATCH_TAG="patch-$(date +%Y%m%d-%H%M)"
-
-# 3. Tag and push to ECR
-docker tag quick-patch 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PATCH_TAG
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
-docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PATCH_TAG
-
-# 4. Deploy with existing configuration
-cat > patch-deployment.json << EOF
-{
-  "allstarteams-app": {
-    "image": "962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PATCH_TAG",
-    "environment": {
-      "NODE_ENV": "production",
-      "DATABASE_URL": "postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require",
-      "SESSION_SECRET": "dev-secret-key-2025-heliotrope-imaginal",
-      "CLAUDE_API_KEY": "your-claude-api-key-here",
-      "OPENAI_API_KEY": "your-openai-api-key-here",
-      "FEATURE_HOLISTIC_REPORTS": "true",
-      "FEATURE_DEBUG_PANEL": "false",
-      "NODE_TLS_REJECT_UNAUTHORIZED": "0",
-      "ENVIRONMENT": "production"
-    },
-    "ports": {
-      "8080": "HTTP"
-    }
-  }
-}
-EOF
-
-aws lightsail create-container-service-deployment \
-  --region us-west-2 \
-  --service-name hi-replit-v2 \
-  --containers file://patch-deployment.json \
-  --public-endpoint file://production-public-endpoint.json
-```
-
-#### **Option 2: Dependency-Fixed Deployment (For dependency issues)**
-```bash
-# Use when encountering module not found errors or dependency issues
-# Build on staging VM with ALL dependencies included
-
-# 1. SSH to staging VM and build fixed image
-ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
-
-# 2. On staging VM - create production build directory
-mkdir -p production-build
-cd production-build
-
-# 3. Copy application files and create fixed Dockerfile
-# (Copy dist/, shared/, package*.json from local build)
-
-cat > Dockerfile.dependency-fix << 'EOF'
-FROM node:18-alpine
-
-# Install system dependencies for canvas and build tools
-RUN apk add --no-cache \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev \
-    python3 \
-    make \
-    g++ \
-    dumb-init
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install ALL dependencies (including dev dependencies for modules like drizzle-zod)
-RUN npm ci --legacy-peer-deps && npm cache clean --force
-
-# Copy application files
-COPY dist/ ./dist/
-COPY shared/ ./shared/
-
-# Create non-root user
-RUN adduser -D -s /bin/sh appuser && chown -R appuser:appuser /app
-USER appuser
-
-# Expose port
-EXPOSE 8080
-
-# Start application
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/index.js"]
-EOF
-
-# 4. Build, tag, and push fixed image
-FIXED_TAG="production-dependency-fixed-$(date +%Y%m%d-%H%M)"
-sudo docker build -f Dockerfile.dependency-fix -t $FIXED_TAG .
-sudo docker tag $FIXED_TAG 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$FIXED_TAG
-aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
-sudo docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$FIXED_TAG
-
-# 5. Deploy to production (run locally)
-# Use the deployment configuration with the fixed tag
-```
-
-#### **Option 3: Full Tagged Release (For major versions)**
-```bash
-# For major releases, new features, version milestones
-# Always test in staging first
-
-# 1. Create production tag (single-line format)
-git checkout development
-git pull origin development
-git tag -a v1.x.x -m "Production release v1.x.x - AST/IA platform"
-git push origin v1.x.x
-
-# 2. Build from tagged version
-git checkout v1.x.x
-docker build -t allstarteams-app:v1.x.x .
-
-# 3. Push tagged container to ECR
-PROD_TAG="production-v$(git describe --tags)"
-docker tag allstarteams-app:v1.x.x 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PROD_TAG
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
-docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PROD_TAG
-
-# 4. Deploy with production configuration
-# Use standard deployment.json with new image tag
-```
-
-### **Critical Deployment Configuration**
-
-#### **Required Configuration Files**
-```bash
-# production-public-endpoint.json (⚠️ IMPORTANT: Correct health check path)
-{
-  "containerName": "allstarteams-app",
-  "containerPort": 8080,
-  "healthCheck": {
-    "healthyThreshold": 5,
-    "unhealthyThreshold": 5,
-    "timeoutSeconds": 60,
-    "intervalSeconds": 90,
-    "path": "/health",
-    "successCodes": "200-499"
-  }
-}
-
-# ⚠️ CRITICAL: Health check path MUST be "/health" NOT "/api/health"
-# Deployments will fail to activate with incorrect health check path
-```
-
-#### **Custom Domain Configuration**
-```bash
-# Production URLs (both working after Route 53 DNS fix):
-# ✅ https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/
-# ✅ https://app2.heliotropeimaginal.com/
-
-# Route 53 Configuration:
-# Record: app2.heliotropeimaginal.com
-# Type: CNAME
-# Value: hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
-# TTL: 300
-```
-
-### **Deployment Health Checks**
-```bash
-# Verify staging deployment (VM)
-curl -I http://34.220.143.127/
-curl http://34.220.143.127/health
-
-# Verify production deployment (both URLs)
-curl -I https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/
-curl -I https://app2.heliotropeimaginal.com/
-
-# Check health endpoints
-curl https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/health
-curl https://app2.heliotropeimaginal.com/health
-
-# Monitor deployment status
-aws lightsail get-container-services \
-  --region us-west-2 \
-  --service-name hi-replit-v2 \
-  --query 'containerServices[0].{state: state, currentVersion: currentDeployment.version, nextVersion: nextDeployment.version, nextState: nextDeployment.state}'
-
-# Check container logs for errors
-aws lightsail get-container-log \
-  --region us-west-2 \
-  --service-name hi-replit-v2 \
-  --container-name allstarteams-app | tail -20
-```
-
-### **Semantic Versioning System**
-- **Development**: Date-based versioning (e.g., `DEV v2025.07.25.0929`)
-- **Staging**: Semantic versioning starting from `v2.0.1` (e.g., `STAGING v2.0.3.0929`)
-- **Production**: No navbar badge, version shown in admin/test dashboards only
-
-### **Version Management Commands**
-```bash
-# Staging builds (increments version automatically)
-npm run build:staging          # Patch version (2.0.1 → 2.0.2)
-npm run build:staging:minor    # Minor version (2.0.3 → 2.1.0)  
-npm run build:staging:major    # Major version (2.1.0 → 3.0.0)
-
-# Manual version setting
-./version-manager.sh staging 2.1.5  # Set specific version
-
-# Production (uses current staging version)
-npm run build:production
-```
-
-### **Critical Deployment Rules**
-- ⚠️ **Always use `-m "message"` with git commands** (avoid quote> prompts)
-- ⚠️ **Port 8080 only** (macOS AirPlay uses 5000)
-- ⚠️ **Health check timeout max 60 seconds** (not 90)
-- ⚠️ **Health check path MUST be "/health"** (NOT "/api/health")
-- ⚠️ **Test staging before production deployment**
-- ⚠️ **Use existing service `hi-replit-v2`** (don't create new services)
-- ⚠️ **Build with `--platform linux/amd64`** for VM/container compatibility on Apple Silicon
-- ⚠️ **ECR image tags must include architecture suffix** (e.g., `-amd64`) for VM deployments
-- ⚠️ **Include `NODE_TLS_REJECT_UNAUTHORIZED=0`** in environment for database SSL issues
-- ⚠️ **Use version-manager.sh** for proper semantic versioning
-- ⚠️ **ALWAYS apply static files fix on staging VM** after deployment
-- ⚠️ **Verify deployment with both `/health` and `/` endpoints**
-- ⚠️ **Use `npm run build` (not `npm run build:staging`) for proper dist/ structure**
-
-### **Deployment Lessons Learned (August 2025)**
-
-#### **Static Files Architecture Issue**
-**Problem**: Server is hardcoded to serve static files from absolute path `/dist/public` but Docker containers place files at `/app/dist/public`.
-
-**Root Cause**: The Express static middleware configuration expects files at container root `/dist/public`, not within the app directory.
-
-**Permanent Solutions**:
-1. **Fix server code** to use relative paths or environment variable
-2. **Update build process** to create proper directory structure
-3. **Modify Dockerfile** to place files at expected locations
-
-**Temporary Workaround** (always required on staging VM):
-```bash
-sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
-```
-
-#### **VM Deployment Architecture Benefits**
-**Advantages over ECR-based deployment**:
-- ✅ **Direct build control**: Can fix file structure issues immediately
-- ✅ **No dependency conflicts**: Full control over npm install process  
-- ✅ **Easier debugging**: Direct container access for troubleshooting
-- ✅ **Faster iteration**: No ECR push/pull delays
-- ✅ **Real-time fixes**: Can apply post-deployment fixes instantly
-
-**Recommended Process**:
-1. **Local build** creates proper `dist/` structure with `npm run build`
-2. **Upload package** via SCP to staging VM
-3. **Build Docker image** directly on VM with proper Dockerfile
-4. **Deploy container** with environment configuration
-5. **Apply static files fix** as mandatory post-deployment step
-6. **Verify with multiple endpoints** (`/health`, `/`, and key assets)
-
-#### **Common Error Patterns and Solutions**
-| Error | Root Cause | Solution |
-|-------|------------|----------|
-| `ENOENT: no such file or directory, stat '/dist/public/index.html'` | Static files path mismatch | Apply static files fix |
-| `bind: address already in use` | Port conflict with nginx/old process | Use port 8080, kill old process |
-| `COPY failed: file not found in build context: stat dist/` | Wrong Dockerfile structure | Match COPY commands to actual files |
-| `Cannot GET /api/health` | Wrong health endpoint | Use `/health` not `/api/health` |
-| Container starts then exits | Missing dependencies | Use dependency-fixed Dockerfile |
-
-### **Common Deployment Issues & Solutions**
-
-#### **Issue: Deployment Stuck in ACTIVATING State**
-**Symptoms:** Deployment shows "ACTIVATING" for extended period
-**Cause:** Incorrect health check path in configuration
-**Solution:** 
-```bash
-# Check health check configuration in production-public-endpoint.json
-# Ensure path is "/health" not "/api/health"
-# Update and redeploy with correct configuration
-```
-
-#### **Issue: Module Not Found Errors (drizzle-zod, etc.)**
-**Symptoms:** Container starts then crashes with ERR_MODULE_NOT_FOUND
-**Cause:** Production Docker build excludes dev dependencies
-**Solution:** Use Option 2 (Dependency-Fixed Deployment) - build on staging VM with ALL dependencies
-
-#### **Issue: Custom Domain Not Working**
-**Symptoms:** Custom domain times out, Lightsail URL works
-**Cause:** DNS record points to wrong IP address
-**Solution:**
-```bash
-# Check DNS resolution
-nslookup app2.heliotropeimaginal.com
-nslookup hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
-
-# Update Route 53 CNAME record to point to Lightsail service
-# Record: app2 (not full domain)
-# Type: CNAME
-# Value: hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
-```
-
-#### **Issue: Container Restarts with SIGTERM**
-**Symptoms:** Container starts successfully then receives SIGTERM
-**Cause:** Health check failures or missing dependencies
-**Solution:** Check container logs for specific error messages, ensure health endpoint works
-
-## 🤖 Claude Code Integration & Capabilities
-
-### **What Claude Code CAN Do**
-- ✅ **Local Development**: Read, write, edit files in the project directory
-- ✅ **Build & Package**: Run npm scripts, Docker builds, version management
-- ✅ **Code Analysis**: Search, debug, analyze codebase issues
-- ✅ **Command Preparation**: Create deployment scripts in `/tempClaudecomms/`
-- ✅ **Jira Ticket Creation**: Write detailed tickets in `/JiraTickets/` folder
-- ✅ **AWS ECR Operations**: Login, build, tag, and push Docker images
-- ✅ **Git Operations**: Commits, branching, tagging (with proper `-m` flags)
-- ✅ **Documentation**: Update CLAUDE.md, create technical documentation
-- ✅ **Issue Troubleshooting**: Analyze logs, console output, error messages
-- ✅ **Custom Prompts**: Read and execute specialized prompts from `/Claude Code prompts/`
-
-### **What Claude Code CANNOT Do**
-- ❌ **SSH Access**: Cannot directly SSH into servers or VMs
-- ❌ **Remote Execution**: Cannot run commands on staging/production servers
-- ❌ **Direct Jira Access**: Cannot create tickets directly in Jira system
-- ❌ **Server Management**: Cannot restart services, check server status directly
-- ❌ **Database Access**: Cannot directly query or modify databases
-- ❌ **Live Debugging**: Cannot interact with running applications in real-time
-
-### **Command Handoff Process**
-1. **Claude Prepares Commands**: Creates files in `/tempClaudecomms/` with exact commands
-2. **User Executes**: Copy/paste commands to appropriate environment (local/SSH/etc.)
-3. **Results Feedback**: User shares output/errors back to Claude for analysis
-4. **Iterative Resolution**: Claude analyzes results and prepares next steps
-
-**Example Flow:**
-```bash
-# Claude creates: /tempClaudecomms/deploy-staging.txt
-# User runs on VM: ssh ubuntu@staging-server
-# User executes: commands from deploy-staging.txt
-# User reports: "deployment successful" or shares error output
-# Claude analyzes and prepares next steps
-```
-
-### **Custom Prompt Management**
-The `/Claude Code prompts/` folder contains specialized prompts and instructions for specific tasks:
-
-**Usage Process:**
-1. **Request Prompt**: User asks Claude to read specific prompt from the folder
-2. **Execute Instructions**: Claude reads and follows the prompt's instructions
-3. **Complete Task**: Claude performs the specialized task as directed
-4. **Archive When Done**: When prompt is no longer needed, append `-archive` to filename
-
-**Naming Convention:**
-- Active prompts: `task-description.md` or `feature-name.txt`
-- Archived prompts: `task-description-archive.md` or `feature-name-archive.txt`
-
-**Example:**
-```bash
-# Active prompt
-/Claude Code prompts/database-migration-helper.md
-
-# After completion, rename to
-/Claude Code prompts/database-migration-helper-archive.md
-```
-
-This system allows for:
-- Reusable specialized instructions
-- Complex multi-step task automation  
-- Historical tracking of completed processes
-- Clean organization of active vs. completed prompts
-
-## 📊 Project Management Integration
-
-### **Jira Projects**
-- **SA**: Strategic ideas and product discovery
-- **KAN**: Development tasks and bugs  
-- **AWB**: Assets and brand materials
-- **CR**: Research and experiments
-
-### **Jira Ticket Management Process**
-When Claude Code identifies issues that require Jira tickets:
-
-1. **Ticket Creation**: Claude writes ticket details in `/JiraTickets/` folder using this format:
-   - Filename: `[PROJECT]-[brief-description].md` (e.g., `KAN-excessive-debug-logging.md`)
-   - Contains: Issue type, project, priority, summary, description, acceptance criteria, technical notes
-   
-2. **Manual Creation**: User copies ticket details from the markdown file and creates the actual Jira ticket
-   
-3. **File Organization**: Keep completed tickets in `/JiraTickets/` for reference and tracking
-
-**Example Ticket Structure:**
-```markdown
-# [PROJECT] - [Title]
-**Issue Type:** Bug/Story/Task
-**Project:** KAN/SA/AWB/CR
-**Priority:** High/Medium/Low
-**Reporter:** Claude Code
-**Date Created:** YYYY-MM-DD
-
-## Summary
-Brief one-line description
-
-## Description
-Detailed description with impact
-
-## Acceptance Criteria
-1. Specific measurable criteria
-2. Technical requirements
-3. Performance targets
-
-## Technical Notes
-- Implementation details
-- Files involved
-- Architecture considerations
-```
-
-### **Confluence Documentation**
-- **SAHI Space**: Product and technical documentation
-- **HI Space**: General project information
-
-## 🔐 Security Considerations
-
-### **Environment Protection**
-- **Development**: Open for experimentation
-- **Staging**: Protected, requires approval
-- **Production**: Highly restricted access
-
-### **Data Security**
-- All user data is workshop-specific
-- No cross-workshop data sharing
-- Secure API key management
-- Regular security audits
-
-## 📝 Documentation Standards
-
-### **Code Documentation**
-```typescript
-// Always document complex functions
-/**
- * Generates holistic report for workshop participant
- * @param userId - Unique identifier for user
- * @param workshopType - Either 'ast' or 'ia'
- * @param includeAIInsights - Whether to include Claude-generated insights
- * @returns Promise<HolisticReport>
- */
-async function generateHolisticReport(
-  userId: string, 
-  workshopType: 'ast' | 'ia',
-  includeAIInsights: boolean = true
-): Promise<HolisticReport>
-```
-
-### **API Documentation**
-- Use OpenAPI/Swagger specifications
-- Document all endpoints with examples
-- Include error response formats
-- Specify workshop-specific requirements
+## 🤖 AI Integration
+
+**Features**: Holistic reports, coaching interface, content generation  
+**Configuration**: `CLAUDE_API_KEY` and `OPENAI_API_KEY` in environment variables  
+**Key Storage**: Keys managed in `keys/` directory (do not commit)  
+**Guidelines**: Validate responses, rate limiting, caching, fallback content
+
+## 🚀 Deployment
+
+**Infrastructure**: AWS Lightsail service `hi-replit-v2`, container `allstarteams-app`, port 8080  
+
+**Deployment Documentation:**
+- **Quick Reference**: `DEPLOYMENT-QUICK-REFERENCE.md`
+- **Checklist**: `DEPLOYMENT-CHECKLIST.md`  
+- **AWS Guide**: `docs/deployment/aws-lightsail-deployment-guide.md`
+- **Version Management**: `./version-manager.sh` for semantic versioning
+- **Environment Access**: See deployment docs for SSH and environment access
+
+**Critical Rules**:
+- Use port 8080 (NOT 5000)
+- Health check path: `/health` (NOT `/api/health`)
+- Always test staging before production
+- Use git commands with `-m` flag
+
+## 🤖 Claude Code Integration
+
+**Capabilities:**
+- ✅ Local development, builds, code analysis
+- ✅ Git operations (with `-m` flags), documentation updates
+- ✅ Command preparation in `/tempClaudecomms/`
+- ✅ Jira ticket creation in `/JiraTickets/`
+- ❌ No SSH access, remote execution, or live debugging
+
+**Command Handoff Process:**
+1. Claude prepares commands in `/tempClaudecomms/`
+2. User executes on appropriate environment  
+3. User shares results/errors for analysis
+4. Iterative resolution
+
+**Custom Prompts**: `/Claude Code Prompts/` folder for specialized task instructions
+
+## 📊 Project Management
+
+**Jira Projects**: SA (strategic), KAN (development), AWB (assets), CR (research)  
+**Ticket Process**: Claude creates tickets in `/JiraTickets/` folder, user manually creates in Jira  
+**Confluence**: SAHI space (technical docs), HI space (general info)
+
+## 🔐 Security & Standards
+
+**Environment Protection**: Development (open) → Staging (protected) → Production (restricted)  
+**Data Security**: Workshop-specific data, no cross-workshop sharing, secure API key management  
+**Code Documentation**: Use TypeScript JSDoc for complex functions  
+**API Documentation**: See `docs/API-ROUTES.md` for endpoint documentation
 
 ## 🎯 Development Priorities
 
-### **High Priority**
-1. **Workshop Separation**: Maintain strict AST/IA isolation
-2. **Data Integrity**: Prevent cross-workshop contamination
-3. **Performance**: Optimize for user experience
-4. **Security**: Protect user data and API keys
-
-### **Medium Priority**
-1. **Feature Flags**: Gradual rollout of new features
-2. **AI Integration**: Enhance AI-powered features
-3. **Testing**: Comprehensive test coverage
-4. **Documentation**: Keep docs current
-
-### **Low Priority**
-1. **UI Polish**: Visual improvements
-2. **Performance Optimization**: Advanced optimizations
-3. **Analytics**: Usage tracking and insights
+**High**: Workshop separation, data integrity, performance, security  
+**Medium**: Feature flags, AI integration, testing, documentation  
+**Low**: UI polish, advanced optimizations, analytics
 
 ## 🆘 Emergency Procedures
 
-### **Critical Issue Response**
-```bash
-# Application down
-1. Check health endpoints
-2. Review recent deployments
-3. Check database connectivity
-4. Roll back if necessary
+**Application Down**: Check health endpoints → review deployments → check DB → roll back  
+**Data Issues**: Stop writes → assess scope → restore backup → validate integrity  
+**Security**: Rotate API keys → review logs → notify stakeholders → implement fixes
 
-# Data corruption
-1. Stop all writes immediately
-2. Assess damage scope
-3. Restore from backup
-4. Validate data integrity
+**Emergency Contacts**: Development team (technical), DevOps (production), Security team, Product team
 
-# Security breach
-1. Rotate all API keys
-2. Review access logs
-3. Notify stakeholders
-4. Implement additional security
-```
+## 📚 Resources
 
-### **Emergency Contacts**
-- **Technical Issues**: Development team
-- **Production Problems**: DevOps team  
-- **Security Concerns**: Security team
-- **Business Impact**: Product team
+**Documentation**: `docs/` folder for project-specific guides  
+**External**: [Node.js](https://nodejs.org/docs/), [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/docs/), [PostgreSQL](https://www.postgresql.org/docs/)  
+**Services**: [Claude API](https://docs.anthropic.com/), [AWS Lightsail](https://docs.aws.amazon.com/lightsail/)
 
-## 📚 Resources & Links
+## 💡 Claude Code Tips
 
-### **Development Resources**
-- [Node.js Documentation](https://nodejs.org/docs/)
-- [React Documentation](https://react.dev/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-
-### **Project-Specific Resources**
-- [Feature Flag Documentation](docs/feature-flags.md)
-- [API Documentation](docs/api-reference.md)
-- [Deployment Guide](docs/deployment.md)
-- [Troubleshooting Guide](docs/troubleshooting.md)
-
-### **External Services**
-- [Claude API Documentation](https://docs.anthropic.com/)
-- [AWS Lightsail Documentation](https://docs.aws.amazon.com/lightsail/)
-- [Confluence Documentation](https://confluence.atlassian.com/doc/)
-- [Jira Software Documentation](https://confluence.atlassian.com/jira/)
+**Be Specific**: Always specify workshop type (AST/IA) and environment context  
+**Include Errors**: Paste full error messages with file paths and line numbers  
+**Workshop Rule**: Test both AST and IA when making shared changes
 
 ---
 
-## 💡 Tips for Claude Code Assistance
-
-### **Be Specific About Context**
-```bash
-# ✅ Good: Specific request
-"Add a new API endpoint for AST workshop step 2-1 data retrieval with proper workshop validation"
-
-# ❌ Vague: Generic request  
-"Help me with the API"
-```
-
-### **Always Specify Workshop Type**
-```bash
-# ✅ Always clarify
-"Update the AST reflection component to support the new question format"
-"Fix the IA navigation issue on the planning step"
-
-# ❌ Ambiguous
-"Update the reflection component"
-```
-
-### **Include Error Context**
-```bash
-# ✅ Helpful context
-"Getting 'Module not found' error for @/components/ui/Button in the AST workshop pages. Here's the full error: [paste error]"
-
-# ❌ Incomplete
-"Getting an error with imports"
-```
-
-### **Mention Environment**
-```bash
-# ✅ Environment context
-"This is happening in development environment on macOS, port 8080"
-
-# ❌ Missing context
-"This isn't working"
-```
-
----
-
-**Last Updated**: January 2025  
-**Project Version**: v2.1.0  
-**Claude Code Compatible**: ✅
+**Last Updated**: January 2025 | **Project Version**: v2.1.0 | **Claude Code Compatible**: ✅

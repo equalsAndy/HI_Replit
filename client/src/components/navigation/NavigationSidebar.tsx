@@ -1,10 +1,17 @@
 import { Video, BookOpen, Zap, Glasses, PenLine, Download, ChevronRight, CheckCircle, Circle, Clock, Activity } from 'lucide-react';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { CollapsibleSection } from './CollapsibleSection';
-import { navigationSections } from './navigationData';
+import { navigationSections, imaginalAgilityNavigationSections } from './navigationData';
 
-export function NavigationSidebar() {
-  const { progress, getSectionProgressData, sections } = useNavigationProgress();
+interface NavigationSidebarProps {
+  appType?: 'ast' | 'ia';
+}
+
+export function NavigationSidebar({ appType = 'ast' }: NavigationSidebarProps = {}) {
+  const { progress, getSectionProgressData } = useNavigationProgress(appType);
+  
+  // Use the correct sections based on app type
+  const sections = appType === 'ia' ? imaginalAgilityNavigationSections : navigationSections;
 
   // Get section icon based on section ID
   const getSectionIcon = (sectionId: string) => {

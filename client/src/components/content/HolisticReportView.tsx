@@ -311,25 +311,7 @@ export default function HolisticReportView({
                       className="border-purple-200 hover:bg-purple-50 text-purple-700"
                     >
                       <Monitor className="h-4 w-4 mr-2" />
-                      View HTML
-                    </Button>
-                    <Button
-                      onClick={() => handleGenerateReport(reportType)}
-                      variant="outline"
-                      className={`${isDisabledDueToMaintenance ? 'border-gray-300 text-gray-400 cursor-not-allowed' : 'border-blue-200 hover:bg-blue-50 text-blue-700'}`}
-                      disabled={isGenerating || generateReportMutation.isPending || isDisabledDueToMaintenance}
-                    >
-                      {isDisabledDueToMaintenance ? (
-                        <>
-                          <Wrench className="h-4 w-4 mr-2" />
-                          Unavailable
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Regenerate
-                        </>
-                      )}
+                      View Report
                     </Button>
                   </>
                 )}
@@ -410,18 +392,18 @@ export default function HolisticReportView({
 
       {/* Beta Tester Feedback Button - Before Report Generation */}
       {(user?.isBetaTester || user?.role === 'admin') && (
-        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+        <Card className="mb-6 bg-gradient-to-r from-purple-100 to-indigo-100 border-2 border-purple-300 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-purple-900 mb-2 flex items-center gap-2">
                   <MessageSquareText className="w-5 h-5" />
-                  Share Your Workshop Experience
+                  Thank you {user?.name?.split(' ')[0] || 'participant'} for beta testing AllStarTeams!
                 </h3>
                 <p className="text-purple-800 text-sm">
                   {canGiveFeedback 
                     ? "Thank you for completing your workshop! We'd love to hear about your experience with AllStarTeams."
-                    : "Please generate and view BOTH reports below before providing feedback. Once you've reviewed both your Professional and Personal insights, we'd appreciate hearing about your workshop experience."
+                    : "Final feedback will be enabled when you generate and view one or both of your reports below. After reviewing your Professional and/or Personal insights, you'll be able to share your complete workshop experience with us."
                   }
                 </p>
               </div>
@@ -465,11 +447,6 @@ export default function HolisticReportView({
                 well-being insights. This comprehensive version is for your personal growth journey.
               </p>
             </div>
-          </div>
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800 text-sm font-medium">
-              💡 Tip: Generate reports when you're ready to review your complete workshop insights. You can regenerate reports as needed during testing.
-            </p>
           </div>
         </CardContent>
       </Card>

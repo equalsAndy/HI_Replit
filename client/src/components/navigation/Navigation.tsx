@@ -18,7 +18,11 @@ interface NavigationProps {
 export function Navigation({ children, currentStepId }: NavigationProps) {
   const [location] = useLocation();
   const { currentApp } = useApplication();
-  const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
+  
+  // Convert currentApp to app type for navigation hook
+  const appType: 'ast' | 'ia' = currentApp === 'imaginal-agility' ? 'ia' : 'ast';
+  
+  const { updateNavigationSections, setCurrentStep } = useNavigationProgress(appType);
   const [showMobileNav, setShowMobileNav] = useState(false);
 
   // Get user data for content access preference
@@ -309,7 +313,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
           {/* Navigation sidebar on desktop */}
           <div className="hidden md:block md:col-span-1">
             <div className="sticky top-20">
-              <NavigationSidebar />
+              <NavigationSidebar appType={appType} />
             </div>
           </div>
 

@@ -79,7 +79,7 @@ const createUserSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   isTestUser: z.boolean().default(false),
   isBetaTester: z.boolean().default(false),
-  showDemoDataButtons: z.boolean().default(true),
+  showDemoDataButtons: z.boolean().default(false),
   canTrainTalia: z.boolean().default(false),
 });
 
@@ -98,7 +98,7 @@ const editUserSchema = z.object({
   iaAccess: z.boolean(),
   isTestUser: z.boolean(),
   isBetaTester: z.boolean().default(false),
-  showDemoDataButtons: z.boolean().default(true),
+  showDemoDataButtons: z.boolean().default(false),
   canTrainTalia: z.boolean().default(false),
   changePassword: z.boolean().default(false),
   newPassword: z.string().optional(),
@@ -299,7 +299,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       password: '',
       isTestUser: false,
       isBetaTester: false,
-      showDemoDataButtons: true,
+      showDemoDataButtons: false,
     },
   });
 
@@ -317,7 +317,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       iaAccess: true,
       isTestUser: false,
       isBetaTester: false,
-      showDemoDataButtons: true,
+      showDemoDataButtons: false,
       canTrainTalia: false,
       changePassword: false,
       newPassword: '',
@@ -741,7 +741,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
       isTestUser: user.isTestUser || false,
       isBetaTester: user.isBetaTester || false,
-      showDemoDataButtons: user.showDemoDataButtons !== undefined ? user.showDemoDataButtons : true,
+      showDemoDataButtons: user.showDemoDataButtons !== undefined ? user.showDemoDataButtons : false,
       canTrainTalia: user.canTrainTalia || false,
       changePassword: false,
       newPassword: '',
@@ -1452,6 +1452,60 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                     )}
                   />
 
+                  <FormField
+                    control={createForm.control}
+                    name="isBetaTester"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center space-x-3 rounded-md border p-3">
+                          <FormControl>
+                            <Switch 
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              aria-label="Toggle beta tester status"
+                              className="data-[state=checked]:bg-purple-500"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-medium">Beta Tester</FormLabel>
+                            <FormDescription className="text-xs text-muted-foreground">
+                              Mark as beta tester account
+                            </FormDescription>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {(createForm.watch('isTestUser') || createForm.watch('isBetaTester')) && (
+                    <FormField
+                      control={createForm.control}
+                      name="showDemoDataButtons"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-3 rounded-md border p-3">
+                            <FormControl>
+                              <Switch 
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                aria-label="Toggle demo data buttons visibility"
+                                className="data-[state=checked]:bg-blue-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium">Show Demo Data Buttons</FormLabel>
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Grant demo data access to this user (admin-controlled permission)
+                              </FormDescription>
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   <Button 
                     type="submit" 
                     className="w-full"
@@ -1722,7 +1776,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                       )}
                     />
 
-                    {editForm.watch('isTestUser') && (
+                    {(editForm.watch('isTestUser') || editForm.watch('isBetaTester')) && (
                       <FormField
                         control={editForm.control}
                         name="showDemoDataButtons"
@@ -1740,7 +1794,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                               <div className="space-y-1 leading-none">
                                 <FormLabel className="text-sm font-medium">Show Demo Data Buttons</FormLabel>
                                 <FormDescription className="text-xs text-muted-foreground">
-                                  Controls if Test User can see demo data buttons
+                                  Grant demo data access to this user (admin-controlled permission)
                                 </FormDescription>
                               </div>
                             </div>

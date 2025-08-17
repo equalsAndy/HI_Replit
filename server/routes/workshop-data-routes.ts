@@ -2745,7 +2745,8 @@ workshopDataRouter.post('/step', authenticateUser, checkWorkshopLocked, async (r
         target: [workshopStepData.userId, workshopStepData.workshopType, workshopStepData.stepId],
         set: {
           data: data,
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          deletedAt: null // Clear deleted_at to restore soft-deleted records
         }
       })
       .returning();

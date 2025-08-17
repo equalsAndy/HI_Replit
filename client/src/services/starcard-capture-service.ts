@@ -7,6 +7,8 @@
 
 export interface StarCardCaptureOptions {
   userId?: number;
+  username?: string;
+  fullName?: string;
   saveToDatabase?: boolean;
   saveToTempComms?: boolean;
   filename?: string;
@@ -37,6 +39,8 @@ class StarCardCaptureService {
       // Default options
       const {
         userId,
+        username,
+        fullName,
         saveToDatabase = false,
         saveToTempComms = true,
         filename = `starcard-${Date.now()}.png`,
@@ -72,6 +76,8 @@ class StarCardCaptureService {
         body: JSON.stringify({
           imageData: base64Data,
           userId,
+          username,
+          fullName,
           saveToDatabase,
           saveToTempComms,
           filename
@@ -100,12 +106,16 @@ class StarCardCaptureService {
   /**
    * Capture StarCard for current user and save to database
    */
-  async captureForUser(element: HTMLElement, userId: number): Promise<StarCardCaptureResult> {
+  async captureForUser(element: HTMLElement, userId: number, username?: string, fullName?: string): Promise<StarCardCaptureResult> {
+    const cleanUsername = username ? username.replace(/[^a-zA-Z0-9]/g, '_') : `user${userId}`;
+    const cleanFullName = fullName ? fullName.replace(/[^a-zA-Z0-9]/g, '_') : 'Unknown_User';
     return this.captureAndSave(element, {
       userId,
+      username,
+      fullName,
       saveToDatabase: true,
       saveToTempComms: false,
-      filename: `user-${userId}-starcard-${Date.now()}.png`
+      filename: `starcard-${cleanUsername}-${cleanFullName}-${Date.now()}.png`
     });
   }
 
@@ -123,11 +133,11 @@ class StarCardCaptureService {
   /**
    * Auto-capture StarCard when it's complete (utility method)
    */
-  async autoCapture(element: HTMLElement, userId?: number): Promise<StarCardCaptureResult> {
+  async autoCapture(element: HTMLElement, userId?: number, username?: string, fullName?: string): Promise<StarCardCaptureResult> {
     // Determine capture strategy based on whether we have a user ID
     if (userId) {
-      console.log('🎯 Auto-capturing StarCard for user:', userId);
-      return this.captureForUser(element, userId);
+      console.log('🎯 Auto-capturing StarCard for user:', userId, username ? `(${username})` : '', fullName ? `- ${fullName}` : '');
+      return this.captureForUser(element, userId, username, fullName);
     } else {
       console.log('🎯 Auto-capturing StarCard for testing');
       return this.captureForTesting(element, 'auto');

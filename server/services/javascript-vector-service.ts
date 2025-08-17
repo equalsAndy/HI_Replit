@@ -302,6 +302,7 @@ class JavaScriptVectorService {
    * Generate training context string for AI prompts with strict token budgeting
    */
   async generateTrainingContext(query: string, options: SearchOptions = {}): Promise<string> {
+    console.log('🔍 VECTOR SERVICE CALLED:', { query: query.substring(0, 80) + '...', maxResults: options.maxResults, maxTokens: options.maxTokens });
     const results = await this.findSimilarContent(query, options);
     
     if (results.length === 0) {

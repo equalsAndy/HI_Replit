@@ -36,6 +36,14 @@ export default function DownloadStarCardView({
     refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
+  // Fetch user data for filename
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['/api/auth/me'],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+  });
+
   const handleDownload = async () => {
     console.log('Starting star card download...');
     
@@ -46,9 +54,28 @@ export default function DownloadStarCardView({
     }
 
     try {
+      // Create dynamic filename with username, full name, and timestamp
+      const user = (userData as any)?.user || userData;
+      const fullName = user?.name || 'Unknown_User';
+      const username = user?.username || 'unknown';
+      
+      // Clean both name and username for filename (remove spaces and special characters)
+      const cleanFullName = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '_');
+      
+      // Create timestamp in YYYY-MM-DD_HH-MM-SS format
+      const now = new Date();
+      const timestamp = now.toISOString()
+        .replace(/:/g, '-')  // Replace colons with hyphens
+        .replace(/\.\d{3}Z$/, '')  // Remove milliseconds and Z
+        .replace('T', '_');  // Replace T with underscore
+      
+      const filename = `Star_Card-${cleanUsername}-${cleanFullName}-${timestamp}.png`;
+      console.log('Generated filename:', filename);
+      
       // Use the utility function for consistent configuration
       const { downloadElementAsImage } = await import('@/lib/html2canvas');
-      await downloadElementAsImage(starCardRef.current, 'your-star-card.png');
+      await downloadElementAsImage(starCardRef.current, filename);
       
       console.log('Download completed successfully');
       markStepCompleted('5-1');
@@ -85,7 +112,7 @@ export default function DownloadStarCardView({
       };
     }) : [];
 
-  if (starCardLoading || flowLoading) {
+  if (starCardLoading || flowLoading || userLoading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-8">

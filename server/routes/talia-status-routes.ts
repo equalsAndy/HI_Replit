@@ -134,6 +134,11 @@ router.get('/all', async (req, res) => {
                 reflectionStatus.connected || reportsStatus.connected ? 'partial_connection' :
                 'disconnected'
       },
+      // Back-compat summary fields expected by admin UI
+      openai: isOpenAIAPIAvailable(),
+      reflection_talia: !!reflectionStatus.connected,
+      report_talia: !!reportsStatus.connected,
+      response_time: null,
       timestamp: new Date().toISOString()
     });
 

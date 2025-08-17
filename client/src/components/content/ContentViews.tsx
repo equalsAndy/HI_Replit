@@ -90,9 +90,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           stepId={currentContent}
           onNext={(nextStepId) => {
             if (nextStepId && markStepCompleted && setCurrentContent) {
+              console.log(`🧭 IA Navigation: ${currentContent} → ${nextStepId}`);
               markStepCompleted(currentContent);
               setCurrentContent(nextStepId);
               scrollToContentTop();
+              
+              // Dispatch event to notify navigation system about the progression
+              window.dispatchEvent(new CustomEvent('iaStepProgression', {
+                detail: { fromStep: currentContent, toStep: nextStepId }
+              }));
             }
           }}
           onOpenAssessment={() => {

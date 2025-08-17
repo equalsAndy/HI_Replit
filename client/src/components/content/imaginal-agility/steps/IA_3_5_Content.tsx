@@ -88,12 +88,30 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     return [...items].sort((a, b) => (interludeIndexMap[a.id] || 0) - (interludeIndexMap[b.id] || 0));
   }, [interludeIndexMap]);
 
-  const handleInterludeClick = (interlude: InterludeData) => {
+  const handleInterludeClick = async (interlude: InterludeData) => {
     const isSelected = selectedInterludes.some(i => i.id === interlude.id);
     if (isSelected) {
-      setSelectedInterludes(list => list.filter(i => i.id !== interlude.id));
+      // Deselecting - remove from all state and auto-save
+      const newSelectedInterludes = selectedInterludes.filter(i => i.id !== interlude.id);
+      setSelectedInterludes(newSelectedInterludes);
+      
+      // Remove from responses
+      const newResponses = { ...responses };
+      delete newResponses[interlude.id];
+      setResponses(newResponses);
+      
+      // Remove from completed
+      const newCompleted = completed.filter(id => id !== interlude.id);
+      setCompleted(newCompleted);
+      
+      // Auto-save the removal to server immediately
+      await autoSaveCompletionState(newCompleted);
+      
+      console.log(`🗑️ Deselected interlude ${interlude.id} and auto-saved removal to server`);
     } else {
+      // Selecting - just add to selection (no auto-save until completed)
       setSelectedInterludes(list => sortByGridOrder([...list, interlude]));
+      console.log(`🎯 Selected interlude ${interlude.id}`);
     }
   };
 
@@ -112,7 +130,8 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     if (hasIncompleteInterludes) {
       setShowIncompleteWarning(true);
     } else {
-      await saveAll();
+      // No need to manually save - auto-save handles everything
+      console.log('🧭 IA-3-5 calling onNext to ia-3-6');
       onNext && onNext('ia-3-6');
     }
   };
@@ -130,7 +149,8 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     setResponses(newResponses);
     setShowIncompleteWarning(false);
     
-    await saveAll();
+    // Auto-save will handle the server sync automatically
+    console.log('🧭 IA-3-5 calling onNext to ia-3-6 (with incomplete warning)');
     onNext && onNext('ia-3-6');
   };
 
@@ -197,26 +217,69 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
         const res = await fetch('/api/ia/steps/ia-3-5', { credentials: 'include' });
         if (!res.ok) return;
         const json = await res.json();
-        if (!mounted || !json?.data) return;
+        if (!mounted) return;
+        
+        // If server has no data, completely reset all state and clear localStorage
+        if (!json?.data) {
+          console.log('🗑️ Server has no IA-3-5 data - resetting all state');
+          try {
+            // Clear ALL localStorage keys that might contain IA-3-5 data
+            const allKeys = Object.keys(localStorage);
+            const ia35Keys = allKeys.filter(key => 
+              key.includes('ia-3-5') || 
+              key.includes('IA_3_5') || 
+              key.includes('ia_3_5') ||
+              key.includes('IA-3-5') ||
+              key.includes('interlude') ||
+              (key.includes('ia') && key.includes('3') && key.includes('5'))
+            );
+            ia35Keys.forEach(key => {
+              localStorage.removeItem(key);
+              console.log(`🗑️ Removed localStorage key: ${key}`);
+            });
+          } catch {}
+          
+          // Force complete state reset
+          setSelectedInterludes([]);
+          setResponses({});
+          setCompleted([]);
+          setSavedSnapshot({ selected: [], responses: {}, completed: [] });
+          setPatternReflection('');
+          setMomentStory('');
+          setFeelingClaim('');
+          setReflectionStep(0);
+          console.log('🔄 Complete IA-3-5 state reset completed');
+          return;
+        }
+        
         const data = json.data as { selectedInterludes?: string[]; responses?: Record<string, string>; completed?: string[] };
-        let selIds = data.selectedInterludes || [];
-        let resp = data.responses || {};
-        let comp = data.completed || [];
-        // Overlay local draft if present
+        const selIds = data.selectedInterludes || [];
+        const resp = data.responses || {};
+        const comp = data.completed || [];
+        
+        // Server has data - use it as source of truth, ignore any localStorage
+        console.log('💾 Server IA-3-5 data loaded:', { selIds, responses: Object.keys(resp), completed: comp });
+        
+        // Clear any conflicting localStorage to prevent interface confusion
         try {
           const raw = localStorage.getItem(draftKey);
           if (raw) {
-            const draft = JSON.parse(raw) as { selectedInterludes?: string[]; responses?: Record<string,string>; completed?: string[] };
-            if (draft.selectedInterludes?.length) selIds = Array.from(new Set([...selIds, ...draft.selectedInterludes]));
-            if (draft.responses) resp = { ...resp, ...draft.responses };
-            if (draft.completed?.length) comp = Array.from(new Set([...comp, ...draft.completed]));
+            localStorage.removeItem(draftKey);
+            console.log('🗑️ Cleared localStorage draft to prevent conflicts with server data');
           }
         } catch {}
+        
+        // Use ONLY server data - no localStorage overlay
         const sel = idsToInterludes(selIds);
         setSelectedInterludes(sel);
         setResponses(resp);
         setCompleted(comp);
         setSavedSnapshot({ selected: selIds, responses: resp, completed: comp });
+        console.log('🔄 IA-3-5 state set from server data:', { 
+          selected: selIds.length, 
+          responses: Object.keys(resp).length, 
+          completed: comp.length 
+        });
       } catch {}
     })();
     return () => { mounted = false; };
@@ -235,84 +298,100 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     };
   };
 
-  // Lightweight immediate save used by Complete/Unmark toggle
-  const saveCompletedImmediate = async (nextCompleted: string[]) => {
+  // Auto-save when marking complete/incomplete with immediate server sync
+  const autoSaveCompletionState = async (nextCompleted: string[]) => {
     try {
-      const pruned: Record<string, string> = {};
-      nextCompleted.forEach(id => { if (responses[id]) pruned[id] = responses[id]; });
+      setSaving(true);
+      
+      // For completed interludes: save their responses
+      // For incomplete interludes: remove their responses from server
+      const savedResponses: Record<string, string> = {};
+      nextCompleted.forEach(id => {
+        if (responses[id]) {
+          savedResponses[id] = responses[id];
+        }
+      });
+      
       const payload = {
         data: {
-          selectedInterludes: nextCompleted,
-          responses: pruned,
+          selectedInterludes: nextCompleted, // Only save completed interludes
+          responses: savedResponses, // Only save responses for completed interludes
           completed: nextCompleted,
           meta: { lastEditedAt: new Date().toISOString() }
         }
       };
-      await fetch('/api/ia/steps/ia-3-5', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      setSavedSnapshot({ selected: [...nextCompleted], responses: pruned, completed: [...nextCompleted] });
-      setSaveMsg('Saved');
-      setTimeout(() => setSaveMsg(null), 1200);
-    } catch (e) {
-      setSaveMsg('Save failed');
-      setTimeout(() => setSaveMsg(null), 1500);
-    }
-  };
-
-  const saveAll = async () => {
-    setSaving(true);
-    setSaveMsg(null);
-    try {
-      const payload = { data: buildPayload() };
+      
       const res = await fetch('/api/ia/steps/ia-3-5', {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error(await res.text());
-      setSavedSnapshot({ selected: selectedInterludes.map(i => i.id), responses: { ...responses }, completed: [...completed] });
-      setSaveMsg('Saved');
+      
+      if (!res.ok) throw new Error('Save failed');
+      
+      // Update local saved snapshot to match server state
+      setSavedSnapshot({ 
+        selected: [...nextCompleted], 
+        responses: { ...savedResponses }, 
+        completed: [...nextCompleted] 
+      });
+      
+      // Clear any localStorage draft to prevent conflicts with server state
+      try {
+        localStorage.removeItem(draftKey);
+        console.log('🗑️ Cleared localStorage draft after auto-save');
+      } catch {}
+      
+      setSaveMsg('Auto-saved');
       setTimeout(() => setSaveMsg(null), 1500);
-    } catch (e: any) {
-      setSaveMsg('Save failed');
+    } catch (e) {
+      console.error('Auto-save failed:', e);
+      setSaveMsg('Auto-save failed');
+      setTimeout(() => setSaveMsg(null), 2000);
     } finally {
       setSaving(false);
     }
   };
 
-  const saveOne = async (id: string) => {
-    await saveAll();
+  // Legacy save method (will be removed) - now just calls auto-save
+  const saveAll = async () => {
+    await autoSaveCompletionState(completed);
   };
 
-  // Debounced autosave on changes (local draft only)
+  // Remove individual save method - auto-save handles everything
+  const saveOne = async (id: string) => {
+    // Auto-save is handled by completion state changes
+  };
+
+  // Light local draft for selected interludes only (responses auto-save on completion)
   const hasChanges = useMemo(() => {
     const selIds = selectedInterludes.map(i => i.id);
-    return (
-      JSON.stringify(savedSnapshot.selected) !== JSON.stringify(selIds) ||
-      JSON.stringify(savedSnapshot.responses) !== JSON.stringify(responses) ||
-      JSON.stringify(savedSnapshot.completed) !== JSON.stringify(completed)
-    );
-  }, [selectedInterludes, responses, completed, savedSnapshot]);
+    return JSON.stringify(savedSnapshot.selected) !== JSON.stringify(selIds);
+  }, [selectedInterludes, savedSnapshot.selected]);
 
+  // Save selection changes to localStorage for UX (but clear it frequently to avoid data conflicts)
   useEffect(() => {
     if (!hasChanges) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    setSaveMsg('Draft saved locally — use Save All to persist.');
     debounceRef.current = setTimeout(() => {
       try {
+        // Only save selection, never responses or completion
         const draft = {
           selectedInterludes: selectedInterludes.map(i => i.id),
-          responses,
-          completed
+          responses: {}, // Never save responses locally
+          completed: []  // Never save completion locally
         };
         localStorage.setItem(draftKey, JSON.stringify(draft));
+        
+        // Clear the draft after a delay to prevent data conflicts
+        setTimeout(() => {
+          try {
+            localStorage.removeItem(draftKey);
+          } catch {}
+        }, 30000); // Clear after 30 seconds
       } catch {}
-    }, 1500);
+    }, 1000);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
@@ -321,13 +400,22 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
 
   const clearDraft = () => {
     try { localStorage.removeItem(draftKey); } catch {}
-    // Revert to last saved snapshot
+    // Revert to last saved snapshot for selection only
     setSelectedInterludes(idsToInterludes(savedSnapshot.selected));
-    setResponses(savedSnapshot.responses || {});
-    setCompleted(savedSnapshot.completed || []);
-    setSaveMsg('Draft cleared');
+    // Don't revert responses or completion - those are auto-saved to server
+    setSaveMsg('Selection draft cleared');
     setTimeout(() => setSaveMsg(null), 1200);
   };
+
+  // Cleanup localStorage on unmount to prevent stale data
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.removeItem(draftKey);
+        console.log('🗑️ Cleaned up IA-3-5 localStorage on unmount');
+      } catch {}
+    };
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -411,17 +499,14 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-600">
-                    {hasChanges ? 'Unsaved draft — not persisted' : (saveMsg || ' ')}
+                    {saveMsg || (saving ? 'Auto-saving...' : 'Your answers are automatically saved when marked complete')}
                   </div>
                   <div className="flex gap-2">
                     {hasChanges && (
                       <Button onClick={clearDraft} variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
-                        Clear Draft
+                        Reset Selection
                       </Button>
                     )}
-                    <Button onClick={saveAll} disabled={saving || !hasChanges} className="bg-purple-600 hover:bg-purple-700 text-white">
-                      {saving ? 'Saving…' : 'Save All'}
-                    </Button>
                   </div>
                 </div>
                 {sortByGridOrder(selectedInterludes).map(sel => {
@@ -440,7 +525,26 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                               variant="outline"
                               size="sm"
                               className="text-gray-600 border-gray-300 hover:bg-gray-50"
-                              onClick={() => setSelectedInterludes(list => list.filter(i => i.id !== sel.id))}
+                              disabled={saving}
+                              onClick={async () => {
+                                // Remove interlude from selection
+                                const newSelectedInterludes = selectedInterludes.filter(i => i.id !== sel.id);
+                                setSelectedInterludes(newSelectedInterludes);
+                                
+                                // Remove from responses
+                                const newResponses = { ...responses };
+                                delete newResponses[sel.id];
+                                setResponses(newResponses);
+                                
+                                // Remove from completed
+                                const newCompleted = completed.filter(id => id !== sel.id);
+                                setCompleted(newCompleted);
+                                
+                                // Auto-save the removal to server immediately
+                                await autoSaveCompletionState(newCompleted);
+                                
+                                console.log(`🗑️ Removed interlude ${sel.id} and auto-saved to server`);
+                              }}
                             >
                               Remove
                             </Button>
@@ -448,16 +552,19 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                               variant="outline" 
                               size="sm"
                               className={completed.includes(sel.id) ? "text-green-700 border-green-300 bg-green-50" : "text-green-700 border-green-300 hover:bg-green-50"}
+                              disabled={saving}
                               onClick={async () => {
-                                const next = completed.includes(sel.id)
-                                  ? completed.filter(id => id !== sel.id)
-                                  : [...completed, sel.id];
+                                const isCurrentlyCompleted = completed.includes(sel.id);
+                                const next = isCurrentlyCompleted
+                                  ? completed.filter(id => id !== sel.id) // Mark incomplete
+                                  : [...completed, sel.id]; // Mark complete
+                                
                                 setCompleted(next);
-                                // Persist immediately
-                                void saveCompletedImmediate(next);
+                                // Auto-save immediately to server
+                                await autoSaveCompletionState(next);
                               }}
                             >
-                              {completed.includes(sel.id) ? '✓ Complete' : 'Mark Complete'}
+                              {completed.includes(sel.id) ? 'Edit Answer' : 'Mark Complete'}
                             </Button>
                           </div>
                         </div>
@@ -467,7 +574,12 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                           onChange={(e) => handleResponseChange(sel.id, e.target.value)}
                           placeholder="Take your time... reflect on this moment and let the words flow..."
                           rows={6}
-                          className="w-full block p-4 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 leading-relaxed resize-none box-border"
+                          disabled={completed.includes(sel.id)}
+                          className={`w-full block p-4 border-2 rounded-lg text-gray-800 leading-relaxed resize-none box-border ${
+                            completed.includes(sel.id) 
+                              ? 'border-green-300 bg-green-50 cursor-not-allowed' 
+                              : 'border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500'
+                          }`}
                         />
                       </CardContent>
                     </Card>
@@ -618,7 +730,10 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                   </div>
                   <div className="text-center">
                     <Button
-                      onClick={() => onNext && onNext('ia-3-6')}
+                      onClick={() => {
+                        console.log('🧭 IA-3-5 calling onNext to ia-3-6 (from reflection step 3)');
+                        onNext && onNext('ia-3-6');
+                      }}
                       className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
                     >
                       Continue to The Unimaginable

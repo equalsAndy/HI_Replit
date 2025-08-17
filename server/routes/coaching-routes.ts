@@ -237,6 +237,35 @@ router.post('/chat', async (req, res) => {
         // Get user-specific coaching context for personalization
         const userCoachingContext = userId ? await userLearningService.getUserCoachingContext(userId.toString()) : '';
         
+        // Per-exercise admin instructions (IA/AST) by step
+        let exerciseInstruction = '';
+        try {
+          const stepId = context?.currentStep as string | undefined;
+          if (stepId) {
+            const workshopType = stepId.startsWith('ia-') ? 'ia' : 'ast';
+            const { Pool } = await import('pg');
+            const pool2 = new Pool({
+              connectionString: process.env.DATABASE_URL,
+              ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+            });
+            await pool2.query(`CREATE TABLE IF NOT EXISTS ai_exercise_instructions (
+              id SERIAL PRIMARY KEY,
+              workshop_type VARCHAR(10) NOT NULL DEFAULT 'ia',
+              step_id VARCHAR(32) NOT NULL,
+              instruction TEXT NOT NULL,
+              enabled BOOLEAN NOT NULL DEFAULT TRUE,
+              created_by INTEGER,
+              created_at TIMESTAMP DEFAULT NOW(),
+              updated_at TIMESTAMP DEFAULT NOW(),
+              UNIQUE(workshop_type, step_id)
+            );`);
+            const r = await pool2.query('SELECT instruction FROM ai_exercise_instructions WHERE workshop_type=$1 AND step_id=$2 AND enabled=TRUE', [workshopType, stepId]);
+            exerciseInstruction = r.rows?.[0]?.instruction || '';
+          }
+        } catch (e) {
+          console.warn('⚠️ Could not load per-exercise instruction:', e);
+        }
+
         claudeContext = {
           stepName: context?.stepName,
           strengthLabel: context?.strengthLabel,
@@ -244,7 +273,21 @@ router.post('/chat', async (req, res) => {
           workshopType: context?.workshopType,
           questionText: context?.questionText,
           workshopContext: context?.workshopContext,
-          userPersonalization: userCoachingContext
+          userPersonalization: userCoachingContext,
+          exerciseInstruction,
+          exerciseGlobalInstruction: await (async () => {
+            try {
+              const { Pool } = await import('pg');
+              const pool3 = new Pool({
+                connectionString: process.env.DATABASE_URL,
+                ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+              });
+              const r = await pool3.query('SELECT instruction FROM ai_exercise_instructions WHERE workshop_type=$1 AND step_id=$2 AND enabled=TRUE', ['ia', '__global__']);
+              return r.rows?.[0]?.instruction || '';
+            } catch {
+              return '';
+            }
+          })()
         };
       }
       

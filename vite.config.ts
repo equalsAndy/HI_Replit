@@ -30,6 +30,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
       "@shared": path.resolve(__dirname, "shared"),
+      "@img": path.resolve(__dirname, "client", "src", "assets"),
       "@assets": path.resolve(__dirname, "attached_assets"),
     },
   },

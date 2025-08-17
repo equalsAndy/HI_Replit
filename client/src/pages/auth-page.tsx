@@ -97,6 +97,11 @@ const AuthPage: React.FC = () => {
       // Force refresh of user data to prevent session manager confusion
       await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
+      // Set fresh login flag for beta tester welcome modal
+      if (result.user.isBetaTester && result.user.id) {
+        sessionStorage.setItem(`beta_fresh_login_${result.user.id}`, 'true');
+      }
+      
       // Small delay to ensure user data is updated before redirect
       await new Promise(resolve => setTimeout(resolve, 100));
       

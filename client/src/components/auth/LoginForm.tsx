@@ -66,6 +66,11 @@ export function LoginForm() {
       // Update authentication state
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
+      // Set fresh login flag for beta tester welcome modal
+      if (data.user.isBetaTester && data.user.id) {
+        sessionStorage.setItem(`beta_fresh_login_${data.user.id}`, 'true');
+      }
+      
       // Show success message
       toast({
         title: 'Login successful',

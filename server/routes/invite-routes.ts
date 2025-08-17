@@ -82,14 +82,16 @@ router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
+    const statusParam = (req.query.status as string | undefined)?.toLowerCase();
+    const status = statusParam === 'used' || statusParam === 'pending' ? (statusParam as 'used' | 'pending') : undefined;
     
     let result;
     if (userRole === 'facilitator') {
       // Facilitators only see invites they created with cohort/organization details
-      result = await inviteService.getInvitesWithDetails(userId);
+      result = await inviteService.getInvitesWithDetails(userId, status);
     } else {
       // Admins see all invites with full details
-      result = await inviteService.getInvitesWithDetails();
+      result = await inviteService.getInvitesWithDetails(undefined, status);
     }
     
     if (!result.success) {
@@ -101,7 +103,10 @@ router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       ...invite,
       formattedCode: formatInviteCode((invite as any).inviteCode || (invite as any).invite_code),
       createdAt: (invite as any).created_at || (invite as any).createdAt,
-      inviteCode: (invite as any).invite_code || (invite as any).inviteCode
+      inviteCode: (invite as any).invite_code || (invite as any).inviteCode,
+      usedByName: (invite as any).used_by_name,
+      usedByEmail: (invite as any).used_by_email,
+      usedAt: (invite as any).used_at || (invite as any).usedAt
     }));
     
     res.json({

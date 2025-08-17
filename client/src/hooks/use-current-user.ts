@@ -13,6 +13,7 @@ export interface User {
   isTestUser: boolean;
   isBetaTester?: boolean;
   hasSeenBetaWelcome?: boolean;
+  showDemoDataButtons?: boolean; // Admin-granted permission for demo data access
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;
   iaAccess: boolean;

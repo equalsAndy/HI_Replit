@@ -276,6 +276,25 @@ export default function ImaginalAgilityHome() {
     }
   };
 
+  // Listen for step progression events to ensure proper navigation
+  useEffect(() => {
+    const handleStepProgression = (event: CustomEvent) => {
+      const { fromStep, toStep } = event.detail;
+      console.log(`🔄 IA Step Progression Event: ${fromStep} → ${toStep}`);
+      
+      // Ensure the next step is properly set as current for navigation unlocking
+      if (setCurrentStep) {
+        setCurrentStep(toStep);
+      }
+    };
+
+    window.addEventListener('iaStepProgression', handleStepProgression as EventListener);
+    
+    return () => {
+      window.removeEventListener('iaStepProgression', handleStepProgression as EventListener);
+    };
+  }, [setCurrentStep]);
+
   // Scroll to top when currentContent changes (including programmatic navigation)
   useEffect(() => {
     document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });

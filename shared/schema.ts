@@ -71,7 +71,7 @@ export const users: any = pgTable('users', {
   isTestUser: boolean('is_test_user').default(false).notNull(),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
-  showDemoDataButtons: boolean('show_demo_data_buttons').default(true).notNull(), // For test users to toggle demo data buttons
+  showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(), // Admin-granted permission for demo data access
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields
   contentAccess: varchar('content_access', { length: 20 }).notNull().default('professional'), // student, professional, both

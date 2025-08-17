@@ -151,7 +151,7 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
                     <div 
                       className={cn(
                         "flex items-center p-4 transition-colors",
-                        isStepCurrent ? "bg-indigo-50" : "",
+                        isStepCurrent ? "bg-purple-50" : "",
                         isStepCompleted ? "bg-green-50" : "",
                         isStepAccessible && !isLocked ? "hover:bg-gray-50 cursor-pointer" : "opacity-50 cursor-not-allowed"
                       )}
@@ -180,7 +180,7 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
                         <p className={cn(
                           "text-sm font-medium",
                           isStepCompleted ? "text-green-700" : 
-                          isStepCurrent ? "text-indigo-700" : "text-gray-700"
+                          isStepCurrent ? "text-purple-700" : "text-gray-700"
                         )}>
                           {step.label}
                         </p>

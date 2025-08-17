@@ -59,7 +59,9 @@ router.post('/', isAdmin, async (req, res) => {
  */
 router.get('/', isAdmin, async (req, res) => {
   try {
-    const result = await inviteService.getAllInvites();
+    const statusParam = (req.query.status as string | undefined)?.toLowerCase();
+    const status = statusParam === 'used' || statusParam === 'pending' ? (statusParam as 'used' | 'pending') : undefined;
+    const result = await inviteService.getAllInvites(status);
     
     if (!result.success) {
       return res.status(500).json({
@@ -113,6 +115,24 @@ router.delete('/:id', isAdmin, async (req, res) => {
       success: false,
       error: 'Server error'
     });
+  }
+});
+
+/**
+ * Bulk delete invites
+ */
+router.post('/bulk-delete', isAdmin, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const ids = Array.isArray(body.ids) ? body.ids.map((n: any) => parseInt(n)).filter((n: any) => !isNaN(n)) : [];
+    const result = await inviteService.deleteInvites(ids);
+    if (!result.success) {
+      return res.status(500).json({ success: false, error: result.error || 'Failed to bulk delete invites' });
+    }
+    res.json({ success: true, deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error('Error bulk deleting invites:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 });
 

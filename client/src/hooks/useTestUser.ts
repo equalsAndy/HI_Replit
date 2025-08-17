@@ -16,6 +16,7 @@ export const useTestUser = () => {
     organization: string | null;
     role?: string;
     isTestUser?: boolean;
+    showDemoDataButtons?: boolean;
   }>({
     queryKey: ['/api/auth/me'],
     queryFn: async () => {
@@ -54,22 +55,33 @@ export const useTestUser = () => {
   // Admin users automatically get test user privileges  
   const hasTestAccess = isTestUser || isAdmin;
   
+  // Demo buttons are controlled by database field showDemoDataButtons
+  // Only show demo buttons if explicitly granted by admin OR if user is admin
+  const shouldShowDemoButtons = isAdmin || (user?.showDemoDataButtons === true);
+  
   // Debug test user access (single log to verify fix)
-  if (user && !sessionStorage.getItem('user-role-logged')) {
-    console.log('✅ Test User Fix Verified:', {
-      user: { id: user.id, username: user.username, role: user.role, isTestUser: user.isTestUser },
+  if (user && !sessionStorage.getItem('demo-buttons-logged')) {
+    console.log('✅ Demo Buttons Logic:', {
+      user: { 
+        id: user.id, 
+        username: user.username, 
+        role: user.role, 
+        isTestUser: user.isTestUser,
+        showDemoDataButtons: user.showDemoDataButtons
+      },
       isTestUser,
       isAdmin,
-      hasTestAccess
+      hasTestAccess,
+      shouldShowDemoButtons
     });
-    sessionStorage.setItem('user-role-logged', 'true');
+    sessionStorage.setItem('demo-buttons-logged', 'true');
   }
   
   // SECURE: Only database field and admin role, no username patterns
   return {
     isTestUser: hasTestAccess,
-    // Simplified logic for testing - Test users and admins always see demo buttons
-    shouldShowDemoButtons: hasTestAccess,
+    // Demo buttons controlled by explicit database permission or admin role
+    shouldShowDemoButtons,
     user
   };
 };

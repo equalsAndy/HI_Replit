@@ -296,15 +296,15 @@ export const allStarTeamsNavigationSections = [
     steps: [
       { id: '5-1', title: 'Download your Star Card', type: 'download' },
       { id: '5-2', title: 'Your Holistic Report', type: 'download' },
-      { id: '5-3', title: 'Growth Plan', type: 'planning' },
-      { id: '5-4', title: 'Team Workshop Prep', type: 'collaboration' }
+      { id: '5-3', title: 'Growth Plan (Preview)', type: 'planning' },
+      { id: '5-4', title: 'Team Workshop Prep (Preview)', type: 'collaboration' }
     ]
   },
   {
     id: '6',
     title: 'MORE INFORMATION',
     steps: [
-      { id: '6-1', title: 'Workshop Resources', type: 'resources' }
+      { id: '6-1', title: 'More about AllStarTeams', type: 'resources' }
     ]
   }
 ];

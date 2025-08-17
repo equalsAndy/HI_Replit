@@ -98,6 +98,8 @@ interface Cohort {
 
 export const InviteManagement: React.FC = () => {
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [filterStatus, setFilterStatus] = useState<'all'|'used'|'pending'>('all');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [isLoadingInvites, setIsLoadingInvites] = useState(true);
@@ -184,6 +186,13 @@ export const InviteManagement: React.FC = () => {
     }
   }, [userRole]);
 
+  // Refetch when filter changes
+  useEffect(() => {
+    if (userRole) {
+      fetchInvites();
+    }
+  }, [filterStatus]);
+
   // Debug useEffect to track userRole changes
   useEffect(() => {
     console.log('🔍 InviteManagement: userRole state changed to:', userRole);
@@ -194,7 +203,10 @@ export const InviteManagement: React.FC = () => {
     setIsLoadingInvites(true);
     try {
       // Use role-appropriate endpoint
-      const endpoint = userRole === 'admin' ? '/api/admin/invites' : '/api/invites';
+      let endpoint = userRole === 'admin' ? '/api/admin/invites' : '/api/invites';
+      if (filterStatus !== 'all') {
+        endpoint += `?status=${filterStatus}`;
+      }
       console.log('🔍 InviteManagement: Fetching from endpoint:', endpoint);
       const response = await fetch(endpoint, {
         credentials: 'include'
@@ -217,6 +229,8 @@ export const InviteManagement: React.FC = () => {
         });
         console.log('🔍 InviteManagement: Processed invites:', processedInvites);
         setInvites(processedInvites);
+        // Clear selection on refresh
+        setSelectedIds([]);
       } else {
         toast({
           variant: 'destructive',
@@ -338,6 +352,41 @@ export const InviteManagement: React.FC = () => {
         title: 'Error',
         description: 'Failed to delete invite. Please try again later.',
       });
+    }
+  };
+
+  const toggleSelect = (id: number, checked: boolean) => {
+    setSelectedIds((prev) => checked ? [...new Set([...prev, id])] : prev.filter(x => x !== id));
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(invites.map(i => i.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Delete ${selectedIds.length} selected invites?`)) return;
+    try {
+      const response = await fetch(`/api/admin/invites/bulk-delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ids: selectedIds })
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast({ title: 'Invites deleted', description: `${data.deletedCount} invites removed.` });
+        fetchInvites();
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: data.error || 'Bulk delete failed' });
+      }
+    } catch (error: any) {
+      console.error('Bulk delete error:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Bulk delete failed.' });
     }
   };
 
@@ -560,6 +609,32 @@ export const InviteManagement: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Filters and bulk actions */}
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">Filter:</Label>
+                <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="used">Used</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" onClick={fetchInvites} disabled={isLoadingInvites}>
+                  {isLoadingInvites ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}Refresh
+                </Button>
+              </div>
+              {userRole === 'admin' && (
+                <div className="flex items-center gap-2">
+                  <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDelete}>
+                    <Trash2 className="h-4 w-4 mr-1" /> Delete Selected ({selectedIds.length})
+                  </Button>
+                </div>
+              )}
+            </div>
             {isLoadingInvites ? (
               <div className="flex justify-center py-10">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -573,6 +648,11 @@ export const InviteManagement: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      {userRole === 'admin' && (
+                        <TableHead className="w-8">
+                          <Checkbox checked={selectedIds.length>0 && selectedIds.length===invites.length} onCheckedChange={(c) => toggleSelectAll(!!c)} />
+                        </TableHead>
+                      )}
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Invite Code</TableHead>
@@ -590,6 +670,11 @@ export const InviteManagement: React.FC = () => {
                   <TableBody>
                     {invites.map((invite: Invite) => (
                       <TableRow key={invite.id}>
+                        {userRole === 'admin' && (
+                          <TableCell className="w-8">
+                            <Checkbox checked={selectedIds.includes(invite.id)} onCheckedChange={(c) => toggleSelect(invite.id, !!c)} />
+                          </TableCell>
+                        )}
                         <TableCell className="font-medium">{invite.name}</TableCell>
                         <TableCell>{invite.email}</TableCell>
                         <TableCell>
@@ -677,7 +762,9 @@ export const InviteManagement: React.FC = () => {
                         <TableCell>
                           {invite.isUsed ? (
                             <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
-                              <Check className="h-3 w-3 mr-1" /> Used
+                              <Check className="h-3 w-3 mr-1" /> Used{(invite as any).used_by_name || (invite as any).usedByName ? (
+                                <span className="ml-2 text-xs text-muted-foreground">by {(invite as any).used_by_name || (invite as any).usedByName}</span>
+                              ) : null}
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">

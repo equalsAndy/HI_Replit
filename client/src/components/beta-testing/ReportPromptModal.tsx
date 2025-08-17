@@ -1,6 +1,8 @@
 import React from 'react';
 import { useLocation } from 'wouter';
 import { Star, ArrowRight, X } from 'lucide-react';
+import AllStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 interface ReportPromptModalProps {
   isOpen: boolean;
@@ -12,6 +14,15 @@ export const ReportPromptModal: React.FC<ReportPromptModalProps> = ({
   onClose,
 }) => {
   const [, setLocation] = useLocation();
+  const { data: user } = useCurrentUser();
+
+  // Derive a friendly first name for greeting
+  const firstName = React.useMemo(() => {
+    const raw = user?.name || user?.username || '';
+    if (!raw) return '';
+    const parts = String(raw).trim().split(/\s+/);
+    return parts[0] || raw;
+  }, [user?.name, user?.username]);
 
   if (!isOpen) return null;
 
@@ -53,14 +64,23 @@ export const ReportPromptModal: React.FC<ReportPromptModalProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Star className="w-5 h-5 text-white" />
+              <div 
+                className="w-10 h-10 flex items-center justify-center p-1.5 border border-gray-200 rounded-lg bg-white"
+                aria-hidden
+              >
+                <img src={AllStarTeamsLogo} alt="AllStarTeams" className="w-full h-full object-contain" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Complete Your Experience</h2>
+              <div className="flex flex-col">
+                <h2 className="text-xl font-bold text-gray-900">Complete Your Experience</h2>
+                <span className="text-xs text-gray-600">
+                  {firstName ? `Hi ${firstName} — Beta Tester` : 'Hi Beta Tester'}
+                </span>
+              </div>
             </div>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+              aria-label="Close"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
@@ -69,14 +89,9 @@ export const ReportPromptModal: React.FC<ReportPromptModalProps> = ({
           {/* Content */}
           <div className="p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                View Your Holistic Report First
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">View Your Holistic Report First</h3>
               <p className="text-gray-600 leading-relaxed">
-                Before sharing your feedback, please generate and review your personalized Holistic Report. 
+                As a beta tester, please generate and review your personalized Holistic Report before sharing feedback. 
                 This will help you provide more meaningful insights about your workshop experience.
               </p>
             </div>

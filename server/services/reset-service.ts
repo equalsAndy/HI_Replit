@@ -1,5 +1,5 @@
 import { db } from '../db.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 
 /**
@@ -74,7 +74,47 @@ export class ResetService {
         console.error(`Error deleting workshop participation for user ${userId}:`, error);
       }
 
-      // STEP 3: Reset any reflections or custom user content
+      // STEP 3: Reset workshop step data (IA and AST)
+      try {
+        // Clear all workshop step data for this user (includes IA data)
+        await db.execute(sql`DELETE FROM workshop_step_data WHERE user_id = ${userId}`);
+        console.log(`Deleted all workshop step data for user ${userId}`);
+        
+        // Verify deletion
+        const remainingStepData = await db
+          .select()
+          .from(schema.workshopStepData)
+          .where(eq(schema.workshopStepData.userId, userId));
+
+        if (remainingStepData.length > 0) {
+          console.error(`ERROR: Some workshop step data remains for user ${userId} after deletion attempt`);
+        } else {
+          console.log(`Successfully verified all workshop step data deleted for user ${userId}`);
+        }
+      } catch (error) {
+        console.error(`Error deleting workshop step data for user ${userId}:`, error);
+      }
+
+      // STEP 4: Reset holistic reports (AST generated reports)
+      try {
+        // Clear all holistic reports for this user
+        await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+        console.log(`Deleted all holistic reports for user ${userId}`);
+        
+        // Also reset the navigation progress flags for report generation
+        await db.execute(sql`
+          UPDATE navigation_progress 
+          SET standard_report_generated = false, 
+              personal_report_generated = false,
+              holistic_reports_unlocked = false
+          WHERE user_id = ${userId}
+        `);
+        console.log(`Reset holistic report flags in navigation progress for user ${userId}`);
+      } catch (error) {
+        console.error(`Error deleting holistic reports for user ${userId}:`, error);
+      }
+
+      // STEP 5: Reset any reflections or custom user content
       try {
         // If there's a reflections table, clear it for this user
         await db.execute(sql`
@@ -87,7 +127,7 @@ export class ResetService {
         console.log(`No reflections table to clear for user ${userId}`);
       }
 
-      // STEP 4: Reset user progress (reset timestamp)
+      // STEP 6: Reset user progress (reset timestamp)
       try {
         // Update the user's timestamp to reset their progress
         await db

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserManagement as FullUserManagement } from '../../components/admin/UserManagement';
 import FeedbackManagement from '../../components/admin/FeedbackManagement';
 import AIManagement from '../../components/admin/AIManagement';
+import IAExerciseInstructions from '../../components/admin/IAExerciseInstructions';
 import AdminChat from '../../components/admin/AdminChat';
 import { useToast } from '../../hooks/use-toast';
 import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video } from 'lucide-react';
@@ -1851,8 +1852,7 @@ export default function AdminDashboard() {
                 <div style={styles.subTabsList}>
                   {[
                     { id: 'overview', label: 'Overview', icon: Bot },
-                    { id: 'training', label: 'Training', icon: BookOpen },
-                    { id: 'ia-chat', label: 'IA Assistant', icon: () => <span style={{ marginRight: '8px' }}>🤖</span> }
+                    { id: 'training', label: 'Training', icon: BookOpen }
                   ].map((subTab) => (
                     <button
                       key={subTab.id}
@@ -1870,8 +1870,28 @@ export default function AdminDashboard() {
               </div>
               <div style={styles.subTabContent}>
                 {activeAITab === 'overview' && <AIManagement />}
-                {activeAITab === 'training' && <ReportAssistantLauncher />}
-                {activeAITab === 'ia-chat' && <IAAssistantLauncher />}
+                {activeAITab === 'training' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-semibold">Training Tools</h2>
+                        <p className="text-sm text-gray-600">Launch training and manage per‑exercise instructions</p>
+                      </div>
+                      <button
+                        onClick={() => window.open('/ai-training', '_blank')}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        Open Training in New Tab
+                      </button>
+                    </div>
+
+                    {/* IA Exercise Instructions inline */}
+                    <IAExerciseInstructions />
+
+                    {/* Vector Store Panels */}
+                    <AIVectorStoresPanel />
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1881,3 +1901,82 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+// Small panel to show vector store files for key assistants
+const AIVectorStoresPanel: React.FC = () => {
+  const [assistants, setAssistants] = useState<any[]>([]);
+  const [filesByStore, setFilesByStore] = useState<Record<string, any[]>>({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/admin/ai/assistants/resources', { credentials: 'include' });
+        const data = await res.json();
+        if (data?.assistants) {
+          setAssistants(data.assistants);
+          // Load files for Report Talia and Reflection Talia if available
+          const targets = data.assistants.filter((a: any) => /Report Talia|Reflection Talia/i.test(a.name));
+          for (const a of targets) {
+            try {
+              const fr = await fetch(`/api/admin/ai/vector-store/${a.vectorStoreId}/files`, { credentials: 'include' });
+              const fdata = await fr.json();
+              setFilesByStore(prev => ({ ...prev, [a.vectorStoreId]: fdata.files || [] }));
+            } catch {}
+          }
+          // Load Ultra vector store files if configured (uses projectKey=ultra)
+          try {
+            const frUltra = await fetch(`/api/admin/ai/vector-store/${ULTRA_VECTOR_STORE_ID}/files?projectKey=ultra`, { credentials: 'include' });
+            const fdataUltra = await frUltra.json();
+            setFilesByStore(prev => ({ ...prev, [ULTRA_VECTOR_STORE_ID]: fdataUltra.files || [] }));
+          } catch {}
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const reportAssistant = assistants.find(a => /Report Talia/i.test(a.name));
+  const reflectionAssistant = assistants.find(a => /Reflection Talia/i.test(a.name));
+  const ULTRA_VECTOR_STORE_ID = 'vs_689c0216a784819180bd2d242c868588';
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="border rounded p-4 bg-white">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold">Production Report Writer</h3>
+          {!reportAssistant && <span className="text-xs text-red-600">Not configured</span>}
+        </div>
+        {reportAssistant && (
+          <div className="text-sm text-gray-600 mb-2">Vector Store: {reportAssistant.vectorStoreId}</div>
+        )}
+        <ul className="text-sm list-disc pl-4">
+          {(reportAssistant ? (filesByStore[reportAssistant.vectorStoreId] || []) : []).map((f: any) => (
+            <li key={f.id}>{f.filename || f.id}</li>
+          ))}
+          {!loading && reportAssistant && (filesByStore[reportAssistant.vectorStoreId] || []).length === 0 && (
+            <li className="text-gray-500">No files found or no access</li>
+          )}
+        </ul>
+      </div>
+
+      <div className="border rounded p-4 bg-white">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold">Ultra Talia Report Writer</h3>
+          {!ULTRA_VECTOR_STORE_ID && <span className="text-xs text-red-600">Not configured</span>}
+        </div>
+        <div className="text-sm text-gray-600 mb-2">Vector Store: {ULTRA_VECTOR_STORE_ID || '—'}</div>
+        <ul className="text-sm list-disc pl-4">
+          {(filesByStore[ULTRA_VECTOR_STORE_ID] || []).map((f: any) => (
+            <li key={f.id}>{f.filename || f.id}</li>
+          ))}
+          {!loading && (filesByStore[ULTRA_VECTOR_STORE_ID] || []).length === 0 && (
+            <li className="text-gray-500">No files found or no access</li>
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+};

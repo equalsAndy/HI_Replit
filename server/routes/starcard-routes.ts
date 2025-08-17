@@ -12,7 +12,7 @@ router.post('/auto-save', async (req, res) => {
   try {
     console.log('🎯 StarCard Auto-Save: Request received');
     
-    const { imageData, userId, saveToDatabase, saveToTempComms, filename } = req.body;
+    const { imageData, userId, username, fullName, saveToDatabase, saveToTempComms, filename } = req.body;
 
     if (!imageData) {
       return res.status(400).json({
@@ -67,7 +67,9 @@ router.post('/auto-save', async (req, res) => {
 
         // Create filename with timestamp
         const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
-        const finalFilename = filename || `starcard-auto-${timestamp}.png`;
+        const usernameForFile = username ? username.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown';
+        const fullNameForFile = fullName ? fullName.replace(/[^a-zA-Z0-9]/g, '_') : 'Unknown_User';
+        const finalFilename = filename || `starcard-${usernameForFile}-${fullNameForFile}-${timestamp}.png`;
         const filePath = path.join(tempCommsDir, finalFilename);
 
         // Write file
@@ -93,7 +95,9 @@ router.post('/auto-save', async (req, res) => {
         const imageBuffer = Buffer.from(base64Data, 'base64');
 
         const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
-        const finalFilename = `starcard-default-${timestamp}.png`;
+        const usernameForFile = username ? username.replace(/[^a-zA-Z0-9]/g, '_') : 'unknown';
+        const fullNameForFile = fullName ? fullName.replace(/[^a-zA-Z0-9]/g, '_') : 'Unknown_User';
+        const finalFilename = `starcard-${usernameForFile}-${fullNameForFile}-${timestamp}.png`;
         const filePath = path.join(tempCommsDir, finalFilename);
 
         await fs.writeFile(filePath, imageBuffer);

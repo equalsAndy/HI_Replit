@@ -41,11 +41,11 @@ export const usePreviousExerciseData = ({ stepId, workshopType }: UsePreviousExe
  * Hook specifically for fetching IA-3-3 visualization data for use in IA-4-3
  */
 export const useVisualizationData = () => {
-  return useQuery<{ reflection: string; imageTitle: string } | null>({
-    queryKey: ['/api/workshop-data/ia-3-3'],
+  return useQuery<{ reflection: string; imageTitle: string; selectedImage: string; uploadedImage: string } | null>({
+    queryKey: ['/api/workshop-data/step/ia/ia-3-3'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/workshop-data/ia-3-3');
+        const response = await fetch('/api/workshop-data/step/ia/ia-3-3');
         if (!response.ok) {
           if (response.status === 404) {
             return null;
@@ -53,11 +53,16 @@ export const useVisualizationData = () => {
           throw new Error(`Failed to fetch IA-3-3 data: ${response.statusText}`);
         }
         const result = await response.json();
-        // Extract the reflection and imageTitle from the stored data
-        return {
-          reflection: result.data?.reflection || '',
-          imageTitle: result.data?.imageTitle || ''
-        };
+        // Extract the visualization data from the stored data
+        if (result.success && result.data) {
+          return {
+            reflection: result.data.reflection || '',
+            imageTitle: result.data.imageTitle || '',
+            selectedImage: result.data.selectedImage || '',
+            uploadedImage: result.data.uploadedImage || ''
+          };
+        }
+        return null;
       } catch (error) {
         console.warn('Could not fetch IA-3-3 visualization data:', error);
         return null;
@@ -81,23 +86,32 @@ export const useHigherPurposeData = () => {
         const potentialSources = ['ia-2-2', 'ia-3-4', 'ia-3-5', 'ia-3-6'];
         
         for (const stepId of potentialSources) {
-          const response = await fetch(`/api/workshop-data/${stepId}`);
+          // IA-3-5 uses different endpoint format
+          const endpoint = stepId === 'ia-3-5' 
+            ? `/api/ia/steps/${stepId}` 
+            : `/api/workshop-data/step/ia/${stepId}`;
+          
+          const response = await fetch(endpoint);
           if (response.ok) {
             const result = await response.json();
-            const data = result.data;
             
-            // Look for purpose-related fields in different exercises
-            if (stepId === 'ia-2-2' && data?.higherPurpose) {
-              return { purpose: data.higherPurpose, source: stepId };
-            }
-            if (stepId === 'ia-3-4' && data?.purposeReflection) {
-              return { purpose: data.purposeReflection, source: stepId };
-            }
-            if (stepId === 'ia-3-5' && data?.mission) {
-              return { purpose: data.mission, source: stepId };
-            }
-            if (stepId === 'ia-3-6' && data?.coreIntention) {
-              return { purpose: data.coreIntention, source: stepId };
+            // Handle different response formats
+            const data = stepId === 'ia-3-5' ? result.data : (result.success ? result.data : null);
+            
+            if (data) {
+              // Look for purpose-related fields in different exercises
+              if (stepId === 'ia-2-2' && data?.higherPurpose) {
+                return { purpose: data.higherPurpose, source: stepId };
+              }
+              if (stepId === 'ia-3-4' && (data?.whyReflection || data?.purposeReflection)) {
+                return { purpose: data.whyReflection || data.purposeReflection, source: stepId };
+              }
+              if (stepId === 'ia-3-5' && data?.mission) {
+                return { purpose: data.mission, source: stepId };
+              }
+              if (stepId === 'ia-3-6' && (data?.visionText || data?.coreIntention)) {
+                return { purpose: data.visionText || data.coreIntention, source: stepId };
+              }
             }
           }
         }
@@ -122,28 +136,49 @@ export const useInterludeData = () => {
     queryFn: async () => {
       try {
         // Check steps that might contain interlude or inspiration data
-        const potentialSources = ['ia-3-1', 'ia-3-2', 'ia-3-3'];
+        const potentialSources = ['ia-3-2', 'ia-3-3', 'ia-3-5'];
         const patterns: string[] = [];
         const sources: string[] = [];
         
         for (const stepId of potentialSources) {
-          const response = await fetch(`/api/workshop-data/${stepId}`);
+          // IA-3-5 uses different endpoint format
+          const endpoint = stepId === 'ia-3-5' 
+            ? `/api/ia/steps/${stepId}` 
+            : `/api/workshop-data/step/ia/${stepId}`;
+          
+          const response = await fetch(endpoint);
           if (response.ok) {
             const result = await response.json();
-            const data = result.data;
             
-            // Look for interlude-related fields
-            if (stepId === 'ia-3-1' && data?.interludeReflection) {
-              patterns.push(data.interludeReflection);
-              sources.push(stepId);
-            }
-            if (stepId === 'ia-3-2' && data?.inspiration) {
-              patterns.push(data.inspiration);
-              sources.push(stepId);
-            }
-            if (stepId === 'ia-3-3' && data?.reflection) {
-              patterns.push(`From visualization: "${data.reflection}"`);
-              sources.push(stepId);
+            // Handle different response formats
+            const data = stepId === 'ia-3-5' ? result.data : result.data;
+            
+            if (data) {
+              // Look for interlude-related fields
+              if (stepId === 'ia-3-2' && data?.savedMoments) {
+                const moments = Array.isArray(data.savedMoments) ? data.savedMoments : [];
+                moments.forEach((moment: any) => {
+                  if (moment.text) {
+                    patterns.push(`${moment.tag || 'Inspiration'}: ${moment.text}`);
+                    sources.push(stepId);
+                  }
+                });
+              }
+              if (stepId === 'ia-3-3' && data?.reflection) {
+                patterns.push(`From visualization: "${data.reflection}"`);
+                sources.push(stepId);
+              }
+              if (stepId === 'ia-3-5') {
+                // IA-3-5 has multiple inspiration interludes
+                if (data?.responses) {
+                  Object.entries(data.responses).forEach(([key, value]: [string, any]) => {
+                    if (value && typeof value === 'string') {
+                      patterns.push(`${key}: ${value}`);
+                      sources.push(stepId);
+                    }
+                  });
+                }
+              }
             }
           }
         }

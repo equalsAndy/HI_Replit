@@ -37,9 +37,11 @@ import metaliaRoutes from './routes/metalia-routes.js';
 import growthPlanRoutes from './routes/growth-plan-routes.js';
 import adminChatRoutes from './routes/admin-chat-routes.js';
 import trainingUploadRoutes from './routes/training-upload-routes.js';
+import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.js';
 import taliaStatusRoutes from './routes/talia-status-routes.js';
 import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.js';
 import assistantTestRoutes from './routes/assistant-test-routes.js';
+import adminAIResourcesRoutes from './routes/admin-ai-resources.js';
 import iaStepRoutes from './routes/ia-step-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
@@ -444,7 +446,9 @@ async function initializeApp() {
       // app.use('/api/admin/ai', personaManagementRoutes); // Temporarily disabled - causes startup hang
       app.use('/api/admin/chat', adminChatRoutes);
 app.use('/api/admin/ai', trainingUploadRoutes);
+app.use('/api/admin/ai/exercise-instructions', iaExerciseInstructionsRoutes);
 app.use('/api/admin/ai', assistantTestRoutes);
+app.use('/api/admin/ai', adminAIResourcesRoutes);
 app.use('/api', iaStepRoutes);
       app.use('/api/talia-status', taliaStatusRoutes);
       app.use('/api/admin/ai', personaDocumentSyncRoutes);
