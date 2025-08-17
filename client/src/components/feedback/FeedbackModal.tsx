@@ -73,6 +73,8 @@ const WORKSHOP_PAGES = {
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, currentPage }) => {
   const { isTestUser, user } = useTestUser();
+  const SCHEDULING_URL = import.meta.env.VITE_SCHEDULING_URL || '#';
+  const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'support@heliotrope.ai';
   const [formData, setFormData] = useState<Partial<FeedbackData>>({
     pageContext: 'current',
     feedbackType: 'bug',
@@ -276,17 +278,37 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
             <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-2xl mb-5">
               ✓
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Feedback Submitted!</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Thank you for helping us improve the {currentPage.workshopName} experience. 
-              We'll review your feedback and get back to you if needed.
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank you for your feedback!</h3>
+            <p className="text-sm text-gray-600 mb-4 max-w-md">
+              We appreciate your help improving {currentPage.workshopName}. If you’d like, you can schedule time with us to share more.
             </p>
-            <button
-              onClick={handleClose}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-            >
-              Continue Workshop
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <a
+                href={SCHEDULING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition-colors"
+              >
+                Schedule Time
+              </a>
+              <a
+                href="/allstarteams"
+                className="inline-flex items-center justify-center border-2 border-gray-300 text-gray-800 bg-white hover:bg-gray-50 px-5 py-2 rounded-lg font-medium transition-colors"
+              >
+                More about AllStarTeams
+              </a>
+            </div>
+            <p className="text-xs text-gray-500">
+              Want to restart the workshop? Email us at <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+            </p>
+            <div className="mt-6">
+              <button
+                onClick={handleClose}
+                className="text-sm text-gray-700 hover:text-gray-900 underline"
+              >
+                Close
+              </button>
+            </div>
           </div>
         ) : (
           <>

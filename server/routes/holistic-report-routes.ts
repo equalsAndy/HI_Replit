@@ -747,7 +747,14 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
     };
     
     console.log('🔍 DEBUG: Assessment results:', assessmentResult.rows.map(r => ({ type: r.assessment_type, hasResults: !!r.results })));
-    console.log('🔍 DEBUG: User context data being passed to pgvector:', JSON.stringify(userContextData, null, 2));
+    console.log('🔍 DEBUG: User context data structure:', {
+      userName: userContextData.userName || 'N/A',
+      hasStrengths: !!userContextData.strengths,
+      hasReflections: !!userContextData.reflections,
+      hasFlowData: !!userContextData.flowData,
+      assessmentCount: Array.isArray(userContextData.assessments) ? userContextData.assessments.length : 0,
+      stepDataCount: Array.isArray(userContextData.stepData) ? userContextData.stepData.length : 0
+    });
     
     // Get optimal training prompt using pgvector search
     const reportPrompt = await pgvectorSearchService.getOptimalTrainingPrompt(

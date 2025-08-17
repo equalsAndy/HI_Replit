@@ -1,6 +1,6 @@
 {
-  "version": "2.0.0",
-  "buildNumber": "7",
-  "lastUpdated": "2025-07-20T16:50:01.280Z",
-  "description": "Fixed version number display after manual env edits"
+  "version": "2.3.2",
+  "buildNumber": "2",
+  "lastUpdated": "2025-08-17T19:23:48.986Z",
+  "description": "Test build after release creation"
 }

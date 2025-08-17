@@ -101,7 +101,14 @@ router.post('/chat', async (req, res) => {
       context,
       type: 'user_message'
     };
-    console.log('💾 TALIA CONVERSATION LOG:', JSON.stringify(conversationEntry, null, 2));
+    console.log('💾 TALIA CONVERSATION LOG:', {
+      timestamp: conversationEntry.timestamp,
+      userId: conversationEntry.userId,
+      persona: conversationEntry.persona,
+      type: conversationEntry.type,
+      messageLength: conversationEntry.message?.length || 0,
+      hasContext: !!conversationEntry.context
+    });
 
     // For development: Allow chat without user ID but log a warning
     if (!userId) {
@@ -336,7 +343,16 @@ router.post('/chat', async (req, res) => {
           source: 'holistic_optimized',
           type: 'holistic_report'
         };
-        console.log('💾 HOLISTIC REPORT LOG:', JSON.stringify(responseEntry, null, 2));
+        console.log('💾 HOLISTIC REPORT LOG:', {
+          timestamp: responseEntry.timestamp,
+          userId: responseEntry.userId,
+          sessionId: responseEntry.sessionId,
+          persona: responseEntry.persona,
+          source: responseEntry.source,
+          type: responseEntry.type,
+          responseLength: responseEntry.taliaResponse?.length || 0,
+          hasContext: !!responseEntry.context
+        });
 
         // METAlia conversation logging for holistic reports
         conversationLoggingService.logConversation({
@@ -513,7 +529,15 @@ router.post('/chat', async (req, res) => {
         source: 'claude_api',
         type: 'talia_response'
       };
-      console.log('💾 TALIA RESPONSE LOG:', JSON.stringify(responseEntry, null, 2));
+      console.log('💾 TALIA RESPONSE LOG:', {
+        timestamp: responseEntry.timestamp,
+        userId: responseEntry.userId,
+        sessionId: responseEntry.sessionId,
+        persona: responseEntry.persona,
+        type: responseEntry.type,
+        responseLength: responseEntry.taliaResponse?.length || 0,
+        hasContext: !!responseEntry.context
+      });
 
       // METAlia conversation logging (asynchronous - don't block response)
       conversationLoggingService.logConversation({
@@ -607,7 +631,15 @@ router.post('/chat', async (req, res) => {
         source: 'fallback',
         type: 'talia_response'
       };
-      console.log('💾 TALIA RESPONSE LOG:', JSON.stringify(fallbackEntry, null, 2));
+      console.log('💾 TALIA RESPONSE LOG:', {
+        timestamp: fallbackEntry.timestamp,
+        userId: fallbackEntry.userId,
+        sessionId: fallbackEntry.sessionId,
+        persona: fallbackEntry.persona,
+        type: fallbackEntry.type,
+        responseLength: fallbackEntry.taliaResponse?.length || 0,
+        hasContext: !!fallbackEntry.context
+      });
 
       // METAlia conversation logging for fallback responses
       conversationLoggingService.logConversation({

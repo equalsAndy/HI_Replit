@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const versionFile = path.join(__dirname, 'version.json');
+const historyFile = path.join(__dirname, 'build-history.json');
 
 // Read current version
 let versionData;
@@ -32,6 +33,30 @@ versionData.description = process.argv[2] || "Frontend update";
 
 // Write back to file
 fs.writeFileSync(versionFile, JSON.stringify(versionData, null, 2));
+
+// Track build history for release notes
+let buildHistory = [];
+try {
+  buildHistory = JSON.parse(fs.readFileSync(historyFile, 'utf8'));
+} catch (error) {
+  // File doesn't exist or is invalid, start fresh
+}
+
+// Add current build to history
+buildHistory.push({
+  version: versionData.version,
+  buildNumber: versionData.buildNumber,
+  fullVersion: `${versionData.version}.${versionData.buildNumber}`,
+  timestamp: versionData.lastUpdated,
+  description: versionData.description
+});
+
+// Keep only last 50 builds to prevent file from growing too large
+if (buildHistory.length > 50) {
+  buildHistory = buildHistory.slice(-50);
+}
+
+fs.writeFileSync(historyFile, JSON.stringify(buildHistory, null, 2));
 
 console.log(`🚀 Version updated to v${versionData.version}.${versionData.buildNumber}`);
 console.log(`📝 Description: ${versionData.description}`);

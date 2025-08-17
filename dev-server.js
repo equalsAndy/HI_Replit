@@ -11,6 +11,9 @@ import reportRoutes from './server/routes/report-routes.js';
 import adminUploadRoutes from './server/routes/admin-upload-routes.js';
 import discernmentRoutes from './server/routes/discernment-routes.js';
 import authRoutes from './server/routes/auth-routes.js';
+import feedbackRoutes from './server/routes/feedback-routes.js';
+import betaTesterRoutes from './server/routes/beta-tester-routes.js';
+import betaTesterNotesRoutes from './server/routes/beta-tester-notes-routes.js';
 import { initializeDatabase } from './server/db.js';
 import { db } from './server/db.js';
 import path from 'path';
@@ -101,6 +104,10 @@ async function startDevServer() {
   app.use('/api/admin', upload.single('file'), adminUploadRoutes);
   app.use('/api/discernment', discernmentRoutes);
   app.use('/api/auth', authRoutes);
+  // Feedback and Beta Tester routes needed for the modal
+  app.use('/api/feedback', feedbackRoutes);
+  app.use('/api/beta-tester', betaTesterRoutes);
+  app.use('/api/beta-tester', betaTesterNotesRoutes);
   
   // Health check endpoint
   app.get('/health', (req, res) => {

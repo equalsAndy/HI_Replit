@@ -2,11 +2,85 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Play } from "lucide-react";
+import { Play, CheckCircle2 } from "lucide-react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 import { VideoModal } from '@/components/ui/video-modal';
+
+// ===== Feature list helper & style toggle =====
+type FeatureListVariant = "grid" | "check" | "numbered";
+
+// Flip this between "grid" | "check" | "numbered" to preview styles quickly.
+const FEATURE_LIST_VARIANT: FeatureListVariant = "grid";
+
+function FeatureList({
+  items,
+  color,
+  variant = FEATURE_LIST_VARIANT,
+}: {
+  items: { title: string; text?: string }[];
+  color: "indigo" | "purple";
+  variant?: FeatureListVariant;
+}) {
+  const colorMap =
+    color === "indigo"
+      ? { icon: "text-indigo-600", chip: "bg-indigo-100", num: "text-indigo-600" }
+      : { icon: "text-purple-600", chip: "bg-purple-100", num: "text-purple-600" };
+
+  if (variant === "numbered") {
+    return (
+      <ol role="list" className="space-y-4">
+        {items.map((it, i) => (
+          <li key={i} className="flex gap-4">
+            <span className={`text-2xl font-bold ${colorMap.num}`}>{i + 1}.</span>
+            <span className="text-gray-700 leading-relaxed">
+              <span className="font-semibold">{it.title}</span>
+              {it.text ? <> {it.text}</> : null}
+            </span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
+  if (variant === "check") {
+    return (
+      <ul role="list" className="space-y-3">
+        {items.map((it, i) => (
+          <li key={i} className="flex gap-3">
+            <span
+              aria-hidden="true"
+              className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${colorMap.chip}`}
+            >
+              <CheckCircle2 className={`h-4 w-4 ${colorMap.icon}`} />
+            </span>
+            <span className="text-gray-700 leading-relaxed">
+              <span className="font-semibold">{it.title}</span>
+              {it.text ? <> {it.text}</> : null}
+            </span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Default: "grid" (Option 3)
+  return (
+    <ul role="list" className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {items.map((it, i) => (
+        <li key={i} className="flex items-start gap-2">
+          <CheckCircle2 className={`h-5 w-5 ${colorMap.icon} mt-1`} />
+          <span className="text-gray-700 leading-relaxed">
+            <span className="font-semibold">{it.title}</span>
+            {it.text ? <> {it.text}</> : null}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+// ===== End helper =====
 
 export default function Landing() {
   const [, navigate] = useLocation();
@@ -181,14 +255,17 @@ export default function Landing() {
                     <p className="text-lg font-semibold text-indigo-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
-                  <div className="text-gray-700 leading-relaxed space-y-4">
-                    <p><strong>Build Self-Awareness</strong> through five strengths model: imagining, thinking, planning, acting, and feeling.</p>
-                    <p><strong>Identify Flow State</strong> when performing at your peak and recreate it on demand.</p>
-                    <p><strong>Enhance Wellbeing</strong> by reflecting on current state and how to reach optimal one.</p>
-                    <p><strong>Envision Future Growth</strong> to activate deep learning and development.</p>
-                    <p><strong>Build Exceptional Teams</strong> through strengths-based fusion mapping and mutual understanding.</p>
-                    <p><strong>Humanistic AI</strong> provides supplementary coaching and analytics.</p>
-                  </div>
+                  <FeatureList
+                    color="indigo"
+                    items={[
+                      { title: "Build Self-Awareness", text: "through five strengths: imagining, thinking, planning, acting, and feeling." },
+                      { title: "Identify Flow State", text: "when performing at your peak and recreate it on demand." },
+                      { title: "Enhance Wellbeing", text: "by reflecting on your current state and how to reach an optimal one." },
+                      { title: "Envision Future Growth", text: "to activate deep learning and development." },
+                      { title: "Build Exceptional Teams", text: "through strengths-based fusion mapping and mutual understanding." },
+                      { title: "Humanistic AI", text: "provides supplementary coaching and analytics." },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -206,14 +283,17 @@ export default function Landing() {
                     <p className="text-lg font-semibold text-purple-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
-                  <div className="text-gray-700 leading-relaxed space-y-4">
-                    <p><strong>Develop Your Imagination</strong> as a core strategic capability as a foundation for growth and change.</p>
-                    <p><strong>Learn The I4C Model</strong> to enhance your curiosity, caring, creativity, and courage.</p>
-                    <p><strong>Climb Ladder Of Imagination</strong> through structured visioning and creative problem-solving.</p>
-                    <p><strong>Elevate Your HaiQ</strong> (Human-AI Collaboration Quotient) for the future workforce.</p>
-                    <p><strong>Grow Return On Imagination</strong> (ROI 2.0) at scale across teams and organizations.</p>
-                    <p><strong>Humanistic AI</strong> provides supplementary coaching and analytics.</p>
-                  </div>
+                  <FeatureList
+                    color="purple"
+                    items={[
+                      { title: "Develop Your Imagination", text: "as a core strategic capability for growth and change." },
+                      { title: "Learn The I4C Model", text: "to enhance your curiosity, caring, creativity, and courage." },
+                      { title: "Climb the Ladder of Imagination", text: "through structured visioning and creative problem-solving." },
+                      { title: "Elevate Your HaiQ", text: "(Human-AI Collaboration Quotient) for the future workforce." },
+                      { title: "Grow Return on Imagination", text: "(ROI 2.0) at scale across teams and organizations." },
+                      { title: "Humanistic AI", text: "provides supplementary coaching and analytics." },
+                    ]}
+                  />
                 </div>
               </div>
             </div>

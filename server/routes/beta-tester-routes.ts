@@ -94,7 +94,7 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    console.log(`✅ Beta tester account created successfully: ${username} (${email})`);
+    console.log(`✅ Beta tester account created successfully: ${username} (email: ${email.substring(0, 3)}***@***)`);
 
     // Return success response (don't include password)
     const { password: _, ...userWithoutPassword } = result.user!;

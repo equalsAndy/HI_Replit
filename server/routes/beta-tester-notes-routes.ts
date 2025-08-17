@@ -9,6 +9,40 @@ import { BetaTesterNotesService, BetaTesterNote } from '../services/beta-tester-
 
 const router = express.Router();
 
+// Lightweight request logging for QA (dev/staging only)
+const notesLoggingEnabled = (process.env.FEATURE_LOG_API === 'true') || (process.env.NODE_ENV !== 'production');
+router.use((req, res, next) => {
+  if (!notesLoggingEnabled) return next();
+  const start = Date.now();
+  const userId = (req.session as any)?.userId;
+  const preview: Record<string, any> = {};
+  try {
+    if (req.method === 'POST' || req.method === 'PUT') {
+      const body: any = req.body || {};
+      preview.workshopType = body.workshopType;
+      preview.noteType = body.noteType;
+      if (typeof body.noteContent === 'string') preview.noteLen = body.noteContent.length;
+    }
+    if (req.method === 'GET') {
+      preview.includeSubmitted = req.query?.includeSubmitted;
+      preview.workshopType = req.query?.workshopType;
+    }
+  } catch {}
+  console.log('📝 [beta-notes]', {
+    method: req.method,
+    path: req.originalUrl || req.url,
+    userId,
+    ...preview,
+  });
+  res.on('finish', () => {
+    console.log('✅ [beta-notes]', {
+      status: res.statusCode,
+      ms: Date.now() - start,
+    });
+  });
+  next();
+});
+
 /**
  * Helper function to verify beta tester access with database fallback
  */
@@ -51,6 +85,7 @@ async function verifyBetaTesterAccess(req: express.Request, res: express.Respons
 
 /**
  * Get all beta tester notes for the current user (alias endpoint)
+ * Uses the same service and access checks as the main /notes route.
  */
 router.get('/my-notes', async (req, res) => {
   try {
@@ -59,37 +94,12 @@ router.get('/my-notes', async (req, res) => {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    // Verify user is a beta tester or admin
     if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
     const notes = await BetaTesterNotesService.getUserNotes(userId);
-    res.json({ success: true, notes });
-
-  } catch (error) {
-    console.error('Error getting beta tester notes:', error);
-    res.status(500).json({ error: 'Failed to retrieve notes' });
-  }
-});
-
-/**
- * Get all beta tester notes for the current user
- */
-router.get('/notes', async (req, res) => {
-  try {
-    const userId = req.session?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    // Verify user is a beta tester or admin
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Beta tester access required' });
-    }
-
-    const notes = await BetaTesterNotesService.getUserNotes(userId);
-    res.json({ success: true, notes });
+    res.json({ success: true, notes, count: notes.length });
 
   } catch (error) {
     console.error('Error getting beta tester notes:', error);

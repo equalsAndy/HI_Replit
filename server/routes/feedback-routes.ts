@@ -7,6 +7,39 @@ import { featureFlags } from '../utils/feature-flags.js';
 
 const router = express.Router();
 
+// Lightweight request logging for QA (dev/staging only)
+const feedbackLoggingEnabled = (process.env.FEATURE_LOG_API === 'true') || (process.env.NODE_ENV !== 'production');
+router.use((req, res, next) => {
+  if (!feedbackLoggingEnabled) return next();
+  const start = Date.now();
+  const userId = (req as any)?.user?.id || (req.session as any)?.userId;
+  const preview: Record<string, any> = {};
+  try {
+    if (req.method === 'POST' || req.method === 'PATCH') {
+      const body: any = req.body || {};
+      preview.pageContext = body.pageContext;
+      preview.feedbackType = body.feedbackType;
+      preview.priority = body.priority;
+      preview.workshop = body.pageData?.workshop;
+      if (typeof body.message === 'string') preview.messageLen = body.message.length;
+    }
+  } catch {}
+  console.log('📝 [feedback]', {
+    method: req.method,
+    path: req.originalUrl || req.url,
+    userId,
+    query: req.query,
+    ...preview,
+  });
+  res.on('finish', () => {
+    console.log('✅ [feedback]', {
+      status: res.statusCode,
+      ms: Date.now() - start,
+    });
+  });
+  next();
+});
+
 // Middleware to check if feedback system is enabled
 const checkFeedbackEnabled = (req: any, res: any, next: any) => {
   if (!featureFlags.feedbackSystem.enabled) {

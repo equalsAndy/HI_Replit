@@ -41,7 +41,12 @@ const BetaFeedbackSurveyPage: React.FC = () => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
-  
+  const [submitted, setSubmitted] = useState(false);
+  const notesSectionRef = React.useRef<HTMLDivElement | null>(null);
+
+  const SCHEDULING_URL = import.meta.env.VITE_SCHEDULING_URL || '#';
+  const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'support@heliotrope.ai';
+
   const [editingNote, setEditingNote] = useState<number | null>(null);
   const [editContent, setEditContent] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
@@ -111,9 +116,9 @@ const BetaFeedbackSurveyPage: React.FC = () => {
 
   // Fetch beta tester notes
   const { data: notes = [], isLoading: notesLoading } = useQuery<BetaNote[]>({
-    queryKey: ['/api/beta-tester-notes/my-notes'],
+    queryKey: ['/api/beta-tester/notes'],
     queryFn: async () => {
-      const response = await fetch('/api/beta-tester-notes/notes?includeSubmitted=true', {
+      const response = await fetch('/api/beta-tester/notes?includeSubmitted=true', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch notes');
@@ -135,7 +140,7 @@ const BetaFeedbackSurveyPage: React.FC = () => {
   // Delete note mutation
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: number) => {
-      const response = await fetch(`/api/beta-tester-notes/${noteId}`, {
+      const response = await fetch(`/api/beta-tester/${noteId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -143,14 +148,14 @@ const BetaFeedbackSurveyPage: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/beta-tester-notes/my-notes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/beta-tester/notes'] });
     }
   });
 
   // Update note mutation
   const updateNoteMutation = useMutation({
     mutationFn: async ({ noteId, content }: { noteId: number; content: string }) => {
-      const response = await fetch(`/api/beta-tester-notes/${noteId}`, {
+      const response = await fetch(`/api/beta-tester/${noteId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -160,7 +165,7 @@ const BetaFeedbackSurveyPage: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/beta-tester-notes/my-notes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/beta-tester/notes'] });
       setEditingNote(null);
       setEditContent('');
     }
@@ -188,7 +193,7 @@ const BetaFeedbackSurveyPage: React.FC = () => {
         finalComments: feedback.finalComments
       };
 
-      const response = await fetch('/api/beta-tester-notes/feedback', {
+      const response = await fetch('/api/beta-tester/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -201,10 +206,8 @@ const BetaFeedbackSurveyPage: React.FC = () => {
       // Clear saved form data from localStorage
       localStorage.removeItem('betaFeedbackSurvey');
       console.log('🗑️ Cleared autosaved form data after successful submission');
-      
-      // Show success message and redirect
-      alert('Thank you for your feedback! Your input is invaluable for improving AllStarTeams.');
-      setLocation('/allstarteams');
+      // Show in-page thank you state instead of browser alert/redirect
+      setSubmitted(true);
     }
   });
 
@@ -254,6 +257,45 @@ const BetaFeedbackSurveyPage: React.FC = () => {
   };
 
   const canSubmit = formData.overallExperience && formData.authenticityRating && formData.recommendationLikelihood;
+
+  const scrollToNotes = () => {
+    notesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  if (submitted) {
+    return (
+      <div className="max-w-3xl mx-auto p-8">
+        <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-2xl">✓</div>
+          </div>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Thank you for your feedback!</h1>
+          <p className="text-gray-600 mb-6">
+            We appreciate your insights. You’re welcome to keep exploring or schedule time to chat with us.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+            <a
+              href={SCHEDULING_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition-colors"
+            >
+              Schedule Time
+            </a>
+            <a
+              href="/allstarteams"
+              className="inline-flex items-center justify-center border-2 border-gray-300 text-gray-800 bg-white hover:bg-gray-50 px-5 py-2 rounded-lg font-medium transition-colors"
+            >
+              More about AllStarTeams
+            </a>
+          </div>
+          <p className="text-xs text-gray-500">
+            Want to restart the workshop? Email us at <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user?.isBetaTester) {
     return null; // Will redirect in useEffect

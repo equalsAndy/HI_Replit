@@ -1,5 +1,25 @@
 # Version Updates & Changelog
 
+
+## v2.3.1 - Security & Feature Improvements (2025-08-17)
+
+### 🚀 New Features
+- Add new coaching modal feature for AST workshop
+
+### 🐛 Bug Fixes
+- Fix navigation bug in IA workshop section
+
+### 🎯 User Experience
+- Enhanced version tracking with build history
+
+### 📁 Files Modified
+See git commit history for detailed file changes.
+
+### 🔄 Breaking Changes
+None. All changes maintain backward compatibility.
+
+---
+
 ## v2.2.1 - Bundle Optimization & Performance Monitoring (2025-08-16)
 
 ### ⚡ Performance Improvements
