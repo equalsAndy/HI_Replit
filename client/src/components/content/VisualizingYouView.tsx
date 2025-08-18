@@ -116,6 +116,77 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     setSelectedImages(prev => prev.filter(img => img.id !== id));
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select a file smaller than 10MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if we already have 5 images
+    if (selectedImages.length >= 5) {
+      toast({
+        title: "Maximum images reached",
+        description: "You can select up to 5 images maximum.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create a FileReader to read the image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      
+      const newImage = {
+        id: `upload-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        url: imageUrl,
+        source: 'upload',
+        searchTerm: 'uploaded image',
+        credit: {
+          photographer: 'User uploaded',
+          photographerUrl: '#',
+          sourceUrl: '#'
+        }
+      };
+
+      setSelectedImages(prev => [...prev, newImage]);
+      
+      toast({
+        title: "Image uploaded!",
+        description: "Your image has been added successfully.",
+        duration: 3000
+      });
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: "Upload failed",
+        description: "There was an error reading your file. Please try again.",
+        variant: "destructive"
+      });
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveImages = async () => {
     if (selectedImages.length === 0) {
       toast({
@@ -415,6 +486,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                 placeholder="e.g. achievement, success, growth"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isSearching && searchQuery.trim() && !workshopCompleted) {
+                    e.preventDefault();
+                    handleSearch();
+                  }
+                }}
                 className="flex-1"
                 disabled={workshopCompleted}
               />
@@ -433,14 +510,19 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           {/* File upload option */}
           <div>
             <h4 className="text-sm font-medium mb-2">Upload your own image:</h4>
-            <label className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-100 transition">
+            <label className={`flex items-center gap-2 px-4 py-2 rounded-md border transition ${
+              workshopCompleted 
+                ? 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed' 
+                : 'bg-gray-50 text-gray-700 border-gray-300 cursor-pointer hover:bg-gray-100'
+            }`}>
               <Upload className="h-4 w-4" />
               <span>Choose file</span>
               <input 
                 type="file" 
                 accept="image/*" 
                 className="hidden"
-                onChange={() => {}}
+                onChange={handleFileUpload}
+                disabled={workshopCompleted}
               />
             </label>
             <p className="text-xs text-gray-500 mt-1">Maximum file size: 10MB</p>
