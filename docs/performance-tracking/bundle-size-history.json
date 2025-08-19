@@ -1329,5 +1329,173 @@
         "Main bundle approaching size limit: 588KB / 500KB"
       ]
     }
+  },
+  {
+    "timestamp": "2025-08-19T20:20:42.116Z",
+    "mainBundleSize": 599344,
+    "totalSize": 700260,
+    "bundles": [
+      {
+        "name": "html2canvas-vvNnfOVJ.js",
+        "type": "js",
+        "size": 524,
+        "estimatedGzipped": 157,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-B1_Qu5iS.js",
+        "type": "js",
+        "size": 1997812,
+        "estimatedGzipped": 599344,
+        "isMain": true
+      },
+      {
+        "name": "index-XcklMPJr.css",
+        "type": "css",
+        "size": 160290,
+        "estimatedGzipped": 40073,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 585KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-19T20:27:19.670Z",
+    "mainBundleSize": 599344,
+    "totalSize": 700260,
+    "bundles": [
+      {
+        "name": "html2canvas-vvNnfOVJ.js",
+        "type": "js",
+        "size": 524,
+        "estimatedGzipped": 157,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-B1_Qu5iS.js",
+        "type": "js",
+        "size": 1997812,
+        "estimatedGzipped": 599344,
+        "isMain": true
+      },
+      {
+        "name": "index-XcklMPJr.css",
+        "type": "css",
+        "size": 160290,
+        "estimatedGzipped": 40073,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 585KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-19T20:35:32.342Z",
+    "mainBundleSize": 599344,
+    "totalSize": 700260,
+    "bundles": [
+      {
+        "name": "html2canvas-vvNnfOVJ.js",
+        "type": "js",
+        "size": 524,
+        "estimatedGzipped": 157,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-B1_Qu5iS.js",
+        "type": "js",
+        "size": 1997812,
+        "estimatedGzipped": 599344,
+        "isMain": true
+      },
+      {
+        "name": "index-XcklMPJr.css",
+        "type": "css",
+        "size": 160290,
+        "estimatedGzipped": 40073,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 585KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-19T21:21:49.069Z",
+    "mainBundleSize": 599344,
+    "totalSize": 700260,
+    "bundles": [
+      {
+        "name": "html2canvas-vvNnfOVJ.js",
+        "type": "js",
+        "size": 524,
+        "estimatedGzipped": 157,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-B1_Qu5iS.js",
+        "type": "js",
+        "size": 1997812,
+        "estimatedGzipped": 599344,
+        "isMain": true
+      },
+      {
+        "name": "index-XcklMPJr.css",
+        "type": "css",
+        "size": 160290,
+        "estimatedGzipped": 40073,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 585KB / 500KB"
+      ]
+    }
   }
 ]
