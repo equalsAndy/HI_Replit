@@ -122,3 +122,10 @@ storage/temp-report-images/*.png
 backups/
 cookies.txt
 test-*openai*.js
+
+# Temporary documentation and mockup files
+docs/*copy*
+docs/*bkp*
+# Generated star card images
+storage/star-cards/user-*-starcard-*.jpeg
+storage/star-cards/user-*-starcard-*.png
