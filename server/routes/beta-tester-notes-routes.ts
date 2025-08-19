@@ -622,10 +622,29 @@ router.get('/admin/notes', async (req, res) => {
 
     const notesArray = notes.rows || (Array.isArray(notes) ? notes : []);
     
+    // Ensure proper field mapping for frontend compatibility
+    const mappedNotes = notesArray.map((note: any) => ({
+      id: note.id,
+      userId: note.userId || note.userid || note.user_id,
+      userName: note.userName || note.username || note.user_name,
+      username: note.username,
+      workshopType: note.workshopType || note.workshoptype || note.workshop_type,
+      pageTitle: note.pageTitle || note.pagetitle || note.page_title,
+      stepId: note.stepId || note.stepid || note.step_id,
+      moduleName: note.moduleName || note.modulename || note.module_name,
+      questionContext: note.questionContext || note.questioncontext || note.question_context,
+      urlPath: note.urlPath || note.urlpath || note.url_path,
+      noteContent: note.noteContent || note.notecontent || note.note_content,
+      noteType: note.noteType || note.notetype || note.note_type,
+      createdAt: note.createdAt || note.createdat || note.created_at,
+      updatedAt: note.updatedAt || note.updatedat || note.updated_at,
+      submittedAt: note.submittedAt || note.submittedat || note.submitted_at
+    }));
+    
     res.json({
       success: true,
-      notes: notesArray,
-      total: notesArray.length
+      notes: mappedNotes,
+      total: mappedNotes.length
     });
 
   } catch (error) {
@@ -692,6 +711,130 @@ router.get('/admin/surveys', async (req, res) => {
   } catch (error) {
     console.error('Error fetching admin beta surveys:', error);
     res.status(500).json({ error: 'Failed to fetch beta feedback surveys' });
+  }
+});
+
+/**
+ * Admin - Export all beta feedback surveys to CSV
+ */
+router.get('/admin/surveys/export/csv', async (req, res) => {
+  try {
+    if (req.session?.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { db } = await import('../db.js');
+
+    const result: any = await db.execute(`
+      SELECT 
+        bfs.id,
+        bfs.user_id,
+        u.name as user_name,
+        u.username,
+        bfs.overall_quality,
+        bfs.authenticity,
+        bfs.recommendation,
+        bfs.rose,
+        bfs.bud,
+        bfs.thorn,
+        bfs.professional_application,
+        bfs.improvements,
+        bfs.interests,
+        bfs.final_comments,
+        bfs.submitted_at,
+        bfs.created_at
+      FROM beta_feedback_surveys bfs
+      LEFT JOIN users u ON bfs.user_id = u.id
+      ORDER BY bfs.submitted_at DESC
+    `);
+
+    const rows = result.rows || (Array.isArray(result) ? result : []);
+
+    const headers = [
+      'ID','User ID','User Name','Username','Overall','Authenticity','Recommendation',
+      'Rose','Bud','Thorn','Professional Application','Improvements','Interests','Final Comments','Submitted At','Created At'
+    ];
+
+    const csv = [
+      headers.join(','),
+      ...rows.map((r: any) => [
+        r.id,
+        r.user_id,
+        quoteCsv(r.user_name),
+        quoteCsv(r.username),
+        r.overall_quality,
+        r.authenticity,
+        r.recommendation,
+        quoteCsv(r.rose),
+        quoteCsv(r.bud),
+        quoteCsv(r.thorn),
+        quoteCsv(r.professional_application),
+        quoteCsv(r.improvements),
+        quoteCsv(Array.isArray(r.interests) ? r.interests.join('; ') : r.interests),
+        quoteCsv(r.final_comments),
+        r.submitted_at ? new Date(r.submitted_at).toISOString() : '',
+        r.created_at ? new Date(r.created_at).toISOString() : ''
+      ].join(','))
+    ].join('\n');
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `beta-feedback-surveys-${timestamp}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(csv);
+  } catch (error) {
+    console.error('Error exporting beta surveys to CSV:', error);
+    res.status(500).json({ error: 'Failed to export beta feedback surveys' });
+  }
+});
+
+function quoteCsv(value: unknown) {
+  if (value === null || value === undefined) return '';
+  const str = String(value).replace(/"/g, '""');
+  return `"${str}"`;
+}
+
+/**
+ * Admin bulk delete of beta feedback surveys
+ */
+router.delete('/admin/surveys/bulk/delete', async (req, res) => {
+  try {
+    // Check admin
+    if (req.session?.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const surveyIds = (req.body?.surveyIds || []) as number[];
+    if (!Array.isArray(surveyIds) || surveyIds.length === 0) {
+      return res.status(400).json({ error: 'surveyIds array is required' });
+    }
+
+    const { db } = await import('../db.js');
+    const { sql } = await import('drizzle-orm');
+
+    // Delete one-by-one to avoid array parameter issues
+    let deletedCount = 0;
+    for (const id of surveyIds) {
+      if (typeof id !== 'number' || !Number.isFinite(id)) continue;
+      const res: any = await db.execute(sql`DELETE FROM beta_feedback_surveys WHERE id = ${id}`);
+      if (res && typeof res.rowCount === 'number') {
+        deletedCount += res.rowCount;
+      } else if (Array.isArray(res)) {
+        deletedCount += res.length; // fallback for drivers returning arrays
+      }
+    }
+
+    console.log('🗑️ Admin bulk deleted beta surveys:', {
+      requested: surveyIds.length,
+      deleted: deletedCount ?? 'unknown',
+      sampleIds: surveyIds.slice(0, 5)
+    });
+
+    res.json({ success: true, deletedCount: deletedCount ?? surveyIds.length });
+  } catch (error) {
+    console.error('Error bulk deleting beta surveys:', error);
+    res.status(500).json({ error: 'Failed to bulk delete beta surveys' });
   }
 });
 

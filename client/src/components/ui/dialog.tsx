@@ -21,7 +21,12 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      // When closed the overlay should not intercept pointer events — only enable
+      // pointer events when the dialog is open. This prevents an invisible overlay
+      // from blocking inputs on the page when the dialog is closed.
+      // During development make the overlay visually obvious so we can debug
+      // whether it is active. `import.meta.env.DEV` is set by Vite in dev mode.
+      "fixed inset-0 z-50 bg-black/80 pointer-events-none data-[state=open]:pointer-events-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}

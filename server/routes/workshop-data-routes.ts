@@ -1617,6 +1617,62 @@ workshopDataRouter.get('/step-by-step-reflection', async (req: Request, res: Res
 });
 
 /**
+ * Upload visualization image to photo storage
+ */
+// POST /api/workshop-data/upload-visualization-image
+workshopDataRouter.post('/upload-visualization-image', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
+  try {
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const { imageData, filename } = req.body;
+
+    if (!imageData || typeof imageData !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Image data is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Import photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
+    
+    // Store the image using the photo storage service
+    const photoId = await photoStorageService.storePhoto(imageData, userId, true);
+    
+    // Generate URL for accessing the stored image
+    const imageUrl = `/api/photos/${photoId}`;
+
+    res.json({
+      success: true,
+      photoId,
+      imageUrl,
+      filename: filename || 'uploaded-image',
+      message: 'Image uploaded successfully'
+    });
+
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Upload failed',
+      code: 'UPLOAD_ERROR'
+    });
+  }
+});
+
+/**
  * Visualizing Potential (Images) endpoints
  */
 // POST /api/workshop-data/visualizing-potential

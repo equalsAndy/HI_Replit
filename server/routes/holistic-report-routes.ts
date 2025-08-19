@@ -796,28 +796,31 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
     } catch (openaiError) {
       console.log('⚠️ OpenAI failed, falling back to Claude:', openaiError.message);
       
-      // Fallback to Claude API with sophisticated prompt
-      reportContent = await generateOpenAICoachingResponse({
-      userMessage: reportPrompt,
-      personaType: 'star_report',
-      userName: user.name,
-      contextData: {
-        reportContext: 'holistic_generation',
-        selectedUserId: userId,
-        selectedUserName: user.name,
-        adminMode: false,
-        userData: {
-          user: user,
-          assessments: assessmentResult,
-          stepData: stepDataResult,
-          completedAt: user.ast_completed_at
+      // Fallback to Claude API directly
+      console.log('🤖 Using Claude API for report generation...');
+      const { generateClaudeCoachingResponse } = await import('../services/claude-api-service.js');
+      
+      reportContent = await generateClaudeCoachingResponse({
+        userMessage: reportPrompt,
+        personaType: 'star_report', 
+        userName: user.name,
+        contextData: {
+          reportContext: 'holistic_generation',
+          selectedUserId: userId,
+          selectedUserName: user.name,
+          adminMode: false,
+          userData: {
+            user: user,
+            assessments: assessmentResult.rows,
+            stepData: stepDataResult.rows,
+            completedAt: user.ast_completed_at
+          },
+          starCardImageBase64: starCardImageBase64,
+          enhancedPrompting: true
         },
-        starCardImageBase64: starCardImageBase64,
-        enhancedPrompting: true // Flag that we're using enhanced prompting
-      },
-      userId: userId,
-      sessionId: `holistic-${reportType}-${userId}-${Date.now()}`,
-      maxTokens: 25000
+        userId: userId,
+        sessionId: `holistic-claude-${reportType}-${userId}-${Date.now()}`,
+        maxTokens: 4000
       });
       usingOpenAI = false;
       console.log('✅ Claude fallback report generation successful');

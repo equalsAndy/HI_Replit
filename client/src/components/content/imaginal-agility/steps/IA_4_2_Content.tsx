@@ -1,78 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Sparkles } from 'lucide-react';
-import { useTestUser } from '@/hooks/useTestUser';
-import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
-import { IAChatModal } from '../IAChatModal';
+import ReframeExercise from '@/components/ia/ReframeExercise';
+import { useContinuity } from '@/hooks/useContinuity';
 
 interface IA_4_2_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
 // Data structure for this step
-interface IA42StepData {
-  challenge: string;
-  aiResponse: string;
-  shift: string;
-  tag: string;
-  newPerspective: string;
-}
+// Legacy interface removed (using continuity + InlineChat)
 
 const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
-  const { shouldShowDemoButtons } = useTestUser();
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  
-  // Initialize with empty data structure
-  const initialData: IA42StepData = {
-    challenge: '',
-    aiResponse: '',
-    shift: '',
-    tag: '',
-    newPerspective: ''
-  };
-  
-  // Use the new persistence hook
-  const { data, updateData, saving, loaded, error } = useWorkshopStepData(
-    'ia',
-    'ia-4-2',
-    initialData
-  );
+  const { state, set } = useContinuity();
 
-  const handleSaveReframe = () => {
-    // Data is already being auto-saved via the hook
-    console.log('Reframe data saved:', data);
-  };
-
-  const handleTryAnother = () => {
-    // Clear the form for another try
-    updateData({
-      challenge: '',
-      aiResponse: '',
-      shift: '',
-      tag: '',
-      newPerspective: ''
-    });
-  };
-
-  // Demo data function for test users
-  const fillWithDemoData = () => {
-    if (!shouldShowDemoButtons) {
-      console.warn('Demo functionality only available to test users');
-      return;
+  // One-time migration from any legacy storage to continuity
+  useEffect(() => {
+    if (!state.ia_4_2.original_thought) {
+      let legacy = '';
+      try {
+        const keys = ['ia-4-2:challenge', 'ia_4_2_challenge', 'IA_4_2_challenge'];
+        for (const k of keys) {
+          const v = localStorage.getItem(k) || sessionStorage.getItem(k);
+          if (v) { legacy = v; break; }
+        }
+      } catch {}
+      if (legacy) {
+        set({ ia_4_2: { ...state.ia_4_2, original_thought: legacy } });
+      }
     }
-    
-    updateData({
-      challenge: "I keep putting off starting my creative side project because I'm overwhelmed by where to begin and worried it won't be good enough.",
-      aiResponse: "This challenge reveals three hidden assumptions: 1) You believe perfection is required before starting, 2) You assume you must have everything figured out at the beginning, and 3) You're treating this as a performance rather than an exploration. What if this project's purpose isn't to be 'good enough' but to be a playground for your creativity? Consider starting with just 15 minutes of play, not work.",
-      shift: "I can reframe this from 'creating something perfect' to 'exploring my creative curiosity.' Instead of worrying about the outcome, I can focus on the joy of discovery and experimentation.",
-      tag: "reframe",
-      newPerspective: "My creative project is not a test to pass but a conversation with my imagination. Each small step teaches me something new about what I want to create and who I'm becoming as a creative person."
-    });
-    
-    console.log('IA 4-2 Content filled with demo meta-awareness data');
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -122,90 +79,8 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
             <h4 className="text-lg font-semibold text-blue-800 mb-4">📋 ACTIVITY</h4>
             
             <div className="space-y-6">
-              {/* Step 1 */}
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h5 className="font-semibold text-gray-800 mb-2">Step 1: Notice the Loop</h5>
-                <p className="text-gray-700 mb-3">
-                  Bring to mind a current work challenge. Now, notice a reactive thought or recurring narrative you associate with it. <span className="italic text-gray-600">This will not be shared with others.</span>
-                </p>
-                <Textarea
-                  placeholder="Describe your work challenge and the reactive thought pattern..."
-                  value={data.challenge}
-                  onChange={(e) => updateData({ challenge: e.target.value })}
-                  className="w-full h-24"
-                />
-              </div>
-              
-              {/* Step 2 */}
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h5 className="font-semibold text-gray-800 mb-2">Step 2: Prompt the Pattern</h5>
-                <p className="text-gray-700 mb-3">
-                  Ask AI: "What's one way to reframe this thought or response?"
-                </p>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => setIsChatOpen(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 flex items-center gap-2"
-                    disabled={!data.challenge.trim()}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Launch AI
-                  </Button>
-                  {/* Prompt is prefilled in the chat modal; you can edit it before sending */}
-                </div>
-              </div>
-              
-              {/* Step 3 */}
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h5 className="font-semibold text-gray-800 mb-2">Step 3: Pause + Reflect</h5>
-                <p className="text-gray-700 mb-3">
-                  Did the AI's response shift your thinking, feeling, or next step? Note one word or image that now feels more true or helpful.
-                </p>
-                <Textarea
-                  placeholder="Describe the shift you noticed..."
-                  value={data.shift}
-                  onChange={(e) => updateData({ shift: e.target.value })}
-                  className="w-full h-20"
-                />
-              </div>
-              
-              {/* Step 4 */}
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h5 className="font-semibold text-gray-800 mb-2">Step 4: Tag It</h5>
-                <p className="text-gray-700 mb-3">
-                  Select a tag that best captures the shift:<br/>
-                  <span className="text-sm text-gray-600">💡 Tagging builds your Meta-Awareness Timeline.</span>
-                </p>
-                <Select value={data.tag} onValueChange={(value) => updateData({ tag: value })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a tag that captures the shift" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="reframe">Reframe</SelectItem>
-                    <SelectItem value="surprise">Surprise</SelectItem>
-                    <SelectItem value="clarity">Clarity</SelectItem>
-                    <SelectItem value="curiosity">Curiosity</SelectItem>
-                    <SelectItem value="humor">Humor</SelectItem>
-                    <SelectItem value="calm">Calm</SelectItem>
-                    <SelectItem value="insight">Insight</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Step 5 - New Perspective */}
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h5 className="font-semibold text-gray-800 mb-2">Step 5: New Perspective</h5>
-                <p className="text-gray-700 mb-3">
-                  What new approach or next step emerged from this reframing process?
-                </p>
-                <Textarea
-                  placeholder="Describe your new perspective or next step..."
-                  value={data.newPerspective}
-                  onChange={(e) => updateData({ newPerspective: e.target.value })}
-                  className="w-full h-20"
-                />
-              </div>
+              {/* Unified IA block (Steps 1–5 handled within) */}
+              <ReframeExercise />
             </div>
           </div>
           
@@ -220,59 +95,18 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
             </div>
           </div>
           
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <Button 
-              onClick={handleSaveReframe}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-              disabled={saving || !data.challenge || !data.tag}
-            >
-              {saving ? 'Saving...' : 'Save Reframe'}
-            </Button>
-            <Button 
-              onClick={handleTryAnother}
-              variant="outline"
-              className="border-purple-300 text-purple-700 hover:bg-purple-50 px-6 py-2"
-            >
-              Try Another Challenge
-            </Button>
-          </div>
+          {/* Action Buttons removed; continuity autosaves */}
         </div>
       </div>
       
       <div className="flex justify-end items-center gap-3 mt-8">
-        {shouldShowDemoButtons && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={fillWithDemoData}
-            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Add Demo Data
-          </Button>
-        )}
         <Button 
           onClick={() => onNext && onNext('ia-4-3')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-          disabled={saving}
         >
-          {saving ? 'Saving...' : 'Continue to Visualization Stretch'}
+          Continue to Visualization Stretch
         </Button>
       </div>
-
-      {/* IA Chat Modal */}
-      <IAChatModal
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        stepId="ia-4-2"
-        contextData={{
-          challenge: data.challenge,
-          stepName: "Autoflow Mindful Prompts",
-          purpose: "meta-awareness and reframing reactive thought patterns"
-        }}
-        onResponseReceived={(response) => updateData({ aiResponse: response })}
-      />
     </div>
   );
 };

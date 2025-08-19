@@ -2,17 +2,50 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Play, CheckCircle2 } from "lucide-react";
+import { Play, CheckCircle2, Brain, Activity, HeartPulse, Rocket, Users2, Sparkles } from "lucide-react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 import { VideoModal } from '@/components/ui/video-modal';
 
 // ===== Feature list helper & style toggle =====
-type FeatureListVariant = "grid" | "check" | "numbered";
+type FeatureListVariant =
+  | "grid"
+  | "check"
+  | "numbered"
+  | "cards"
+  | "checkHeadline"
+  | "split"
+  | "badge"
+  | "illustrated"
+  | "timeline";
 
-// Flip this between "grid" | "check" | "numbered" to preview styles quickly.
-const FEATURE_LIST_VARIANT: FeatureListVariant = "grid";
+// Flip this between "grid" | "check" | "numbered" | "cards" to preview styles quickly, or use ?variant= in URL.
+const FEATURE_LIST_VARIANT: FeatureListVariant = ((): FeatureListVariant => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const v = (params.get("variant") || "").toLowerCase();
+    const allowed = [
+      "grid", "check", "numbered", "cards", "checkheadline", "split", "badge", "illustrated", "timeline"
+    ];
+    if (allowed.includes(v)) {
+      // Map kebab/camel in URL to exact union literal where needed
+      if (v === "checkheadline") return "checkHeadline";
+      return v as FeatureListVariant;
+    }
+  } catch {}
+  return "check";
+})();
+function pickIconByTitle(title: string) {
+  const t = title.toLowerCase();
+  if (t.includes("awareness") || t.includes("imagination")) return Brain;
+  if (t.includes("flow")) return Activity;
+  if (t.includes("wellbeing") || t.includes("well-being") || t.includes("well being")) return HeartPulse;
+  if (t.includes("growth") || t.includes("future")) return Rocket;
+  if (t.includes("team")) return Users2;
+  if (t.includes("ai")) return Sparkles;
+  return CheckCircle2;
+}
 
 function FeatureList({
   items,
@@ -27,6 +60,93 @@ function FeatureList({
     color === "indigo"
       ? { icon: "text-indigo-600", chip: "bg-indigo-100", num: "text-indigo-600" }
       : { icon: "text-purple-600", chip: "bg-purple-100", num: "text-purple-600" };
+
+  // 1) Check + Title Headline
+  if (variant === "checkHeadline") {
+    return (
+      <ul role="list" className="space-y-4">
+        {items.map((it, i) => (
+          <li key={i} className="flex items-start gap-3">
+            <CheckCircle2 className={`h-6 w-6 ${colorMap.icon} mt-1`} />
+            <div>
+              <h4 className="font-semibold text-gray-900 text-lg">{it.title}</h4>
+              {it.text && <p className="text-gray-700 text-sm leading-relaxed">{it.text}</p>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // 2) Two-Column Split (spec sheet style)
+  if (variant === "split") {
+    return (
+      <ul role="list" className="space-y-3">
+        {items.map((it, i) => (
+          <li key={i} className="grid grid-cols-[auto,1fr] gap-4 items-start">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className={`h-5 w-5 ${colorMap.icon}`} />
+              <span className="font-semibold text-gray-900">{it.title}</span>
+            </div>
+            {it.text && <p className="text-gray-700 text-sm leading-relaxed">{it.text}</p>}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // 3) Badge style (chips)
+  if (variant === "badge") {
+    return (
+      <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {items.map((it, i) => (
+          <li key={i} className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 shadow-sm bg-gray-50">
+            <CheckCircle2 className={`h-4 w-4 ${colorMap.icon}`} />
+            <span className="font-semibold text-gray-900">{it.title}</span>
+            {it.text && <span className="sr-only"> — {it.text}</span>}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // 4) Illustrated features (icon per benefit)
+  if (variant === "illustrated") {
+    return (
+      <ul role="list" className="space-y-3">
+        {items.map((it, i) => {
+          const Icon = pickIconByTitle(it.title);
+          return (
+            <li key={i} className="flex items-start gap-3">
+              <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${colorMap.chip}`}>
+                <Icon className={`h-4 w-4 ${colorMap.icon}`} />
+              </span>
+              <span className="text-gray-700 leading-relaxed">
+                <span className="font-semibold">{it.title}</span>
+                {it.text ? <> {it.text}</> : null}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+
+  // 5) Timeline / step path
+  if (variant === "timeline") {
+    return (
+      <ul role="list" className="relative ml-4 space-y-5">
+        <span className="absolute left-0 top-2 bottom-2 w-px bg-gray-200" aria-hidden="true"></span>
+        {items.map((it, i) => (
+          <li key={i} className="relative pl-6">
+            <span className={`absolute -left-2 top-1.5 h-3 w-3 rounded-full ${colorMap.icon.replace('text-','bg-')}`} aria-hidden="true"></span>
+            <h4 className="font-semibold text-gray-900">{it.title}</h4>
+            {it.text && <p className="text-gray-700 text-sm leading-relaxed">{it.text}</p>}
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   if (variant === "numbered") {
     return (
@@ -59,6 +179,33 @@ function FeatureList({
               <span className="font-semibold">{it.title}</span>
               {it.text ? <> {it.text}</> : null}
             </span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (variant === "cards") {
+    return (
+      <ul role="list" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {items.map((it, i) => (
+          <li key={i} className="rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
+                  <CheckCircle2 className="h-4 w-4 text-gray-700" />
+                </span>
+                {/* Force title to one line; full text on hover via title attr */}
+                <h4 className="font-semibold text-gray-800 text-base whitespace-nowrap truncate" title={it.title}>
+                  {it.title}
+                </h4>
+              </div>
+              {it.text && (
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {it.text}
+                </p>
+              )}
+            </div>
           </li>
         ))}
       </ul>

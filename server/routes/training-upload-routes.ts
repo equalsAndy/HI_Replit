@@ -41,11 +41,11 @@ const openaiReflection = reflectionProjectId
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY, project: reflectionProjectId })
   : null;
 
-// Persona vector store mapping (legacy; kept for backward compatibility)
+// Persona vector store mapping - UPDATED with current IDs from OpenAI projects
 const PERSONA_VECTOR_STORES_DEFAULT = {
-  'reflection_talia': 'vs_688e55e74e68819190cca71d1fa54f52',
-  'report_talia': 'vs_688e2bf0d94c81918b50080064684bde',
-  'admin_talia': 'vs_688e55e81e6c8191af100194c2ac9512'
+  'reflection_talia': 'vs_689bf4308ccc819181e5168906b51fee',     // AST Reflections 
+  'report_talia': 'vs_688e55e74e68819190cca71d1fa54f52',        // AllStarTeams_Report_Corpus
+  'admin_talia': 'vs_689c0216a784819180bd2d242c868588'          // V_Ultra_Report_Sandbox
 };
 
 // Ultra vector stores from env (preferred) fallback to defaults if missing

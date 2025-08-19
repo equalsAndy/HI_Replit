@@ -513,7 +513,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
               completedSteps,
               appType: appType, // Ensure correct app type
               lastVisitedAt: new Date().toISOString(),
-              unlockedSteps: calculateUnlockedSteps(completedSteps),
+              unlockedSteps: calculateUnlockedSteps(completedSteps, appType),
               sectionExpansion,
               workshopCompleted
             };
@@ -690,7 +690,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
     setProgress(prev => {
       const newCompletedSteps = [...prev.completedSteps, stepId];
-      const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps);
+      const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps, appType);
       const nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
       
       // Calculate workshop completion status

@@ -12,6 +12,7 @@ import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { safeConsoleLog, filterPhotoDataFromObject } from '@shared/photo-data-filter';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -25,12 +26,69 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [imageMeaning, setImageMeaning] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedState, setLastSavedState] = useState<{images: any[], meaning: string} | null>(null);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const { toast } = useToast();
   const { shouldShowDemoButtons } = useTestUser();
   const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
+
+  // Check if current state differs from last saved state
+  const checkForUnsavedChanges = () => {
+    if (!lastSavedState) {
+      // If we have any data but no saved state, we have unsaved changes
+      const hasData = selectedImages.length > 0 || imageMeaning.trim().length > 0;
+      setHasUnsavedChanges(hasData);
+      return;
+    }
+    
+    // Compare current state with last saved state
+    const imagesDiffer = JSON.stringify(selectedImages) !== JSON.stringify(lastSavedState.images);
+    const meaningDiffer = imageMeaning.trim() !== lastSavedState.meaning.trim();
+    
+    setHasUnsavedChanges(imagesDiffer || meaningDiffer);
+  };
+
+  // Handle navigation with unsaved changes check
+  const handleNavigationAttempt = (navigationFn: () => void) => {
+    if (hasUnsavedChanges && !workshopCompleted) {
+      setPendingNavigation(() => navigationFn);
+      setShowUnsavedWarning(true);
+    } else {
+      navigationFn();
+    }
+  };
+
+  // Handle saving before navigation
+  const handleSaveAndContinue = async () => {
+    if (!hasUnsavedChanges || !pendingNavigation) {
+      if (pendingNavigation) pendingNavigation();
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await handleSaveImages();
+      if (pendingNavigation) pendingNavigation();
+      setShowUnsavedWarning(false);
+      setPendingNavigation(null);
+    } catch (error) {
+      // Error is already handled in handleSaveImages
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handle continuing without saving
+  const handleContinueWithoutSaving = () => {
+    if (pendingNavigation) pendingNavigation();
+    setShowUnsavedWarning(false);
+    setPendingNavigation(null);
+  };
 
   // Load existing image data when component mounts
   useEffect(() => {
@@ -46,13 +104,39 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         if (result.success && result.data) {
           safeConsoleLog('VisualizingYouView: Setting existing data:', filterPhotoDataFromObject(result.data));
           if (result.data.selectedImages) {
-            setSelectedImages(result.data.selectedImages);
+            // Process images to ensure database-stored images have proper URLs
+            const processedImages = result.data.selectedImages.map((image: any) => {
+              if (image.source === 'upload' && image.photoId && !image.url.startsWith('http')) {
+                // Ensure database-stored images use the correct URL format
+                return {
+                  ...image,
+                  url: `/api/photos/${image.photoId}`
+                };
+              }
+              return image;
+            });
+            setSelectedImages(processedImages);
+            
+            // Set last saved state
+            setLastSavedState({
+              images: processedImages,
+              meaning: result.data.imageMeaning || ''
+            });
           }
           if (result.data.imageMeaning) {
             setImageMeaning(result.data.imageMeaning);
           }
+          
+          // Set initial saved state
+          if (!lastSavedState) {
+            setLastSavedState({
+              images: processedImages || [],
+              meaning: result.data.imageMeaning || ''
+            });
+          }
         } else {
           console.log('VisualizingYouView: No existing data found');
+          setLastSavedState({ images: [], meaning: '' });
         }
       } catch (error) {
         console.log('VisualizingYouView: Error loading data:', error);
@@ -61,6 +145,11 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     
     loadExistingData();
   }, []);
+
+  // Track changes to selectedImages and imageMeaning
+  useEffect(() => {
+    checkForUnsavedChanges();
+  }, [selectedImages, imageMeaning, lastSavedState]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -152,28 +241,55 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
 
     // Create a FileReader to read the image
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const imageUrl = e.target?.result as string;
       
-      const newImage = {
-        id: `upload-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        url: imageUrl,
-        source: 'upload',
-        searchTerm: 'uploaded image',
-        credit: {
-          photographer: 'User uploaded',
-          photographerUrl: '#',
-          sourceUrl: '#'
-        }
-      };
+      try {
+        // Store the image in the database via API
+        const uploadResponse = await fetch('/api/workshop-data/upload-visualization-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            imageData: imageUrl,
+            filename: file.name
+          })
+        });
 
-      setSelectedImages(prev => [...prev, newImage]);
-      
-      toast({
-        title: "Image uploaded!",
-        description: "Your image has been added successfully.",
-        duration: 3000
-      });
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image to server');
+        }
+
+        const uploadResult = await uploadResponse.json();
+        
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || 'Upload failed');
+        }
+
+        const newImage = {
+          id: uploadResult.photoId.toString(),
+          url: uploadResult.imageUrl, // This will be the database-stored image URL
+          source: 'upload',
+          searchTerm: 'uploaded image',
+          photoId: uploadResult.photoId, // Store the database photo ID
+          credit: null // No credit needed for user uploads
+        };
+
+        setSelectedImages(prev => [...prev, newImage]);
+        
+        toast({
+          title: "Image uploaded!",
+          description: "Your image has been added. Click 'Save Images' or continue to save.",
+          duration: 3000
+        });
+      } catch (error) {
+        console.error('Image upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Failed to upload image to server.",
+          variant: "destructive"
+        });
+      }
     };
 
     reader.onerror = () => {
@@ -218,6 +334,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
       console.log('VisualizingYouView: Save response:', result);
 
       if (result.success) {
+        // Update last saved state
+        setLastSavedState({
+          images: selectedImages,
+          meaning: imageMeaning
+        });
+        
         toast({
           title: "Images saved!",
           description: "Your image selection and meaning have been saved successfully.",
@@ -398,16 +520,21 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
       <div className="mb-6">
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-lg font-medium">Your Selected Images ({selectedImages.length}/5)</h3>
-          <Button 
-            variant="default" 
-            size="sm" 
-            onClick={handleSaveImages}
-            disabled={selectedImages.length === 0 || isSaving}
-            className="flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" /> 
-            {isSaving ? "Saving..." : "Save Images"}
-          </Button>
+          <div className="flex items-center gap-3">
+            {hasUnsavedChanges && !workshopCompleted && (
+              <span className="text-sm text-amber-600 font-medium">Unsaved changes</span>
+            )}
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={handleSaveImages}
+              disabled={selectedImages.length === 0 || isSaving}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" /> 
+              {isSaving ? "Saving..." : "Save Images"}
+            </Button>
+          </div>
         </div>
 
         {selectedImages.length > 0 ? (
@@ -460,6 +587,11 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                     >
                       Unsplash
                     </a>
+                  </div>
+                )}
+                {image.source === 'upload' && !image.credit && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
+                    Your uploaded image
                   </div>
                 )}
               </div>
@@ -626,48 +758,39 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             </Button>
           )}
           <Button 
-            onClick={async () => {
-              if (workshopCompleted) {
-                // If workshop is completed, just navigate
+            onClick={() => {
+              const navigationFn = async () => {
+                if (workshopCompleted) {
+                  // If workshop is completed, just navigate
+                  markStepCompleted('4-3');
+                  setCurrentContent("future-self");
+                  return;
+                }
+                
+                // Validate that user has selected at least one image OR provided image meaning
+                if (selectedImages.length === 0 && imageMeaning.trim().length < 10) {
+                  setValidationError('Please select at least one image or provide a description of what your future vision means to you');
+                  return;
+                }
+                
+                // Clear validation error
+                setValidationError('');
+                
+                // Save data before proceeding if there are unsaved changes
+                if (hasUnsavedChanges) {
+                  console.log('VisualizingYouView: Saving data before proceeding to next step...');
+                  try {
+                    await handleSaveImages();
+                  } catch (error) {
+                    console.error('VisualizingYouView: Save error but proceeding anyway:', error);
+                  }
+                }
+                
                 markStepCompleted('4-3');
                 setCurrentContent("future-self");
-                return;
-              }
-              // Validate that user has selected at least one image OR provided image meaning
-              if (selectedImages.length === 0 && imageMeaning.trim().length < 10) {
-                setValidationError('Please select at least one image or provide a description of what your future vision means to you');
-                return;
-              }
+              };
               
-              // Clear validation error
-              setValidationError('');
-              
-              // Save data before proceeding
-              if (selectedImages.length > 0 || imageMeaning.trim()) {
-                console.log('VisualizingYouView: Saving data before proceeding to next step...');
-                try {
-                  const response = await fetch('/api/workshop-data/visualizing-potential', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                      selectedImages,
-                      imageMeaning
-                    })
-                  });
-
-                  const result = await response.json();
-                  if (result.success) {
-                    console.log('VisualizingYouView: Data saved successfully before navigation');
-                  } else {
-                    console.warn('VisualizingYouView: Save failed but proceeding anyway');
-                  }
-                } catch (error) {
-                  console.error('VisualizingYouView: Save error but proceeding anyway:', error);
-                }
-              }
-              markStepCompleted('4-3');
-              setCurrentContent("future-self");
+              handleNavigationAttempt(navigationFn);
             }}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
@@ -675,6 +798,33 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Unsaved Changes Warning Dialog */}
+      <Dialog open={showUnsavedWarning} onOpenChange={setShowUnsavedWarning}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes to your images or description. What would you like to do?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleContinueWithoutSaving}
+              disabled={isSaving}
+            >
+              Continue Without Saving
+            </Button>
+            <Button
+              onClick={handleSaveAndContinue}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save and Continue'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

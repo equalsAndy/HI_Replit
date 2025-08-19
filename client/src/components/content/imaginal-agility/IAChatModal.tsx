@@ -33,6 +33,7 @@ export const IAChatModal: React.FC<IAChatModalProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [serverStarter, setServerStarter] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -65,7 +66,7 @@ export const IAChatModal: React.FC<IAChatModalProps> = ({
   // Prefill prompt (do not auto-send) when conversation starts
   useEffect(() => {
     if (conversationId && messages.length === 1) {
-      const seed = deriveSeedPrompt(stepId, contextData, prompt);
+      const seed = serverStarter || deriveSeedPrompt(stepId, contextData, prompt);
       if (seed) setInputValue(seed);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,6 +122,10 @@ export const IAChatModal: React.FC<IAChatModalProps> = ({
       const data = await response.json();
       if (data.success) {
         setConversationId(data.conversation.id);
+        if (data.starterPrompt && typeof data.starterPrompt === 'string') {
+          setServerStarter(data.starterPrompt);
+          setInputValue(data.starterPrompt);
+        }
         
         // Add welcome message
         const welcomeMessage: Message = {

@@ -43,6 +43,8 @@ import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.js'
 import assistantTestRoutes from './routes/assistant-test-routes.js';
 import adminAIResourcesRoutes from './routes/admin-ai-resources.js';
 import iaStepRoutes from './routes/ia-step-routes.js';
+import aiRoutes from './routes/ai.js';
+import iaContinuityRoutes from './routes/ia.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
@@ -448,8 +450,10 @@ async function initializeApp() {
 app.use('/api/admin/ai', trainingUploadRoutes);
 app.use('/api/admin/ai/exercise-instructions', iaExerciseInstructionsRoutes);
 app.use('/api/admin/ai', assistantTestRoutes);
-app.use('/api/admin/ai', adminAIResourcesRoutes);
-app.use('/api', iaStepRoutes);
+      app.use('/api/admin/ai', adminAIResourcesRoutes);
+      app.use('/api', iaStepRoutes);
+      app.use('/api/ia', iaContinuityRoutes);
+      app.use('/api/ai', aiRoutes);
       app.use('/api/talia-status', taliaStatusRoutes);
       app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);

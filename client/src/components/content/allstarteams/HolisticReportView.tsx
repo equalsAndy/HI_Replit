@@ -21,6 +21,7 @@ export default function HolisticReportView({
   const [generating, setGenerating] = useState(false);
   const [reportGenerated, setReportGenerated] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [hasViewedReport, setHasViewedReport] = useState(false);
   const { data: user } = useCurrentUser();
 
@@ -49,31 +50,7 @@ export default function HolisticReportView({
     markStepCompleted('5-2');
   }, [markStepCompleted]);
 
-  // Feedback submission handler
-  const handleSubmitFeedback = async (feedbackData: any) => {
-    try {
-      const response = await fetch('/api/beta-tester/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(feedbackData)
-      });
-
-      if (response.ok) {
-        console.log('✅ Beta feedback submitted successfully');
-        alert('Thank you for your feedback! Your input helps us improve the AllStarTeams experience.');
-        return true;
-      } else {
-        throw new Error('Failed to submit feedback');
-      }
-    } catch (error) {
-      console.error('Error submitting beta feedback:', error);
-      alert('Failed to submit feedback. Please try again.');
-      return false;
-    }
-  };
+  // Inline thank-you handling is driven by the modal's onSubmitted callback
 
   const handleDownload = async () => {
     if (!allAssessmentsComplete) {
@@ -178,40 +155,56 @@ export default function HolisticReportView({
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Beta Tester Feedback Button - Before Report Generation */}
+      {/* Beta Tester Feedback CTA or Thank You */}
       {(user?.isBetaTester || user?.role === 'admin') && (
-        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-purple-900 mb-2 flex items-center gap-2">
-                  <MessageSquareText className="w-5 h-5" />
-                  Share Your Workshop Experience
-                </h3>
-                <p className="text-purple-800 text-sm">
-                  {canGiveFeedback 
-                    ? "Thank you for completing your workshop! We'd love to hear about your experience with AllStarTeams."
-                    : "Please generate and view your reports below before providing feedback. Once you've reviewed your personalized insights, we'd appreciate hearing about your workshop experience."
-                  }
-                </p>
+        feedbackSubmitted ? (
+          <Card className="mb-6 bg-green-50 border-green-200">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-6 h-6 text-green-600 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-green-900 mb-1">Thank you for your feedback!</h3>
+                  <p className="text-green-800 text-sm">
+                    We appreciate your help improving AllStarTeams. Your responses were recorded and are visible in the admin console.
+                  </p>
+                </div>
               </div>
-              <div className="ml-4">
-                <Button
-                  onClick={() => setIsFeedbackModalOpen(true)}
-                  disabled={!canGiveFeedback}
-                  className={`px-6 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${
-                    canGiveFeedback
-                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <MessageSquareText className="w-4 h-4" />
-                  {canGiveFeedback ? 'Give Feedback' : 'Generate Reports First'}
-                </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                    <MessageSquareText className="w-5 h-5" />
+                    Share Your Workshop Experience
+                  </h3>
+                  <p className="text-purple-800 text-sm">
+                    {canGiveFeedback 
+                      ? "Thank you for completing your workshop! We'd love to hear about your experience with AllStarTeams."
+                      : "Please generate and view your reports below before providing feedback. Once you've reviewed your personalized insights, we'd appreciate hearing about your workshop experience."
+                    }
+                  </p>
+                </div>
+                <div className="ml-4">
+                  <Button
+                    onClick={() => setIsFeedbackModalOpen(true)}
+                    disabled={!canGiveFeedback}
+                    className={`px-6 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${
+                      canGiveFeedback
+                        ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <MessageSquareText className="w-4 h-4" />
+                    {canGiveFeedback ? 'Give Feedback' : 'Generate Reports First'}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )
       )}
 
       <Card className="mb-8">
@@ -314,7 +307,7 @@ export default function HolisticReportView({
       <BetaFeedbackSurveyModal
         isOpen={isFeedbackModalOpen}
         onClose={() => setIsFeedbackModalOpen(false)}
-        onSubmitFeedback={handleSubmitFeedback}
+        onSubmitted={() => setFeedbackSubmitted(true)}
       />
     </div>
   );

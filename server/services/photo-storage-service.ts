@@ -281,26 +281,87 @@ export class PhotoStorageService {
 
   /**
    * Get user's StarCard image for reports
-   * This searches for the most recent StarCard image uploaded by the user
+   * Handles both development and production database schemas
    */
   async getUserStarCard(userId: string): Promise<{ filePath: string; photoData: string } | null> {
     try {
-      // Look for the most recent photo uploaded by this user
-      // In a real implementation, we might have a specific table for StarCards
-      const result = await query(`
-        SELECT photo_data, photo_hash, mime_type
-        FROM photo_storage 
-        WHERE uploaded_by = $1 
-        AND is_thumbnail = false
-        ORDER BY created_at DESC 
-        LIMIT 1
-      `, [parseInt(userId)]);
+      console.log(`🖼️ getUserStarCard: Looking for StarCard for user ${userId}`);
+      
+      // Check if we're in production schema (has photo_storage table)
+      let hasPhotoStorage = false;
+      try {
+        await query(`SELECT 1 FROM photo_storage LIMIT 1`);
+        hasPhotoStorage = true;
+        console.log(`🔍 getUserStarCard: Using production schema (photo_storage)`);
+      } catch (error) {
+        console.log(`🔍 getUserStarCard: Using development schema (star_cards)`);
+        hasPhotoStorage = false;
+      }
+      
+      let result;
+      
+      if (hasPhotoStorage) {
+        // PRODUCTION SCHEMA: Use photo_storage table
+        // First, try to get the user's profile picture (this should be their StarCard)
+        result = await query(`
+          SELECT ps.photo_data, ps.photo_hash, ps.mime_type, ps.created_at, 'profile_picture' as source
+          FROM photo_storage ps 
+          JOIN users u ON u.profile_picture_id = ps.id
+          WHERE u.id = $1 
+          AND ps.is_thumbnail = false
+        `, [parseInt(userId)]);
+
+        if (result.rows.length === 0) {
+          console.log(`🔍 getUserStarCard: No profile picture found for user ${userId}, looking for StarCard by pattern`);
+          
+          // Fallback: Look for images that are likely StarCards (larger PNG files, not tiny thumbnails)
+          // StarCards are typically PNG files around 100KB+ in size
+          result = await query(`
+            SELECT photo_data, photo_hash, mime_type, created_at, 'fallback_starcard' as source
+            FROM photo_storage 
+            WHERE uploaded_by = $1 
+            AND is_thumbnail = false
+            AND mime_type = 'image/png'
+            AND file_size > 50000
+            ORDER BY created_at DESC 
+            LIMIT 1
+          `, [parseInt(userId)]);
+        }
+      } else {
+        // DEVELOPMENT SCHEMA: Use star_cards table or users.profile_picture
+        console.log(`🔍 getUserStarCard: Checking star_cards table for user ${userId}`);
+        
+        // First, try the star_cards table
+        result = await query(`
+          SELECT image_url as photo_data, 'star_cards' as source, created_at
+          FROM star_cards 
+          WHERE user_id = $1 
+          AND image_url IS NOT NULL
+          ORDER BY created_at DESC 
+          LIMIT 1
+        `, [parseInt(userId)]);
+        
+        if (result.rows.length === 0) {
+          console.log(`🔍 getUserStarCard: No star_cards found, checking users.profile_picture for user ${userId}`);
+          
+          // Fallback: Check users.profile_picture field
+          result = await query(`
+            SELECT profile_picture as photo_data, 'profile_picture_text' as source, updated_at as created_at
+            FROM users 
+            WHERE id = $1 
+            AND profile_picture IS NOT NULL 
+            AND profile_picture != ''
+          `, [parseInt(userId)]);
+        }
+      }
 
       if (result.rows.length === 0) {
+        console.log(`❌ getUserStarCard: No StarCard found for user ${userId} (checked profile picture and fallback)`);
         return null;
       }
 
       const photo = result.rows[0];
+      console.log(`✅ getUserStarCard: Found StarCard for user ${userId} via ${photo.source} (created: ${photo.created_at})`);
       
       // Create a temporary file path for the StarCard
       const fs = await import('fs/promises');

@@ -202,7 +202,7 @@ function ImaginalAgilityWorkshopContent() {
             onNext={(nextStepId) => {
               markNavStepCompleted(currentContent);
               setCurrentContent(nextStepId);
-              setCurrentStep(nextStepId);
+              // setCurrentStep is handled by markNavStepCompleted
             }}
             onOpenAssessment={() => setIsAssessmentModalOpen(true)}
             user={user}

@@ -95,8 +95,7 @@ export const FeedbackManagement: React.FC = () => {
   // Admin dashboard should always have access to feedback management
   // Skip feature flag check in admin context
 
-  // View management (simplified from 3 tabs to 2 views)
-  const [activeView, setActiveView] = useState<'feedback-list' | 'user-view'>('feedback-list');
+  // Render both sections on one page; no tabs
   
   // Test User Feedback (Yellow button)
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
@@ -148,25 +147,19 @@ export const FeedbackManagement: React.FC = () => {
   // Load data based on active view
   useEffect(() => {
     setLoading(true);
-    
-    if (activeView === 'feedback-list') {
-      loadFeedbackData();
-      loadFeedbackStats();
-    } else if (activeView === 'user-view') {
-      // Load all data for user view
-      loadFeedbackData();
-      loadBetaNotes();
-      loadBetaSurveys();
-    }
-    
-    // Clear selections when filters change
+    // Always load feedback list + stats based on filters
+    loadFeedbackData();
+    loadFeedbackStats();
+    // Clear feedback selection when filters change
     setSelectedItems([]);
     setShowBulkActions(false);
-  }, [activeView, statusFilter, workshopFilter, typeFilter, priorityFilter, userFilter, userTypeFilter, searchTerm, currentPage, sortField, sortDirection]);
+  }, [statusFilter, workshopFilter, typeFilter, priorityFilter, userFilter, userTypeFilter, searchTerm, currentPage, sortField, sortDirection]);
 
   // Load users list for filtering
   useEffect(() => {
     loadUsers();
+    loadBetaNotes();
+    loadBetaSurveys();
   }, []);
 
   // Update bulk actions visibility when selections change
@@ -509,6 +502,40 @@ export const FeedbackManagement: React.FC = () => {
   const isAllSelected = feedback.length > 0 && selectedItems.length === feedback.length;
   const isIndeterminate = selectedItems.length > 0 && selectedItems.length < feedback.length;
 
+  // Beta surveys selection and bulk delete
+  const [selectedSurveyIds, setSelectedSurveyIds] = useState<number[]>([]);
+  const surveysAllSelected = betaSurveys.length > 0 && selectedSurveyIds.length === betaSurveys.length;
+  const surveysIndeterminate = selectedSurveyIds.length > 0 && selectedSurveyIds.length < betaSurveys.length;
+
+  const toggleSelectAllSurveys = (checked: boolean) => {
+    setSelectedSurveyIds(checked ? betaSurveys.map((s: any) => (s.id ?? s.ID ?? s.Id)) : []);
+  };
+
+  const toggleSelectSurvey = (id: number, checked: boolean) => {
+    setSelectedSurveyIds(prev => checked ? [...prev, id] : prev.filter(x => x !== id));
+  };
+
+  const handleBulkDeleteSurveys = async () => {
+    if (selectedSurveyIds.length === 0) return;
+    if (!window.confirm(`Delete ${selectedSurveyIds.length} beta survey(s)? This cannot be undone.`)) return;
+    try {
+      const res = await fetch('/api/beta-tester/admin/surveys/bulk/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ surveyIds: selectedSurveyIds })
+      });
+      if (res.ok) {
+        setSelectedSurveyIds([]);
+        loadBetaSurveys();
+      } else {
+        console.error('Failed to bulk delete surveys');
+      }
+    } catch (e) {
+      console.error('Error bulk deleting surveys:', e);
+    }
+  };
+
   // Bulk operations handlers
   const handleBulkArchive = async () => {
     try {
@@ -649,33 +676,7 @@ export const FeedbackManagement: React.FC = () => {
         <p style={styles.subtitle}>Monitor and manage user feedback from workshop experiences</p>
       </div>
 
-      {/* Simplified View Selector */}
-      <div style={styles.viewContainer}>
-        <div 
-          style={{
-            ...styles.viewTab,
-            ...(activeView === 'feedback-list' ? styles.activeViewTab : {})
-          }}
-          onClick={() => setActiveView('feedback-list')}
-        >
-          📝 Feedback List
-          <span style={styles.viewDescription}>Browse individual feedback items</span>
-        </div>
-        <div 
-          style={{
-            ...styles.viewTab,
-            ...(activeView === 'user-view' ? styles.activeViewTab : {})
-          }}
-          onClick={() => setActiveView('user-view')}
-        >
-          👥 User View
-          <span style={styles.viewDescription}>View feedback organized by user</span>
-        </div>
-      </div>
-
-      {/* Feedback List View Content */}
-      {activeView === 'feedback-list' && (
-        <>
+      {/* Feedback List */}
           {/* Stats Overview */}
           {stats && (
             <div style={styles.statsGrid}>
@@ -696,7 +697,7 @@ export const FeedbackManagement: React.FC = () => {
             <div style={styles.statNumber}>{(stats.statusCounts.new || 0) + (stats.statusCounts.in_progress || 0)}</div>
           </div>
         </div>
-      )}
+          )}
 
           {/* Removed misleading Beta Tester stats section */}
 
@@ -968,6 +969,108 @@ export const FeedbackManagement: React.FC = () => {
         </table>
       </div>
 
+      {/* Beta Feedback Surveys */}
+      <div style={{ marginTop: 24 }}>
+        <div style={styles.sectionHeader}>
+          <h3>📊 Beta Feedback Surveys</h3>
+          <p>Final beta tester survey submissions</p>
+        </div>
+        {betaSurveys.length === 0 ? (
+          <div style={styles.emptyState}>No beta surveys found.</div>
+        ) : (
+          <React.Fragment>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>
+                {betaSurveys.length} total surveys
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/beta-tester/admin/surveys/export/csv', { credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to export surveys');
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'beta-feedback-surveys.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                style={styles.exportButton}
+              >
+                ⬇️ Export Surveys CSV
+              </button>
+            </div>
+            <div style={styles.bulkActionsToolbar}>
+              <div style={styles.bulkActionsLeft}>
+                <span style={styles.selectionCount}>
+                  {selectedSurveyIds.length} survey{selectedSurveyIds.length !== 1 ? 's' : ''} selected
+                </span>
+              </div>
+              <div style={styles.bulkActionsRight}>
+                <button onClick={handleBulkDeleteSurveys} style={{...styles.bulkActionButton, backgroundColor: '#ef4444'}}>
+                  Delete Selected Surveys
+                </button>
+              </div>
+            </div>
+            <div style={styles.tableContainer}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>
+                      <input
+                        type="checkbox"
+                        checked={surveysAllSelected}
+                        ref={(input) => { if (input) input.indeterminate = surveysIndeterminate; }}
+                        onChange={(e) => toggleSelectAllSurveys(e.target.checked)}
+                        style={styles.checkbox}
+                      />
+                    </th>
+                    <th style={styles.th}>Submitted</th>
+                    <th style={styles.th}>User</th>
+                    <th style={styles.th}>Ratings</th>
+                    <th style={styles.th}>Highlights</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {betaSurveys.map((s: any) => {
+                    const id = s.id ?? s.ID ?? s.Id;
+                    const submitted = s.submitted_at || s.submittedAt || s.created_at || s.createdAt;
+                    const userName = s.user_name || s.userName || s.username || s.user?.name || 'Unknown';
+                    return (
+                      <tr key={id} style={styles.tr}>
+                        <td style={styles.td}>
+                          <input
+                            type="checkbox"
+                            checked={selectedSurveyIds.includes(id)}
+                            onChange={(e) => toggleSelectSurvey(id, e.target.checked)}
+                            style={styles.checkbox}
+                          />
+                        </td>
+                        <td style={styles.td}>{formatDate(submitted)}</td>
+                        <td style={styles.td}>{userName}</td>
+                        <td style={styles.td}>
+                          ⭐ {s.overall_quality}/5 · Auth {s.authenticity}/5 · Rec {s.recommendation}/5
+                        </td>
+                        <td style={styles.td}>
+                          {(s.rose || s.bud || s.thorn) ? 'R/B/T provided' : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </React.Fragment>
+        )}
+      </div>
+
       {/* Detail Modal */}
       {isDetailModalOpen && selectedFeedback && (
         <div style={styles.modalOverlay} onClick={closeDetailModal}>
@@ -1011,14 +1114,14 @@ export const FeedbackManagement: React.FC = () => {
                 <div style={styles.detailSection}>
                   <h4>User Information</h4>
                   {selectedFeedback.userName ? (
-                    <>
+                    <React.Fragment>
                       <div style={styles.detailRow}>
                         <strong>Name:</strong> {selectedFeedback.userName}
                       </div>
                       <div style={styles.detailRow}>
                         <strong>Email:</strong> {selectedFeedback.userEmail}
                       </div>
-                    </>
+                    </React.Fragment>
                   ) : (
                     <div style={styles.detailRow}>Anonymous feedback</div>
                   )}
@@ -1311,35 +1414,34 @@ export const FeedbackManagement: React.FC = () => {
           </div>
         </div>
       )}
-      </>
-      )}
 
-      {/* User View Content */}
-      {activeView === 'user-view' && (
-        <div>
-          <div style={styles.sectionHeader}>
-            <h3>👥 Users with Feedback</h3>
-            <p>Click on a user to see all their feedback in one place</p>
-          </div>
+      {/* Users List (Beta + Test users) */}
+      <div style={{ marginTop: 32 }}>
+        <div style={styles.sectionHeader}>
+            <h3>👥 Beta & Test Users</h3>
+            <p>Click a user to review all their feedback (notes + surveys + tickets)</p>
+        </div>
 
           {loading ? (
             <div style={styles.loading}>Loading users...</div>
           ) : (
             <div style={styles.usersContainer}>
               {users
+                .filter(u => u.isBetaTester || u.isTestUser)
                 .map(user => {
                   // Count feedback for this user
                   const userFeedbackCount = feedback.filter(f => f.userId === user.id).length;
                   const userBetaNotesCount = betaNotes.filter(n => n.userId === user.id).length;
-                  const userHasBetaSurvey = betaSurveys.some(s => (s.userId === user.id || s.user_id === user.id));
+                  const userSurveyCount = betaSurveys.filter((s: any) => (s.userId === user.id || s.user_id === user.id)).length;
                   
-                  const totalFeedback = userFeedbackCount + userBetaNotesCount + (userHasBetaSurvey ? 1 : 0);
+                  const totalFeedback = userFeedbackCount + userBetaNotesCount + userSurveyCount;
                   
                   return {
                     ...user,
                     feedbackCount: userFeedbackCount,
                     betaNotesCount: userBetaNotesCount,
-                    hasBetaSurvey: userHasBetaSurvey,
+                    hasBetaSurvey: userSurveyCount > 0,
+                    surveyCount: userSurveyCount,
                     totalFeedback
                   };
                 })
@@ -1375,7 +1477,7 @@ export const FeedbackManagement: React.FC = () => {
                       )}
                       {user.hasBetaSurvey && (
                         <span style={styles.surveyTag}>
-                          📊 1 survey
+                          📊 {user.surveyCount} survey{user.surveyCount !== 1 ? 's' : ''}
                         </span>
                       )}
                     </div>
@@ -1384,7 +1486,6 @@ export const FeedbackManagement: React.FC = () => {
             </div>
           )}
         </div>
-      )}
     </div>
   );
 };

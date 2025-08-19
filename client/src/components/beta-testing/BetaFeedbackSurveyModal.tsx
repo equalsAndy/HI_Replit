@@ -40,11 +40,14 @@ interface FeedbackFormData {
 interface BetaFeedbackSurveyModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // Optional: notify parent on successful submission
+  onSubmitted?: () => void;
 }
 
 export const BetaFeedbackSurveyModal: React.FC<BetaFeedbackSurveyModalProps> = ({
   isOpen,
   onClose,
+  onSubmitted,
 }) => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -221,9 +224,9 @@ export const BetaFeedbackSurveyModal: React.FC<BetaFeedbackSurveyModalProps> = (
       // Clear saved form data from localStorage
       localStorage.removeItem('betaFeedbackSurveyModal');
       console.log('🗑️ Cleared autosaved form data after successful submission');
-      
-      // Show success message and close modal
-      alert('Thank you for your feedback! Your input is invaluable for improving AllStarTeams.');
+      // Notify parent so it can render inline thank-you
+      try { onSubmitted && onSubmitted(); } catch {}
+      // Close modal without browser alert
       onClose();
     }
   });

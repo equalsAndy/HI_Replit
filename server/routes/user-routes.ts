@@ -882,9 +882,11 @@ router.get('/export-data', requireAuth, async (req, res) => {
       assessments: [],
       navigationProgress: [],
       workshopParticipation: [],
+      workshopStepData: [],
       growthPlans: [],
       finalReflections: [],
-      discernmentProgress: []
+      discernmentProgress: [],
+      userPhotos: []
     };
 
     try {
@@ -906,6 +908,12 @@ router.get('/export-data', requireAuth, async (req, res) => {
         .where(eq(schema.workshopParticipation.userId, sessionUserId));
       (userData as any).workshopParticipation = workshopParticipation;
 
+      // Get workshop step data (includes IA-3-5 and other step data)
+      const workshopStepData = await db.select()
+        .from(schema.workshopStepData)
+        .where(eq(schema.workshopStepData.userId, sessionUserId));
+      (userData as any).workshopStepData = workshopStepData;
+
       // Get growth plans
       const growthPlans = await db.select()
         .from(schema.growthPlans)
@@ -923,6 +931,26 @@ router.get('/export-data', requireAuth, async (req, res) => {
         .from(schema.userDiscernmentProgress)
         .where(eq(schema.userDiscernmentProgress.userId, sessionUserId));
       (userData as any).discernmentProgress = discernmentProgress;
+
+      // Get user photos (from photo_storage table)
+      try {
+        const { Pool } = await import('pg');
+        const pool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        });
+        
+        const photosResult = await pool.query(
+          'SELECT id, photo_hash, mime_type, file_size, width, height, is_thumbnail, original_photo_id, created_at FROM photo_storage WHERE uploaded_by = $1 ORDER BY created_at DESC',
+          [sessionUserId]
+        );
+        
+        (userData as any).userPhotos = photosResult.rows;
+        pool.end();
+      } catch (photoError) {
+        console.warn('Could not fetch user photos for export:', photoError);
+        (userData as any).userPhotos = [];
+      }
 
     } catch (dbError) {
       console.error('Error fetching user data for export:', dbError);
