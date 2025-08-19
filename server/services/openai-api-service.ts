@@ -143,7 +143,7 @@ class OpenAIAssistantManager {
     ];
     
     assistants.forEach(config => {
-      this.assistantConfigs.set(config.name.toLowerCase().replace(' ', '_'), config);
+      this.assistantConfigs.set(config.name.toLowerCase().replace(/ /g, '_'), config);
     });
   }
   
@@ -827,14 +827,11 @@ async function generateOpenAIReport(
   sessionId?: string,
   vectorDbPrompt?: string
 ): Promise<string> {
-  try {
-    console.log('🎯 Using OpenAI Assistants API with vector database access');
-    
-    console.log('📊 Building user data context...');
-    const userDataContext = buildUserDataContext(userData, userName);
-    
-    // Create a prompt for the assistant that can access vector store documents
-    const assistantPrompt = `Generate a comprehensive ${reportType === 'personal' ? 'Personal Development Report' : 'Professional Profile Report'} for this user.
+  console.log('📊 Building user data context...');
+  const userDataContext = buildUserDataContext(userData, userName);
+  
+  // Create a prompt for the assistant that can access vector store documents
+  const assistantPrompt = `Generate a comprehensive ${reportType === 'personal' ? 'Personal Development Report' : 'Professional Profile Report'} for this user.
 
 Use the training documents in your vector store for guidance, examples, and structure. The documents contain the primary prompt, examples, and templates you should follow.
 
@@ -850,6 +847,9 @@ ${userDataContext}
 - Create a signature name that captures their unique pattern
 
 Generate the complete ${reportType} report now.`;
+  
+  try {
+    console.log('🎯 Using OpenAI Assistants API with vector database access');
 
     console.log(`📏 Assistant prompt length: ${assistantPrompt.length} characters`);
     console.log('🔍 DEBUG: Prompt being sent to OpenAI Assistant:');
