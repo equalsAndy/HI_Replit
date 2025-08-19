@@ -41,7 +41,7 @@ router.post('/auto-save', async (req, res) => {
           // The old one will have its reference count decremented
         }
         
-        const photoId = await photoStorageService.storePhoto(imageData, userId, true);
+        const photoId = await photoStorageService.storePhoto(imageData, userId, true, `StarCard-user-${userId}-${Date.now()}.png`);
         results.photoId = photoId;
         results.replaced = !!existingStarCard;
         results.message += ` (Database ID: ${photoId}${existingStarCard ? ', replaced existing' : ''})`;

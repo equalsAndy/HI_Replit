@@ -36,7 +36,8 @@ export class PhotoStorageService {
   async storePhoto(
     base64Data: string, 
     uploadedBy?: number,
-    generateThumbnail: boolean = true
+    generateThumbnail: boolean = true,
+    originalFilename?: string
   ): Promise<number> {
     try {
       // Parse the base64 data
@@ -75,7 +76,7 @@ export class PhotoStorageService {
         console.warn('Could not get image dimensions:', error);
       }
       
-      // Store the original photo
+      // Store the original photo (originalFilename not supported in production schema)
       const result = await query(`
         INSERT INTO photo_storage (
           photo_hash, photo_data, mime_type, file_size, 
@@ -314,18 +315,40 @@ export class PhotoStorageService {
         if (result.rows.length === 0) {
           console.log(`🔍 getUserStarCard: No profile picture found for user ${userId}, looking for StarCard by pattern`);
           
-          // Fallback: Look for images that are likely StarCards (larger PNG files, not tiny thumbnails)
-          // StarCards are typically PNG files around 100KB+ in size
+          // Enhanced fallback: Look for StarCards using size and dimension characteristics
+          // StarCards are typically 800-900px wide, 1000-1300px tall, 100KB-300KB in size
+          console.log(`🔍 getUserStarCard: Looking for StarCard-like images by dimensions for user ${userId}`);
           result = await query(`
-            SELECT photo_data, photo_hash, mime_type, created_at, 'fallback_starcard' as source
+            SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'starcard_dimensions' as source
             FROM photo_storage 
             WHERE uploaded_by = $1 
             AND is_thumbnail = false
             AND mime_type = 'image/png'
-            AND file_size > 50000
+            AND file_size > 100000
+            AND file_size < 500000
+            AND width > 600
+            AND width < 1000
+            AND height > 1000
+            AND height < 1400
             ORDER BY created_at DESC 
             LIMIT 1
           `, [parseInt(userId)]);
+          
+          // Fallback: Look for any reasonably-sized PNG if no StarCard dimensions found
+          if (result.rows.length === 0) {
+            console.log(`🔍 getUserStarCard: No StarCard dimensions found, checking for any medium PNG for user ${userId}`);
+            result = await query(`
+              SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'medium_png' as source
+              FROM photo_storage 
+              WHERE uploaded_by = $1 
+              AND is_thumbnail = false
+              AND mime_type = 'image/png'
+              AND file_size > 50000
+              AND file_size < 1000000
+              ORDER BY created_at DESC 
+              LIMIT 1
+            `, [parseInt(userId)]);
+          }
         }
       } else {
         // DEVELOPMENT SCHEMA: Use star_cards table or users.profile_picture
@@ -356,12 +379,40 @@ export class PhotoStorageService {
       }
 
       if (result.rows.length === 0) {
-        console.log(`❌ getUserStarCard: No StarCard found for user ${userId} (checked profile picture and fallback)`);
+        console.log(`❌ getUserStarCard: No StarCard found for user ${userId} (checked all methods: ${hasPhotoStorage ? 'profile_picture_id + fallback_starcard' : 'star_cards + profile_picture_text'})`);
         return null;
       }
 
       const photo = result.rows[0];
       console.log(`✅ getUserStarCard: Found StarCard for user ${userId} via ${photo.source} (created: ${photo.created_at})`);
+      console.log(`🔍 getUserStarCard: Photo data length: ${photo.photo_data ? photo.photo_data.length : 'NULL'} characters`);
+      
+      // Enhanced logging for debugging image selection
+      if (photo.file_size) {
+        console.log(`📊 getUserStarCard: File size: ${Math.round(photo.file_size / 1024)}KB`);
+      }
+      if (photo.width && photo.height) {
+        console.log(`📐 getUserStarCard: Dimensions: ${photo.width}x${photo.height}px`);
+      }
+      if (photo.width && photo.height) {
+        console.log(`📊 getUserStarCard: Aspect ratio: ${(photo.width / photo.height).toFixed(2)} (${photo.width > photo.height ? 'landscape' : photo.height > photo.width ? 'portrait' : 'square'})`);
+      }
+      
+      // Warn if using fallback methods
+      if (photo.source === 'fallback_png') {
+        console.warn(`⚠️ getUserStarCard: Using fallback PNG for user ${userId} - may not be actual StarCard`);
+      }
+      
+      // Validate photo data format
+      if (!photo.photo_data) {
+        console.log(`❌ getUserStarCard: Photo data is NULL or empty for user ${userId}`);
+        return null;
+      }
+      
+      // Check if it's a valid base64 data URL
+      const isDataUrl = photo.photo_data.startsWith('data:image/');
+      const isBase64 = photo.photo_data.includes(';base64,');
+      console.log(`🔍 getUserStarCard: Photo format - isDataUrl: ${isDataUrl}, isBase64: ${isBase64}`);
       
       // Create a temporary file path for the StarCard
       const fs = await import('fs/promises');
@@ -388,12 +439,19 @@ export class PhotoStorageService {
         await fs.writeFile(filePath, buffer);
       }
 
+      console.log(`✅ getUserStarCard: Successfully created temp file for user ${userId}: ${filePath}`);
+      console.log(`📊 getUserStarCard: Returning data - filePath: ${filePath}, photoData length: ${photo.photo_data.length}`);
+      
       return {
         filePath: filePath,
         photoData: photo.photo_data
       };
     } catch (error) {
-      console.error('Error getting user StarCard:', error);
+      console.error(`❌ getUserStarCard: Error getting StarCard for user ${userId}:`, error);
+      console.error('❌ getUserStarCard: Error details:', {
+        message: error.message,
+        stack: error.stack?.substring(0, 500)
+      });
       return null;
     }
   }

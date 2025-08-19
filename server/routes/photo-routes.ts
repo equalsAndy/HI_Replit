@@ -1,6 +1,17 @@
 import express, { Request, Response } from 'express';
 import { photoStorageService } from '../services/photo-storage-service';
 import { safeConsoleLog } from '../../shared/photo-data-filter';
+import { db } from '../db.js';
+import { users } from '../../shared/schema.js';
+import { eq } from 'drizzle-orm';
+
+// Simple auth middleware
+const requireAuth = (req: Request, res: Response, next: any) => {
+  if (!req.session?.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  next();
+};
 
 const photoRouter = express.Router();
 
@@ -263,6 +274,54 @@ photoRouter.delete('/:id', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * POST /api/photos/starcard - Save StarCard as user's profile picture
+ * Expects { imageData: "data:image/...;base64,...", filename: "..." }
+ */
+photoRouter.post('/starcard', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { imageData, filename } = req.body;
+    
+    if (!imageData) {
+      return res.status(400).json({ error: 'Image data is required' });
+    }
+
+    console.log(`🖼️ Saving StarCard for user ${userId} as profile picture...`);
+
+    // Store the StarCard image with StarCard-specific filename
+    const starCardFilename = filename || `Star_Card-user-${userId}-${Date.now()}.png`;
+    const photoId = await photoStorageService.storePhoto(imageData, userId, true, starCardFilename);
+    
+    // Update user's profile_picture_id to point to this StarCard
+    await db.update(users)
+      .set({ 
+        profilePictureId: photoId,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+
+    console.log(`✅ StarCard saved as photo ID ${photoId} and set as profile picture for user ${userId}`);
+
+    res.json({
+      success: true,
+      message: 'StarCard saved as profile picture',
+      photoId: photoId
+    });
+
+  } catch (error) {
+    console.error('❌ Error saving StarCard:', error);
+    res.status(500).json({
+      error: 'Failed to save StarCard',
+      message: error.message
     });
   }
 });

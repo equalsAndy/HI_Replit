@@ -37,8 +37,9 @@ export class StarCardGeneratorService {
       // Save to photo database using photo storage service
       const { photoStorageService } = await import('./photo-storage-service.js');
       
-      // Store in database with correct method signature: (base64Data, uploadedBy, generateThumbnail)
-      const photoId = await photoStorageService.storePhoto(dynamicStarCardBase64, parseInt(userId), true);
+      // Store in database with StarCard-specific filename for better identification
+      const starCardFilename = `Generated-StarCard-user-${userId}-${Date.now()}.png`;
+      const photoId = await photoStorageService.storePhoto(dynamicStarCardBase64, parseInt(userId), true, starCardFilename);
       
       console.log(`✅ Dynamic StarCard generated and saved to photo database for user ${userId} with photo ID: ${photoId}`);
       return dynamicStarCardBase64;

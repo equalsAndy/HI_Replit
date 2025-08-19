@@ -1,4 +1,33 @@
 /**
+ * Captures an HTML element as base64 image data
+ * @param element The HTML element to capture
+ * @returns Promise<string> Base64 data URL of the image
+ */
+export async function captureElementAsBase64(
+  element: HTMLElement
+): Promise<string> {
+  try {
+    // Dynamically import html2canvas to keep it out of main bundle
+    const html2canvas = (await import('html2canvas')).default;
+    
+    // Create canvas from the element
+    const canvas = await html2canvas(element, {
+      backgroundColor: null,
+      scale: 2, // Higher scale for better quality
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    // Convert canvas to data URL and return
+    return canvas.toDataURL('image/png');
+  } catch (error) {
+    console.error('Error capturing element as base64:', error);
+    throw error;
+  }
+}
+
+/**
  * Converts an HTML element to an image and triggers a download
  * @param element The HTML element to capture
  * @param filename The filename to save the image as

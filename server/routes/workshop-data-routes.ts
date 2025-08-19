@@ -1649,7 +1649,7 @@ workshopDataRouter.post('/upload-visualization-image', authenticateUser, checkWo
     const { photoStorageService } = await import('../services/photo-storage-service.js');
     
     // Store the image using the photo storage service
-    const photoId = await photoStorageService.storePhoto(imageData, userId, true);
+    const photoId = await photoStorageService.storePhoto(imageData, userId, true, `Workshop-StarCard-user-${userId}-${Date.now()}.png`);
     
     // Generate URL for accessing the stored image
     const imageUrl = `/api/photos/${photoId}`;

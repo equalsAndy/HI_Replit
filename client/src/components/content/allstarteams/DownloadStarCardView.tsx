@@ -74,7 +74,35 @@ export default function DownloadStarCardView({
       console.log('Generated filename:', filename);
       
       // Use the utility function for consistent configuration
-      const { downloadElementAsImage } = await import('@/lib/html2canvas');
+      const { downloadElementAsImage, captureElementAsBase64 } = await import('@/lib/html2canvas');
+      
+      // Generate the image and get base64 data
+      const base64Data = await captureElementAsBase64(starCardRef.current);
+      
+      // Save StarCard image to database as user's profile picture
+      try {
+        const saveResponse = await fetch('/api/photos/starcard', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            imageData: base64Data,
+            filename: filename
+          })
+        });
+        
+        if (saveResponse.ok) {
+          console.log('✅ StarCard saved to database as profile picture');
+        } else {
+          console.warn('⚠️ Failed to save StarCard to database, but download will continue');
+        }
+      } catch (saveError) {
+        console.warn('⚠️ Error saving StarCard to database:', saveError);
+      }
+      
+      // Download the image file
       await downloadElementAsImage(starCardRef.current, filename);
       
       console.log('Download completed successfully');

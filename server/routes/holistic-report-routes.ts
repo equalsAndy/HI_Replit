@@ -91,17 +91,29 @@ router.post('/test-generate', async (req, res) => {
     console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
     const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
 
-    // Get star card image from photo service (consistent with report generation)
-    const starCardImagePath = await getStarCardImagePath(userId);
-    reportData.starCardImagePath = starCardImagePath;
+    // StarCard image will be retrieved via getUserStarCard method during report generation
+    // No need to get separate path here
     
-    // Also store the base64 data directly for HTML reports
+    // Also store the base64 data directly for HTML reports with validation
     if (!reportData.starCardImageBase64) {
       try {
         const { photoStorageService } = await import('../services/photo-storage-service.js');
         const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
         if (starCardImage && starCardImage.photoData) {
+          // Validate that this looks like a StarCard (not a random image)
+          console.log(`🔍 StarCard validation for user ${userId}:`);
+          console.log(`   - Source: ${starCardImage.source || 'unknown'}`);
+          console.log(`   - Data length: ${starCardImage.photoData.length} chars`);
+          
+          // Additional validation for fallback images
+          if (starCardImage.source === 'fallback_png') {
+            console.warn(`⚠️ Using fallback PNG for user ${userId} - report may show wrong image`);
+          }
+          
           reportData.starCardImageBase64 = starCardImage.photoData;
+          console.log(`✅ StarCard image added to report for user ${userId}`);
+        } else {
+          console.warn(`⚠️ No StarCard image found for user ${userId} - report will have no StarCard`);
         }
       } catch (error) {
         console.warn('Could not get StarCard base64 data:', error);
@@ -121,15 +133,13 @@ router.post('/test-generate', async (req, res) => {
         report_data = $1, 
         html_content = $2,
         pdf_file_name = $3, 
-        star_card_image_path = $4,
-        generation_status = $5,
+        generation_status = $4,
         updated_at = NOW()
-       WHERE id = $6`,
+       WHERE id = $5`,
       [
         JSON.stringify(reportData),
         htmlContent,
         pdfFileName,
-        starCardImagePath,
         'completed',
         reportId
       ]
@@ -211,17 +221,29 @@ router.post('/generate', async (req, res) => {
     console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
     const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
 
-    // Get star card image from photo service (consistent with report generation)
-    const starCardImagePath = await getStarCardImagePath(userId);
-    reportData.starCardImagePath = starCardImagePath;
+    // StarCard image will be retrieved via getUserStarCard method during report generation
+    // No need to get separate path here
     
-    // Also store the base64 data directly for HTML reports
+    // Also store the base64 data directly for HTML reports with validation
     if (!reportData.starCardImageBase64) {
       try {
         const { photoStorageService } = await import('../services/photo-storage-service.js');
         const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
         if (starCardImage && starCardImage.photoData) {
+          // Validate that this looks like a StarCard (not a random image)
+          console.log(`🔍 StarCard validation for user ${userId}:`);
+          console.log(`   - Source: ${starCardImage.source || 'unknown'}`);
+          console.log(`   - Data length: ${starCardImage.photoData.length} chars`);
+          
+          // Additional validation for fallback images
+          if (starCardImage.source === 'fallback_png') {
+            console.warn(`⚠️ Using fallback PNG for user ${userId} - report may show wrong image`);
+          }
+          
           reportData.starCardImageBase64 = starCardImage.photoData;
+          console.log(`✅ StarCard image added to report for user ${userId}`);
+        } else {
+          console.warn(`⚠️ No StarCard image found for user ${userId} - report will have no StarCard`);
         }
       } catch (error) {
         console.warn('Could not get StarCard base64 data:', error);
@@ -241,15 +263,13 @@ router.post('/generate', async (req, res) => {
         report_data = $1, 
         html_content = $2,
         pdf_file_name = $3, 
-        star_card_image_path = $4,
-        generation_status = $5,
+        generation_status = $4,
         updated_at = NOW()
-       WHERE id = $6`,
+       WHERE id = $5`,
       [
         JSON.stringify(reportData),
         htmlContent,
         pdfFileName,
-        starCardImagePath,
         'completed',
         reportId
       ]
@@ -705,7 +725,7 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
     
     console.log(`📊 Found ${assessmentResult.rows.length} assessments and ${stepDataResult.rows.length} step data records`);
     
-    // Get StarCard image FIRST (same as admin console)
+    // Get StarCard image FIRST (same as admin console) with enhanced validation
     let starCardImageBase64 = '';
     try {
       console.log(`🖼️ Getting StarCard image for user ${userId}...`);
@@ -715,8 +735,17 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       if (starCardImage && starCardImage.photoData) {
         starCardImageBase64 = starCardImage.photoData;
         console.log('✅ Found StarCard image for report integration');
+        console.log(`📊 StarCard image details: length=${starCardImage.photoData.length}, source=${starCardImage.source}`);
+        console.log(`🔍 StarCard data preview: ${starCardImage.photoData.substring(0, 50)}...`);
+        
+        // Warn if using fallback method (may be wrong image)
+        if (starCardImage.source === 'fallback_png') {
+          console.warn(`⚠️ ALERT: Using fallback PNG for user ${userId} - this may not be the actual StarCard!`);
+          console.warn(`   This could result in visualization exercise images appearing in the report instead of StarCard`);
+        }
       } else {
         console.log('⚠️ No StarCard image found for this user');
+        console.log(`🔍 StarCard retrieval result: ${starCardImage ? 'object exists but no photoData' : 'null/undefined'}`);
       }
     } catch (error) {
       console.warn('Could not retrieve StarCard image:', error);
@@ -922,64 +951,7 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
   }
 }
 
-/**
- * Helper function to get star card image from database and create temporary file
- */
-async function getStarCardImagePath(userId: number): Promise<string> {
-  try {
-    console.log(`🖼️ Getting StarCard image for user ${userId} from database...`);
-    
-    // Query database for the most recent StarCard image for this user
-    const result = await pool.query(
-      `SELECT photo_hash, photo_data, mime_type 
-       FROM photo_storage 
-       WHERE uploaded_by = $1 AND mime_type = 'image/png'
-       ORDER BY created_at DESC 
-       LIMIT 1`,
-      [userId]
-    );
-    
-    if (result.rows.length > 0) {
-      const { photo_hash, photo_data, mime_type } = result.rows[0];
-      
-      console.log(`✅ Found StarCard in database for user ${userId}`);
-      
-      // Create temporary directory for report images
-      const tempDir = path.join(process.cwd(), 'storage', 'temp-report-images');
-      await fs.mkdir(tempDir, { recursive: true });
-      
-      // Use photo hash for filename (no user info)
-      const tempImagePath = path.join(tempDir, `starcard-${photo_hash.substring(0, 16)}.png`);
-      
-      // Check if temp file already exists
-      try {
-        await fs.access(tempImagePath);
-        console.log('📊 Using existing temp StarCard file');
-        return tempImagePath;
-      } catch {
-        // Create temp file from base64 data
-        console.log('🎨 Creating temporary StarCard file...');
-        
-        // Extract base64 data (remove data:image/png;base64, prefix)
-        const base64Data = photo_data.replace(/^data:image\/[a-z]+;base64,/, '');
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-        
-        // Write to temporary file
-        await fs.writeFile(tempImagePath, imageBuffer);
-        console.log(`✅ StarCard temp file created: ${tempImagePath}`);
-        
-        return tempImagePath;
-      }
-    }
-    
-    console.log(`⚠️ No StarCard found in database for user ${userId}`);
-    return '';
-    
-  } catch (error) {
-    console.error(`❌ Error getting StarCard image for user ${userId}:`, error);
-    return '';
-  }
-}
+// Removed getStarCardImagePath function - using getUserStarCard from photo-storage-service instead
 
 /**
  * Generate HTML version of the report
@@ -996,23 +968,14 @@ function generateHtmlReport(reportData: any, reportType: string): string {
     { name: 'planning', value: reportData.strengths?.planning || 0, color: '#ffcb2f', bgColor: 'linear-gradient(135deg, #fff8e1 0%, #fffbf0 100%)' }
   ].sort((a, b) => b.value - a.value);
   
-  // Get StarCard image - try to load from file system first
+  // Get StarCard image from base64 data (no longer using temp files)
   let starCardImageTag = '';
-  if (reportData.starCardImagePath) {
-    try {
-      const fs = require('fs');
-      const imageBuffer = fs.readFileSync(reportData.starCardImagePath);
-      const base64Image = imageBuffer.toString('base64');
-      starCardImageTag = `<img src="data:image/png;base64,${base64Image}" alt="StarCard" style="max-width: 400px; height: auto; margin: 20px 0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />`;
-    } catch (error) {
-      console.log('Could not load StarCard image:', error.message);
-    }
-  }
-  
-  // If no StarCard image loaded, try base64 data
-  if (!starCardImageTag) {
+  {
     const starCardImage = reportData.starCardImageBase64 || (reportData.starCardData?.photoData) || '';
-    console.log(`🖼️ StarCard debug: starCardImageBase64 length: ${reportData.starCardImageBase64?.length || 0}, starCardData exists: ${!!reportData.starCardData}`);
+    console.log(`🖼️ StarCard debug for HTML report generation:`);
+    console.log(`   - starCardImageBase64 length: ${reportData.starCardImageBase64?.length || 0}`);
+    console.log(`   - starCardData exists: ${!!reportData.starCardData}`);
+    console.log(`   - starCardData.photoData length: ${reportData.starCardData?.photoData?.length || 0}`);
     if (starCardImage) {
       // Clean base64 data if needed
       const cleanBase64 = starCardImage.replace(/^data:image\/[a-z]+;base64,/, '');
