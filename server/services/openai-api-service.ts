@@ -87,33 +87,59 @@ class OpenAIAssistantManager {
     this.initializeAssistants();
   }
   
+  // Get client for report generation (uses report-specific key if available)
+  getReportClient(): OpenAI {
+    const reportKey = process.env.REPORT_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    return new OpenAI({
+      apiKey: reportKey
+    });
+  }
+  
+  // Get client for IA functionality (uses IA-specific key if available)
+  getIAClient(): OpenAI {
+    const iaKey = process.env.IA_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    return new OpenAI({
+      apiKey: iaKey
+    });
+  }
+  
   private initializeAssistants() {
-    // Initialize assistant configurations for AllStarTeams_Talia project
+    // Initialize assistant configurations - INCLUDES ALL KNOWN ASSISTANTS
     const assistants: AssistantConfig[] = [
       {
-        id: 'asst_CZ9XUvnWRx3RIWFc7pLeH8U2', // Star Report Talia (existing)
-        name: 'Report Talia',
+        id: 'asst_CZ9XUvnWRx3RIWFc7pLeH8U2', // Star Report Talia (ACCESSIBLE with new key)
+        name: 'Star Report Talia',
         purpose: 'Holistic report generation with personalized insights',
-        vectorStoreId: 'vs_688e2bf0d94c81918b50080064684bde',
+        vectorStoreId: 'vs_688e2bf0d94c81918b50080064684bde', // AllStarTeams_Report_Corpus
         personality: 'Professional report writer focused on comprehensive development analysis',
         model: 'gpt-4o-mini'
       },
       {
-        id: 'asst_pspnPtUj1RF5zC460VKkkjdV', // Reflection Talia (created)
-        name: 'Reflection Talia',
-        purpose: 'Interactive coaching and reflection guidance',
-        vectorStoreId: 'vs_688e55e74e68819190cca71d1fa54f52',
-        personality: 'Hi! I\'m Talia, here to help with your reflections. Supportive and encouraging.',
+        id: 'asst_DtWCcpzPg7Zu1Z4NnkYLUbSI', // Ultra Star Report Talia (ACCESSIBLE with new key)
+        name: 'Ultra Star Report Talia',
+        purpose: 'Advanced holistic report generation with enhanced capabilities',
+        vectorStoreId: 'vs_688e2bf0d94c81918b50080064684bde', // Same vector store
+        personality: 'Advanced report writer with comprehensive analytical capabilities',
         model: 'gpt-4o-mini'
       },
       {
-        id: 'asst_FwLFnLmO3aq3WZ76VWizwKou', // Admin Assistant (created)
-        name: 'Admin Assistant',
-        purpose: 'Admin chat interface and cross-assistant training',
-        vectorStoreId: 'vs_688e55e81e6c8191af100194c2ac9512',
-        personality: 'Technical assistant with access to all project knowledge for admin training',
+        id: 'asst_ujxKbOaEw5HCiFygwxGR6XP4', // IA Workshop Guide — HQ (ACCESSIBLE)
+        name: 'IA Assistant HQ',
+        purpose: 'Imaginal Agility workshop guidance and coaching',
+        vectorStoreId: 'vs_689d33217cb08191875a2a9dfbd06760', // Vector store for IA Workshop Guide
+        personality: 'Expert guide for Imaginal Agility workshop exercises',
         model: 'gpt-4o-mini'
+      },
+      {
+        id: 'asst_T2PHoj8DJ6sWHlfoWyba2Wq0', // IA Workshop Guide — Fast (ACCESSIBLE)
+        name: 'IA Assistant Fast',
+        purpose: 'Fast Imaginal Agility workshop guidance',
+        vectorStoreId: 'vs_689d33217cb08191875a2a9dfbd06760', // Vector store for IA Workshop Guide
+        personality: 'Quick-response IA workshop assistant',
+        model: 'gpt-4.1-mini-2025-04-14'
       }
+      // NOTE: Other assistants (asst_CZ9XUvnWRx3RIWFc7pLeH8U2, asst_hz6aCLaiArNDBxbGeqcrAsCu) 
+      //       exist but are not accessible with the current API key
     ];
     
     assistants.forEach(config => {
@@ -133,11 +159,13 @@ class OpenAIAssistantManager {
     return Array.from(this.assistantConfigs.values());
   }
   
-  getAssistantByPurpose(purpose: 'report' | 'reflection' | 'admin'): AssistantConfig | undefined {
+  getAssistantByPurpose(purpose: 'report' | 'reflection' | 'admin' | 'ia' | 'ia_fast'): AssistantConfig | undefined {
     const purposeMap = {
-      'report': 'report_talia',
-      'reflection': 'reflection_talia', 
-      'admin': 'admin_assistant'
+      'report': 'star_report_talia',    // Primary report assistant (accessible with new key)
+      'reflection': 'ia_assistant_hq',  // Fallback to IA assistant for reflections  
+      'admin': 'ultra_star_report_talia', // Use Ultra Talia for admin functions
+      'ia': 'ia_assistant_hq',          // Primary IA assistant
+      'ia_fast': 'ia_assistant_fast'    // Fast IA assistant
     };
     return this.assistantConfigs.get(purposeMap[purpose]);
   }
@@ -327,7 +355,7 @@ function getOpenAIClient(): OpenAI {
 /**
  * Get assistant configuration by purpose
  */
-function getAssistantByPurpose(purpose: 'report' | 'reflection' | 'admin'): AssistantConfig | undefined {
+function getAssistantByPurpose(purpose: 'report' | 'reflection' | 'admin' | 'ia' | 'ia_fast'): AssistantConfig | undefined {
   return assistantManager.getAssistantByPurpose(purpose);
 }
 
@@ -829,15 +857,22 @@ Generate the complete ${reportType} report now.`;
     console.log(assistantPrompt);
     console.log('='.repeat(80));
     
-    // Use the Assistants API instead of chat completions
-    const client = getOpenAIClient();
-    const assistantConfig = getAssistantByPurpose('report');
+    // Use the Assistants API with report-specific client
+    const client = assistantManager.getReportClient();
+    let assistantConfig = getAssistantByPurpose('report');
+    
+    // If no report assistant is available, try to use IA assistant as fallback
+    if (!assistantConfig) {
+      console.log('⚠️ No report assistant found, trying IA assistant as fallback');
+      assistantConfig = getAssistantByPurpose('ia');
+    }
     
     if (!assistantConfig) {
-      throw new Error('Report Talia assistant not configured');
+      throw new Error('No suitable assistant available for report generation');
     }
     
     const assistantId = assistantConfig.id;
+    console.log(`🤖 Using assistant: ${assistantConfig.name} (${assistantId}) for report generation`);
     
     console.log('🚀 Creating thread and running assistant...');
     
@@ -891,7 +926,45 @@ Generate the complete ${reportType} report now.`;
 
   } catch (error) {
     console.error('❌ Error generating OpenAI report with assistant:', error);
-    throw error;
+    console.log('🔄 Falling back to regular OpenAI chat completions...');
+    
+    try {
+      // Fallback to regular chat completions without assistant
+      const messages: OpenAIMessage[] = [
+        {
+          role: 'system',
+          content: `You are an expert report writer specializing in AllStarTeams workshop analysis. Generate comprehensive, personalized reports based on user assessment data.
+
+Guidelines:
+- Use 2nd person voice ("You possess...")
+- Reference exact assessment data and percentages
+- Quote user's actual reflections
+- Create personalized insights
+- Be specific and data-driven
+- Generate a complete ${reportType === 'personal' ? 'Personal Development Report' : 'Professional Profile Report'}`
+        },
+        {
+          role: 'user', 
+          content: assistantPrompt
+        }
+      ];
+
+      const response = await callOpenAIAPI(
+        messages,
+        4000,
+        userId,
+        'holistic_reports',
+        sessionId,
+        'gpt-4o-mini'
+      );
+
+      console.log('✅ OpenAI chat completions fallback successful');
+      return response;
+
+    } catch (fallbackError) {
+      console.error('❌ OpenAI chat completions fallback also failed:', fallbackError);
+      throw new Error(`Report generation failed: ${error.message}. Fallback also failed: ${fallbackError.message}`);
+    }
   }
 }
 
