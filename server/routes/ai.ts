@@ -45,7 +45,10 @@ router.post('/chat/plain', express.json(), async (req, res) => {
       return res.status(500).json({ success: false, error: `Missing API key: ${training.api_key_env}` });
     }
 
-    const client = new OpenAI({ apiKey });
+    // For IA exercises, use the Imaginal Agility project ID
+    const isIATraining = training.id.startsWith('ia-');
+    const projectId = isIATraining ? process.env.IMAGINAL_AGILITY_PROJECT_ID : undefined;
+    const client = projectId ? new OpenAI({ apiKey, project: projectId }) : new OpenAI({ apiKey });
 
     const completion = await client.chat.completions.create({
       model: resolvedModel,
