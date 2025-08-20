@@ -185,6 +185,7 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 - **AWS Guide**: `docs/deployment/aws-lightsail-deployment-guide.md`
 - **Version Management**: `./version-manager.sh` for semantic versioning
 - **Environment Access**: See deployment docs for SSH and environment access
+- **VM SSH Key**: `keys/ubuntu-staging-key.pem` for hi-staging-vm (34.220.143.127)
 
 **Critical Rules**:
 - Use port 8080 (NOT 5000)

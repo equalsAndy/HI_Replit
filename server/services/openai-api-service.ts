@@ -97,7 +97,7 @@ class OpenAIAssistantManager {
   
   // Get client for IA functionality (uses IA-specific key if available)
   getIAClient(): OpenAI {
-    const iaKey = process.env.IA_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    const iaKey = process.env.OPENAI_KEY_IA || process.env.OPENAI_API_KEY;
     return new OpenAI({
       apiKey: iaKey
     });

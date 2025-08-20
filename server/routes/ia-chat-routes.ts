@@ -34,8 +34,8 @@ async function loadExerciseInstructions(stepId?: string) {
 
 // Instantiate an OpenAI client for the Imaginal Agility project if configured
 function getIaClient(): OpenAI {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('OPENAI_API_KEY not set');
+  const apiKey = process.env.OPENAI_KEY_IA || process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('OPENAI_KEY_IA not set');
   const iaProject = process.env.IMAGINAL_AGILITY_PROJECT_ID;
   return iaProject ? new OpenAI({ apiKey, project: iaProject }) : new OpenAI({ apiKey });
 }
