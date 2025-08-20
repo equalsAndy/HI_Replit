@@ -135,8 +135,69 @@ January 2025
 
 ---
 
+## Progress Update - August 19, 2025
+
+### ✅ **COMPLETED: StarCard Image Selection Bug Fix**
+
+**Issue Resolved**: Reports were displaying visualization exercise images instead of actual StarCard PNGs.
+
+**Root Cause**: The `getUserStarCard()` function had flawed fallback logic that grabbed any large PNG file instead of specifically identifying StarCards.
+
+**Implementation**:
+- Enhanced StarCard identification logic in `photo-storage-service.ts`
+- Added dimension-based StarCard detection (880x1220px, 100KB-500KB)
+- Improved logging for StarCard selection debugging
+- Added validation in report generation to warn about fallback image usage
+- Fixed database schema compatibility issues
+
+**Files Modified**:
+- `server/services/photo-storage-service.ts` - Enhanced getUserStarCard() method
+- `server/routes/holistic-report-routes.ts` - Added validation and logging
+- `server/routes/photo-routes.ts` - Enhanced StarCard saving endpoint
+- `client/src/components/content/allstarteams/DownloadStarCardView.tsx` - Improved StarCard storage
+- `client/src/lib/html2canvas.ts` - Added captureElementAsBase64() function
+
+**Testing**: Verified with user 21 - reports now correctly display StarCard instead of visualization images.
+
+### 🎯 **REMAINING WORK: Admin Interface Implementation**
+
+The original ticket requirements for admin report management still need implementation:
+
+#### Admin Interface (Pending)
+- [ ] Admin dashboard shows list of all users with report status
+- [ ] Failed reports are clearly highlighted with error details  
+- [ ] Admin can regenerate any user's failed report with one click
+- [ ] Status updates in real-time during regeneration
+- [ ] Export functionality for report status data
+
+#### User Experience Enhancements (Pending)
+- [ ] Failed reports show friendly error message instead of generic failure
+- [ ] View/download buttons are disabled for failed reports
+- [ ] Users can initiate report regeneration for failed reports
+- [ ] Loading states clearly indicate report generation in progress
+- [ ] Success states clearly show when reports are ready
+
+#### API Endpoints (Pending)
+- [ ] `GET /api/reports/holistic/admin/list` - List all user reports with status
+- [ ] `POST /api/reports/holistic/admin/regenerate/:userId/:reportType` - Admin regeneration  
+- [ ] `GET /api/reports/holistic/admin/status/:userId/:reportType` - Detailed status check
+
+### 🔮 **Future Enhancement: Photo Type System**
+
+**Recommendation**: Implement `photo_type` and `tags` columns in photo_storage table for better long-term image identification:
+```sql
+ALTER TABLE photo_storage 
+ADD COLUMN photo_type VARCHAR(50),
+ADD COLUMN tags TEXT[];
+```
+
+This would enable reliable identification of StarCards vs visualization images vs profile pictures.
+
+---
+
 **Technical Notes:**
 - Leverage existing database schema and status tracking
 - Maintain backward compatibility with current report generation flow  
 - Consider rate limiting for admin regeneration actions
 - Implement proper audit logging for admin actions on user reports
+- **ACCOMPLISHED**: Fixed core image selection bug that was root cause of wrong images in reports
