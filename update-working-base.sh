@@ -41,5 +41,4 @@ echo "⬆️ Pushing updated image..."
 docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$NEW_TAG
 
 echo "✅ Updated image ready: $NEW_TAG"
-echo "💡 Deploy with: aws lightsail create-container-service-deployment --service-name hi-replit-v2 --region us-west-2 --containers '{\"allstarteams-app\": {\"image\": \"962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:'$NEW_TAG'\", \"ports\": {\"8080\": \"HTTP\"}, \"environment\": {\"DATABASE_URL\": \"postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require\", \"SESSION_SECRET\": \"dev-secret-key-2025-heliotrope-imaginal\", \"NODE_ENV\": \"staging\", \"PORT\": \"8080\", \"NODE_TLS_REJECT_UNAUTHORIZED\": \"0\"}}}' --public-endpoint '{\"containerName\": \"allstarteams-app\", \"containerPort\": 8080, \"healthCheck\": {\"healthyThreshold\": 3, \"unhealthyThreshold\": 3, \"timeoutSeconds\": 60, \"intervalSeconds\": 120, \"path\": \"/health\", \"successCodes\": \"200-499\"}}'"
 

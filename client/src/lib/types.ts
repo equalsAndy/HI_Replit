@@ -23,14 +23,48 @@ export type IAState = {
     stretch_vision?: string;
     resistance?: string;
   };
-  // IA-4-4: Imagining Positive Outcomes
+  // IA-4-4: Global Purpose Bridge
   ia_4_4: {
     positive_outcome: string;
     ai_outcome: string[]; // chat messages
     user_possibility: string;
     tag: string;
     expanded_vision: string;
-    // legacy fields kept (from old Muse)
+    // new global purpose bridge fields
+    higher_purpose?: string;
+    global_challenge?: string;
+    content_completed?: boolean;
+    ai_perspectives?: string;
+    chosen_perspective?: string;
+    modest_contribution?: string;
+    bridge_name?: string;
+    world_game_stretch?: string;
+    completed?: boolean;
+    last_updated?: string;
+    // legacy array structure (kept for backward compatibility)
+    global_bridges?: Array<{
+      id: string;
+      higherPurposeId: string;
+      globalChallenge: string;
+      aiPerspectives: string[];
+      chosenPerspective?: string;
+      modestContribution: string;
+      bridgeName: string;
+      worldGameStretch?: string;
+      createdAt: string;
+      userId: string;
+      stepId: string;
+    }>;
+    // legacy fields kept (backward compatibility)
+    expanded_visions?: Array<{
+      id: string;
+      initialOutcomeId: string;
+      vividDescription: string;
+      aspects: string[];
+      createdAt: string;
+      userId: string;
+      stepId: string;
+    }>;
     interlude_cluster?: string;
     pattern_notes?: string;
     muse_chat?: string[];
@@ -43,6 +77,17 @@ export type IAState = {
     user_clarity: string;
     tag: string;
     commitment: string;
+    // new action planning fields
+    action_steps?: Array<{
+      id: string;
+      interludeId: string;
+      description: string;
+      timeframe?: string;
+      createdAt: string;
+      completed?: boolean;
+    }>;
+    completed?: boolean;
+    last_updated?: string;
     // legacy fields kept (from old Bridge)
     purpose_one_line?: string;
     global_challenge?: string;

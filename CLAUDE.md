@@ -79,7 +79,6 @@ git merge --no-ff branch-name -m "Merge message"
 - `OPENAI_API_KEY` - AI integration key
 - `NODE_ENV` - Environment (development/staging/production)
 - `ENVIRONMENT` - Deployment environment
-- `NODE_TLS_REJECT_UNAUTHORIZED` - SSL handling (0 for dev)
 
 **Database Selection:**
 - **Local DB** (`postgresql://localhost:5432/heliotrope_dev`): Schema changes, AI training, destructive operations

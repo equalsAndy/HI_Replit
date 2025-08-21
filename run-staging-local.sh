@@ -17,7 +17,6 @@ docker run -d \
   -e NODE_ENV=staging \
   -e DATABASE_URL="postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require" \
   -e SESSION_SECRET="dev-secret-key-2025-heliotrope-imaginal" \
-  -e NODE_TLS_REJECT_UNAUTHORIZED="0" \
   -e ENVIRONMENT="staging" \
   --restart unless-stopped \
   962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:no-bedrock-v2

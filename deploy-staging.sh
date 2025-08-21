@@ -93,7 +93,6 @@ aws lightsail create-container-service-deployment \
         "SESSION_SECRET": "dev-secret-key-2025-heliotrope-imaginal",
         "NODE_ENV": "staging",
         "PORT": "8080",
-        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
       }
     }
   }' \

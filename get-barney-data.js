@@ -6,7 +6,6 @@ import pg from 'pg';
 const { Pool } = pg;
 
 // Set SSL environment
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Database connection
 const pool = new Pool({

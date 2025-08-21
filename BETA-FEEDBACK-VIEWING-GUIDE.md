@@ -183,7 +183,6 @@ LIMIT 10;
 
 **Production/Staging Database:**
 ```bash
-NODE_TLS_REJECT_UNAUTHORIZED=0 PGPASSWORD=HeliotropeDev2025 psql \
   -h ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com \
   -U dbmasteruser -d postgres -c "
 SELECT 

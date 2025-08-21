@@ -20,8 +20,6 @@ import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
 
-// Force NODE_TLS_REJECT_UNAUTHORIZED to match production setting if it's used
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 // Environment setup
 const __filename = fileURLToPath(import.meta.url);

@@ -96,7 +96,6 @@ npm run dev
 
 #### **Deploy to VM**
 
-⚠️ **IMPORTANT**: Environment variables MUST include `NODE_TLS_REJECT_UNAUTHORIZED=0` to prevent SSL certificate errors with the database connection.
 
 ```bash
 # In VM SSH terminal:
@@ -105,7 +104,6 @@ npm run dev
 echo 'NODE_ENV=staging' > staging.env
 echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
 echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
-echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
 echo 'ENVIRONMENT=staging' >> staging.env
 
 # 2. Deploy container (stop and remove existing first)
@@ -324,12 +322,10 @@ aws ecr get-login-password --region us-west-2 | docker login --username AWS --pa
 
 #### **2. Login Fails with SSL Certificate Error**
 **Symptoms**: `Session creation failed: self-signed certificate in certificate chain`
-**Cause**: Missing `NODE_TLS_REJECT_UNAUTHORIZED=0` environment variable
 
 **Solution**:
 ```bash
 # Ensure environment file includes SSL bypass
-echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
 
 # Restart container with updated environment
 sudo docker stop staging-app && sudo docker rm staging-app

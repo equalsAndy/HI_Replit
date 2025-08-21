@@ -77,7 +77,7 @@ router.post('/saveProgress', express.json(), (req, res) => {
     }
 
     if (!patch || typeof patch !== 'object' || Object.keys(patch).length === 0) {
-      return res.status(400).json({ ok: false, error: 'Invalid or empty payload. Provide patch, or exerciseId + payload.' });
+      return res.status(400).json({ success: false, error: 'Invalid or empty payload. Provide patch, or exerciseId + payload.' });
     }
 
     // Key normalization for drifted keys
@@ -108,9 +108,9 @@ router.post('/saveProgress', express.json(), (req, res) => {
       updatedAt: new Date().toISOString(),
     };
     store.set(key, merged);
-    return res.json({ ok: true, state: merged });
+    return res.json({ success: true, state: merged });
   } catch (e: any) {
-    return res.status(500).json({ ok: false, error: e?.message || 'Failed to save IA progress' });
+    return res.status(500).json({ success: false, error: e?.message || 'Failed to save IA progress' });
   }
 });
 

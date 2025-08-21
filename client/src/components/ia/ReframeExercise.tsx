@@ -45,8 +45,7 @@ export default function ReframeExercise() {
     setModalOpen(open);
   }
 
-  function onModalApply(result: { transcript: string[]; shift: string; tag: stri
-ng }) {
+  function onModalApply(result: { transcript: string[]; shift: string; tag: string }) {
     setState((prev) => {
       const prevIA = prev.ia_4_2 || {};
       return {
@@ -134,31 +133,66 @@ ng }) {
         onKeepContext={onModalKeepContext}
       />
 
-      <div className="mb-4">
-        <label htmlFor="new-perspective" className="block mb-1 font-medium text-gray-900">
-          Your new perspective
-        </label>
-        <textarea
-          id="new-perspective"
-          ref={newPerspectiveRef}
-          className="w-full border border-gray-300 rounded p-2 resize-y"
-          rows={4}
-          value={ia.new_perspective ?? ''}
-          onChange={(e) =>
-            setState((prev) => ({
-              ...prev,
-              ia_4_2: {
-                ...(prev.ia_4_2 || {}),
-                new_perspective: e.target.value,
-              },
-            }))
-          }
-          aria-describedby="new-perspective-desc"
-        />
-        <p id="new-perspective-desc" className="mt-1 text-xs text-gray-600">
-          Edit your new perspective as needed.
-        </p>
-      </div>
+      {/* Display AI reframe results if available */}
+      {(ia.user_shift || ia.tag) && (
+        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+          <h3 className="font-semibold text-gray-900 mb-3">Your AI Reframe Results</h3>
+          
+          {ia.user_shift && (
+            <div className="mb-3">
+              <h4 className="text-sm font-medium text-gray-700 mb-1">What Shifted:</h4>
+              <p className="text-sm text-gray-800 italic">"{ia.user_shift}"</p>
+            </div>
+          )}
+          
+          {ia.tag && (
+            <div className="mb-3">
+              <h4 className="text-sm font-medium text-gray-700 mb-1">Tag:</h4>
+              <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+                {ia.tag}
+              </span>
+            </div>
+          )}
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={openModal}
+            className="mt-2"
+          >
+            Refine with AI again
+          </Button>
+        </div>
+      )}
+
+      {/* New perspective section - only show after modal completion */}
+      {(ia.user_shift || ia.tag) && (
+        <div className="mb-4">
+          <label htmlFor="new-perspective" className="block mb-1 font-medium text-gray-900">
+            Your new perspective
+          </label>
+          <textarea
+            id="new-perspective"
+            ref={newPerspectiveRef}
+            className="w-full border border-gray-300 rounded p-2 resize-y"
+            rows={4}
+            value={ia.new_perspective ?? ''}
+            onChange={(e) =>
+              setState((prev) => ({
+                ...prev,
+                ia_4_2: {
+                  ...(prev.ia_4_2 || {}),
+                  new_perspective: e.target.value,
+                },
+              }))
+            }
+            aria-describedby="new-perspective-desc"
+          />
+          <p id="new-perspective-desc" className="mt-1 text-xs text-gray-600">
+            Edit your new perspective as needed.
+          </p>
+        </div>
+      )}
     </>
   );
 }

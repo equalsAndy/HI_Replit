@@ -21,6 +21,10 @@ type InlineChatProps = {
   useRetrieval?: boolean;
   modelOverride?: string;
   onReply?: (text: string) => void;
+  onUserSend?: (text: string) => void;
+  hideHistory?: boolean;
+  hideSystemMessages?: boolean;
+  className?: string;
 };
 
 export const InlineChat: React.FC<InlineChatProps> = ({
@@ -31,6 +35,10 @@ export const InlineChat: React.FC<InlineChatProps> = ({
   useRetrieval,
   modelOverride,
   onReply,
+  onUserSend,
+  hideHistory = false,
+  hideSystemMessages = true,
+  className,
 }) => {
   const [messages, setMessages] = React.useState<Msg[]>([]);
   const [input, setInput] = React.useState('');
@@ -64,6 +72,9 @@ export const InlineChat: React.FC<InlineChatProps> = ({
     const outMessages = [...messages, user];
     setMessages(outMessages);
     setInput('');
+    
+    // Call onUserSend if provided
+    if (onUserSend) onUserSend(text);
 
     try {
       const route = useRetrieval ? '/api/ai/chat/rag' : '/api/ai/chat/plain';
@@ -108,15 +119,17 @@ export const InlineChat: React.FC<InlineChatProps> = ({
   };
 
   return (
-    <div className="rounded-md border p-3 space-y-3">
-      <div className="space-y-2" aria-live="polite">
-        {lastThree.map((m, idx) => (
-          <div key={m.ts ?? idx} className="text-sm">
-            <span className="font-medium mr-1">{m.role === 'user' ? 'You' : 'Assistant'}:</span>
-            <span>{m.content}</span>
-          </div>
-        ))}
-      </div>
+    <div className={`rounded-md border p-3 space-y-3 ${className || ''}`}>
+      {!hideHistory && (
+        <div className="space-y-2" aria-live="polite">
+          {lastThree.map((m, idx) => (
+            <div key={m.ts ?? idx} className="text-sm">
+              <span className="font-medium mr-1">{m.role === 'user' ? 'You' : 'Assistant'}:</span>
+              <span>{m.content}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {styleOptions && styleOptions.length > 0 && (
         <div className="flex items-center gap-2">
@@ -140,14 +153,19 @@ export const InlineChat: React.FC<InlineChatProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder={useRetrieval ? 'Type message (Cmd/Ctrl+Enter to send via RAG stub)' : 'Type message (Cmd/Ctrl+Enter to send)'}
+          placeholder={useRetrieval ? 'Type message via RAG stub' : 'Type message'}
           rows={3}
         />
-        <div className="flex items-center gap-2">
-          <Button onClick={send} disabled={isLoading || !input.trim()}>
-            {isLoading ? 'Sending…' : 'Send'}
-          </Button>
-          {error && <span className="text-xs text-red-600">{error}</span>}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button onClick={send} disabled={isLoading || !input.trim()}>
+              {isLoading ? 'Sending…' : 'Send'}
+            </Button>
+            {error && <span className="text-xs text-red-600">{error}</span>}
+          </div>
+          <span className="text-xs text-gray-500">
+            Cmd/Ctrl + Enter to send
+          </span>
         </div>
       </div>
     </div>

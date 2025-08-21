@@ -7,8 +7,8 @@ export type IAState = CanonicalIAState;
 const DEFAULT_STATE: IAState = {
   ia_4_2: { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '' },
   ia_4_3: { assumptions: '', ai_assumptions: [], user_insight: '', tag: '', updated_perspective: '' },
-  ia_4_4: { positive_outcome: '', ai_outcome: [], user_possibility: '', tag: '', expanded_vision: '' },
-  ia_4_5: { next_step: '', ai_action: [], user_clarity: '', tag: '', commitment: '' },
+  ia_4_4: { positive_outcome: '', ai_outcome: [], user_possibility: '', tag: '', expanded_vision: '', global_bridges: [], completed: false },
+  ia_4_5: { next_step: '', ai_action: [], user_clarity: '', tag: '', commitment: '', action_steps: [], completed: false },
 };
 
 export function useContinuity() {

@@ -1,5 +1,58 @@
-FROM 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:production-2025.07.22.1856-20250722-v2
-COPY dist /app/client/dist
-COPY shared /app/shared
-COPY package.json /app/package.json
-COPY server /app/server
+# Multi-stage Dockerfile for production
+# - Builder stage: installs full deps, builds the project
+# - Final stage: minimal runtime with only production deps, built JS, and
+#   runtime native libs required by `canvas` and similar packages.
+
+### Builder
+FROM node:18-bullseye AS builder
+LABEL stage=builder
+WORKDIR /usr/src/app
+
+# Install build tools and canvas/build dependencies needed at build time
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential python3 pkg-config libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copy lockfile and package manifests first to leverage docker cache
+COPY package*.json ./
+
+# Install all dependencies (including dev) needed for building
+RUN npm ci
+
+# Copy source and build
+COPY . .
+RUN npm run build
+
+# Keep package.json for runtime install; do not copy node_modules to final image
+
+
+### Runtime
+FROM node:18-slim AS runtime
+LABEL stage=runtime
+WORKDIR /usr/src/app
+
+# Runtime native libs for canvas and imaging
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates curl libcairo2 libpango-1.0-0 libjpeg62-turbo libgif7 librsvg2-2 \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copy built assets and package manifests from builder
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package*.json ./
+
+# Install only production dependencies in the runtime image
+RUN npm ci --only=production --production
+
+ENV NODE_ENV=production
+ENV PORT=8080
+# Configurable health endpoint (set via env at runtime if needed)
+ENV HEALTH_ENDPOINT=/health
+
+EXPOSE 8080
+
+# Healthcheck (assumes server exposes ${HEALTH_ENDPOINT})
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD /bin/sh -c 'curl -f http://localhost:${PORT}${HEALTH_ENDPOINT} || exit 1'
+
+# Use compiled JS entrypoint in production
+CMD ["node", "dist/index.js"]
