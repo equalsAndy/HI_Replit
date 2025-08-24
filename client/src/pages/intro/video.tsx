@@ -13,6 +13,15 @@ export default function IntroductionVideo() {
     markStepCompleted('1-1');
     navigate('/discover-strengths/intro');
   };
+
+  // Load Jeopardy modal script on mount
+  React.useEffect(() => {
+    const s = document.createElement('script');
+    s.src = '/static/self-awareness-jeopardy-modal.js';
+    s.async = true;
+    document.body.appendChild(s);
+    return () => { document.body.removeChild(s); };
+  }, []);
   
   return (
     <MainContainer stepId="1-1">
@@ -39,6 +48,7 @@ export default function IntroductionVideo() {
           </CardContent>
         </Card>
         
+
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
         
         <ul className="space-y-3 mb-8">
@@ -68,7 +78,14 @@ export default function IntroductionVideo() {
           </li>
         </ul>
         
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center space-x-4">
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); window.SAJ?.open(); }}
+            className="text-blue-600 underline"
+          >
+            Open Self‑Awareness Jeopardy
+          </a>
           <Button 
             onClick={handleComplete}
             className="bg-purple-600 hover:bg-purple-700 text-white"

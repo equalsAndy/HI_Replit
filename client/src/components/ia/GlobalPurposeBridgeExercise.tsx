@@ -34,9 +34,12 @@ export default function GlobalPurposeBridgeExercise() {
   const higherPurposeFromIA34 = ia34Data?.whyReflection || '';
 
   // Content area state (pre-modal work)
-  const [higherPurpose, setHigherPurpose] = React.useState(higherPurposeFromIA34);
+  const [higherPurpose, setHigherPurpose] = React.useState('');
   const [selectedChallenge, setSelectedChallenge] = React.useState('');
   const [customChallenge, setCustomChallenge] = React.useState('');
+  
+  // World Game Stretch state
+  const [worldGameStretch, setWorldGameStretch] = React.useState(ia44.world_game_stretch || '');
 
   // Modal results state
   const [modalResults, setModalResults] = React.useState<{
@@ -44,7 +47,6 @@ export default function GlobalPurposeBridgeExercise() {
     chosenPerspective?: string;
     modestContribution: string;
     bridgeName: string;
-    worldGameStretch?: string;
   } | null>(null);
 
   // Global challenges
@@ -56,12 +58,8 @@ export default function GlobalPurposeBridgeExercise() {
     'Human Rights in Conflict and Crisis'
   ];
 
-  // Initialize higher purpose when IA-3-4 data loads
-  React.useEffect(() => {
-    if (higherPurposeFromIA34 && !higherPurpose) {
-      setHigherPurpose(higherPurposeFromIA34);
-    }
-  }, [higherPurposeFromIA34, higherPurpose]);
+  // Get effective purpose: refined version if provided, otherwise IA-3-4
+  const effectivePurpose = higherPurpose.trim() || higherPurposeFromIA34;
 
   // Handle challenge selection
   const handleChallengeSelect = (challenge: string) => {
@@ -81,7 +79,7 @@ export default function GlobalPurposeBridgeExercise() {
   const effectiveChallenge = customChallenge.trim() || selectedChallenge;
 
   // Check if ready for AI perspectives
-  const isReadyForAI = higherPurpose.trim() && effectiveChallenge;
+  const isReadyForAI = effectivePurpose && effectiveChallenge;
 
   // Handle opening modal
   const handleOpenModal = () => {
@@ -92,7 +90,7 @@ export default function GlobalPurposeBridgeExercise() {
       ...prev,
       ia_4_4: {
         ...prev.ia_4_4,
-        higher_purpose: higherPurpose,
+        higher_purpose: effectivePurpose,
         global_challenge: effectiveChallenge,
         content_completed: true
       }
@@ -107,7 +105,6 @@ export default function GlobalPurposeBridgeExercise() {
     chosenPerspective?: string;
     modestContribution: string;
     bridgeName: string;
-    worldGameStretch?: string;
   }) => {
     setModalResults(results);
     
@@ -116,13 +113,12 @@ export default function GlobalPurposeBridgeExercise() {
       ...prev,
       ia_4_4: {
         ...prev.ia_4_4,
-        higher_purpose: higherPurpose,
+        higher_purpose: effectivePurpose,
         global_challenge: effectiveChallenge,
         ai_perspectives: results.aiPerspectives,
         chosen_perspective: results.chosenPerspective,
         modest_contribution: results.modestContribution,
         bridge_name: results.bridgeName,
-        world_game_stretch: results.worldGameStretch,
         completed: true,
         last_updated: new Date().toISOString()
       }
@@ -152,7 +148,7 @@ export default function GlobalPurposeBridgeExercise() {
         
         <div className="space-y-3">
           <label className="text-sm font-medium text-gray-700">
-            What core intention did you uncover earlier? Write it in your own words.
+            What core intention did you uncover earlier? Refine or shorten it if you like.
           </label>
           <Textarea
             value={higherPurpose}
@@ -162,7 +158,7 @@ export default function GlobalPurposeBridgeExercise() {
             className="text-sm"
           />
           <p className="text-xs text-gray-500">
-            {higherPurposeFromIA34 ? "Edit the text above if you'd like to refine your purpose." : "What do you care about deeply? What future would you like to help shape?"}
+            {higherPurposeFromIA34 ? "Leave blank to use your IA-3-4 purpose, or refine it here." : "What do you care about deeply? What future would you like to help shape?"}
           </p>
         </div>
       </div>
@@ -262,7 +258,7 @@ export default function GlobalPurposeBridgeExercise() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold text-purple-700 mb-1">Your Higher Purpose:</h4>
-                  <p className="text-gray-800">{higherPurpose || ia44.higher_purpose}</p>
+                  <p className="text-gray-800">{effectivePurpose || ia44.higher_purpose}</p>
                 </div>
                 
                 <div>
@@ -270,12 +266,12 @@ export default function GlobalPurposeBridgeExercise() {
                   <p className="text-gray-800">{effectiveChallenge || ia44.global_challenge}</p>
                 </div>
                 
-                {(modalResults?.aiPerspectives || ia44.ai_perspectives) && (
+                {(modalResults?.chosenPerspective || ia44.chosen_perspective) && (
                   <div>
-                    <h4 className="font-semibold text-purple-700 mb-1">Fresh AI Perspectives:</h4>
+                    <h4 className="font-semibold text-purple-700 mb-1">Chosen Perspective:</h4>
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <p className="text-blue-800 text-sm whitespace-pre-line">
-                        {modalResults?.aiPerspectives || ia44.ai_perspectives}
+                        {modalResults?.chosenPerspective || ia44.chosen_perspective}
                       </p>
                     </div>
                   </div>
@@ -290,17 +286,6 @@ export default function GlobalPurposeBridgeExercise() {
                     {modalResults?.modestContribution || ia44.modest_contribution}
                   </p>
                 </div>
-                
-                {(modalResults?.worldGameStretch || ia44.world_game_stretch) && (
-                  <div>
-                    <h4 className="font-semibold text-purple-700 mb-1">World Game Stretch:</h4>
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-green-800 text-sm">
-                        {modalResults?.worldGameStretch || ia44.world_game_stretch}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
               
               <div className="mt-6 text-center">
@@ -315,6 +300,50 @@ export default function GlobalPurposeBridgeExercise() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* World Game Stretch Section - Optional Extension */}
+      {isCompleted && (
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Globe className="w-5 h-5 text-green-600" />
+            World Game Stretch (Optional)
+          </h3>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Ready to think bigger? How would you redesign your contribution to work at planetary scale?
+            </p>
+            
+            <Textarea
+              value={worldGameStretch}
+              onChange={(e) => {
+                const value = e.target.value;
+                setWorldGameStretch(value);
+                
+                // Save to state when user types
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_4: {
+                    ...prev.ia_4_4,
+                    world_game_stretch: value,
+                    last_updated: new Date().toISOString()
+                  }
+                }));
+              }}
+              placeholder="Imagine your contribution scaling to address the global challenge systemically. What would it look like if it reached millions of people? What systems or institutions would need to change?"
+              rows={4}
+              className="text-sm"
+            />
+            
+            {worldGameStretch.trim() && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-2">Your World Game Vision:</h4>
+                <p className="text-green-700 text-sm whitespace-pre-line">{worldGameStretch}</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -335,7 +364,7 @@ export default function GlobalPurposeBridgeExercise() {
       <GlobalPurposeBridgeModal
         open={modalOpen}
         onOpenChange={setModalOpen}
-        higherPurpose={higherPurpose}
+        higherPurpose={effectivePurpose}
         globalChallenge={effectiveChallenge}
         onComplete={handleModalComplete}
       />

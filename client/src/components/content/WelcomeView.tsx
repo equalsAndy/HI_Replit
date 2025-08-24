@@ -159,7 +159,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
         console.log(`✅ Step ${stepId} marked complete via navigation hook, navigating to ${nextContentId}`);
       } else {
         console.log(`⚠️ No markStepCompleted function available`);
-      }
+  }
+
       
       if (setCurrentContent) {
         setCurrentContent(nextContentId);
@@ -171,10 +172,19 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           }
         }, 100);
       }
-    } catch (error) {
-      console.error(`❌ Error completing step ${stepId}:`, error);
-    }
-  };
+  } catch (error) {
+    console.error(`❌ Error completing step ${stepId}:`, error);
+  }
+};
+
+// Load Self‑Awareness Jeopardy widget script
+useEffect(() => {
+  const s = document.createElement('script');
+  s.src = '/static/self-awareness-jeopardy-modal.js';
+  s.async = true;
+  document.body.appendChild(s);
+  return () => { document.body.removeChild(s); };
+}, []);
 
   return (
     <>
@@ -403,8 +413,15 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           </>
         )}
 
-        <div className="flex justify-end">
-          <Button 
+        <div className="flex justify-end items-center space-x-4">
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); window.SAJ?.open(); }}
+            className="text-blue-600 underline"
+          >
+            Open Self‑Awareness Jeopardy
+          </a>
+          <Button
             onClick={handleNext}
             disabled={!isStepComplete() && !allowTestingBypass}
             className={`${(isStepComplete() || allowTestingBypass)

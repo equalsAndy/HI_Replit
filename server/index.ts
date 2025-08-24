@@ -118,7 +118,11 @@ app.get('/health', async (req, res) => {
     };
     
     try {
-      const versionPath = path.join(__dirname, '../public/version.json');
+      // In development: server runs from source, version.json is at ../public/
+      // In production: server runs from dist/, version.json is at ./public/
+      const versionPath = process.env.NODE_ENV === 'production' 
+        ? path.join(__dirname, './public/version.json')
+        : path.join(__dirname, '../public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
@@ -169,7 +173,11 @@ app.get('/health', async (req, res) => {
     // Include version info even in error responses
     let versionInfo = { version: 'unknown', build: 'unknown', environment: 'unknown' };
     try {
-      const versionPath = path.join(__dirname, '../public/version.json');
+      // In development: server runs from source, version.json is at ../public/
+      // In production: server runs from dist/, version.json is at ./public/
+      const versionPath = process.env.NODE_ENV === 'production' 
+        ? path.join(__dirname, './public/version.json')
+        : path.join(__dirname, '../public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
@@ -209,7 +217,11 @@ app.get('/api/system/info', async (req, res) => {
     };
     
     try {
-      const versionPath = path.join(__dirname, '../public/version.json');
+      // In development: server runs from source, version.json is at ../public/
+      // In production: server runs from dist/, version.json is at ./public/
+      const versionPath = process.env.NODE_ENV === 'production' 
+        ? path.join(__dirname, './public/version.json')
+        : path.join(__dirname, '../public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
@@ -382,7 +394,11 @@ async function initializeApp() {
       // Add version headers middleware for curl -I and all responses
       app.use((req, res, next) => {
         try {
-          const versionPath = path.join(__dirname, '../public/version.json');
+          // In development: server runs from source, version.json is at ../public/
+      // In production: server runs from dist/, version.json is at ./public/
+      const versionPath = process.env.NODE_ENV === 'production' 
+        ? path.join(__dirname, './public/version.json')
+        : path.join(__dirname, '../public/version.json');
           const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
           
           res.setHeader('X-App-Version', versionData.version || 'unknown');

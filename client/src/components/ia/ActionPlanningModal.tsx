@@ -82,6 +82,23 @@ export function ActionPlanningModal({
     return categoryMap[id] || 'awe';
   }
 
+  // Extract action suggestions from AI response
+  function extractActionSuggestions(text: string): string[] {
+    const suggestions: string[] = [];
+    const lines = text.split('\n').map(line => line.trim());
+    
+    for (const line of lines) {
+      // Look for action-oriented sentences
+      if (line.length > 20 && 
+          (line.includes('could') || line.includes('might') || line.includes('try') || 
+           line.includes('consider') || line.includes('start') || line.includes('begin'))) {
+        suggestions.push(line.replace(/^[-•*]\s*/, '').trim());
+      }
+    }
+    
+    return suggestions.slice(0, 3); // Return up to 3 suggestions
+  }
+
   // Color scheme for different interlude types
   const getTypeColor = (type: string) => {
     const colors = {
@@ -109,7 +126,35 @@ export function ActionPlanningModal({
     }]);
   };
 
-  // Handle AI chat response
+  // Handle user message
+  const handleUserSend = (userMessage: string) => {
+    const newMessage: ChatMessage = {
+      id: `msg-user-${Date.now()}`,
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date()
+    };
+    setChatHistory(prev => [...prev, newMessage]);
+  };
+
+  // Handle AI response
+  const handleAIResponse = (response: string) => {
+    const newMessage: ChatMessage = {
+      id: `msg-ai-${Date.now()}`,
+      role: 'assistant', 
+      content: response,
+      timestamp: new Date()
+    };
+    setChatHistory(prev => [...prev, newMessage]);
+    
+    // Try to extract suggested action from AI response
+    const actionSuggestions = extractActionSuggestions(response);
+    if (actionSuggestions.length > 0 && !currentAction.trim()) {
+      setCurrentAction(actionSuggestions[0]);
+    }
+  };
+
+  // Handle AI chat response (legacy)
   const handleChatResponse = (response: string) => {
     const newMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
@@ -174,234 +219,150 @@ export function ActionPlanningModal({
   }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl w-full h-[90vh] p-0">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center gap-4 p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                <Zap className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl font-semibold text-purple-800">
-                  From Inspiration to Action
-                </DialogTitle>
-                <p className="text-sm text-purple-600">
-                  Transform your moments of inspiration into concrete next steps
-                </p>
-              </div>
-            </div>
-            <div className="ml-auto">
-              <img 
-                src="/assets/ADV_Rung4.png" 
-                alt="Advanced Rung 4: Action Planning"
-                className="w-16 h-16 object-contain"
-              />
-            </div>
+    <Dialog open={open} onOpenChange={onOpenChange} modal>
+      <DialogContent
+        hideClose
+        style={{ top: '1rem', transform: 'translateX(-50%) translateY(0)' }}
+        className="max-w-[900px] w-full grid grid-cols-[1fr_0.75fr] gap-4 p-0 h-[800px] rounded-lg shadow-lg overflow-hidden"
+      >
+        {/* Header */}
+        <header className="absolute top-0 left-0 w-full bg-white border-b border-gray-200 flex items-center gap-4 p-3 z-10">
+          <img src="/assets/adv_rung4_split.png" alt="Rung 4" className="h-8 flex-shrink-0" />
+          <DialogTitle className="text-base font-semibold flex-grow">
+            Autoflow Mindful Prompts — Action Planning
+          </DialogTitle>
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
           </div>
+        </header>
 
-          {/* Three-Column Layout */}
-          <div className="flex-1 flex overflow-hidden">
-            
-            {/* Left Panel: Interludes Review (40% width) */}
-            <div className="w-2/5 border-r border-gray-200 flex flex-col">
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <h3 className="font-semibold text-gray-800">Your Inspiration Moments</h3>
-                <p className="text-sm text-gray-600">Select which interlude to work with</p>
+        {/* Left Column: AI Chat */}
+        <div className="flex flex-col bg-gray-50 p-4 pt-16 min-h-0">
+          <label className="font-medium text-gray-700 mb-1 text-sm">
+            {selectedInterlude ? `Working with: ${selectedInterlude.title}` : 'Select an inspiration moment to begin'}
+          </label>
+          
+          {selectedInterlude && (
+            <div className="rounded-md bg-blue-50/60 border border-blue-100 px-3 py-2 text-xs text-gray-700 shadow-sm mb-4">
+              <div>
+                <strong>Inspiration:</strong> {selectedInterlude.response.length > 100 ? `${selectedInterlude.response.slice(0, 100)}...` : selectedInterlude.response}
               </div>
+            </div>
+          )}
+
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* Chat Bubbles */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-white/60 rounded mb-3" style={{maxHeight: '400px'}}>
+              {chatHistory.map((message) => (
+                <div
+                  key={message.id}
+                  className={
+                    message.role === 'user'
+                      ? 'max-w-[75%] ml-auto rounded-xl border bg-blue-50 px-3 py-2 text-sm'
+                      : 'max-w-[75%] mr-auto rounded-xl border bg-white px-3 py-2 text-sm'
+                  }
+                >
+                  <div className="whitespace-pre-line">{message.content}</div>
+                </div>
+              ))}
               
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {!selectedInterlude && (
+                <div className="flex-1 flex items-center justify-center py-8">
+                  <div className="text-center text-gray-500">
+                    <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Select an inspiration moment to start working with AI...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* InlineChat for input */}
+            {selectedInterlude && (
+              <InlineChat
+                trainingId="ia-4-5"
+                systemPrompt={`${PROMPTS.IA_4_5}\n\nCONTEXT:\nInterlude: ${selectedInterlude.title}\nUser's Response: ${selectedInterlude.response}`}
+                onReply={handleAIResponse}
+                onUserSend={handleUserSend}
+                hideHistory={true}
+                className="border-0 p-0 bg-transparent"
+                placeholder="Ask AI about turning this inspiration into action..."
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Action Planning */}
+        <div className="flex flex-col bg-white p-4 pt-16 min-h-0">
+          <label className="font-medium text-gray-700 mb-1 text-sm">
+            Action Planning
+          </label>
+
+          <div className="flex-1 overflow-y-auto space-y-4">
+            {/* Step 1: Select Inspiration */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-800 text-sm">Step 1: Select Inspiration</h4>
+              <div className="max-h-40 overflow-y-auto space-y-2">
                 {categorizedInterludes.map((interlude) => (
-                  <Card 
+                  <button
                     key={interlude.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedInterlude?.id === interlude.id 
-                        ? `ring-2 ring-purple-500 ${getTypeColor(interlude.type)}` 
-                        : 'hover:bg-gray-50'
-                    }`}
                     onClick={() => handleInterludeSelect(interlude)}
+                    className={`w-full text-left p-2 rounded border text-xs transition-all ${
+                      selectedInterlude?.id === interlude.id 
+                        ? 'border-blue-500 bg-blue-50 text-blue-800' 
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25'
+                    }`}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(interlude.type)}`}>
-                              {interlude.type}
-                            </span>
-                          </div>
-                          <h4 className="font-medium text-gray-800 mb-1">{interlude.title}</h4>
-                          {interlude.response && (
-                            <p className="text-sm text-gray-600 line-clamp-2">
-                              {interlude.response.substring(0, 100)}...
-                            </p>
-                          )}
-                        </div>
-                        {selectedInterlude?.id === interlude.id && (
-                          <CheckCircle2 className="w-5 h-5 text-purple-600 ml-2" />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <div className="font-medium">{interlude.title}</div>
+                    <div className="text-gray-600 truncate">
+                      {interlude.response.substring(0, 60)}...
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
 
-            {/* Center Panel: AI Conversation (35% width) */}
-            <div className="w-1/3 border-r border-gray-200 flex flex-col">
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <h3 className="font-semibold text-gray-800">AI Action Partner</h3>
-                <p className="text-sm text-gray-600">Work with Talia to develop action steps</p>
+            {/* Step 2: AI-Generated Action */}
+            {selectedInterlude && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-800 text-sm">Step 2: AI-Generated Action</h4>
+                <p className="text-xs text-gray-600">
+                  Work with AI to refine a concrete action step from your inspiration:
+                </p>
+                <Textarea
+                  value={currentAction}
+                  onChange={(e) => setCurrentAction(e.target.value)}
+                  placeholder="AI will help you create an action step here..."
+                  rows={3}
+                  className="text-xs resize-none"
+                />
               </div>
-              
-              <div className="flex-1 flex flex-col">
-                {selectedInterlude ? (
-                  <div className="flex-1 flex flex-col">
-                    {/* Chat History */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                      {chatHistory.map((message) => (
-                        <div 
-                          key={message.id}
-                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`max-w-[80%] p-3 rounded-lg ${
-                            message.role === 'user' 
-                              ? 'bg-purple-600 text-white' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            <p className="text-sm">{message.content}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* AI Chat Component */}
-                    <div className="p-4 border-t border-gray-200">
-                      <InlineChat
-                        trainingId="IA_4_5"
-                        systemPrompt={PROMPTS.IA_4_5}
-                        seed={selectedInterlude.response || selectedInterlude.title}
-                        onReply={handleChatResponse}
-                        placeholder="Describe your inspiration moment..."
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center p-4">
-                    <div className="text-center text-gray-500">
-                      <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Select an interlude to start the conversation</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
 
-            {/* Right Panel: Action Capture (25% width) */}
-            <div className="w-1/4 flex flex-col">
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <h3 className="font-semibold text-gray-800">Next Steps</h3>
-                <p className="text-sm text-gray-600">Capture and refine your actions</p>
+            {/* Step 3: Timeframe */}
+            {currentAction.trim() && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-800 text-sm">Step 3: Timeframe</h4>
+                <input
+                  type="text"
+                  value={timeframe}
+                  onChange={(e) => setTimeframe(e.target.value)}
+                  placeholder="When will you do this? (e.g., 'this week', 'next month')"
+                  className="w-full p-2 border border-gray-300 rounded-md text-xs"
+                />
               </div>
-              
-              <div className="flex-1 flex flex-col p-4 space-y-4">
-                {selectedInterlude && (
-                  <>
-                    {/* Current Action Step */}
-                    <div className="space-y-3">
-                      <label className="text-sm font-medium text-gray-700">
-                        Action Step
-                      </label>
-                      <Textarea
-                        value={currentAction}
-                        onChange={(e) => setCurrentAction(e.target.value)}
-                        placeholder="Describe a concrete next step..."
-                        rows={3}
-                        className="text-sm"
-                      />
-                      
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">
-                          Timeframe
-                        </label>
-                        <select 
-                          value={timeframe}
-                          onChange={(e) => setTimeframe(e.target.value)}
-                          className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                        >
-                          <option value="">Select timeframe...</option>
-                          <option value="this week">This week</option>
-                          <option value="next week">Next week</option>
-                          <option value="this month">This month</option>
-                          <option value="next month">Next month</option>
-                          <option value="within 3 months">Within 3 months</option>
-                        </select>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={handleSaveStep}
-                          disabled={!currentAction.trim()}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
-                        >
-                          Save Step
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setCurrentAction('');
-                            setTimeframe('');
-                          }}
-                          variant="outline"
-                          className="text-sm"
-                        >
-                          Clear
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Saved Actions List */}
-                {actionSteps.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-medium text-gray-700">Saved Actions</h4>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {actionSteps.map((step) => (
-                        <div key={step.id} className="p-3 border border-gray-200 rounded-lg">
-                          <p className="text-sm text-gray-800">{step.description}</p>
-                          {step.timeframe && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <Clock className="w-3 h-3 text-gray-500" />
-                              <span className="text-xs text-gray-500">{step.timeframe}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="p-4 border-t border-gray-200 space-y-2">
-                {selectedInterlude && (
-                  <Button
-                    onClick={handleWorkWithAnother}
-                    variant="outline"
-                    className="w-full text-sm"
-                  >
-                    Work with Another Interlude
-                  </Button>
-                )}
-                <Button
-                  onClick={handleComplete}
-                  disabled={actionSteps.length === 0}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm"
-                >
-                  I'm Done ({actionSteps.length} {actionSteps.length === 1 ? 'action' : 'actions'})
-                </Button>
-              </div>
-            </div>
+            )}
+          </div>
+          
+          {/* Complete Button */}
+          <div className="pt-4 border-t border-gray-200 mt-4">
+            <Button
+              onClick={handleSaveStep}
+              disabled={!currentAction.trim()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Add Action Step
+            </Button>
           </div>
         </div>
       </DialogContent>

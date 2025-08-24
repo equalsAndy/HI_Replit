@@ -39,9 +39,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy built assets and package manifests from builder
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/package*.json ./
+# Ensure version.json is available for server to read
+COPY --from=builder /usr/src/app/public/version.json ./dist/public/version.json 2>/dev/null || true
 
 # Install only production dependencies in the runtime image
 RUN npm ci --only=production --production
+
+# Optional: trust custom DB CA certificates placed in repo `certs/`
+# Place your CA PEM at `certs/db-ca.pem` (gitignored). Any .pem in certs/ will be
+# copied into the system CA store at build time so Node and libpq can validate DB TLS.
+# Note: update-ca-certificates only reads *.crt, so convert any *.pem to *.crt.
+COPY certs/ /usr/local/share/ca-certificates/
+RUN find /usr/local/share/ca-certificates -type f -name '*.pem' -exec sh -c 'for f; do cp "$f" "${f%.*}.crt"; done' _ {} + || true \
+  && update-ca-certificates || true
+
+# Ensure Node trusts the system CA bundle (appended with our custom CA)
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 ENV NODE_ENV=production
 ENV PORT=8080

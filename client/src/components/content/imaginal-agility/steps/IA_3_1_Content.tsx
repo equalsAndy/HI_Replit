@@ -28,7 +28,7 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
       {/* Content Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
         <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-          <p className="text-xl font-medium text-purple-700 mb-6">Imagination is a skill — and it can be developed.</p>
+          <p className="text-xl font-medium text-purple-700 mb-6">Imagination is a capability — and it can be developed.</p>
           
           <p className="text-lg leading-relaxed mb-8">
             The Ladder maps five distinct modes of imagination:

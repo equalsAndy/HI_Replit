@@ -18,6 +18,7 @@ import { facilitatorRouter } from './routes/facilitator-routes.js';
 import photoRoutes from './routes/photo-routes.js';
 import starCardRoutes from './routes/starcard-routes.js';
 import iaChatRoutes from './routes/ia-chat-routes.js';
+import aiRoutes from './routes/ai.js';
 
 // Create a router
 export const router = express.Router();
@@ -39,6 +40,8 @@ router.use('/workshop-data', workshopDataRoutes);
 router.use('/growth-plan', growthPlanRoutes);
 router.use('/photos', photoRoutes);
 router.use('/starcard', starCardRoutes);
+// AI training routes
+router.use('/ai', aiRoutes);
 // IA chat assistant routes
 router.use('/', iaChatRoutes);
 
