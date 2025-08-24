@@ -129,3 +129,11 @@ docs/*bkp*
 # Generated star card images
 storage/star-cards/user-*-starcard-*.jpeg
 storage/star-cards/user-*-starcard-*.png
+\n+# Local CA certs for Docker build (never commit)
+certs/*.pem
+certs/*.crt
+
+# Claude Code artifacts
+.claude/
+build.tgz
+client/stats.html
