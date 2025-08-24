@@ -162,6 +162,11 @@ lsof -ti:8080 | xargs kill -9  # Kill process on port 8080
 npm cache clean --force && rm -rf node_modules && npm install
 ```
 
+**Asset Loading Issues**: Sync development assets
+```bash
+./tempClaudecomms/sync-dev-assets.sh  # Sync ADV graphics between directories
+```
+
 **Health Check**: 
 ```bash
 curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
