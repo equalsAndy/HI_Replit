@@ -15,6 +15,8 @@ console.log('🔧 Database URL exists:', !!process.env.DATABASE_URL);
 console.log('🔧 Loading express...');
 
 import express from 'express';
+import * as trpcExpress from '@trpc/server/adapters/express';
+import { appRouter } from './trpc/index';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
@@ -389,6 +391,11 @@ async function initializeApp() {
       // Middleware setup - CRITICAL ORDER: Body parsing before session
       app.use(express.json({ limit: '50mb' }));
       app.use(express.urlencoded({ extended: true }));
+      // tRPC endpoint for AST pilot content
+      app.use(
+        '/trpc',
+        trpcExpress.createExpressMiddleware({ router: appRouter, createContext: () => ({}) })
+      );
       app.use(cookieParser());
 
       // Add version headers middleware for curl -I and all responses

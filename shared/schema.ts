@@ -136,6 +136,9 @@ export const videos = pgTable('videos', {
   // Video management enhancements
   contentMode: varchar('content_mode', { length: 20 }).default('both').notNull(), // 'student', 'professional', 'both'
   requiredWatchPercentage: integer('required_watch_percentage').default(75).notNull(), // Percentage required to unlock next step
+  // Content fields for transcript and glossary
+  transcriptMd: text('transcript_md').notNull().default(''),
+  glossary: jsonb('glossary').notNull().default('[]'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

@@ -30,6 +30,7 @@ import NeuroscienceView from './NeuroscienceView';
 import CompendiumView from './CompendiumView';
 import BackgroundView from './BackgroundView';
 import WorkshopResourcesView from './WorkshopResourcesView';
+import AstLessonContent from '@/components/ast/AstLessonContentPilot';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -51,6 +52,14 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
   flowAttributesData,
   setIsAssessmentModalOpen
 }) => {
+  // Phase 0: guard V2 layout on AST 1‑1
+  const AST_V2_LAYOUT = process.env.NEXT_PUBLIC_AST_V2_LAYOUT === '1';
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const optIn = AST_V2_LAYOUT || urlParams?.get('v2') === '1';
+  const isAst1_1 = currentContent === 'welcome';
+  if (optIn && isAst1_1) {
+    return <AstLessonContent />;
+  }
   switch (currentContent) {
     // Introduction View
     case 'welcome':

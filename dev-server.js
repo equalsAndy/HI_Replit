@@ -6,6 +6,8 @@ import { createServer } from 'http';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
+import * as trpcExpress from '@trpc/server/adapters/express';
+import { appRouter } from './server/trpc/index.ts';
 import { router } from './server/routes.js';
 import reportRoutes from './server/routes/report-routes.js';
 import adminUploadRoutes from './server/routes/admin-upload-routes.js';
@@ -96,6 +98,11 @@ async function startDevServer() {
     },
   });
   
+  // tRPC endpoint for AST pilot component
+  app.use(
+    '/trpc',
+    trpcExpress.createExpressMiddleware({ router: appRouter, createContext: () => ({}) })
+  );
   // API routes - Make sure we include auth routes
   app.use('/api', router);
   app.use('/api/reports', reportRoutes);

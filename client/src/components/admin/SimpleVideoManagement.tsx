@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useToast } from '../../hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 // UI Components
 import {
@@ -38,13 +41,30 @@ import {
 import { Switch } from '../ui/switch';
 import { Badge } from '../ui/badge';
 import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '../ui/tabs';
+import { 
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '../ui/form';
+import { 
   Loader2, 
   Pencil, 
   Play, 
   Trash2, 
   ArrowUpDown,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  X
 } from 'lucide-react';
 
 // Types
@@ -61,6 +81,100 @@ interface Video {
   sortOrder?: number;
   contentMode?: 'student' | 'professional' | 'both';
   requiredWatchPercentage?: number;
+  transcriptMd?: string;
+  glossary?: Array<{ term: string; definition: string; }>;
+}
+
+interface GlossaryTerm {
+  term: string;
+  definition: string;
+}
+
+// Form schema for video editing
+const videoEditFormSchema = z.object({
+  editableId: z.string().min(1, 'Video ID is required'),
+  transcriptMd: z.string().optional(),
+  glossary: z.array(z.object({
+    term: z.string().min(1, 'Term is required'),
+    definition: z.string().min(1, 'Definition is required'),
+  })).optional(),
+});
+
+type VideoEditFormData = z.infer<typeof videoEditFormSchema>;
+
+// GlossaryEditor component
+function GlossaryEditor({ 
+  glossary, 
+  onChange 
+}: { 
+  glossary: GlossaryTerm[]; 
+  onChange: (glossary: GlossaryTerm[]) => void; 
+}) {
+  const addTerm = () => {
+    onChange([...glossary, { term: '', definition: '' }]);
+  };
+
+  const removeTerm = (index: number) => {
+    const newGlossary = glossary.filter((_, i) => i !== index);
+    onChange(newGlossary);
+  };
+
+  const updateTerm = (index: number, field: keyof GlossaryTerm, value: string) => {
+    const newGlossary = glossary.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    );
+    onChange(newGlossary);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium">Glossary Terms</h4>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addTerm}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Term
+        </Button>
+      </div>
+      
+      {glossary.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No glossary terms. Click "Add Term" to get started.</p>
+      ) : (
+        <div className="space-y-3">
+          {glossary.map((item, index) => (
+            <div key={index} className="flex gap-2 p-3 border rounded-lg">
+              <div className="flex-1 space-y-2">
+                <Input
+                  placeholder="Term (e.g., Flow)"
+                  value={item.term}
+                  onChange={(e) => updateTerm(index, 'term', e.target.value)}
+                />
+                <Textarea
+                  placeholder="Definition (supports markdown)"
+                  value={item.definition}
+                  onChange={(e) => updateTerm(index, 'definition', e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeTerm(index)}
+                className="text-destructive hover:bg-red-50"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function SimpleVideoManagement() {
@@ -79,6 +193,16 @@ export function SimpleVideoManagement() {
   const [filterWorkshop, setFilterWorkshop] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [watchRequirementsEnabled, setWatchRequirementsEnabled] = useState(false);
+
+  // Form for video editing
+  const form = useForm<VideoEditFormData>({
+    resolver: zodResolver(videoEditFormSchema),
+    defaultValues: {
+      editableId: '',
+      transcriptMd: '',
+      glossary: [],
+    },
+  });
 
   // Extract YouTube video ID from URL
   const extractYouTubeId = (url: string): string => {
@@ -111,6 +235,11 @@ export function SimpleVideoManagement() {
   const generateEmbedUrl = (videoId: string, autoplay: boolean = false): string => {
     const autoplayParam = autoplay ? '&autoplay=1' : '';
     return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0${autoplayParam}`;
+  };
+
+  // Generate preview URL (never autoplays)
+  const generatePreviewUrl = (videoId: string): string => {
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0`;
   };
 
   // Fetch videos
@@ -240,19 +369,19 @@ export function SimpleVideoManagement() {
     }
   };
 
-  // Update video ID
-  const updateVideoId = async () => {
-    if (!selectedVideo || !editableId.trim()) {
+  // Handle form submission
+  const onSubmit = async (data: VideoEditFormData) => {
+    if (!selectedVideo) {
       toast({
         title: 'Error',
-        description: 'Please enter a valid video ID',
+        description: 'No video selected',
         variant: 'destructive',
       });
       return;
     }
 
     try {
-      const newUrl = generateEmbedUrl(editableId, selectedVideo.autoplay);
+      const newUrl = generateEmbedUrl(data.editableId, selectedVideo.autoplay);
       
       const response = await fetch(`/api/admin/videos/${selectedVideo.id}`, {
         method: 'PUT',
@@ -261,8 +390,10 @@ export function SimpleVideoManagement() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          editableId: editableId,
-          url: newUrl
+          editableId: data.editableId,
+          url: newUrl,
+          transcriptMd: data.transcriptMd || '',
+          glossary: data.glossary || [],
         }),
       });
 
@@ -273,13 +404,20 @@ export function SimpleVideoManagement() {
       // Update local state
       setVideos(prev => prev.map(video => 
         video.id === selectedVideo.id 
-          ? { ...video, editableId: editableId, url: newUrl }
+          ? { 
+              ...video, 
+              editableId: data.editableId, 
+              url: newUrl,
+              transcriptMd: data.transcriptMd,
+              glossary: data.glossary
+            }
           : video
       ));
 
       setIsEditDialogOpen(false);
       setEditableId('');
       setSelectedVideo(null);
+      form.reset();
       
       toast({
         title: 'Success',
@@ -298,17 +436,25 @@ export function SimpleVideoManagement() {
   // Handle edit click
   const handleEditClick = (video: Video) => {
     setSelectedVideo(video);
-    setEditableId(video.editableId || extractYouTubeId(video.url));
-    setPreviewUrl(video.url);
+    const videoId = video.editableId || extractYouTubeId(video.url);
+    setEditableId(videoId);
+    setPreviewUrl(generatePreviewUrl(videoId)); // Use preview URL (no autoplay)
+    
+    // Populate form with video data
+    form.reset({
+      editableId: videoId,
+      transcriptMd: video.transcriptMd || '',
+      glossary: video.glossary || [],
+    });
+    
     setIsEditDialogOpen(true);
   };
 
   // Handle preview URL update when editing
   const handlePreviewIdChange = (newId: string) => {
     setEditableId(newId);
-    if (newId.trim() && selectedVideo) {
-      const newPreviewUrl = generateEmbedUrl(newId, selectedVideo.autoplay);
-      setPreviewUrl(newPreviewUrl);
+    if (newId.trim()) {
+      setPreviewUrl(generatePreviewUrl(newId)); // Use preview URL (no autoplay)
     }
   };
 
@@ -437,7 +583,7 @@ export function SimpleVideoManagement() {
                 <SelectContent>
                   <SelectItem value="all">All Workshops</SelectItem>
                   <SelectItem value="allstarteams">AllStarTeams</SelectItem>
-                  <SelectItem value="imaginal-agility">Imaginal Agility</SelectItem>
+                  <SelectItem value="ia">Imaginal Agility</SelectItem>
                   <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
@@ -454,7 +600,7 @@ export function SimpleVideoManagement() {
                 <Badge variant="secondary">
                   <Filter className="h-3 w-3 mr-1" />
                   {filterWorkshop === 'allstarteams' ? 'AllStarTeams' : 
-                   filterWorkshop === 'imaginal-agility' ? 'Imaginal Agility' : 
+                   filterWorkshop === 'ia' ? 'Imaginal Agility' : 
                    filterWorkshop}
                 </Badge>
               )}
@@ -471,81 +617,162 @@ export function SimpleVideoManagement() {
           </div>
         </CardContent>
       </Card>
-      {/* Enhanced Edit Dialog with Live Preview */}
+      {/* Enhanced Edit Dialog with 3-Tab Interface */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[900px] h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Edit Video</DialogTitle>
+            <DialogTitle>Edit Video: {selectedVideo?.title}</DialogTitle>
             <DialogDescription>
-              Update the video ID for {selectedVideo?.title}. The preview will update in real-time.
+              Update video settings, transcript, and glossary using the tabs below.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4 space-y-6">
-            {/* Video ID Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Video ID</label>
-              <Input 
-                value={editableId}
-                onChange={(e) => handlePreviewIdChange(e.target.value)}
-                placeholder="e.g., nFQPqSwzOLw"
-                className="font-mono"
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter the YouTube video ID (the part after v= or /embed/)
-              </p>
-            </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+              <div className="flex-1 overflow-hidden">
+                <Tabs defaultValue="video" className="h-full flex flex-col">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="video">Video</TabsTrigger>
+                    <TabsTrigger value="transcript">Transcript</TabsTrigger>
+                    <TabsTrigger value="glossary">Glossary</TabsTrigger>
+                  </TabsList>
+                  
+                  <div className="flex-1 overflow-y-auto">
+                    <TabsContent value="video" className="space-y-6 p-1">
+                      {/* Video ID Input */}
+                      <FormField
+                        control={form.control}
+                        name="editableId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Video ID</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                  handlePreviewIdChange(e.target.value);
+                                }}
+                                placeholder="e.g., nFQPqSwzOLw"
+                                className="font-mono"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the YouTube video ID (the part after v= or /embed/)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-            {/* Live Video Preview */}
-            {previewUrl && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Live Preview</label>
-                <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                  <iframe
-                    src={previewUrl}
-                    title="Video Preview"
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
+                      {/* Live Video Preview and Embed Code Side-by-Side */}
+                      {previewUrl && (
+                        <div className="grid grid-cols-2 gap-6">
+                          {/* Video Preview - Left Half */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Live Preview</label>
+                            <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                              <iframe
+                                src={previewUrl}
+                                title="Video Preview"
+                                className="w-full h-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Embed Code - Right Half */}
+                          {selectedVideo && (
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Embed Code (Read-only)</label>
+                              <Textarea
+                                value={generateEmbedCode(previewUrl, selectedVideo.title)}
+                                readOnly
+                                className="font-mono text-sm bg-gray-50 aspect-video"
+                                rows={10}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                This is the exact embed code that will be used in content views
+                                {selectedVideo.autoplay && " (includes autoplay parameter)"}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Current URL Info */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Current URL</label>
+                        <p className="text-sm text-muted-foreground bg-gray-50 p-2 rounded border font-mono break-all">
+                          {selectedVideo?.url}
+                        </p>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="transcript" className="space-y-4 p-1">
+                      <FormField
+                        control={form.control}
+                        name="transcriptMd"
+                        render={({ field }) => (
+                          <FormItem className="h-full flex flex-col">
+                            <FormLabel>Transcript (Markdown)</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                {...field}
+                                placeholder="Enter the video transcript in markdown format..."
+                                className="flex-1 min-h-[400px] font-mono text-sm"
+                                rows={20}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Write the video transcript using markdown formatting. Include timestamps if available.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="glossary" className="space-y-4 p-1">
+                      <FormField
+                        control={form.control}
+                        name="glossary"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Video Glossary</FormLabel>
+                            <FormControl>
+                              <GlossaryEditor
+                                glossary={field.value || []}
+                                onChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Define key terms and concepts mentioned in this video.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TabsContent>
+                  </div>
+                </Tabs>
               </div>
-            )}
-
-            {/* Embed Code Display */}
-            {previewUrl && selectedVideo && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Embed Code (Read-only)</label>
-                <Textarea
-                  value={generateEmbedCode(previewUrl, selectedVideo.title)}
-                  readOnly
-                  className="font-mono text-sm bg-gray-50"
-                  rows={6}
-                />
-                <p className="text-xs text-muted-foreground">
-                  This is the exact embed code that will be used in content views
-                  {selectedVideo.autoplay && " (includes autoplay parameter)"}
-                </p>
-              </div>
-            )}
-
-            {/* Current URL Info */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Current URL</label>
-              <p className="text-sm text-muted-foreground bg-gray-50 p-2 rounded border font-mono break-all">
-                {selectedVideo?.url}
-              </p>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button onClick={() => setIsEditDialogOpen(false)} variant="outline">
-              Cancel
-            </Button>
-            <Button onClick={updateVideoId}>
-              Save Changes
-            </Button>
-          </DialogFooter>
+              
+              <DialogFooter className="pt-6">
+                <Button 
+                  type="button" 
+                  onClick={() => setIsEditDialogOpen(false)} 
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -599,15 +826,6 @@ export function SimpleVideoManagement() {
                 <TableHead>Video ID</TableHead>
                 <TableHead 
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('contentMode')}
-                >
-                  <div className="flex items-center">
-                    Mode
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('requiredWatchPercentage')}
                 >
                   <div className="flex items-center">
@@ -636,12 +854,12 @@ export function SimpleVideoManagement() {
                     <TableCell>
                       <Badge variant={
                         video.workshop_type === 'allstarteams' ? 'default' :
-                        video.workshop_type === 'imaginal-agility' ? 'secondary' :
+                        video.workshop_type === 'ia' ? 'secondary' :
                         'outline'
                       }>
                         {video.workshop_type === 'allstarteams' ? 'AST' : 
-                         video.workshop_type === 'imaginal-agility' ? 'IA' : 
-                         'GEN'}
+                         video.workshop_type === 'ia' ? 'IA' : 
+                         'Landing'}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono text-sm">
@@ -649,17 +867,6 @@ export function SimpleVideoManagement() {
                     </TableCell>
                     <TableCell className="font-mono text-sm">
                       {video.editableId || extractYouTubeId(video.url)}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        video.contentMode === 'student' ? 'bg-blue-100 text-blue-800' :
-                        video.contentMode === 'professional' ? 'bg-purple-100 text-purple-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {video.contentMode === 'student' ? 'Student' :
-                         video.contentMode === 'professional' ? 'Professional' :
-                         'Both'}
-                      </span>
                     </TableCell>
                     <TableCell className="font-mono text-sm">
                       <span className={`${
@@ -712,13 +919,13 @@ export function SimpleVideoManagement() {
                 ))
               ) : videos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     No videos found. Add your first video to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <div className="space-y-2">
                       <p>No videos match your current filters.</p>
                       <Button 

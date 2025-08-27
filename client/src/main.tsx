@@ -3,6 +3,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { trpc } from "./utils/trpc";
+import { httpBatchLink } from "@trpc/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Polyfill for Node.js process in the browser to fix "require is not defined" error
 window.process = window.process || { env: { NODE_ENV: "production" } };
@@ -18,9 +21,20 @@ try {
   
   console.log("Root element found, creating React root...");
   const root = createRoot(rootElement);
-  console.log("React root created, rendering App...");
-  root.render(<App />);
-  console.log("App rendered successfully");
+  console.log("React root created, setting up TRPC & React Query...");
+  const queryClient = new QueryClient();
+  const trpcClient = trpc.createClient({
+    links: [httpBatchLink({ url: "http://localhost:8080/trpc" })],
+  });
+  console.log("Rendering App with TRPC provider...");
+  root.render(
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+  console.log("App rendered successfully with TRPC");
 } catch (error) {
   console.error("Error starting app:", error);
 }

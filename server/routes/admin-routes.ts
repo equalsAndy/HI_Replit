@@ -464,6 +464,7 @@ router.get('/videos/workshop/:workshopType', requireAuth, isAdmin, async (req: R
 router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
+    console.log(`ADMIN VIDEO UPDATE: ${req.params.id} body:`, req.body);
     if (isNaN(id)) {
       return res.status(400).json({ message: 'Invalid video ID' });
     }

@@ -614,7 +614,11 @@ class UserManagementService {
         section: video.section,
         step_id: video.stepId,
         autoplay: video.autoplay,
-        sortOrder: video.sortOrder
+        sortOrder: video.sortOrder,
+        contentMode: video.contentMode,
+        requiredWatchPercentage: video.requiredWatchPercentage,
+        transcriptMd: video.transcriptMd,
+        glossary: video.glossary
       }));
     } catch (error) {
       console.error('Error getting videos from database:', error);
@@ -645,7 +649,11 @@ class UserManagementService {
         section: video.section,
         step_id: video.stepId,
         autoplay: video.autoplay,
-        sortOrder: video.sortOrder
+        sortOrder: video.sortOrder,
+        contentMode: video.contentMode,
+        requiredWatchPercentage: video.requiredWatchPercentage,
+        transcriptMd: video.transcriptMd,
+        glossary: video.glossary
       }));
     } catch (error) {
       console.error('Error getting videos by workshop from database:', error);
@@ -681,6 +689,8 @@ class UserManagementService {
       if (data.sort_order !== undefined) updateData.sortOrder = data.sort_order;
       if (data.requiredWatchPercentage !== undefined) updateData.requiredWatchPercentage = data.requiredWatchPercentage;
       if (data.required_watch_percentage !== undefined) updateData.requiredWatchPercentage = data.required_watch_percentage;
+      if (data.transcriptMd !== undefined)             updateData.transcriptMd            = data.transcriptMd;
+      if (data.glossary !== undefined)                updateData.glossary               = data.glossary;
       
       console.log(`Updating video ${id} with data:`, updateData);
       
@@ -713,7 +723,9 @@ class UserManagementService {
           step_id: updatedVideo.stepId,
           autoplay: updatedVideo.autoplay,
           sortOrder: updatedVideo.sortOrder,
-          requiredWatchPercentage: updatedVideo.requiredWatchPercentage
+          requiredWatchPercentage: updatedVideo.requiredWatchPercentage,
+          transcriptMd:        updatedVideo.transcriptMd,
+          glossary:            updatedVideo.glossary
         }
       };
     } catch (error) {
