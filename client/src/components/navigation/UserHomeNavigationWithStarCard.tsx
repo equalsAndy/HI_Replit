@@ -141,31 +141,35 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   };
 
   // Sequential step accessibility check - strict progression as per original requirements
+  // TEMPORARILY DISABLED: All steps accessible for testing
   const isStepAccessibleSequential = (stepId: string, completedSteps: string[]) => {
-    // Only Introduction Video (1-1) is active initially
-    if (stepId === '1-1') return true;
+    return true; // TEMPORARY: Disable step progression
+    
+    // ORIGINAL LOGIC (commented out temporarily):
+    // // Only Introduction Video (1-1) is active initially
+    // if (stepId === '1-1') return true;
 
-    // Sequential step progression
-    const allSteps = [
-      '1-1', '2-1', '2-2', '2-3', '2-4', 
-      '3-1', '3-2', '3-3', '3-4',
-      '4-1', '4-2', '4-3', '4-4', '4-5'
-    ];
+    // // Sequential step progression
+    // const allSteps = [
+    //   '1-1', '2-1', '2-2', '2-3', '2-4', 
+    //   '3-1', '3-2', '3-3', '3-4',
+    //   '4-1', '4-2', '4-3', '4-4', '4-5'
+    // ];
 
-    const stepPosition = allSteps.indexOf(stepId);
-    if (stepPosition === -1) {
-      // Resource sections unlock after Final Reflection (4-5)
-      return completedSteps.includes('4-5');
-    }
+    // const stepPosition = allSteps.indexOf(stepId);
+    // if (stepPosition === -1) {
+    //   // Resource sections unlock after Final Reflection (4-5)
+    //   return completedSteps.includes('4-5');
+    // }
 
-    // A step is accessible only if all previous steps are completed
-    for (let i = 0; i < stepPosition; i++) {
-      if (!completedSteps.includes(allSteps[i])) {
-        return false;
-      }
-    }
+    // // A step is accessible only if all previous steps are completed
+    // for (let i = 0; i < stepPosition; i++) {
+    //   if (!completedSteps.includes(allSteps[i])) {
+    //     return false;
+    //   }
+    // }
 
-    return true;
+    // return true;
   };
 
   // Local state that resets when user progress is reset
@@ -380,7 +384,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
                 {/* Section Header - Accordion for IA, regular for AST */}
-                {(isImaginalAgility || section.id !== '1') && (
+                {(isImaginalAgility || section.title) && (
                   <div className="flex items-start space-x-2">
                     {drawerOpen && (
                       <>
@@ -424,15 +428,15 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 {/* Steps List */}
                 {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] === true) : true) && (
                   <div className="relative">
-                    {/* Week Label spanning entire section - centered in 50px gap */}
-                    {section.weekNumber && (
+                    {/* Module/Week Label spanning entire section - centered in 50px gap */}
+                    {(section.moduleNumber || section.weekNumber) && (
                       <div 
                         className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
-                        style={{ marginLeft: '-3px' }}
+                        style={{ marginLeft: '-8px' }}
                       >
                         <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-0.5 py-1 rounded text-center"
                              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}>
-                          WEEK {section.weekNumber}
+                          {section.moduleNumber ? `MODULE ${section.moduleNumber}` : `WEEK ${section.weekNumber}`}
                         </div>
                       </div>
                     )}

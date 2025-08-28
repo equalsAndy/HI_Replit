@@ -538,28 +538,31 @@ export default function AllStarTeams() {
 
   // Function to determine if a step is accessible - uses unlocked steps from navigation progress
   const isStepAccessible = (sectionId: string, stepId: string) => {
-    // Use navigation progress unlocked steps instead of completed steps
-    const unlockedSteps = navProgress?.unlockedSteps || [];
-    const completedSteps = navProgress?.completedSteps || [];
+    return true; // TEMPORARY: All steps accessible for testing
+    
+    // ORIGINAL LOGIC (commented out temporarily):
+    // // Use navigation progress unlocked steps instead of completed steps
+    // const unlockedSteps = navProgress?.unlockedSteps || [];
+    // const completedSteps = navProgress?.completedSteps || [];
 
-    // Special logic for steps 5-2 and 5-3: available to all users after final reflection completion
-    if (stepId === '5-2' || stepId === '5-3') {
-      const finalReflectionCompleted = completedSteps.includes('4-5');
-      
-      console.log(`🔓 Step ${stepId} accessibility check: finalReflectionCompleted=${finalReflectionCompleted}`);
-      
-      // Available to all users who have completed final reflection
-      return finalReflectionCompleted;
-    }
+    // // Special logic for steps 5-2 and 5-3: available to all users after final reflection completion
+    // if (stepId === '5-2' || stepId === '5-3') {
+    //   const finalReflectionCompleted = completedSteps.includes('4-5');
+    //   
+    //   console.log(`🔓 Step ${stepId} accessibility check: finalReflectionCompleted=${finalReflectionCompleted}`);
+    //   
+    //   // Available to all users who have completed final reflection
+    //   return finalReflectionCompleted;
+    // }
 
-    // Check if step is in unlocked steps
-    const isUnlocked = unlockedSteps.includes(stepId);
-    // Only log if step is locked and we're trying to access it (reduce console spam)
-    if (!isUnlocked && process.env.NODE_ENV === 'development') {
-      console.log(`🔓 Step ${stepId} locked - available: ${unlockedSteps.join(', ')}`);
-    }
+    // // Check if step is in unlocked steps
+    // const isUnlocked = unlockedSteps.includes(stepId);
+    // // Only log if step is locked and we're trying to access it (reduce console spam)
+    // if (!isUnlocked && process.env.NODE_ENV === 'development') {
+    //   console.log(`🔓 Step ${stepId} locked - available: ${unlockedSteps.join(', ')}`);
+    // }
 
-    return isUnlocked;
+    // return isUnlocked;
   };
 
   // Handle assessment completion

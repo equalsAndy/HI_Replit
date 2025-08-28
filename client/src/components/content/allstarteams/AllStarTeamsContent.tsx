@@ -7,7 +7,7 @@ import StarCardPreviewView from '../StarCardPreviewView';
 import ReflectionView from '../ReflectionView';
 import FlowIntroView from '../FlowIntroView';
 import IntroToFlowView from '../IntroToFlowView';
-import FlowAssessmentView from '../FlowAssessmentView';
+
 import FlowRoundingOutView from '../FlowRoundingOutView';
 import FlowStarCardView from '../FlowStarCardView';
 import WellBeingView from '../WellBeingView';
@@ -81,6 +81,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
+          setIsAssessmentModalOpen={setIsAssessmentModalOpen}
         />
       );
 
@@ -129,16 +130,6 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     case 'intro-to-flow':
       return (
         <IntroToFlowView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-        />
-      );
-
-    case 'flow-assessment':
-      return (
-        <FlowAssessmentView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

@@ -254,34 +254,32 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
 export const allStarTeamsNavigationSections = [
   {
     id: '1',
-    title: 'STAR',
+    title: 'GETTING STARTED',
+    moduleNumber: 1,
     steps: [
-      { id: '1-1', title: 'Introduction to Star Cards', type: 'video' }
+      { id: '1-1', title: 'On Self-Awareness', type: 'video' },
+      { id: '1-2', title: 'Positive Psychology', type: 'video' },
+      { id: '1-3', title: 'About this Course', type: 'video' }
     ]
   },
   {
     id: '2',
-    title: 'DISCOVER YOUR STAR STRENGTHS',
+    title: 'STRENGTH AND FLOW',
+    moduleNumber: 2,
     steps: [
       { id: '2-1', title: 'Intro to Star Strengths', type: 'video' },
       { id: '2-2', title: 'Star Strengths Self-Assessment', type: 'assessment' },
       { id: '2-3', title: 'Review Your Star Card', type: 'viewing' },
-      { id: '2-4', title: 'Strength Reflection', type: 'reflection' }
-    ]
-  },
-  {
-    id: '3',
-    title: 'IDENTIFY YOUR FLOW',
-    steps: [
+      { id: '2-4', title: 'Strength Reflection', type: 'reflection' },
       { id: '3-1', title: 'Intro to Flow', type: 'video' },
-      { id: '3-2', title: 'Flow Assessment', type: 'assessment' },
-      { id: '3-3', title: 'Rounding Out', type: 'video' },
-      { id: '3-4', title: 'Add Flow to Star Card', type: 'adding' }
+      { id: '3-2', title: 'Rounding Out', type: 'reflection' },
+      { id: '3-3', title: 'Add Flow to Star Card', type: 'adding' }
     ]
   },
   {
     id: '4',
     title: 'VISUALIZE YOUR POTENTIAL',
+    moduleNumber: 3,
     steps: [
       { id: '4-1', title: 'Ladder of Well-being', type: 'interactive' },
       { id: '4-2', title: 'Well-being Reflections', type: 'video' },
@@ -292,7 +290,8 @@ export const allStarTeamsNavigationSections = [
   },
   {
     id: '5',
-    title: 'NEXT STEPS',
+    title: 'TAKEAWAYS & NEXT STEPS',
+    moduleNumber: 4,
     steps: [
       { id: '5-1', title: 'Download your Star Card', type: 'download' },
       { id: '5-2', title: 'Your Holistic Report', type: 'download' },
@@ -303,6 +302,7 @@ export const allStarTeamsNavigationSections = [
   {
     id: '6',
     title: 'MORE INFORMATION',
+    moduleNumber: 5,
     steps: [
       { id: '6-1', title: 'More about AllStarTeams', type: 'resources' }
     ]
