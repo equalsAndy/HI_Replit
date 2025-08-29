@@ -271,9 +271,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
       // Section 3: Find your Flow
       '3-1': 'intro-to-flow',
-      '3-2': 'flow-assessment',
-      '3-3': 'flow-rounding-out',
-      '3-4': 'flow-star-card',
+      '3-2': 'flow-rounding-out',
+      '3-3': 'flow-star-card',
 
       // Section 4: Visualize your Potential
       '4-1': 'wellbeing',

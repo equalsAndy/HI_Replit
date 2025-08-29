@@ -60,6 +60,8 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
   if (optIn && isAst1_1) {
     return <AstLessonContent />;
   }
+
+  console.log('🔍 AllStarTeamsContent: currentContent =', currentContent);
   switch (currentContent) {
     // Introduction View
     case 'welcome':

@@ -596,12 +596,11 @@ export default function AllStarTeams() {
 
     // Section 3
     '3-1': { prev: '2-4', next: '3-2', contentKey: 'intro-to-flow' },
-    '3-2': { prev: '3-1', next: '3-3', contentKey: 'flow-assessment' }, // Assessment doesn't auto-complete
-    '3-3': { prev: '3-2', next: '3-4', contentKey: 'flow-rounding-out' },
-    '3-4': { prev: '3-3', next: '4-1', contentKey: 'flow-star-card' },
+    '3-2': { prev: '3-1', next: '3-3', contentKey: 'flow-rounding-out' },
+    '3-3': { prev: '3-2', next: '4-1', contentKey: 'flow-star-card' },
 
     // Section 4
-    '4-1': { prev: '3-4', next: '4-2', contentKey: 'wellbeing' },
+    '4-1': { prev: '3-3', next: '4-2', contentKey: 'wellbeing' },
     '4-2': { prev: '4-1', next: '4-3', contentKey: 'cantril-ladder' },
     '4-3': { prev: '4-2', next: '4-4', contentKey: 'visualizing-you' },
     '4-4': { prev: '4-3', next: '4-5', contentKey: 'future-self' },
@@ -673,11 +672,9 @@ export default function AllStarTeams() {
     // Only Next button progression should mark steps complete
     console.log(`🧭 SIMPLIFIED MODE: Menu navigation to ${stepId} - NO auto-completion`);
 
-    // For the flow assessment, navigate to the flow assessment page instead of opening modal
-    if (stepId === '3-2') {
-      // DO NOT mark as completed - only Next button should do this
-      setCurrentContent('flow-assessment');
-    }
+    // Set content based on navigation sequence
+    setCurrentContent(navInfo.contentKey);
+    setCurrentStep(stepId);
   };
 
   // Scroll to top when currentContent changes (including programmatic navigation)
