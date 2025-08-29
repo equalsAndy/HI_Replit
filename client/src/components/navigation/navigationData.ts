@@ -267,13 +267,10 @@ export const allStarTeamsNavigationSections = [
     title: 'STRENGTH AND FLOW',
     moduleNumber: 2,
     steps: [
-      { id: '2-1', title: 'Intro to Star Strengths', type: 'video' },
-      { id: '2-2', title: 'Star Strengths Self-Assessment', type: 'assessment' },
-      { id: '2-3', title: 'Review Your Star Card', type: 'viewing' },
-      { id: '2-4', title: 'Strength Reflection', type: 'reflection' },
-      { id: '3-1', title: 'Intro to Flow', type: 'video' },
+      { id: '2-1', title: 'Star Strengths Assessment', type: 'video' },
+      { id: '3-1', title: 'Flow Patterns', type: 'video' },
       { id: '3-2', title: 'Rounding Out', type: 'reflection' },
-      { id: '3-3', title: 'Add Flow to Star Card', type: 'adding' }
+      { id: '3-3', title: 'Module 2 Recap', type: 'adding' }
     ]
   },
   {

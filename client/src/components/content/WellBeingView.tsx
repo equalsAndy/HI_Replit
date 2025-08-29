@@ -11,9 +11,82 @@ interface ContentViewProps {
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, FileText } from "lucide-react";
+import { useCallback } from "react";
+import { debounce } from '@/lib/utils';
+import { useTestUser } from '@/hooks/useTestUser';
+import { validateAtLeastOneField } from '@/lib/validation';
+import { ValidationMessage } from '@/components/ui/validation-message';
 import WellBeingLadderSvg from "../visualization/WellBeingLadderSvg";
 import VideoPlayer from "./VideoPlayer";
+
+// Cantril Ladder reflection questions interfaces
+interface CantrilQuestion {
+  id: number;
+  key: keyof CantrilFormData;
+  title: string;
+  question: string;
+  description: string;
+  placeholder: string;
+  section: 'current' | 'future' | 'quarterly';
+}
+
+interface CantrilFormData {
+  currentFactors: string;
+  futureImprovements: string;
+  specificChanges: string;
+  quarterlyProgress: string;
+  quarterlyActions: string;
+}
+
+// Cantril Ladder Questions
+const cantrilQuestions: CantrilQuestion[] = [
+  {
+    id: 1,
+    key: 'currentFactors',
+    title: 'Current Well-being Factors',
+    question: 'What factors shape your current rating?',
+    description: 'What are the main elements contributing to your current well-being?',
+    placeholder: 'Consider your work, relationships, health, finances, and personal growth...',
+    section: 'current'
+  },
+  {
+    id: 2,
+    key: 'futureImprovements', 
+    title: 'Future Vision',
+    question: 'What improvements do you envision?',
+    description: 'What achievements or changes would make your life better in one year?',
+    placeholder: 'Describe specific improvements you hope to see in your life...',
+    section: 'future'
+  },
+  {
+    id: 3,
+    key: 'specificChanges',
+    title: 'Tangible Differences',
+    question: 'What will be different?',
+    description: 'How will your experience be noticeably different in tangible ways?',
+    placeholder: 'Describe concrete changes you\'ll experience...',
+    section: 'future'
+  },
+  {
+    id: 4,
+    key: 'quarterlyProgress',
+    title: 'Quarterly Milestones',
+    question: 'What progress would you expect in 3 months?',
+    description: 'Name one specific indicator that you\'re moving up the ladder.',
+    placeholder: 'Describe a measurable sign of progress...',
+    section: 'quarterly'
+  },
+  {
+    id: 5,
+    key: 'quarterlyActions',
+    title: 'Quarterly Commitments',
+    question: 'What actions will you commit to this quarter?',
+    description: 'Name 1-2 concrete steps you\'ll take before your first quarterly check-in.',
+    placeholder: 'Describe specific actions you\'ll take...',
+    section: 'quarterly'
+  }
+];
 
 const WellBeingView: React.FC<ContentViewProps> = ({
   navigate,
@@ -24,6 +97,17 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   const [saving, setSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Reflection questions state
+  const [formData, setFormData] = useState<CantrilFormData>({
+    currentFactors: '',
+    futureImprovements: '',
+    specificChanges: '',
+    quarterlyProgress: '',
+    quarterlyActions: ''
+  });
+  const [validationError, setValidationError] = useState<string>('');
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Workshop status - use AST completion for locking
   const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
@@ -201,10 +285,107 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     };
   }, []); // Empty dependency array to run only once
 
+  // Load existing Cantril reflection data when component mounts
+  useEffect(() => {
+    const loadExistingReflectionData = async () => {
+      try {
+        const response = await fetch('/api/workshop-data/cantril-ladder', {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setFormData(result.data);
+        }
+      } catch (error) {
+        console.error('Error loading reflection data:', error);
+      }
+    };
+    
+    loadExistingReflectionData();
+  }, []);
+
+  // Debounced save function for reflection text inputs
+  const debouncedReflectionSave = useCallback(
+    debounce(async (dataToSave) => {
+      try {
+        const response = await fetch('/api/workshop-data/cantril-ladder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(dataToSave)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          // console.log('Reflection data auto-saved successfully');
+        }
+      } catch (error) {
+        console.error('Reflection auto-save failed:', error);
+      }
+    }, 1000),
+    []
+  );
+
+  // Trigger reflection save when form data changes
+  useEffect(() => {
+    // Don't auto-save if workshop is locked
+    if (workshopCompleted) {
+      return;
+    }
+    
+    if (Object.values(formData).some(value => value && typeof value === 'string' && value.trim().length > 0)) {
+      debouncedReflectionSave(formData);
+    }
+  }, [formData, debouncedReflectionSave, workshopCompleted]);
+
+  // Handle reflection text input changes
+  const handleReflectionInputChange = (field: keyof CantrilFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear validation error when user starts typing
+    if (validationError && value.trim().length >= 10) {
+      setValidationError('');
+    }
+  };
+
+  // Function to populate with meaningful demo data for reflections
+  const fillReflectionWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoData = {
+      currentFactors: "My current well-being is shaped by meaningful work that aligns with my strengths, supportive relationships with colleagues and family, good physical health through regular exercise, and financial stability. I feel energized when I can use my planning and analytical skills to solve complex problems.",
+      futureImprovements: "In one year, I envision having greater autonomy in my role, leading a high-performing team that leverages everyone's strengths effectively, maintaining excellent work-life balance, and feeling confident about my career trajectory. I want to be recognized as a go-to person for strategic thinking and team development.",
+      specificChanges: "I'll have more flexible work arrangements, be managing or mentoring team members, have completed a leadership development program, improved my public speaking skills, and established better boundaries between work and personal time. My stress levels will be lower and my sense of purpose higher.",
+      quarterlyProgress: "I'll have initiated at least two process improvements using my analytical skills, received positive feedback on a leadership opportunity I've taken on, and established a consistent routine for professional development. I'll notice feeling more confident in meetings and decision-making.",
+      quarterlyActions: "I will schedule monthly one-on-ones with my manager to discuss growth opportunities, sign up for a leadership workshop or online course, volunteer to lead a cross-functional project, and implement a weekly planning routine that aligns my daily work with my long-term goals."
+    };
+    
+    setFormData(demoData);
+  };
+
   const handleSave = async () => {
+    // Validate that at least one reflection field is filled (minimum 10 characters)
+    const validation = validateAtLeastOneField(formData, 10);
+    
+    if (!validation.isValid) {
+      const errorMessage = validation.errors[0]?.message || 'Please complete at least one reflection to continue';
+      setValidationError(errorMessage);
+      return;
+    }
+    
+    // Clear any validation error
+    setValidationError('');
     setSaving(true);
 
     try {
+      // Save wellbeing data
       await fetch("/api/visualization", {
         method: "POST",
         headers: {
@@ -217,18 +398,26 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         }),
       });
 
+      // Also save reflection data
+      await fetch('/api/workshop-data/cantril-ladder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData)
+      });
+
       queryClient.invalidateQueries({ queryKey: ["/api/visualization"] });
       markStepCompleted("4-1");
+      markStepCompleted("4-2"); // Also mark 4-2 as completed since we're combining both steps
 
-      // Navigate to well-being reflections (cantril-ladder content)
-      console.log("Navigating to cantril-ladder content view");
-      setCurrentContent("cantril-ladder");
+      // Navigate to step 4-3 (Visualizing You) 
+      setCurrentContent("visualizing-you");
     } catch (error) {
       console.error("Error saving well-being data:", error);
       // Navigate anyway even if save fails
-      console.log("Navigating to cantril-ladder despite save error");
       markStepCompleted("4-1");
-      setCurrentContent("cantril-ladder");
+      markStepCompleted("4-2");
+      setCurrentContent("visualizing-you");
     } finally {
       setSaving(false);
     }
@@ -408,6 +597,107 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
+      {/* Well-being Reflection Questions Section */}
+      <div className="mt-12 mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          Well-being Reflection Questions
+        </h2>
+        
+        <p className="text-gray-700 mb-6">
+          Now that you've set your well-being levels, take a few moments to reflect on the factors that 
+          contribute to your current state and your vision for the future.
+        </p>
+
+        {/* Display all questions serially */}
+        <div className="space-y-8">
+          {cantrilQuestions.map((question, index) => (
+            <div key={question.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+              {/* Question header */}
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {index + 1}. {question.question}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {question.description}
+                </p>
+              </div>
+
+              {/* Text area */}
+              <div className="mb-4">
+                <textarea
+                  value={formData[question.key]}
+                  onChange={(e) => handleReflectionInputChange(question.key, e.target.value)}
+                  disabled={workshopCompleted}
+                  readOnly={workshopCompleted}
+                  className={`w-full h-32 p-4 border border-gray-300 rounded-md resize-none ${
+                    workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                  }`}
+                  placeholder={question.placeholder}
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>Write 2-3 sentences about this reflection</span>
+                  <span>{formData[question.key].length} characters</span>
+                </div>
+              </div>
+
+              {/* Completion indicator */}
+              {formData[question.key].trim().length > 0 && (
+                <div className="flex items-center text-green-600 text-sm">
+                  <span className="mr-1">✓</span>
+                  Completed
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Demo button for test users */}
+        {shouldShowDemoButtons && (
+          <div className="mt-6 flex justify-center">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fillReflectionWithDemoData}
+              disabled={workshopCompleted}
+              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+            >
+              <FileText className="w-4 h-4 mr-1" />
+              Fill with Demo Data
+            </Button>
+          </div>
+        )}
+
+        {/* Progress summary */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-medium text-gray-700 mb-2">Reflection Progress:</h4>
+          <div className="flex flex-wrap gap-2">
+            {cantrilQuestions.map((q, index) => (
+              <span 
+                key={q.id} 
+                className={`text-xs px-2 py-1 rounded ${
+                  formData[q.key].trim().length > 0 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-gray-200 text-gray-600'
+                }`}
+              >
+                {index + 1}. {q.title} {formData[q.key].trim().length > 0 ? '✓' : ''}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Validation error display */}
+      {validationError && (
+        <div className="mb-4">
+          <ValidationMessage 
+            message={validationError} 
+            type="error" 
+            show={!!validationError}
+          />
+        </div>
+      )}
+
       <div className="flex justify-end">
         <Button
           onClick={handleSave}
@@ -415,10 +705,10 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
           {workshopCompleted 
-            ? "Continue to Well-being Reflections"
+            ? "Continue to Visualizing You"
             : saving 
               ? "Saving..." 
-              : "Next: Well-being Reflections"
+              : "Next: Visualizing You"
           } <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
