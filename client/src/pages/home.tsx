@@ -7,21 +7,14 @@ import allStarTeamsLogo from "@/assets/all-star-teams-logo-250px.png";
 import imaginalAgilityLogo from "@/assets/HI_Logo_horizontal.png";
 import logoHorizontal from "@/assets/HI_Logo_horizontal.png";
 
+import { useAuth0 } from '@auth0/auth0-react';
+
 export default function Home() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // Fetch user profile
-  const { data: userData } = useQuery({
-    queryKey: ['/api/auth/me'],
-    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
-    refetchOnWindowFocus: false,
-    refetchInterval: false, // We don't need constant updates on landing page
-    retry: false // Don't retry if authentication fails
-  });
-  
-  const user = (userData as any)?.user;
-  const isAuthenticated = !!user;
+  // Use Auth0 for authentication
+  const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
 
   // Handle workshop selection
   const handleWorkshopSelection = (workshopType: 'allstarteams' | 'imaginalagility') => {
@@ -57,18 +50,21 @@ export default function Home() {
               className="h-10" 
             />
           </div>
-          <div>
+      <div>
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <span className="text-gray-700">Welcome, {user.name}</span>
+                <Button variant="outline" onClick={() => logout({ returnTo: window.location.origin })}>
+                  Logout
+                </Button>
                 <Link href="/dashboard">
                   <Button variant="outline">Dashboard</Button>
                 </Link>
               </div>
             ) : (
-              <Link href="/auth/login">
-                <Button variant="ghost">Login</Button>
-              </Link>
+              <Button variant="ghost" onClick={() => loginWithRedirect()}>
+                Login
+              </Button>
             )}
           </div>
         </div>

@@ -12,6 +12,7 @@ import { Link } from 'wouter';
 import ProfileModal from "../profile/ProfileModal";
 import ProfileEditor from "../profile/ProfileEditor";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth0 } from '@auth0/auth0-react';
 import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
@@ -251,46 +252,9 @@ export function NavBar() {
     window.location.href = '/workshop-reset-test';
   };
 
-  // Logout function for ProfileEditor
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Clear React Query cache
-        queryClient.clear();
-
-        // Show success toast
-        toast({
-          title: 'Logged out successfully',
-          description: 'You have been logged out of your account.',
-          variant: 'default',
-        });
-
-        // Navigate to home page
-        navigate('/');
-
-        // Force page reload to clear all state
-        window.location.reload();
-      } else {
-        throw new Error(data.error || 'Logout failed');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: 'Logout failed',
-        description: 'There was a problem logging out. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
+  const { logout } = useAuth0();
+  // Logout via Auth0
+  const handleLogout = () => logout({ returnTo: window.location.origin });
 
   // Function to toggle between applications
   const toggleApplication = () => {

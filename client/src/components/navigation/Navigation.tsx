@@ -77,14 +77,14 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       return [
         { 
           id: '1', 
-          title: '', // Intro to Star Strengths (no header)
+          title: 'GETTING STARTED',
           path: '/intro',
           totalSteps: 1,
           completedSteps: 0,
           icon: 'Video',
           iconColor: 'text-blue-600',
           steps: [
-            { id: '2-1', label: 'Intro to Star Strengths', path: '/discover-strengths/intro', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+            { id: '1-1', label: 'Introduction', path: '/intro/video', type: 'Learning', icon: 'Video', iconColor: 'text-blue-600' },
           ]
         },
         { 
@@ -313,7 +313,10 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
           {/* Navigation sidebar on desktop */}
           <div className="hidden md:block md:col-span-1">
             <div className="sticky top-20">
-              <NavigationSidebar appType={appType} />
+              <NavigationSidebar 
+                appType={appType} 
+                customSections={isStudentOrFacilitator ? journeySections : undefined}
+              />
             </div>
           </div>
 

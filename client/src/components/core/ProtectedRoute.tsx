@@ -17,6 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireFacilitator = false
 }) => {
   const { requiresAuth, handleInvalidSession } = useSessionManager();
+  const { isAuthenticated, isLoading: authLoading, loginWithRedirect } = useAuth0();
   const { data: user, isLoading: userLoading } = useCurrentUser();
   
   // If route doesn't require auth, render children directly
@@ -24,8 +25,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <>{children}</>;
   }
 
-  // Show loading state while checking user data
-  if (userLoading) {
+  // Show loading state while checking Auth0 and user data
+  if (authLoading || userLoading) {
     return fallback || (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex items-center space-x-2">
@@ -36,9 +37,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If no user and not loading, session is invalid
-  if (!user?.id) {
-    handleInvalidSession('login-required');
+  // If Auth0 not authenticated, redirect to login
+  if (!isAuthenticated) {
+    loginWithRedirect();
     return fallback || (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

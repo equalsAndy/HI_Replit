@@ -8,6 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import StarCard from "@/components/starcard/StarCard";
+import { CARD_WIDTH } from '@/components/starcard/starCardConstants';
 import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
@@ -458,16 +459,14 @@ export default function Foundations() {
                     <div className="p-4 border-b border-gray-200 bg-gray-50">
                       <h3 className="text-xl font-bold text-center">Your Star Card</h3>
                     </div>
-                    <div className="p-4 flex justify-center">
-                      <div className="w-full">
-                        <StarCard 
-                          thinking={starCard?.thinking || 0}
-                          acting={starCard?.acting || 0}
-                          feeling={starCard?.feeling || 0}
-                          planning={starCard?.planning || 0}
-                          imageUrl={starCard?.imageUrl || null}
-                        />
-                      </div>
+                    <div className="flex justify-center" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
+                      <StarCard 
+                        thinking={starCard?.thinking || 0}
+                        acting={starCard?.acting || 0}
+                        feeling={starCard?.feeling || 0}
+                        planning={starCard?.planning || 0}
+                        imageUrl={starCard?.imageUrl || null}
+                      />
                     </div>
                   </div>
                 </div>

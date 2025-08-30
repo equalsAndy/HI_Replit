@@ -372,51 +372,60 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
           maxWidth: CARD_WIDTH 
         }}
       >
-        <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
+        <h2 className="mt-0 text-xl font-bold text-center uppercase mb-4">Star Card</h2>
 
         {/* User Profile */}
         <div className="flex items-center mb-6">
           <div className="rounded-full h-[70px] w-[70px] overflow-hidden mr-5 border border-gray-300">
-            {imageUrl || derivedProfile.avatarUrl ? (
-              <img 
-                src={imageUrl || derivedProfile.avatarUrl} 
-                alt={derivedProfile.name} 
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  console.log('🖼️ Profile image failed to load:', imageUrl || derivedProfile.avatarUrl);
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.querySelector('.fallback-avatar')?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
+            {(imageUrl || derivedProfile.avatarUrl) && (
+            <img 
+              src={imageUrl || derivedProfile.avatarUrl} 
+              alt={derivedProfile.name} 
+              className="h-full w-full object-cover"
+              style={{ marginTop: '-5px' }}
+            onError={(e) => {
+            console.log('🖼️ Profile image failed to load:', imageUrl || derivedProfile.avatarUrl);
+            const target = e.currentTarget;
+            const parent = target.parentElement;
+              target.style.display = 'none';
+                const fallback = parent?.querySelector('.fallback-avatar');
+                  if (fallback) {
+                  fallback.classList.remove('hidden');
+                }
+              }}
+              onLoad={() => {
+                console.log('🖼️ Profile image loaded successfully:', imageUrl || derivedProfile.avatarUrl);
+              }}
+            />
+          )}
             <div className={`h-full w-full bg-gray-200 flex items-center justify-center fallback-avatar ${(imageUrl || derivedProfile.avatarUrl) ? 'hidden' : ''}`}>
               <UserIcon className="h-8 w-8 text-gray-400" />
             </div>
           </div>
-          <div>
-            <p className="font-medium text-gray-800">{derivedProfile.name || 'Your Name'}</p>
+          <div className="flex flex-col space-y-1">
+            <div className="font-medium text-gray-800">{derivedProfile.name || 'Your Name'}</div>
             {derivedProfile.title && (
-              <p className="text-sm text-gray-600">{derivedProfile.title}</p>
+              <div className="text-sm text-gray-600">{derivedProfile.title}</div>
             )}
             {derivedProfile.organization && (
-              <p className="text-sm text-gray-600">{derivedProfile.organization}</p>
+              <div className="text-sm text-gray-600">{derivedProfile.organization}</div>
             )}
           </div>
         </div>
 
         {/* Cloud graphic with Apex Strength - Using the provided cloud image */}
-        <div className="relative text-center mb-2" style={{ marginTop: '-20px' }}>
+        <div className="relative text-center mb-2" style={{ marginTop: '-44px' }}>
           {/* Cloud Image - cropped 1px from each side */}
           <div className="relative w-full" style={{ height: '110px' }}>
             <img 
               src={cloudImage} 
               alt="Cloud" 
               className="w-[98%] object-contain absolute top-0 left-[1%]"
-              style={{ height: '88px' }}
+              style={{ height: '88px', zIndex: 1 }}
             />
 
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
-            <div className="absolute w-full" style={{ top: '50px' }}>
+            <div className="absolute w-full" style={{ top: '32px', zIndex: 2 }}>
               <p className="text-[1.125rem] font-bold text-gray-500">Imagination</p>
               <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
             </div>
@@ -424,7 +433,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
         </div>
 
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
-        <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-25px' }}>
+        <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-9px' }}>
           {/* Flow Label */}
           <div className="absolute text-[0.65rem] font-medium" style={{ top: '-6px', right: '9px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
@@ -563,11 +572,17 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
         </div>
 
         {/* Logo - AllStarTeams logo */}
-        <div className="flex justify-end mt-[-3px] pr-4">
+        <div className="flex justify-end mt-[-30px] pr-4">
           <img 
             src={allStarTeamsLogo} 
             alt="allstarteams" 
-            className="h-[28.6px]" 
+            className="h-[28.6px]"
+            onError={(e) => {
+              console.log('❌ AllStarTeams logo failed to load:', allStarTeamsLogo);
+            }}
+            onLoad={() => {
+              console.log('✅ AllStarTeams logo loaded successfully');
+            }}
           />
         </div>
       </div>

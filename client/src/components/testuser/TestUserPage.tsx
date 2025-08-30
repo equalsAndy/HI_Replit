@@ -1,7 +1,8 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth0 } from '@auth0/auth0-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings } from 'lucide-react';
@@ -67,25 +68,8 @@ const TestUserPage: React.FC = () => {
     refetchOnWindowFocus: false
   });
 
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: () => apiRequest('/api/auth/logout', { method: 'POST' }),
-    onSuccess: () => {
-      queryClient.clear();
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
-      });
-      setLocation('/auth');
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Logout failed",
-        description: error.message || "There was an error logging out.",
-        variant: "destructive"
-      });
-    }
-  });
+  // Auth0 logout
+  const { logout } = useAuth0();
 
   // Redirect non-test users accessing /testuser specifically (except admins who can access for testing)
   React.useEffect(() => {
@@ -405,12 +389,11 @@ const TestUserPage: React.FC = () => {
               {/* Red Logout Button */}
               <Button 
                 variant="destructive" 
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
+                onClick={() => logout({ returnTo: window.location.origin })}
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                Logout
               </Button>
             </div>
           </CardContent>

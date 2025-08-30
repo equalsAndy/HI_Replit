@@ -4,7 +4,7 @@ import { VideoPlayer } from './VideoPlayer';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
+import { CARD_WIDTH } from '@/components/starcard/starCardConstants';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -72,18 +72,16 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
             <div className="p-4 border-b border-gray-200 bg-gray-50">
               <h3 className="text-xl font-bold text-center">Your Star Card</h3>
             </div>
-            <div className="p-4 flex justify-center">
-              <div className="w-full">
-                <StarCardWithFetch 
-                  fallbackData={{
-                    thinking: starCard?.thinking || 0,
-                    acting: starCard?.acting || 0,
-                    feeling: starCard?.feeling || 0,
-                    planning: starCard?.planning || 0,
-                    imageUrl: starCard?.imageUrl || null
-                  }}
-                />
-              </div>
+            <div className="flex justify-center" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
+              <StarCardWithFetch
+                fallbackData={{
+                  thinking: starCard?.thinking || 0,
+                  acting: starCard?.acting || 0,
+                  feeling: starCard?.feeling || 0,
+                  planning: starCard?.planning || 0,
+                  imageUrl: starCard?.imageUrl || null
+                }}
+              />
             </div>
           </div>
         </div>

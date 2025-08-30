@@ -56,6 +56,8 @@ import multer from 'multer';
 import { fileURLToPath } from 'url';
 // Vite import removed for production builds
 import { createServer } from 'http';
+import jwt from 'express-jwt';
+import jwksRsa from 'jwks-rsa';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -455,8 +457,19 @@ async function initializeApp() {
         },
       });
 
-      // Routes come AFTER session middleware
-      app.use('/api', router);
+      // Protect API routes with Auth0 JWT middleware
+      const jwtCheck = jwt({
+        secret: jwksRsa.expressJwtSecret({
+          cache: true,
+          rateLimit: true,
+          jwksRequestsPerMinute: 5,
+          jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
+        }),
+        audience: process.env.AUTH0_AUDIENCE,
+        issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+        algorithms: ['RS256']
+      });
+      app.use('/api', jwtCheck, router);
       app.use('/api/reports/holistic', holisticReportRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);

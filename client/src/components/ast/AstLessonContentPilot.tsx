@@ -3,10 +3,18 @@ import { trpc } from "@/utils/trpc";
 import VideoTranscriptGlossary from "../common/VideoTranscriptGlossary";
 import "./ast-video.css";
 
-export default function AstLessonContentPilot() {
+interface AstLessonContentPilotProps {
+  workshop?: string;
+  stepId?: string;
+}
+
+export default function AstLessonContentPilot({
+  workshop = "allstarteams",
+  stepId = "1-1"
+}: AstLessonContentPilotProps) {
   const { data, isLoading, error } = trpc.lesson.byStep.useQuery({
-    workshop: "allstarteams",
-    stepId: "1-1",
+    workshop,
+    stepId,
   });
   const [tab, setTab] = useState<'watch'|'read'|'glossary'>('watch');
 

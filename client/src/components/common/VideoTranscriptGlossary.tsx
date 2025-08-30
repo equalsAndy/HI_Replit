@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "../ast/ast-video.css";
+import "./video-transcript-glossary.css";
 
 type GlossaryItem = { term: string; definition: string };
 
@@ -70,13 +71,23 @@ export default function VideoTranscriptGlossary({
   };
 
   return (
-    <div>
-      <div className="flex gap-4 mb-4">
-        {['watch','read','glossary'].map(k => (
-          <button key={k} onClick={()=>setTab(k as any)} className={tab===k?'underline':''}>
-            {k.charAt(0).toUpperCase()+k.slice(1)}
-          </button>
-        ))}
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
+      <div className="vtg-tab-container">
+        {['watch', 'read', 'glossary'].map(k => {
+          const label = k.charAt(0).toUpperCase() + k.slice(1);
+          const isActive = tab === k;
+          return (
+            <div key={k} className="vtg-tab-wrapper">
+              <div className="vtg-tab-bg" />
+              <button
+                onClick={() => setTab(k as any)}
+                className={`vtg-tab${isActive ? ' active' : ''}`}
+              >
+                {label}
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {tab==='watch' && (
@@ -99,7 +110,7 @@ export default function VideoTranscriptGlossary({
                 </button>
               </p>
               {modalOpen && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
                   <div className="hi-video-shell w-[90vw] max-w-4xl">
                     <iframe
                       ref={modalRef}

@@ -1,6 +1,7 @@
 // TEMP: legacy button safety—remove after cleanup
 (window as any).handleSaveReframe = () => {};
 import { createRoot } from "react-dom/client";
+import { Auth0Provider } from '@auth0/auth0-react';
 import App from "./App";
 import "./index.css";
 import { trpc } from "./utils/trpc";
@@ -28,11 +29,20 @@ try {
   });
   console.log("Rendering App with TRPC provider...");
   root.render(
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </trpc.Provider>
+    <Auth0Provider
+      domain={import.meta.env.VITE_AUTH0_DOMAIN!}
+      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID!}
+      authorizationParams={{
+        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI!,
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+      }}
+    >
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </trpc.Provider>
+    </Auth0Provider>
   );
   console.log("App rendered successfully with TRPC");
 } catch (error) {

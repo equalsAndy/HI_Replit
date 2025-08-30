@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import VideoPlayer from './VideoPlayer';
+import AstLessonContent from '@/components/ast/AstLessonContentPilot';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
+import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
+import { CARD_WIDTH } from '@/components/starcard/starCardConstants';
 import { useStarCardData } from '@/hooks/useStarCardData';
+import StepByStepReflection from '@/components/reflection/StepByStepReflection';
 import { CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
 
 interface ContentViewProps {
@@ -12,18 +16,24 @@ interface ContentViewProps {
   markStepCompleted: (stepId: string) => void;
   setCurrentContent: (content: string) => void;
   setIsAssessmentModalOpen?: (isOpen: boolean) => void;
+  starCard?: any;
 }
 
 const IntroStrengthsView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent,
-  setIsAssessmentModalOpen
+  setIsAssessmentModalOpen,
+  starCard
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(true); // Simplified: always true
+  const [showStarCardSection, setShowStarCardSection] = useState(false);
+  const [showReflectionSection, setShowReflectionSection] = useState(false);
+  const [currentReflectionIndex, setCurrentReflectionIndex] = useState(0);
   const stepId = "2-1";
   const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
   const { updateContext, setCurrentStep } = useFloatingAI();
+  
   
   // Use the shared StarCard data hook to check assessment completion
   const { data: starCardData, isLoading: isLoadingAssessment, refetch } = useStarCardData();
@@ -61,6 +71,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
 
   const isAssessmentComplete = hasValidAssessmentData;
 
+
   // Simplified mode: Next button always active for video steps
   useEffect(() => {
     setHasReachedMinimum(true);
@@ -78,12 +89,17 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   // Handle completion and progression
   const handleNext = () => {
     markStepCompleted(stepId);
-    if (isAssessmentComplete) {
-      setCurrentContent("star-card-preview");
-    } else {
-      setCurrentContent("strengths-assessment");
-    }
+    // Always go to strengths-assessment (2-2) since we show Star Card inline now
+    setCurrentContent("strengths-assessment");
   };
+
+  // Build strengths array in descending order for reflections
+  const strengthsOrdered = [
+    { key: 'thinking', label: 'Thinking', color: 'rgb(1,162,82)', score: Number(starCardData?.thinking) || 0 },
+    { key: 'acting', label: 'Acting', color: 'rgb(241,64,64)', score: Number(starCardData?.acting) || 0 },
+    { key: 'feeling', label: 'Feeling', color: 'rgb(22,126,253)', score: Number(starCardData?.feeling) || 0 },
+    { key: 'planning', label: 'Planning', color: 'rgb(255,203,47)', score: Number(starCardData?.planning) || 0 }
+  ].sort((a, b) => b.score - a.score);
 
   return (
     <>
@@ -92,15 +108,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
       <div className="prose max-w-none">
         {/* Video Player */}
         <div className="mb-8">
-          <VideoPlayer
-            workshopType="allstarteams"
-            stepId="2-1"
-            fallbackUrl="https://youtu.be/TN5b8jx7KSI"
-            title="Intro to Star Strengths"
-            aspectRatio="16:9"
-            autoplay={true}
-            onProgress={handleVideoProgress}
-          />
+          <AstLessonContent stepId={stepId} />
         </div>
 
         {!isAssessmentComplete ? (
@@ -194,9 +202,108 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
                   }
                 </div>
               </div>
+
+              {/* Let's see your Star Card button */}
+              {!showStarCardSection && (
+              <div className="flex justify-center mb-8">
+                <Button 
+                  onClick={() => {
+                    setShowStarCardSection(true);
+                    // Scroll to the star card section after a brief delay
+                    setTimeout(() => {
+                      document.getElementById('star-card-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
+                >
+                  Let's see your Star Card
+                </Button>
+              </div>
+              )}
             </div>
           </div>
         )}
+
+        {/* Star Card Section - Only show if assessment is complete and user clicked to see it */}
+        {isAssessmentComplete && showStarCardSection && (
+          <div id="star-card-section" className="mt-8 bg-gray-50 rounded-lg p-6">
+            {console.log('🎯 DEBUGGING: Star Card section is rendering with updated structure')}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left side - Star Card exactly like AST 2-3 */}
+              <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full">
+                <div className="p-4 border-b border-gray-200 bg-gray-50">
+                  <h3 className="text-xl font-bold text-center">Your Star Card</h3>
+                </div>
+                <div className="flex justify-center" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
+                  <StarCardWithFetch
+                    fallbackData={{
+                      thinking: starCardData?.thinking || starCard?.thinking || 0,
+                      acting: starCardData?.acting || starCard?.acting || 0,
+                      feeling: starCardData?.feeling || starCard?.feeling || 0,
+                      planning: starCardData?.planning || starCard?.planning || 0,
+                      imageUrl: starCardData?.imageUrl || starCard?.imageUrl || null
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Right side - What This Means explanation */}
+              <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">What This Means</h3>
+                <div className="space-y-4 text-gray-700">
+                  <p>
+                    Your Star Card is a visual representation of your unique strengths profile. Each color and position on the card represents how you naturally approach different aspects of work and life.
+                  </p>
+                  <p><strong>The Four Core Dimensions:</strong></p>
+                  <ul className="space-y-2 ml-4">
+                    <li>• <span className="font-semibold" style={{ color: 'rgb(1,162,82)' }}>Thinking</span> - Your analytical and logical approach</li>
+                    <li>• <span className="font-semibold" style={{ color: 'rgb(241,64,64)' }}>Acting</span> - Your decisive and action-oriented nature</li>
+                    <li>• <span className="font-semibold" style={{ color: 'rgb(22,126,253)' }}>Feeling</span> - Your empathetic and relationship-focused tendencies</li>
+                    <li>• <span className="font-semibold" style={{ color: 'rgb(255,203,47)' }}>Planning</span> - Your organized and methodical qualities</li>
+                  </ul>
+                  <p>
+                    The size and position of each section show your relative strength in that dimension. This profile helps you understand your natural preferences and how you can leverage these strengths in your personal and professional development.
+                  </p>
+                  <p className="text-sm text-gray-500 italic">
+                    In the next steps of the workshop, you'll explore how to apply these insights and add your Flow State Qualities to complete your Star Card.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Reflection steps for each strength */}
+            {showReflectionSection ? (
+              <div className="mt-8">
+                {strengthsOrdered.map((strength, idx) => (
+                  <div key={strength.key} hidden={currentReflectionIndex !== idx} className="mb-12">
+                    <div className="mx-auto mb-6" style={{ width: '144px', height: '144px', backgroundColor: strength.color }} />
+                    <StepByStepReflection strength={strength.label} />
+                    {idx < strengthsOrdered.length - 1 && (
+                      <div className="flex justify-center mt-6">
+                        <Button
+                          onClick={() => setCurrentReflectionIndex(idx + 1)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
+                        >
+                          Let's talk about your {strength.label} strength
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex justify-center mb-8">
+                <Button
+                  onClick={() => setShowReflectionSection(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
+                >
+                  Let's talk about your strengths
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
 
         <div className="flex justify-end mt-6">
           <Button 
@@ -208,11 +315,9 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
           >
-            {isAssessmentComplete
-              ? "Next: Review Your Star Card" 
-              : hasReachedMinimum 
-                ? "Continue" 
-                : "Watch video to continue (5% minimum)"
+            {hasReachedMinimum 
+              ? "Continue" 
+              : "Watch video to continue (5% minimum)"
             }
           </Button>
         </div>

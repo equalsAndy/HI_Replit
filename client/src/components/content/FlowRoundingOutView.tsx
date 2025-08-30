@@ -102,9 +102,9 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
     loadExistingData();
   }, []);
 
-  // Set up FloatingAI context for step 3-3 with current question context
+  // Set up FloatingAI context for step 3-2 with current question context
   useEffect(() => {
-    setFloatingAIStep('3-3');
+    setFloatingAIStep('3-2');
     
     const currentQuestionData = roundingOutQuestions[currentQuestion];
     updateContext({
@@ -113,7 +113,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       questionText: currentQuestionData?.text,
       aiEnabled: true,
       workshopContext: {
-        currentStep: '3-3',
+        currentStep: '3-2',
         stepName: 'Flow Reflection - Rounding Out Your Understanding',
         previousSteps: [
           'Completed strengths assessment and discovered your Star Card',
@@ -202,7 +202,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           description: "Your responses have been saved successfully.",
           duration: 3000
         });
-        markStepCompleted('3-3');
+        markStepCompleted('3-2');
         // Navigate to the next step: Add Flow to Star Card
         if (navigate) {
           console.log('completeReflection: Navigating to step 3-4...');
@@ -297,10 +297,10 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         });
         
         // Mark step completed and navigate immediately
-        markStepCompleted('3-3');
+        markStepCompleted('3-2');
         
-        // Navigate to step 3-4 immediately
-        console.log('Navigating to step 3-4...');
+        // Navigate to step 3-3 immediately
+        console.log('Navigating to step 3-3...');
         if (setCurrentContent) {
           setCurrentContent('flow-star-card');
         }
@@ -411,7 +411,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       <div className="mb-8">
         <VideoPlayer
           workshopType="allstarteams"
-          stepId="3-3"
+          stepId="3-2"
           fallbackUrl="https://youtu.be/BBAx5dNZw6Y"
           title="Rounding Out Your Flow Understanding"
           aspectRatio="16:9"

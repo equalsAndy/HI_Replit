@@ -5,13 +5,14 @@ import { navigationSections, imaginalAgilityNavigationSections } from './navigat
 
 interface NavigationSidebarProps {
   appType?: 'ast' | 'ia';
+  customSections?: any[];
 }
 
-export function NavigationSidebar({ appType = 'ast' }: NavigationSidebarProps = {}) {
+export function NavigationSidebar({ appType = 'ast', customSections }: NavigationSidebarProps = {}) {
   const { progress, getSectionProgressData } = useNavigationProgress(appType);
   
-  // Use the correct sections based on app type
-  const sections = appType === 'ia' ? imaginalAgilityNavigationSections : navigationSections;
+  // Use custom sections if provided, otherwise use the default sections based on app type
+  const sections = customSections || (appType === 'ia' ? imaginalAgilityNavigationSections : navigationSections);
 
   // Get section icon based on section ID
   const getSectionIcon = (sectionId: string) => {
@@ -52,7 +53,7 @@ export function NavigationSidebar({ appType = 'ast' }: NavigationSidebarProps = 
   // Create sections with real-time progress data
   const sectionsWithProgress = sections.map(section => {
     // Get section progress based on completed steps
-    const sectionStepIds = section.steps.map(step => step.id);
+    const sectionStepIds = section.steps.map((step: any) => step.id);
     const progressData = getSectionProgressData(sectionStepIds);
 
     // Check if section is unlocked

@@ -131,12 +131,29 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
     organization: user?.organization || '',
     avatarUrl: user?.profilePicture ? 'Present' : 'Missing'
   });
+
+  // Ensure consistent base64 format
+  const processImageUrl = (imageUrl: string | null) => {
+    if (!imageUrl) return null;
+    
+    // If it's already a data URL, return as-is
+    if (imageUrl.startsWith('data:')) {
+      return imageUrl;
+    }
+    
+    // If it looks like base64 but missing data URL prefix, add it
+    if (imageUrl.match(/^[A-Za-z0-9+/=]+$/)) {
+      return `data:image/png;base64,${imageUrl}`;
+    }
+    
+    return imageUrl;
+  };
   
   const profile = {
     name: user?.name || user?.username || '',
     title: user?.title || '',
     organization: user?.organization || '',
-    avatarUrl: user?.profilePicture || null
+    avatarUrl: processImageUrl(user?.profilePicture) || null
   };
   
   // console.log('🎯 StarCardWithFetch Final Profile:', profile);
@@ -148,7 +165,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
       acting={finalData.acting}
       feeling={finalData.feeling}
       planning={finalData.planning}
-      imageUrl={finalData.imageUrl || profile.avatarUrl}
+      imageUrl={processImageUrl(finalData.imageUrl) || profile.avatarUrl}
       state={finalData.state} // Important: pass the state to force quadrant display
       flowAttributes={flowAttributes}
       downloadable={downloadable}

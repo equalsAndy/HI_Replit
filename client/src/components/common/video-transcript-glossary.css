@@ -1,0 +1,32 @@
+.vtg-tab-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.vtg-tab-wrapper {
+  position: relative;
+}
+.vtg-tab-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+  background-color: #2563eb; /* blue */
+}
+.vtg-tab {
+  position: relative;
+  top: 0;
+  left: 2px;
+  background-color: #9ca3af; /* gray */
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  z-index: 1;
+}
+.vtg-tab.active {
+  /* Optionally adjust active tab styling */
+}
