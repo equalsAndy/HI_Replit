@@ -279,7 +279,6 @@ export const allStarTeamsNavigationSections = [
     moduleNumber: 3,
     steps: [
       { id: '4-1', title: 'Ladder of Well-being', type: 'interactive' },
-      { id: '4-2', title: 'Well-being Reflections', type: 'video' },
       { id: '4-3', title: 'Visualizing You', type: 'visual' },
       { id: '4-4', title: 'Your Future Self', type: 'reflection' },
       { id: '4-5', title: 'Final Reflection', type: 'reflection' }

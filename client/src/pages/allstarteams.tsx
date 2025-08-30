@@ -600,9 +600,8 @@ export default function AllStarTeams() {
     '3-3': { prev: '3-2', next: '4-1', contentKey: 'flow-star-card' },
 
     // Section 4
-    '4-1': { prev: '3-3', next: '4-2', contentKey: 'wellbeing' },
-    '4-2': { prev: '4-1', next: '4-3', contentKey: 'cantril-ladder' },
-    '4-3': { prev: '4-2', next: '4-4', contentKey: 'visualizing-you' },
+    '4-1': { prev: '3-3', next: '4-3', contentKey: 'wellbeing' },
+    '4-3': { prev: '4-1', next: '4-4', contentKey: 'visualizing-you' },
     '4-4': { prev: '4-3', next: '4-5', contentKey: 'future-self' },
     '4-5': { prev: '4-4', next: '5-1', contentKey: 'final-reflection' },
 
