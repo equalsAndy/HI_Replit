@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSessionManager } from '@/hooks/use-session-manager';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useAuth0 } from '@auth0/auth0-react';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {

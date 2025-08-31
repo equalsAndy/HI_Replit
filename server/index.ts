@@ -56,7 +56,7 @@ import multer from 'multer';
 import { fileURLToPath } from 'url';
 // Vite import removed for production builds
 import { createServer } from 'http';
-import jwt from 'express-jwt';
+import { expressjwt as jwt } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 
 const __filename = fileURLToPath(import.meta.url);
