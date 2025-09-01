@@ -392,15 +392,32 @@ async function initializeApp() {
         console.error('❌ Session store error:', error);
       });
 
-      // Middleware setup - CRITICAL ORDER: Body parsing before session
+      // Middleware setup - CRITICAL ORDER: Body parsing, cookies, session, then tRPC
       app.use(express.json({ limit: '50mb' }));
       app.use(express.urlencoded({ extended: true }));
-      // tRPC endpoint for AST pilot content
+      app.use(cookieParser());
+      app.use(session({
+        store: sessionStore,
+        secret: process.env.SESSION_SECRET || 'aws-production-secret-2025',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          secure: false,
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000,
+          sameSite: 'lax'
+        },
+        name: 'sessionId'
+      }));
+
+      // tRPC endpoint (requires session middleware above)
       app.use(
         '/trpc',
-        trpcExpress.createExpressMiddleware({ router: appRouter, createContext: () => ({}) })
+        trpcExpress.createExpressMiddleware({
+          router: appRouter,
+          createContext: ({ req }) => ({ db, userId: req.session?.userId }),
+        })
       );
-      app.use(cookieParser());
 
       // Add version headers middleware for curl -I and all responses
       app.use((req, res, next) => {
@@ -436,20 +453,6 @@ async function initializeApp() {
       //   next();
       // });
 
-      // Session middleware MUST come after body parsing but before routes
-      app.use(session({
-        store: sessionStore,
-        secret: process.env.SESSION_SECRET || 'aws-production-secret-2025',
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-          secure: process.env.NODE_ENV === 'production' ? false : false, // HTTP for now
-          httpOnly: true,
-          maxAge: 24 * 60 * 60 * 1000, // 24 hours
-          sameSite: 'lax'
-        },
-        name: 'sessionId' // Custom session name
-      }));
 
       // Configure multer for file uploads
       const upload = multer({

@@ -250,16 +250,16 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   // }
 ];
 
-// All Star Teams navigation sections - 5 Module Structure
+// All Star Teams navigation sections - 5 Module Structure (RENUMBERED)
 export const allStarTeamsNavigationSections = [
   {
     id: '1',
     title: 'MODULE 1: GETTING STARTED',
     moduleNumber: 1,
     steps: [
-      { id: '1-1', title: 'On Self-Awareness', type: 'video' },
-      { id: '1-2', title: 'Positive Psychology', type: 'video' },
-      { id: '1-3', title: 'About this Course', type: 'video' }
+      { id: '1-1', title: 'On Self-Awareness', type: 'video' }, // Content unchanged
+      { id: '1-2', title: 'Positive Psychology', type: 'video' }, // Content unchanged
+      { id: '1-3', title: 'About this Course', type: 'video' } // Content unchanged
     ]
   },
   {
@@ -267,10 +267,10 @@ export const allStarTeamsNavigationSections = [
     title: 'MODULE 2: STRENGTH AND FLOW',
     moduleNumber: 2,
     steps: [
-      { id: '2-1', title: 'Star Strengths Assessment', type: 'video' },
-      { id: '2-2', title: 'Flow Patterns', type: 'video' },
-      { id: '2-3', title: 'Rounding Out', type: 'reflection' },
-      { id: '2-4', title: 'Module 2 Recap', type: 'recap' }
+      { id: '2-1', title: 'Star Strengths Assessment', type: 'video' }, // Content unchanged
+      { id: '2-2', title: 'Flow Patterns', type: 'video' }, // Content: OLD 3-1 "Flow Patterns"
+      { id: '2-3', title: 'Your Future Self', type: 'reflection' }, // Content: OLD 4-4 "Your Future Self"
+      { id: '2-4', title: 'Module 2 Recap', type: 'recap' } // Content: PLACEHOLDER
     ]
   },
   {
@@ -278,10 +278,10 @@ export const allStarTeamsNavigationSections = [
     title: 'MODULE 3: VISUALIZE YOUR POTENTIAL',
     moduleNumber: 3,
     steps: [
-      { id: '3-1', title: 'Well-Being Ladder', type: 'interactive' },
-      { id: '3-2', title: 'Your Future Self', type: 'reflection' },
-      { id: '3-3', title: 'Final Reflections', type: 'reflection' },
-      { id: '3-4', title: 'Finish Workshop', type: 'completion' }
+      { id: '3-1', title: 'Well-Being Ladder', type: 'interactive' }, // Content: OLD 4-1 "Well-Being Ladder"
+      { id: '3-2', title: 'Rounding Out', type: 'reflection' }, // Content: OLD 3-2 "Rounding Out"
+      { id: '3-3', title: 'Final Reflections', type: 'reflection' }, // Content: OLD 4-5 "Final Reflections"
+      { id: '3-4', title: 'Finish Workshop', type: 'completion' } // Content: NEW completion component
     ]
   },
   {
@@ -290,10 +290,10 @@ export const allStarTeamsNavigationSections = [
     moduleNumber: 4,
     expanded: false, // Unlocked after Module 3 completion
     steps: [
-      { id: '4-1', title: 'Download your Star Card', type: 'download' },
-      { id: '4-2', title: 'Your Holistic Report', type: 'download' },
-      { id: '4-3', title: 'Growth Plan', type: 'planning' },
-      { id: '4-4', title: 'Team Workshop Prep', type: 'collaboration' }
+      { id: '4-1', title: 'Download your Star Card', type: 'download' }, // Content: OLD 5-1
+      { id: '4-2', title: 'Your Holistic Report', type: 'download' }, // Content: OLD 5-2
+      { id: '4-3', title: 'Growth Plan', type: 'planning' }, // Content: OLD 5-3
+      { id: '4-4', title: 'Team Workshop Prep', type: 'collaboration' } // Content: OLD 5-4
     ]
   },
   {
@@ -302,9 +302,9 @@ export const allStarTeamsNavigationSections = [
     moduleNumber: 5,
     expanded: false, // Unlocked after Module 3 completion
     steps: [
-      { id: '5-1', title: 'More about AllStarTeams', type: 'resources' },
-      { id: '5-2', title: 'Interesting Extra Stuff', type: 'resources' },
-      { id: '5-3', title: 'Introducing Imaginal Agility', type: 'resources' }
+      { id: '5-1', title: 'More about AllStarTeams', type: 'resources' }, // Content: OLD 6-1
+      { id: '5-2', title: 'Interesting Extra Stuff', type: 'resources' }, // Content: PLACEHOLDER
+      { id: '5-3', title: 'Introducing Imaginal Agility', type: 'resources' } // Content: PLACEHOLDER
     ]
   }
 ];

@@ -30,6 +30,7 @@ import NeuroscienceView from './NeuroscienceView';
 import CompendiumView from './CompendiumView';
 import BackgroundView from './BackgroundView';
 import WorkshopResourcesView from './WorkshopResourcesView';
+import FinishWorkshopStep from './FinishWorkshopStep';
 import AstLessonContent from '@/components/ast/AstLessonContentPilot';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
@@ -72,6 +73,84 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
           setCurrentContent={setCurrentContent}
           starCard={starCard}
           isImaginalAgility={false}
+        />
+      );  
+
+    case 'positive-psychology':
+      return (
+        <PlaceholderView 
+          title="Positive Psychology"
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'star-strengths-assessment':
+      return (
+        <IntroStrengthsView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+        />
+      );
+
+    case 'flow-patterns':
+      return (
+        <IntroToFlowView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+
+    case 'wellbeing-ladder':
+      return (
+        <WellBeingView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+
+    case 'rounding-out':
+      return (
+        <FlowRoundingOutView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+
+    case 'about-course':
+      return (
+        <PlaceholderView 
+          title="About this Course"
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'module-2-recap':
+      return (
+        <PlaceholderView 
+          title="Module 2 Recap"
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'finish-workshop':
+      return (
+        <FinishWorkshopStep 
+          stepId="3-4"
         />
       );
 

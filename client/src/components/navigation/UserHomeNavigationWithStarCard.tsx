@@ -258,41 +258,36 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
   // Helper function to convert step IDs to content keys used in the app
   const getContentKeyFromStepId = (sectionId: string, stepId: string) => {
-    // Map section-step to content keys
+    // Updated content key mapping for 5-Module Structure (RENUMBERED)
     const contentKeyMap: Record<string, string> = {
-      // Section 1: AllStarTeams Introduction
+      // MODULE 1: GETTING STARTED
       '1-1': 'welcome',
+      '1-2': 'positive-psychology',
+      '1-3': 'about-course',
 
-      // Section 2: Discover your Strengths
-      '2-1': 'intro-strengths',
-      '2-2': 'strengths-assessment',
-      '2-3': 'star-card-preview',
-      '2-4': 'reflection',
+      // MODULE 2: STRENGTH AND FLOW  
+      '2-1': 'star-strengths-assessment',
+      '2-2': 'flow-patterns',
+      '2-3': 'future-self',
+      '2-4': 'module-2-recap',
 
-      // Section 3: Find your Flow
-      '3-1': 'intro-to-flow',
-      '3-2': 'flow-rounding-out',
-      '3-3': 'flow-star-card',
+      // MODULE 3: VISUALIZE YOUR POTENTIAL
+      '3-1': 'wellbeing-ladder',
+      '3-2': 'rounding-out', 
+      '3-3': 'final-reflection',
+      '3-4': 'finish-workshop',
 
-      // Section 4: Visualize your Potential
-      '4-1': 'wellbeing',
-      '4-2': 'cantril-ladder',
-      '4-3': 'visualizing-you',
-      '4-4': 'future-self',
-      '4-5': 'final-reflection',
+      // MODULE 4: TAKEAWAYS & NEXT STEPS
+      '4-1': 'download-star-card',
+      '4-2': 'holistic-report',
+      '4-3': 'growth-plan', 
+      '4-4': 'team-workshop-prep',
 
-      // Section 5: Resources
-      '5-1': 'your-star-card',
-      '5-2': 'holistic-report',
-
-      // Section 6: Workshop Resources
-      '6-1': 'workshop-resources',
+      // MODULE 5: MORE INFORMATION
+      '5-1': 'workshop-resources',
+      '5-2': 'more-fun-stuff',
+      '5-3': 'introducing-imaginal-agility',
     };
-
-    // Special case for intro-to-flow which has two possible content keys
-    if (currentContent === 'intro-to-flow' && stepId === '3-1') {
-      return 'intro-to-flow';
-    }
 
     return contentKeyMap[stepId] || `placeholder-${stepId}`;
   };
@@ -463,8 +458,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               <li 
                                 className={cn(
                                   "rounded-md p-2 flex items-center text-sm transition",
-                                  // Check if this item corresponds to current content - Purple for IA, Indigo for AST
-                                  (isImaginalAgility ? step.id === currentContent : getContentKeyFromStepId(section.id, step.id) === currentContent)
+                                  // Check if this item corresponds to current content OR current step - Purple for IA, Indigo for AST
+                                  ((isImaginalAgility ? step.id === currentContent : getContentKeyFromStepId(section.id, step.id) === currentContent) ||
+                                   (navigationProgress?.currentStepId === step.id))
                                     ? (isImaginalAgility 
                                         ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium" 
                                         : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium") 

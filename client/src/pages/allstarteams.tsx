@@ -582,45 +582,44 @@ export default function AllStarTeams() {
   };
 
   // Define a structure to map stepIds to navigation sequence for automatic progress
-  // Dynamic function to handle navigation based on user type
+  // Updated for 5-Module Structure (RENUMBERED)
   const getNavigationSequence = () => {
     const baseSequence: Record<string, { prev: string | null; next: string | null; contentKey: string }> = {
-    // Section 1
-    '1-1': { prev: null, next: '2-1', contentKey: 'welcome' },
+    // MODULE 1: GETTING STARTED
+    '1-1': { prev: null, next: '1-2', contentKey: 'welcome' }, // ✅ WelcomeView
+    '1-2': { prev: '1-1', next: '1-3', contentKey: 'positive-psychology' }, // NEW - needs content
+    '1-3': { prev: '1-2', next: '2-1', contentKey: 'about-course' }, // NEW - PlaceholderView
 
-    // Section 2
-    '2-1': { prev: '1-1', next: '2-2', contentKey: 'intro-strengths' },
-    '2-2': { prev: '2-1', next: '2-3', contentKey: 'strengths-assessment' }, // Assessment doesn't auto-complete
-    '2-3': { prev: '2-2', next: '2-4', contentKey: 'star-card-preview' },
-    '2-4': { prev: '2-3', next: '3-1', contentKey: 'reflection' },
+    // MODULE 2: STRENGTH AND FLOW
+    '2-1': { prev: '1-3', next: '2-2', contentKey: 'star-strengths-assessment' }, // ✅ IntroStrengthsView
+    '2-2': { prev: '2-1', next: '2-3', contentKey: 'flow-patterns' }, // ✅ IntroToFlowView (OLD 3-1)
+    '2-3': { prev: '2-2', next: '2-4', contentKey: 'future-self' }, // ✅ FutureSelfView (OLD 4-4)
+    '2-4': { prev: '2-3', next: '3-1', contentKey: 'module-2-recap' }, // NEW - PlaceholderView
 
-    // Section 3
-    '3-1': { prev: '2-4', next: '3-2', contentKey: 'intro-to-flow' },
-    '3-2': { prev: '3-1', next: '3-3', contentKey: 'flow-rounding-out' },
-    '3-3': { prev: '3-2', next: '4-1', contentKey: 'flow-star-card' },
+    // MODULE 3: VISUALIZE YOUR POTENTIAL
+    '3-1': { prev: '2-4', next: '3-2', contentKey: 'wellbeing-ladder' }, // ✅ WellBeingView (OLD 4-1)
+    '3-2': { prev: '3-1', next: '3-3', contentKey: 'rounding-out' }, // ✅ FlowRoundingOutView (OLD 3-2)
+    '3-3': { prev: '3-2', next: '3-4', contentKey: 'final-reflection' }, // ✅ FinalReflectionView (OLD 4-5)
+    '3-4': { prev: '3-3', next: '4-1', contentKey: 'finish-workshop' }, // ✅ FinishWorkshopStep
 
-    // Section 4
-    '4-1': { prev: '3-3', next: '4-4', contentKey: 'wellbeing' },
-    '4-4': { prev: '4-1', next: '4-5', contentKey: 'future-self' },
-    '4-5': { prev: '4-4', next: '4-6', contentKey: 'final-reflection' },
-    '4-6': { prev: '4-5', next: '5-1', contentKey: 'module-3-recap' },
+    // MODULE 4: TAKEAWAYS & NEXT STEPS (unlocked after 3-4)
+    '4-1': { prev: '3-4', next: '4-2', contentKey: 'download-star-card' }, // ✅ DownloadStarCardView (OLD 5-1)
+    '4-2': { prev: '4-1', next: '4-3', contentKey: 'holistic-report' }, // ✅ GeneralHolisticReportView (OLD 5-2)
+    '4-3': { prev: '4-2', next: '4-4', contentKey: 'growth-plan' }, // ✅ GrowthPlanView (OLD 5-3)
+    '4-4': { prev: '4-3', next: '5-1', contentKey: 'team-workshop-prep' }, // ✅ TeamWorkshopPrepView (OLD 5-4)
 
-    // Section 5
-    '5-1': { prev: '4-6', next: '5-2', contentKey: 'download-star-card' },
-    '5-2': { prev: '5-1', next: '5-3', contentKey: 'holistic-report' },
-    '5-3': { prev: '5-2', next: '5-4', contentKey: 'growth-plan' },
-    '5-4': { prev: '5-3', next: '6-1', contentKey: 'team-workshop-prep' },
-
-    // Section 6
-    '6-1': { prev: '5-4', next: '6-2', contentKey: 'workshop-resources' },
-    '6-2': { prev: '6-1', next: '6-3', contentKey: 'more-fun-stuff' },
-    '6-3': { prev: '6-2', next: null, contentKey: 'introducing-imaginal-agility' },
+    // MODULE 5: MORE INFORMATION (unlocked after 3-4)
+    '5-1': { prev: '4-4', next: '5-2', contentKey: 'workshop-resources' }, // ✅ WorkshopResourcesView (OLD 6-1)
+    '5-2': { prev: '5-1', next: '5-3', contentKey: 'more-fun-stuff' }, // ✅ PlaceholderView
+    '5-3': { prev: '5-2', next: null, contentKey: 'introducing-imaginal-agility' }, // ✅ PlaceholderView
     };
 
-    // For non-test users, modify navigation to skip 5-2 and 5-3
+    // For non-test users, modify navigation to skip 5-2 and 5-3 (they're placeholders anyway)
     if (!shouldShowDemoButtons) {
-      baseSequence['5-1'] = { prev: '4-6', next: '5-4', contentKey: 'download-star-card' };
-      baseSequence['5-4'] = { prev: '5-1', next: '6-1', contentKey: 'team-workshop-prep' };
+      baseSequence['5-1'] = { prev: '4-4', next: null, contentKey: 'workshop-resources' };
+      // Remove 5-2 and 5-3 from navigation for non-test users
+      delete baseSequence['5-2'];
+      delete baseSequence['5-3'];
     }
 
     return baseSequence;
@@ -636,10 +635,6 @@ export default function AllStarTeams() {
       }
     }
 
-    // Special case for intro-to-flow which might be referred to as intro-flow
-    if (contentKey === 'intro-to-flow') {
-      return '3-1';
-    }
 
     return null;
   };

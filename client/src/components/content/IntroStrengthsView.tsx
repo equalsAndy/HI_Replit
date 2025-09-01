@@ -8,7 +8,7 @@ import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CARD_WIDTH } from '@/components/starcard/starCardConstants';
 import { useStarCardData } from '@/hooks/useStarCardData';
-import ReflectionView from '@/components/content/ReflectionView';
+import StrengthReflections from './StrengthReflections';
 import { CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
 
 interface ContentViewProps {
@@ -262,12 +262,11 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
               </div>
             </div>
 
-            {/* Full reflection flow */}
-            <ReflectionView
-              navigate={navigate}
-              markStepCompleted={markStepCompleted}
-              setCurrentContent={setCurrentContent}
-              starCard={starCardData}
+            {/* Strength reflections */}
+            <StrengthReflections
+              strengths={strengthsOrdered.map((s, i) => ({ label: s.label, score: s.score, position: i + 1 }))}
+              onComplete={() => markStepCompleted(stepId)}
+              workshopLocked={false}
             />
           </div>
         )}

@@ -10,6 +10,22 @@ export interface QuadrantData {
   planning: number;
 }
 
+/**
+ * User reflection responses for various reflection sets (e.g., strength reflections)
+ */
+export const reflectionResponses = pgTable('reflection_responses', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  reflectionSetId: varchar('reflection_set_id', { length: 100 }).notNull(),
+  reflectionId: varchar('reflection_id', { length: 100 }).notNull(),
+  response: text('response'),
+  completed: boolean('completed').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  uniqueUserReflection: unique().on(table.userId, table.reflectionSetId, table.reflectionId),
+}));
+
 // Define valid user roles
 export const UserRoles = ['admin', 'facilitator', 'participant', 'student'] as const;
 export type UserRole = typeof UserRoles[number];

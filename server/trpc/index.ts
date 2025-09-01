@@ -1,14 +1,31 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "../db.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import * as schema from "../../shared/schema.js";
 
-const t = initTRPC.create();
+// Context carries DB handle and authenticated user
+export interface Context {
+  db: typeof db;
+  userId?: number;
+}
+
+// Initialize tRPC with context
+const t = initTRPC.context<Context>().create();
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-// Shared sub-router for lesson content
+// Protects routes that require authentication
+const authenticatedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.userId) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({ ctx });
+});
+
+export type AppRouter = typeof appRouter;
+
+// Existing lesson content router
 const lessonRouter = router({
   byStep: publicProcedure
     .input(z.object({ workshop: z.string(), stepId: z.string() }))
@@ -37,9 +54,64 @@ const lessonRouter = router({
     }),
 });
 
+// Reflection-specific routes
+const reflectionRouter = router({
+  getReflectionSet: authenticatedProcedure
+    .input(z.object({ reflectionSetId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db
+        .select()
+        .from(schema.reflectionResponses)
+        .where(
+          and(
+            eq(schema.reflectionResponses.userId, ctx.userId),
+            eq(schema.reflectionResponses.reflectionSetId, input.reflectionSetId),
+          ),
+        );
+    }),
+  saveReflection: authenticatedProcedure
+    .input(z.object({ reflectionSetId: z.string(), reflectionId: z.string(), response: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const now = new Date();
+      await ctx.db
+        .insert(schema.reflectionResponses)
+        .values({
+          userId: ctx.userId,
+          reflectionSetId: input.reflectionSetId,
+          reflectionId: input.reflectionId,
+          response: input.response,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: [
+            schema.reflectionResponses.userId,
+            schema.reflectionResponses.reflectionSetId,
+            schema.reflectionResponses.reflectionId,
+          ],
+          set: { response: input.response, updatedAt: now },
+        });
+      return { success: true };
+    }),
+  completeReflection: authenticatedProcedure
+    .input(z.object({ reflectionSetId: z.string(), reflectionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(schema.reflectionResponses)
+        .set({ completed: true, updatedAt: new Date() })
+        .where(
+          and(
+            eq(schema.reflectionResponses.userId, ctx.userId),
+            eq(schema.reflectionResponses.reflectionSetId, input.reflectionSetId),
+            eq(schema.reflectionResponses.reflectionId, input.reflectionId),
+          ),
+        );
+      return { success: true };
+    }),
+});
+
+// Main router combining lesson and reflection routes
 export const appRouter = router({
+  reflections: reflectionRouter,
   lesson: lessonRouter,
   ast: router({ lesson: lessonRouter }),
 });
-
-export type AppRouter = typeof appRouter;

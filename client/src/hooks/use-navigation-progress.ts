@@ -167,7 +167,7 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
     return unlocked;
   }
 
-  // AST progression sequence - 5 Module Structure
+  // AST progression sequence - 5 Module Structure (RENUMBERED)
   const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
   const unlocked = ['1-1']; // First step always unlocked
 
@@ -182,7 +182,7 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
     }
   }
 
-  // WORKSHOP COMPLETION: 3-4 completion unlocks ALL of Module 4 and 5
+  // WORKSHOP COMPLETION: 3-4 completion unlocks ALL of Module 4 and 5 (RENUMBERED)
   if (completedSteps.includes('3-4')) {
     const module4and5 = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
     console.log(`🏆 WORKSHOP COMPLETED: Step 3-4 finished, unlocking all Module 4 & 5 resources:`, module4and5);
@@ -369,7 +369,7 @@ const handleNetworkError = (error: Error, operation: string): boolean => {
   return false; // Indicate failure but don't break app
 };
 
-// Auto-mark steps as completed up to current position with validation
+// Auto-mark steps as completed up to current position with validation (RENUMBERED)
 const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): string[] => {
   const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
   const currentIndex = mainSequence.indexOf(currentStepId);
@@ -406,7 +406,7 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
   return completedSteps;
 };
 
-// Get next step prioritizing main sequence over resources
+// Get next step prioritizing main sequence over resources (RENUMBERED)
 // After completing the main sequence (through 3-4), advance into Module 4
 const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
