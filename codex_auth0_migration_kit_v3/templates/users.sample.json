@@ -1,0 +1,16 @@
+[
+  {
+    "email": "alice@example.com",
+    "email_verified": true,
+    "given_name": "Alice",
+    "family_name": "Ng",
+    "app_metadata": {
+      "interface": "student",
+      "flags": {
+        "beta": true,
+        "test": false
+      },
+      "legacy_role": "participant"
+    }
+  }
+]

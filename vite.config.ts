@@ -3,7 +3,9 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 export default defineConfig({
   plugins: [
     react(),
@@ -17,7 +19,16 @@ export default defineConfig({
         ]
       : []),
   ],
+  // HMR optimization from Auth0 setup pack
   server: {
+    host: "localhost",
+    port: 8080,
+    strictPort: true,
+    hmr: { 
+      host: "localhost", 
+      port: 24679, 
+      clientPort: 24679 
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

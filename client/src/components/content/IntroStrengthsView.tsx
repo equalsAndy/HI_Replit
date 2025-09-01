@@ -8,7 +8,7 @@ import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CARD_WIDTH } from '@/components/starcard/starCardConstants';
 import { useStarCardData } from '@/hooks/useStarCardData';
-import StepByStepReflection from '@/components/reflection/StepByStepReflection';
+import ReflectionView from '@/components/content/ReflectionView';
 import { CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
 
 interface ContentViewProps {
@@ -26,10 +26,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   setIsAssessmentModalOpen,
   starCard
 }) => {
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(true); // Simplified: always true
   const [showStarCardSection, setShowStarCardSection] = useState(false);
-  const [showReflectionSection, setShowReflectionSection] = useState(false);
-  const [currentReflectionIndex, setCurrentReflectionIndex] = useState(0);
   const stepId = "2-1";
   const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
   const { updateContext, setCurrentStep } = useFloatingAI();
@@ -72,12 +69,6 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   const isAssessmentComplete = hasValidAssessmentData;
 
 
-  // Simplified mode: Next button always active for video steps
-  useEffect(() => {
-    setHasReachedMinimum(true);
-    console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
-    console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
-  }, [stepId]);
 
   // Handle video progress - still track but don't use for validation
   const handleVideoProgress = (percentage: number) => {
@@ -271,54 +262,28 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
               </div>
             </div>
 
-            {/* Reflection steps for each strength */}
-            {showReflectionSection ? (
-              <div className="mt-8">
-                {strengthsOrdered.map((strength, idx) => (
-                  <div key={strength.key} hidden={currentReflectionIndex !== idx} className="mb-12">
-                    <div className="mx-auto mb-6" style={{ width: '144px', height: '144px', backgroundColor: strength.color }} />
-                    <StepByStepReflection strength={strength.label} />
-                    {idx < strengthsOrdered.length - 1 && (
-                      <div className="flex justify-center mt-6">
-                        <Button
-                          onClick={() => setCurrentReflectionIndex(idx + 1)}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
-                        >
-                          Let's talk about your {strength.label} strength
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex justify-center mb-8">
-                <Button
-                  onClick={() => setShowReflectionSection(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
-                >
-                  Let's talk about your strengths
-                </Button>
-              </div>
-            )}
+            {/* Full reflection flow */}
+            <ReflectionView
+              navigate={navigate}
+              markStepCompleted={markStepCompleted}
+              setCurrentContent={setCurrentContent}
+              starCard={starCardData}
+            />
           </div>
         )}
 
 
         <div className="flex justify-end mt-6">
-          <Button 
+          <Button
             onClick={handleNext}
-            disabled={!hasReachedMinimum}
+            disabled={!showStarCardSection}
             className={`${
-              hasReachedMinimum 
-                ? "bg-indigo-700 hover:bg-indigo-800 text-white" 
+              showStarCardSection
+                ? "bg-indigo-700 hover:bg-indigo-800 text-white"
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
           >
-            {hasReachedMinimum 
-              ? "Continue" 
-              : "Watch video to continue (5% minimum)"
-            }
+            Continue
           </Button>
         </div>
       </div>

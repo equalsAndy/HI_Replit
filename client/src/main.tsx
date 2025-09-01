@@ -7,6 +7,7 @@ import "./index.css";
 import { trpc } from "./utils/trpc";
 import { httpBatchLink } from "@trpc/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useAuth0 } from '@auth0/auth0-react';
 
 // Polyfill for Node.js process in the browser to fix "require is not defined" error
 window.process = window.process || { env: { NODE_ENV: "production" } };
@@ -35,6 +36,12 @@ try {
       authorizationParams={{
         redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI!,
         audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+      }}
+      onRedirectCallback={(appState) => {
+        // Handle redirect after Auth0 callback
+        const returnTo = appState?.returnTo || '/dashboard';
+        console.log('Auth0 redirect callback, going to:', returnTo);
+        window.location.replace(returnTo);
       }}
     >
       <trpc.Provider client={trpcClient} queryClient={queryClient}>

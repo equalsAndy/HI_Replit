@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, ArrowDown, ArrowUp } from 'lucide-react';
+import { ChevronRight, ArrowDown, ArrowUp, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import VideoPlayer from './VideoPlayer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { debounce } from 'lodash';
@@ -10,6 +11,10 @@ import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 import { useTestUser } from '@/hooks/useTestUser';
+import { searchUnsplash } from '@/services/api-services';
+import { useToast } from '@/hooks/use-toast';
+import { safeConsoleLog, filterPhotoDataFromObject } from '@shared/photo-data-filter';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 // Define ContentViewProps interface
 interface ContentViewProps {
@@ -27,6 +32,12 @@ interface FutureSelfData {
   fiveYearFoundation: string;
   flowOptimizedLife: string;
   completedAt?: Date;
+}
+
+// Define data structure for visualizing potential
+interface VisualizingData {
+  selectedImages: any[];
+  imageMeaning: string;
 }
 
 
@@ -84,38 +95,116 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     flowOptimizedLife: ''
   });
   
+  // Visualizing potential state
+  const [visualizingData, setVisualizingData] = useState<VisualizingData>({
+    selectedImages: [],
+    imageMeaning: ''
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSavingImages, setIsSavingImages] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [hasUnsavedImageChanges, setHasUnsavedImageChanges] = useState(false);
+  const [lastSavedImageState, setLastSavedImageState] = useState<{images: any[], meaning: string} | null>(null);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  
   // No save status tracking - user controls saving via Next button
   const [isLoading, setIsLoading] = useState(true);
   const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
   const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
   const { shouldShowDemoButtons } = useTestUser();
+  const { toast } = useToast();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
+
+  // Check if current state differs from last saved state
+  const checkForUnsavedImageChanges = () => {
+    if (!lastSavedImageState) {
+      // If we have any data but no saved state, we have unsaved changes
+      const hasData = visualizingData.selectedImages.length > 0 || visualizingData.imageMeaning.trim().length > 0;
+      setHasUnsavedImageChanges(hasData);
+      return;
+    }
+    
+    // Compare current state with last saved state
+    const imagesDiffer = JSON.stringify(visualizingData.selectedImages) !== JSON.stringify(lastSavedImageState.images);
+    const meaningDiffer = visualizingData.imageMeaning.trim() !== lastSavedImageState.meaning.trim();
+    
+    setHasUnsavedImageChanges(imagesDiffer || meaningDiffer);
+  };
+
+  // Track changes to visualizing data
+  useEffect(() => {
+    checkForUnsavedImageChanges();
+  }, [visualizingData.selectedImages, visualizingData.imageMeaning, lastSavedImageState]);
 
   // Load existing data when component mounts
   useEffect(() => {
     const loadExistingData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/workshop-data/future-self', {
+        
+        // Load future self data
+        const futureResponse = await fetch('/api/workshop-data/future-self', {
           credentials: 'include'
         });
-        const result = await response.json();
+        const futureResult = await futureResponse.json();
         
-        if (result.success && result.data) {
+        if (futureResult.success && futureResult.data) {
           // Map legacy data to new structure
           const loadedData: FutureSelfData = {
-            direction: result.data.direction || 'backward',
-            twentyYearVision: result.data.twentyYearVision || result.data.futureSelfDescription || '',
-            tenYearMilestone: result.data.tenYearMilestone || '',
-            fiveYearFoundation: result.data.fiveYearFoundation || '',
-            flowOptimizedLife: result.data.flowOptimizedLife || result.data.visualizationNotes || ''
+            direction: futureResult.data.direction || 'backward',
+            twentyYearVision: futureResult.data.twentyYearVision || futureResult.data.futureSelfDescription || '',
+            tenYearMilestone: futureResult.data.tenYearMilestone || '',
+            fiveYearFoundation: futureResult.data.fiveYearFoundation || '',
+            flowOptimizedLife: futureResult.data.flowOptimizedLife || futureResult.data.visualizationNotes || ''
           };
           setFormData(loadedData);
         }
+        
+        // Load visualizing potential data
+        const visualizingResponse = await fetch('/api/workshop-data/visualizing-potential', {
+          credentials: 'include'
+        });
+        const visualizingResult = await visualizingResponse.json();
+        
+        if (visualizingResult.success && visualizingResult.data) {
+          safeConsoleLog('FutureSelfView: Loading visualizing data:', filterPhotoDataFromObject(visualizingResult.data));
+          
+          if (visualizingResult.data.selectedImages) {
+            // Process images to ensure database-stored images have proper URLs
+            const processedImages = visualizingResult.data.selectedImages.map((image: any) => {
+              if (image.source === 'upload' && image.photoId && !image.url.startsWith('http')) {
+                return {
+                  ...image,
+                  url: `/api/photos/${image.photoId}`
+                };
+              }
+              return image;
+            });
+            
+            setVisualizingData({
+              selectedImages: processedImages,
+              imageMeaning: visualizingResult.data.imageMeaning || ''
+            });
+            
+            // Set last saved state
+            setLastSavedImageState({
+              images: processedImages,
+              meaning: visualizingResult.data.imageMeaning || ''
+            });
+          } else {
+            setLastSavedImageState({ images: [], meaning: '' });
+          }
+        } else {
+          setLastSavedImageState({ images: [], meaning: '' });
+        }
       } catch (error) {
         console.log('No existing data found:', error);
+        setLastSavedImageState({ images: [], meaning: '' });
       } finally {
         setIsLoading(false);
       }
@@ -187,6 +276,216 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     }));
   };
 
+  // Image handling functions
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const results = await searchUnsplash(searchQuery, 20);
+      setSearchResults(results);
+      
+      if (results.length === 0) {
+        toast({
+          title: "No images found",
+          description: `No results found for "${searchQuery}". Try different search terms.`,
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Search failed",
+        description: error.message || "Unable to search for images. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const addImage = (image: any) => {
+    if (visualizingData.selectedImages.length >= 5) {
+      return;
+    }
+
+    const newImage = {
+      id: image.id,
+      url: image.urls.regular,
+      source: 'unsplash',
+      searchTerm: searchQuery,
+      credit: {
+        photographer: image.user.name,
+        photographerUrl: image.user.links.html,
+        sourceUrl: image.links.html
+      }
+    };
+
+    setVisualizingData(prev => ({
+      ...prev,
+      selectedImages: [...prev.selectedImages, newImage]
+    }));
+  };
+
+  const removeImage = (id: string) => {
+    setVisualizingData(prev => ({
+      ...prev,
+      selectedImages: prev.selectedImages.filter(img => img.id !== id)
+    }));
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select a file smaller than 10MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if we already have 5 images
+    if (visualizingData.selectedImages.length >= 5) {
+      toast({
+        title: "Maximum images reached",
+        description: "You can select up to 5 images maximum.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create a FileReader to read the image
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const imageUrl = e.target?.result as string;
+      
+      try {
+        // Store the image in the database via API
+        const uploadResponse = await fetch('/api/workshop-data/upload-visualization-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            imageData: imageUrl,
+            filename: file.name
+          })
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image to server');
+        }
+
+        const uploadResult = await uploadResponse.json();
+        
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || 'Upload failed');
+        }
+
+        const newImage = {
+          id: uploadResult.photoId.toString(),
+          url: uploadResult.imageUrl,
+          source: 'upload',
+          searchTerm: 'uploaded image',
+          photoId: uploadResult.photoId,
+          credit: null
+        };
+
+        setVisualizingData(prev => ({
+          ...prev,
+          selectedImages: [...prev.selectedImages, newImage]
+        }));
+        
+        toast({
+          title: "Image uploaded!",
+          description: "Your image has been added.",
+          duration: 3000
+        });
+      } catch (error) {
+        console.error('Image upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Failed to upload image to server.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: "Upload failed",
+        description: "There was an error reading your file. Please try again.",
+        variant: "destructive"
+      });
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveImages = async () => {
+    if (visualizingData.selectedImages.length === 0) {
+      toast({
+        title: "No images selected",
+        description: "Please select at least one image before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSavingImages(true);
+    try {
+      const response = await fetch('/api/workshop-data/visualizing-potential', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          selectedImages: visualizingData.selectedImages,
+          imageMeaning: visualizingData.imageMeaning
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update last saved state
+        setLastSavedImageState({
+          images: visualizingData.selectedImages,
+          meaning: visualizingData.imageMeaning
+        });
+        
+        toast({
+          title: "Images saved!",
+          description: "Your image selection and meaning have been saved successfully.",
+          duration: 3000
+        });
+      } else {
+        throw new Error(result.error || 'Save failed');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Save failed",
+        description: "There was an error saving your images. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingImages(false);
+    }
+  };
+
   // Demo data function
   const fillDemoData = () => {
     const demoData: FutureSelfData = {
@@ -204,6 +503,48 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     };
     
     setFormData(demoData);
+    
+    // Add demo visualizing data
+    const demoVisualizingData = {
+      selectedImages: [
+        {
+          id: 'demo-leadership',
+          url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&q=80',
+          source: 'unsplash',
+          searchTerm: 'leadership team',
+          credit: {
+            photographer: 'Annie Spratt',
+            photographerUrl: 'https://unsplash.com/@anniespratt',
+            sourceUrl: 'https://unsplash.com/photos/QckxruozjRg'
+          }
+        },
+        {
+          id: 'demo-growth',
+          url: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=500&q=80',
+          source: 'unsplash',
+          searchTerm: 'professional growth',
+          credit: {
+            photographer: 'Markus Winkler',
+            photographerUrl: 'https://unsplash.com/@markuswinkler',
+            sourceUrl: 'https://unsplash.com/photos/f57lx37DCM4'
+          }
+        },
+        {
+          id: 'demo-success',
+          url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80',
+          source: 'unsplash',
+          searchTerm: 'business success',
+          credit: {
+            photographer: 'Ben White',
+            photographerUrl: 'https://unsplash.com/@benwhitephotography',
+            sourceUrl: 'https://unsplash.com/photos/4K2lIP0zc_k'
+          }
+        }
+      ],
+      imageMeaning: "These images represent my vision of becoming a confident leader who creates positive change in my organization. The collaboration image reflects my strength in bringing people together and fostering teamwork. The growth images symbolize my commitment to continuous learning and helping others develop their potential. The success images represent achieving meaningful goals while maintaining balance and well-being. Together, they show my future self as someone who uses their analytical and planning strengths to create structured approaches to complex challenges while staying connected to the human side of leadership."
+    };
+    
+    setVisualizingData(demoVisualizingData);
   };
 
   // Check if minimum requirements are met
@@ -332,6 +673,225 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         {/* Header */}
         <div className="max-w-4xl mx-auto mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Future Self Journey</h1>
+          
+          {/* Visualizing Your Potential Section */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h2>
+            
+            <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mb-4">
+              <div className="flex justify-between items-start">
+                {showInstructions && (
+                  <div className="prose max-w-none text-sm pr-4">
+                    <p className="mb-1">
+                      This exercise helps you turn your one-year vision into something visible. Select 1-5 images that represent your ideal future self.
+                    </p>
+                    <ul className="list-disc pl-5 mb-1 text-xs space-y-0">
+                      <li>Choose images that evoke positive emotions</li>
+                      <li>Look for images that align with your ladder reflection</li>
+                      <li>Select a variety of images that represent different aspects of your future vision</li>
+                      <li>You can upload your own images or search for images from Unsplash</li>
+                    </ul>
+                  </div>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-shrink-0"
+                  onClick={() => setShowInstructions(!showInstructions)}
+                >
+                  {showInstructions ? "Hide Instructions" : "Show Instructions"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Display selected images */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-medium">Your Selected Images ({visualizingData.selectedImages.length}/5)</h3>
+                <div className="flex items-center gap-3">
+                  {hasUnsavedImageChanges && !workshopCompleted && (
+                    <span className="text-sm text-amber-600 font-medium">Unsaved changes</span>
+                  )}
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={handleSaveImages}
+                    disabled={visualizingData.selectedImages.length === 0 || isSavingImages || workshopCompleted}
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" /> 
+                    {isSavingImages ? "Saving..." : "Save Images"}
+                  </Button>
+                </div>
+              </div>
+
+              {visualizingData.selectedImages.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {visualizingData.selectedImages.map(image => (
+                    <div key={image.id} className="relative group mb-2">
+                      {/* Show search term above the image */}
+                      {image.searchTerm && (
+                        <div className="bg-gray-100 border border-gray-200 text-gray-700 text-xs p-1 mb-1 rounded">
+                          <span className="font-semibold">Search:</span> <span title={image.searchTerm}>
+                            {image.searchTerm.length > 25 
+                              ? image.searchTerm.substring(0, 25) + '...' 
+                              : image.searchTerm}
+                          </span>
+                        </div>
+                      )}
+
+                      <img 
+                        src={image.url} 
+                        alt="Selected visualization" 
+                        className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                      />
+                      {!workshopCompleted && (
+                        <button
+                          onClick={() => removeImage(image.id)}
+                          className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-70 hover:opacity-100 transition"
+                          title="Remove image"
+                        >
+                          <X className="h-4 w-4 text-red-500" />
+                        </button>
+                      )}
+
+                      {image.credit && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
+                          Photo by{" "}
+                          <a 
+                            href={image.credit.photographerUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            {image.credit.photographer}
+                          </a>
+                          {" "}on{" "}
+                          <a 
+                            href={image.credit.sourceUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            Unsplash
+                          </a>
+                        </div>
+                      )}
+                      {image.source === 'upload' && !image.credit && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
+                          Your uploaded image
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                  <Image className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-500">No images selected yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Upload your own images or search for images below</p>
+                </div>
+              )}
+            </div>
+
+            {/* Search interface */}
+            {!workshopCompleted && (
+              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-6">
+                <h3 className="text-lg font-medium mb-4">Find Images</h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Search for images:</h4>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="e.g. achievement, success, growth"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !isSearching && searchQuery.trim()) {
+                            e.preventDefault();
+                            handleSearch();
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button 
+                        variant="default" 
+                        onClick={handleSearch}
+                        disabled={isSearching || !searchQuery.trim()}
+                        className="flex items-center gap-2"
+                      >
+                        <Search className="h-4 w-4" /> 
+                        {isSearching ? "Searching..." : "Search"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* File upload option */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Upload your own image:</h4>
+                    <label className="flex items-center gap-2 px-4 py-2 rounded-md border bg-gray-50 text-gray-700 border-gray-300 cursor-pointer hover:bg-gray-100 transition">
+                      <Upload className="h-4 w-4" />
+                      <span>Choose file</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">Maximum file size: 10MB</p>
+                  </div>
+
+                  {/* Display search results */}
+                  {searchResults.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Search results for "{searchQuery}":</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                        {searchResults.map(image => (
+                          <div 
+                            key={image.id} 
+                            className="relative group rounded-md overflow-hidden border border-gray-200 cursor-pointer"
+                            onClick={() => addImage(image)}
+                          >
+                            <img 
+                              src={image.urls.regular} 
+                              alt={`Search result for ${searchQuery}`}
+                              className="w-full h-32 object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all">
+                              <div className="bg-white rounded-full p-1 transform scale-0 group-hover:scale-100 transition-transform">
+                                <Plus className="h-5 w-5 text-indigo-600" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Image meaning */}
+            <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
+              <h3 className="text-lg font-medium text-purple-800 mb-3">What Do These Images Mean to You?</h3>
+              <p className="text-sm text-purple-600 mb-4">
+                Explain what these images represent about your future vision. How do they connect to your strengths and flow state?
+              </p>
+              <Textarea
+                value={visualizingData.imageMeaning}
+                onChange={(e) => setVisualizingData(prev => ({ ...prev, imageMeaning: e.target.value }))}
+                placeholder={workshopCompleted ? "This workshop is completed and locked for editing" : "These images represent my vision because..."}
+                className={`w-full p-2 min-h-[120px] border border-gray-300 rounded-md ${
+                  workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+                }`}
+                disabled={workshopCompleted}
+                readOnly={workshopCompleted}
+              />
+            </div>
+          </div>
           <div className="bg-amber-50 p-6 rounded-lg border border-amber-200">
             <div className="flex flex-col md:flex-row items-start gap-6">
               <div className="flex-1">

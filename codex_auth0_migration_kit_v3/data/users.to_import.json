@@ -1,0 +1,222 @@
+[
+  {
+    "email": "student@test.com",
+    "email_verified": true,
+    "given_name": "Stu",
+    "family_name": "1000",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": true,
+        "test": true,
+        "migrated": true
+      },
+      "legacy_role": "participant",
+      "legacy_id": 2,
+      "legacy_username": "stu1000"
+    },
+    "user_metadata": {
+      "organization": "Skool",
+      "job_title": "Student",
+      "original_created_at": "2025-07-13T00:22:32.325Z"
+    }
+  },
+  {
+    "email": "student10@email.com",
+    "email_verified": true,
+    "given_name": "sdfd",
+    "family_name": "User",
+    "app_metadata": {
+      "interface": "student",
+      "flags": {
+        "beta": false,
+        "test": false,
+        "migrated": true
+      },
+      "legacy_role": "student",
+      "legacy_id": 3,
+      "legacy_username": "student_1"
+    },
+    "user_metadata": {
+      "organization": "",
+      "job_title": "",
+      "original_created_at": "2025-07-15T07:27:30.581Z"
+    }
+  },
+  {
+    "email": "esbin@test.com",
+    "email_verified": true,
+    "given_name": "HBEadmin",
+    "family_name": "User",
+    "app_metadata": {
+      "interface": "both",
+      "flags": {
+        "beta": true,
+        "test": true,
+        "migrated": true
+      },
+      "legacy_role": "admin",
+      "legacy_id": 4,
+      "legacy_username": "HBEadmin"
+    },
+    "user_metadata": {
+      "organization": "",
+      "job_title": "",
+      "original_created_at": "2025-07-18T11:49:39.156Z"
+    }
+  },
+  {
+    "email": "testy2@email.com",
+    "email_verified": true,
+    "given_name": "Test",
+    "family_name": "User 2",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": false,
+        "test": false,
+        "migrated": true
+      },
+      "legacy_role": "facilitator",
+      "legacy_id": 5,
+      "legacy_username": "testy2"
+    },
+    "user_metadata": {
+      "organization": "Facilitation Station",
+      "job_title": "Dude",
+      "original_created_at": "2025-07-19T05:15:21.207Z"
+    }
+  },
+  {
+    "email": "wilma@test.com",
+    "email_verified": true,
+    "given_name": "Richard",
+    "family_name": "Day",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": false,
+        "test": false,
+        "migrated": true
+      },
+      "legacy_role": "participant",
+      "legacy_id": 7,
+      "legacy_username": "wilma"
+    },
+    "user_metadata": {
+      "organization": "Life & Business Leadership Institute",
+      "job_title": "Director",
+      "original_created_at": "2025-07-27T11:31:52.867Z"
+    }
+  },
+  {
+    "email": "barney@sdafsad.com",
+    "email_verified": true,
+    "given_name": "Barney",
+    "family_name": "Rubble",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": true,
+        "test": true,
+        "migrated": true
+      },
+      "legacy_role": "participant",
+      "legacy_id": 8,
+      "legacy_username": "barney"
+    },
+    "user_metadata": {
+      "organization": "",
+      "job_title": "Facilities",
+      "original_created_at": "2025-07-27T11:33:28.727Z"
+    }
+  },
+  {
+    "email": "fred@yabba.com",
+    "email_verified": true,
+    "given_name": "Fred",
+    "family_name": "Flintstone",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": true,
+        "test": true,
+        "migrated": true
+      },
+      "legacy_role": "participant",
+      "legacy_id": 9,
+      "legacy_username": "fred"
+    },
+    "user_metadata": {
+      "organization": "Slate Construnction",
+      "job_title": "Foreman",
+      "original_created_at": "2025-07-27T18:32:48.849Z"
+    }
+  },
+  {
+    "email": "test@test.com",
+    "email_verified": true,
+    "given_name": "Billy",
+    "family_name": "Bob",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": true,
+        "test": true,
+        "migrated": true
+      },
+      "legacy_role": "participant",
+      "legacy_id": 10,
+      "legacy_username": "testtest"
+    },
+    "user_metadata": {
+      "organization": "Dole Pineapple",
+      "job_title": "Pineapple Picker",
+      "original_created_at": "2025-07-28T21:11:00.277Z"
+    }
+  },
+  {
+    "email": "beta4@test.com",
+    "email_verified": true,
+    "given_name": "Beta",
+    "family_name": "Fore",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": true,
+        "test": true,
+        "migrated": true
+      },
+      "legacy_role": "participant",
+      "legacy_id": 16,
+      "legacy_username": "beta4"
+    },
+    "user_metadata": {
+      "organization": "B4",
+      "job_title": "Beta Testester",
+      "original_created_at": "2025-07-31T23:05:03.486Z"
+    }
+  },
+  {
+    "email": "betatester1468@email.com",
+    "email_verified": true,
+    "given_name": "1468",
+    "family_name": "User",
+    "app_metadata": {
+      "interface": "professional",
+      "flags": {
+        "beta": true,
+        "test": true,
+        "migrated": true
+      },
+      "legacy_role": "participant",
+      "legacy_id": 23,
+      "legacy_username": "1468"
+    },
+    "user_metadata": {
+      "organization": "Testing Inc",
+      "job_title": "Tester persons",
+      "original_created_at": "2025-08-08T00:25:24.752Z"
+    }
+  }
+]

@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useAuth0 } from '@auth0/auth0-react';
 import { Play, CheckCircle2, Brain, Activity, HeartPulse, Rocket, Users2, Sparkles } from "lucide-react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
@@ -233,7 +234,14 @@ export default function Landing() {
   const [, navigate] = useLocation();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
-  // Check if user is already authenticated
+  // Enforce Auth0 login redirect for unauthenticated users
+  const { isAuthenticated: auth0IsAuthenticated, loginWithRedirect } = useAuth0();
+  useEffect(() => {
+    if (!auth0IsAuthenticated) loginWithRedirect();
+  }, [auth0IsAuthenticated, loginWithRedirect]);
+  if (!auth0IsAuthenticated) return null;
+
+  // Check if user is already authenticated via app session
   const { data: userData, isLoading } = useQuery({
     queryKey: ['/api/auth/me'],
     staleTime: Infinity,

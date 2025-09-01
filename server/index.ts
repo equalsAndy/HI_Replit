@@ -58,6 +58,8 @@ import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { expressjwt as jwt } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
+import './src/env';
+import { adminRouter } from './src/routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -494,6 +496,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
       app.use('/api/beta-tester', betaTesterNotesRoutes);
+      // Admin hard-delete endpoint
+      app.use('/admin', adminRouter);
       app.use('/api/metalia', metaliaRoutes);
   app.use('/api/growth-plan', growthPlanRoutes);
 

@@ -57,7 +57,8 @@ export function NavigationSidebar({ appType = 'ast', customSections }: Navigatio
     const progressData = getSectionProgressData(sectionStepIds);
 
     // Check if section is unlocked
-    const isUnlocked = progress.unlockedSections.includes(section.id);
+    const isUnlocked = true; // TEMPORARY: All sections unlocked for testing
+    // const isUnlocked = progress.unlockedSections.includes(section.id);
 
     return {
       ...section,

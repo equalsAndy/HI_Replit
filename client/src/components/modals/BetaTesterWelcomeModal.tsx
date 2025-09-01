@@ -176,7 +176,7 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
                     <h3 className="text-amber-800 font-semibold mb-2">Note:</h3>
                     <p className="text-amber-700 text-sm leading-relaxed">
-                      Some features are marked as <strong>samples</strong> (team features, growth plan) - these are features to come and you're welcome to share feedback.
+                      Some features are marked as <strong>samples</strong> (team features) - these are features to come and you're welcome to share feedback.
                     </p>
                   </div>
                 </>

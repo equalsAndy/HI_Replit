@@ -326,6 +326,36 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );
 
+    case 'module-3-recap':
+      return (
+        <PlaceholderView 
+          title="Module 3 Recap"
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'more-fun-stuff':
+      return (
+        <PlaceholderView 
+          title="Interesting Extra Stuff"
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'introducing-imaginal-agility':
+      return (
+        <PlaceholderView 
+          title="Introducing Imaginal Agility"
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
     // Handle placeholder content
     default:
       return (

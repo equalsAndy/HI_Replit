@@ -112,6 +112,17 @@ export default defineConfig({
     // KAN-147: Bundle size tracking and performance budgets
     bundleSizeTracker()
   ],
+  // HMR optimization from Auth0 setup pack
+  server: {
+    host: "localhost",
+    port: 8080,
+    strictPort: true,
+    hmr: { 
+      host: "localhost", 
+      port: 24679, 
+      clientPort: 24679 
+    }
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),  // Changed from "client/src" to "src"

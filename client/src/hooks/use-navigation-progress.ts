@@ -167,42 +167,33 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
     return unlocked;
   }
 
-  // AST progression sequence
-  const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  // AST progression sequence - 5 Module Structure
+  const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
   const unlocked = ['1-1']; // First step always unlocked
 
-  // Linear progression through main sequence
+  // Linear progression through Modules 1-3
   for (let i = 0; i < mainSequence.length - 1; i++) {
     const currentStep = mainSequence[i];
     const nextStep = mainSequence[i + 1];
 
     if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
       unlocked.push(nextStep);
-      console.log(`📝 SIMPLIFIED MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
+      console.log(`📝 5-MODULE MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
     }
   }
 
-  // BRANCH 1: 3-4 completion unlocks 5-1 (parallel branch, 4-1 remains next step)
-  if (completedSteps.includes('3-4') && !unlocked.includes('5-1')) {
-    unlocked.push('5-1');
-    console.log(`🌟 BRANCH: Step 3-4 completed → unlocked 5-1 (resource branch)`);
-  }
-
-  // BRANCH 2: 4-5 completion unlocks all remaining resources
-  if (completedSteps.includes('4-5')) {
-    const resources = ['5-2', '5-3', '5-4', '6-1'];
-    console.log(`🎯 HOLISTIC REPORT DEBUG: Step 4-5 is completed, unlocking resources:`, resources);
-    resources.forEach(stepId => {
+  // WORKSHOP COMPLETION: 3-4 completion unlocks ALL of Module 4 and 5
+  if (completedSteps.includes('3-4')) {
+    const module4and5 = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
+    console.log(`🏆 WORKSHOP COMPLETED: Step 3-4 finished, unlocking all Module 4 & 5 resources:`, module4and5);
+    module4and5.forEach(stepId => {
       if (!unlocked.includes(stepId)) {
         unlocked.push(stepId);
-        console.log(`🏆 COMPLETION: Step 4-5 completed → unlocked ${stepId} (final resource)`);
-        if (stepId === '5-2') {
-          console.log(`🎯 HOLISTIC REPORT DEBUG: Successfully unlocked holistic report (5-2)!`);
-        }
+        console.log(`🎯 WORKSHOP COMPLETION: Unlocked ${stepId}`);
       }
     });
   } else {
-    console.log(`🎯 HOLISTIC REPORT DEBUG: Step 4-5 NOT completed. Current completed steps:`, completedSteps);
+    console.log(`📝 Workshop in progress. Complete 3-4 to unlock Modules 4 & 5`);
   }
 
   // console.log('🔓 SIMPLIFIED MODE: Unlocked steps:', unlocked);
@@ -270,39 +261,39 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
     return expansion;
   }
   
-  // AST Section progression rules
+  // AST 5-Module progression rules
   const currentSection = getSectionFromStepId(currentStepId, 'ast');
   
-  // Default expansion state for AST
+  // Default expansion state for AST 5-Module structure
   const expansion = {
-    '1': true,  // Introduction
-    '2': true,  // Discover Strengths
-    '3': false, // Find Flow
-    '4': false, // Visualize Potential
-    '5': false, // Next Steps
-    '6': false  // More Information
+    '1': true,  // Module 1: Getting Started
+    '2': true,  // Module 2: Strength and Flow
+    '3': true,  // Module 3: Visualize Your Potential
+    '4': false, // Module 4: Takeaways & Next Steps (unlocked after 3-4)
+    '5': false  // Module 5: More Information (unlocked after 3-4)
   };
   
-  // Workshop completion: unlock sections 5, 6 permanently (no section 7 in AST)
+  // Workshop completion: unlock Modules 4, 5 permanently
   if (workshopCompleted) {
+    expansion['4'] = true;
     expansion['5'] = true;
-    expansion['6'] = true;
-    console.log(`🏆 AST Workshop completed - unlocked sections 5, 6`);
+    console.log(`🏆 AST Workshop completed - unlocked Modules 4, 5`);
     return expansion;
   }
   
   // Progressive expansion based on current section
   if (currentSection >= 4) {
-    // Section 4 entry: Expand Section 4, collapse Sections 1 & 2, keep Section 3
+    // Module 4+ entry: Expand Modules 4 & 5, collapse Module 1
     expansion['1'] = false;
-    expansion['2'] = false;
+    expansion['2'] = true;
     expansion['3'] = true;
     expansion['4'] = true;
-    console.log(`📖 AST Section 4+ entry: Collapsed 1&2, expanded 3&4`);
+    expansion['5'] = true;
+    console.log(`📖 AST Module 4+ entry: Collapsed Module 1, expanded Modules 2,3,4,5`);
   } else if (currentSection >= 3) {
-    // In section 3: keep 1, 2, 3 expanded
+    // In Module 3: keep Modules 1, 2, 3 expanded
     expansion['3'] = true;
-    console.log(`📖 AST Section 3: Sections 1,2,3 expanded`);
+    console.log(`📖 AST Module 3: Modules 1,2,3 expanded`);
   }
   
   return expansion;
@@ -321,14 +312,13 @@ const getSectionFromStepId = (stepId: string, appType: 'ast' | 'ia' = 'ast'): nu
     return 1; // Default to section 1
   }
   
-  // AST step parsing
-  if (stepId.startsWith('1-')) return 1;
-  if (stepId.startsWith('2-')) return 2;
-  if (stepId.startsWith('3-')) return 3;
-  if (stepId.startsWith('4-')) return 4;
-  if (stepId.startsWith('5-')) return 5;
-  if (stepId.startsWith('6-')) return 6;
-  return 1; // Default to section 1
+  // AST 5-Module step parsing
+  if (stepId.startsWith('1-')) return 1;  // Module 1
+  if (stepId.startsWith('2-')) return 2;  // Module 2
+  if (stepId.startsWith('3-')) return 3;  // Module 3
+  if (stepId.startsWith('4-')) return 4;  // Module 4
+  if (stepId.startsWith('5-')) return 5;  // Module 5
+  return 1; // Default to Module 1
 };
 
 // Check if workshop is completed
@@ -340,8 +330,8 @@ const isWorkshopCompleted = (completedSteps: string[], appType: 'ast' | 'ia' = '
     return workshopCompleted;
   }
   
-  // AST workshop completed when user finishes section 4 (4-5 is final reflection)
-  return completedSteps.includes('4-5');
+  // AST workshop completed when user finishes Module 3 (3-4 is workshop completion)
+  return completedSteps.includes('3-4');
 };
 const handleJSONParseError = (error: Error, rawData: string): NavigationProgress => {
   console.error('Failed to parse navigation progress:', error);
@@ -381,7 +371,7 @@ const handleNetworkError = (error: Error, operation: string): boolean => {
 
 // Auto-mark steps as completed up to current position with validation
 const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): string[] => {
-  const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
   const currentIndex = mainSequence.indexOf(currentStepId);
   const completedSteps: string[] = [];
 
@@ -396,7 +386,7 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
     const stepId = mainSequence[i];
 
     // Always mark regular steps as completed if user has progressed past them
-    if (!['2-2', '3-2', '4-1'].includes(stepId)) {
+    if (!['2-1', '2-2', '3-1'].includes(stepId)) {
       completedSteps.push(stepId);
       console.log(`  ✅ Auto-completed: ${stepId} (regular step)`);
     } else {
@@ -417,9 +407,9 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
 };
 
 // Get next step prioritizing main sequence over resources
-// After completing the main sequence (through 4-5), advance into section 5
+// After completing the main sequence (through 3-4), advance into Module 4
 const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
-  const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
 
   // Priority 1: Continue main sequence
   for (const step of mainSequence) {
@@ -428,9 +418,9 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
     }
   }
 
-  // If main sequence is complete (including 4-5), move to first resource section
-  // This prevents the app from restoring users back to Final Reflection on refresh
-  return '5-1';
+  // If main sequence is complete (including 3-4), move to Module 4
+  // This prevents the app from restoring users back to workshop completion on refresh
+  return '4-1';
 };
 
 interface NavigationStep {
@@ -466,7 +456,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     videoProgress: {},
     sectionExpansion: appType === 'ia' ? 
       { '1': true, '2': true, '3': true, '4': true, '5': false, '6': false, '7': false } :
-      { '1': true, '2': true, '3': false, '4': false, '5': false, '6': false },
+      { '1': true, '2': true, '3': true, '4': false, '5': false },
     workshopCompleted: false
   });
 
@@ -769,7 +759,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   // Simple next step navigation
   const getNextStepId = (currentStepId: string): string | null => {
-    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
+    const allSteps = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
     const currentIndex = allSteps.indexOf(currentStepId);
 
     return currentIndex === -1 || currentIndex === allSteps.length - 1 
@@ -783,12 +773,12 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
     let errorMessage = null;
     if (!canProceed) {
-      if (stepId === '2-2') {
-        errorMessage = 'Complete the Star Card assessment to continue';
-      } else if (stepId === '3-2') {
-        errorMessage = 'Complete the Flow assessment to continue';
-      } else if (stepId === '4-1') {
-        errorMessage = 'Complete the Cantril Ladder activity to continue';
+      if (stepId === '2-1') {
+      errorMessage = 'Complete the Star Card assessment to continue';
+      } else if (stepId === '2-2') {
+      errorMessage = 'Complete the Flow assessment to continue';
+      } else if (stepId === '3-1') {
+      errorMessage = 'Complete the Cantril Ladder activity to continue';
       } else {
         errorMessage = 'Complete this step to continue';
       }
@@ -903,14 +893,14 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   };
 
   const calculateOverallProgress = () => {
-    const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
     const completedMainSteps = progress.completedSteps.filter(step => mainSequence.includes(step));
     return Math.round((completedMainSteps.length / mainSequence.length) * 100);
   };
 
-  // Check if congratulations modal should be shown (4-5 just completed)
+  // Check if congratulations modal should be shown (3-4 just completed)
   const shouldShowCongratulationsModal = (): boolean => {
-    return progress.completedSteps.includes('4-5');
+    return progress.completedSteps.includes('3-4');
   };
 
   const currentStepId = progress.currentStepId;
@@ -927,12 +917,11 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   };
 
   const SECTION_STEPS = {
-    introduction: ['1-1'],
-    starStrengths: ['2-1', '2-2', '2-3', '2-4'],
-    flow: ['3-1', '3-2', '3-3', '3-4'],
-    wellbeing: ['4-1', '4-2', '4-3', '4-4', '4-5'],
-    resources: ['5-1', '5-2', '5-3', '5-4'],
-    workshop: ['6-1']
+    module1: ['1-1', '1-2', '1-3'],
+    module2: ['2-1', '2-2', '2-3', '2-4'],
+    module3: ['3-1', '3-2', '3-3', '3-4'],
+    module4: ['4-1', '4-2', '4-3', '4-4'],
+    module5: ['5-1', '5-2', '5-3']
   };
 
   const getLastPosition = () => {

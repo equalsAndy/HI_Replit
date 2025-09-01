@@ -546,16 +546,6 @@ export default function GrowthPlanView({
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      {/* Sample Content Notice */}
-      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div className="flex items-center gap-2 text-yellow-800">
-          <span className="text-sm font-medium">ℹ️ Sample Content Notice</span>
-        </div>
-        <p className="text-sm text-yellow-700 mt-1">
-          This is sample content for demonstration purposes. Responses entered here will not be saved to your profile.
-        </p>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

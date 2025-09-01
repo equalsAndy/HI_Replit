@@ -28,6 +28,70 @@ const QUADRANT_COLORS = {
   planning: 'rgb(255, 203, 47)'   // Yellow
 } as const;
 
+// Helper to get strength reflection prompt
+export function getStrengthPrompt(strengthLabel: string): { question: string; bullets: string[]; examples: string[] } {
+  switch (strengthLabel) {
+    case 'PLANNING':
+      return {
+        question: "How and when do you use your Planning strength?",
+        bullets: [
+          "Situations where your organizational skills created clarity",
+          "How you've implemented systems that improved efficiency",
+          "Times when your structured approach prevented problems",
+          "How your methodical nature helps maintain consistency"
+        ],
+        examples: [
+          "I use my planning strength when our team takes on complex projects. Recently, I created a project timeline with clear milestones that helped everyone understand deadlines and dependencies, resulting in an on-time delivery.",
+          "My methodical approach helps during busy periods. When our team faced multiple competing deadlines, I developed a prioritization framework that allowed us to focus on the most critical tasks first while keeping stakeholders informed."
+        ]
+      };
+    case 'ACTING':
+      return {
+        question: "How and when do you use your Acting strength?",
+        bullets: [
+          "Situations where you took initiative when others hesitated",
+          "How you've turned ideas into tangible results",
+          "Times when your decisiveness moved a project forward",
+          "How your pragmatic approach solved practical problems"
+        ],
+        examples: [
+          "I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks.",
+          "My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."
+        ]
+      };
+    case 'FEELING':
+      return {
+        question: "How and when do you use your Feeling strength?",
+        bullets: [
+          "Situations where you built trust or resolved conflicts",
+          "How you've created inclusive environments",
+          "Times when your empathy improved team dynamics",
+          "How your people-focused approach enhanced collaboration"
+        ],
+        examples: [
+          "I use my relationship-building strengths when integrating new team members. Recently, I noticed a new colleague struggling to find their place, so I organized informal coffee chats and made sure to highlight their unique skills in meetings.",
+          "My empathetic approach helps during difficult conversations. When we needed to deliver constructive feedback to a teammate, I focused on creating a safe space and framing the feedback as an opportunity for growth rather than criticism."
+        ]
+      };
+    case 'THINKING':
+      return {
+        question: "How and when do you use your Thinking strength?",
+        bullets: [
+          "Situations where your analytical skills uncovered insights",
+          "How you've developed innovative solutions",
+          "Times when your logical approach clarified complex issues",
+          "How your strategic thinking opened new possibilities"
+        ],
+        examples: [
+          "I use my analytical abilities when faced with ambiguous data. Recently, our team was trying to understand unusual customer behavior patterns, and I was able to identify the key variables and create a model that explained the trend.",
+          "My innovative thinking helps when conventional approaches fall short. During a product development challenge, I suggested an entirely different framework that allowed us to reimagine the solution from first principles."
+        ]
+      };
+    default:
+      return { question: "", bullets: [], examples: [] };
+  }
+}
+
 interface StarCardType {
   id?: number;
   userId: number;
@@ -327,7 +391,7 @@ export default function StepByStepReflection({
         aiEnabled: true
       });
     }
-  }, [currentStep, sortedQuadrants, updateContext, setFloatingAIStep]);
+  }, [currentStep, sortedQuadrants]); // Removed updateContext and setFloatingAIStep to prevent infinite loop
 
   // Get current top strength
   const topStrength = sortedQuadrants[0];
@@ -405,73 +469,6 @@ export default function StepByStepReflection({
     }
   };
 
-  // Helper to get strength reflection prompt
-  const getStrengthPrompt = (strengthLabel: string) => {
-    switch(strengthLabel) {
-      case 'PLANNING':
-        return {
-          question: "How and when do you use your Planning strength?",
-          bullets: [
-            "Situations where your organizational skills created clarity",
-            "How you've implemented systems that improved efficiency",
-            "Times when your structured approach prevented problems",
-            "How your methodical nature helps maintain consistency"
-          ],
-          examples: [
-            "I use my planning strength when our team takes on complex projects. Recently, I created a project timeline with clear milestones that helped everyone understand deadlines and dependencies, resulting in an on-time delivery.",
-            "My methodical approach helps during busy periods. When our team faced multiple competing deadlines, I developed a prioritization framework that allowed us to focus on the most critical tasks first while keeping stakeholders informed."
-          ]
-        };
-      case 'ACTING':
-        return {
-          question: "How and when do you use your Acting strength?",
-          bullets: [
-            "Situations where you took initiative when others hesitated",
-            "How you've turned ideas into tangible results",
-            "Times when your decisiveness moved a project forward",
-            "How your pragmatic approach solved practical problems"
-          ],
-          examples: [
-            "I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks.",
-            "My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."
-          ]
-        };
-      case 'FEELING':
-        return {
-          question: "How and when do you use your Feeling strength?",
-          bullets: [
-            "Situations where you built trust or resolved conflicts",
-            "How you've created inclusive environments",
-            "Times when your empathy improved team dynamics",
-            "How your people-focused approach enhanced collaboration"
-          ],
-          examples: [
-            "I use my relationship-building strengths when integrating new team members. Recently, I noticed a new colleague struggling to find their place, so I organized informal coffee chats and made sure to highlight their unique skills in meetings.",
-            "My empathetic approach helps during difficult conversations. When we needed to deliver constructive feedback to a teammate, I focused on creating a safe space and framing the feedback as an opportunity for growth rather than criticism."
-          ]
-        };
-      case 'THINKING':
-        return {
-          question: "How and when do you use your Thinking strength?",
-          bullets: [
-            "Situations where your analytical skills uncovered insights",
-            "How you've developed innovative solutions",
-            "Times when your logical approach clarified complex issues",
-            "How your strategic thinking opened new possibilities"
-          ],
-          examples: [
-            "I use my analytical abilities when faced with ambiguous data. Recently, our team was trying to understand unusual customer behavior patterns, and I was able to identify the key variables and create a model that explained the trend.",
-            "My innovative thinking helps when conventional approaches fall short. During a product development challenge, I suggested an entirely different framework that allowed us to reimagine the solution from first principles."
-          ]
-        };
-      default:
-        return {
-          question: "",
-          bullets: [],
-          examples: []
-        };
-    }
-  };
 
   // Get the current reflection question for the coaching modal
   const getCurrentReflectionQuestion = () => {

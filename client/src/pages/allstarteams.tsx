@@ -169,8 +169,8 @@ export default function AllStarTeams() {
           steps: [
             { id: '5-1', title: 'Download your Star Card', type: 'download' },
             { id: '5-2', title: 'Your Holistic Report', type: 'download' },
-            { id: '5-3', title: 'Growth Plan (Preview)', type: 'planning' },
-            { id: '5-4', title: 'Team Workshop Prep (Preview)', type: 'collaboration' }
+            { id: '5-3', title: 'Growth Plan', type: 'planning' },
+            { id: '5-4', title: 'Team Workshop Prep', type: 'collaboration' }
           ]
         }
       ];
@@ -600,24 +600,26 @@ export default function AllStarTeams() {
     '3-3': { prev: '3-2', next: '4-1', contentKey: 'flow-star-card' },
 
     // Section 4
-    '4-1': { prev: '3-3', next: '4-3', contentKey: 'wellbeing' },
-    '4-3': { prev: '4-1', next: '4-4', contentKey: 'visualizing-you' },
-    '4-4': { prev: '4-3', next: '4-5', contentKey: 'future-self' },
-    '4-5': { prev: '4-4', next: '5-1', contentKey: 'final-reflection' },
+    '4-1': { prev: '3-3', next: '4-4', contentKey: 'wellbeing' },
+    '4-4': { prev: '4-1', next: '4-5', contentKey: 'future-self' },
+    '4-5': { prev: '4-4', next: '4-6', contentKey: 'final-reflection' },
+    '4-6': { prev: '4-5', next: '5-1', contentKey: 'module-3-recap' },
 
     // Section 5
-    '5-1': { prev: '4-5', next: '5-2', contentKey: 'download-star-card' },
+    '5-1': { prev: '4-6', next: '5-2', contentKey: 'download-star-card' },
     '5-2': { prev: '5-1', next: '5-3', contentKey: 'holistic-report' },
     '5-3': { prev: '5-2', next: '5-4', contentKey: 'growth-plan' },
     '5-4': { prev: '5-3', next: '6-1', contentKey: 'team-workshop-prep' },
 
     // Section 6
-    '6-1': { prev: '5-4', next: null, contentKey: 'workshop-resources' },
+    '6-1': { prev: '5-4', next: '6-2', contentKey: 'workshop-resources' },
+    '6-2': { prev: '6-1', next: '6-3', contentKey: 'more-fun-stuff' },
+    '6-3': { prev: '6-2', next: null, contentKey: 'introducing-imaginal-agility' },
     };
 
     // For non-test users, modify navigation to skip 5-2 and 5-3
     if (!shouldShowDemoButtons) {
-      baseSequence['5-1'] = { prev: '4-5', next: '5-4', contentKey: 'download-star-card' };
+      baseSequence['5-1'] = { prev: '4-6', next: '5-4', contentKey: 'download-star-card' };
       baseSequence['5-4'] = { prev: '5-1', next: '6-1', contentKey: 'team-workshop-prep' };
     }
 
