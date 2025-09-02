@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 // Define user types in Express Request
 declare global {
@@ -116,4 +117,24 @@ export const attachUser = (req: Request, res: Response, next: NextFunction) => {
   }
 
   next();
+};
+
+const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+
+export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  jwt.verify(token, jwtSecret, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Failed to authenticate token' });
+    }
+
+    // If token is valid, save decoded info to request for use in other routes
+    req.user = decoded;
+    next();
+  });
 };

@@ -15,7 +15,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth0 } from '@auth0/auth0-react';
 import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import LogoutButton from "../auth/LogoutButton";
 import TestUserBanner from "../auth/TestUserBanner";
 import { FeedbackTrigger } from "../feedback/FeedbackTrigger";
 import { detectCurrentPage } from "../../utils/pageContext";
@@ -254,7 +253,7 @@ export function NavBar() {
 
   const { logout } = useAuth0();
   // Logout via Auth0
-  const handleLogout = () => logout({ returnTo: window.location.origin });
+  const handleLogout = () => logout({ logoutParams: { returnTo: window.location.origin } });
 
   // Function to toggle between applications
   const toggleApplication = () => {

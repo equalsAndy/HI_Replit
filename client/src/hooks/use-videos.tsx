@@ -38,11 +38,16 @@ export function useVideosByWorkshop(workshopType: string) {
 }
 
 export function useVideoBySection(workshopType: string, section: string) {
-  const { data: videos, ...query } = useVideosByWorkshop(workshopType);
+  const videosQuery = useVideosByWorkshop(workshopType);
   const userAccess = useCurrentUserAccess();
-  
+  // Include landing-page videos for AST if mis-tagged
+  const landingQuery = useVideosByWorkshop('landing-page');
+  const allVideos = workshopType === 'allstarteams'
+    ? [...(videosQuery.data || []), ...(landingQuery.data || [])]
+    : videosQuery.data;
+
   // Filter videos by section and user's content access mode
-  const applicableVideos = videos?.filter(v => 
+  const applicableVideos = allVideos?.filter(v => 
     v.section === section && 
     (v.contentMode === 'both' || v.contentMode === userAccess)
   );
@@ -52,13 +57,13 @@ export function useVideoBySection(workshopType: string, section: string) {
                || applicableVideos?.find(v => v.contentMode === 'both');
   
   return {
-    ...query,
+    ...videosQuery,
     data: video,
   };
 }
 
 export function useVideoByStepId(workshopType: string, stepId: string) {
-  const { data: videos, ...query } = useVideosByWorkshop(workshopType);
+  const videosQuery = useVideosByWorkshop(workshopType);
   const userAccess = useCurrentUserAccess();
   
   // Reduced debug logging - only in dev mode
@@ -68,7 +73,12 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
   }
   
   // Filter videos by stepId and user's content access mode
-  const applicableVideos = videos?.filter(v => 
+  // Include landing-page videos for AST if mis-tagged
+  const landingQuery = useVideosByWorkshop('landing-page');
+  const allVideos = workshopType === 'allstarteams'
+    ? [...(videosQuery.data || []), ...(landingQuery.data || [])]
+    : videosQuery.data;
+  const applicableVideos = allVideos?.filter(v => 
     v.stepId === stepId && 
     (v.contentMode === 'both' || v.contentMode === userAccess)
   );
@@ -82,7 +92,7 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
   }
   
   return {
-    ...query,
+    ...videosQuery,
     data: video,
   };
 }

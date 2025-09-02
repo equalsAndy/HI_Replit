@@ -182,18 +182,33 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
     }
   }
 
-  // WORKSHOP COMPLETION: 3-4 completion unlocks ALL of Module 4 and 5 (RENUMBERED)
+  // SPECIAL UNLOCK: 5-3 (Introducing Imaginal Agility) is available after completing Module 2 (step 2-4)
+  // TEMPORARY: Always unlock 5-3 for testing
+  if (!unlocked.includes('5-3')) {
+    unlocked.push('5-3');
+    if (completedSteps.includes('2-4')) {
+      console.log(`🎯 EARLY UNLOCK: Step 2-4 completed → unlocked 5-3 (Introducing Imaginal Agility)`);
+    } else {
+      console.log(`🎯 TEMP UNLOCK: 5-3 (Introducing Imaginal Agility) always unlocked for testing`);
+    }
+  }
+
+  // WORKSHOP COMPLETION: 3-4 completion unlocks ALL of Module 4 and rest of Module 5 (RENUMBERED)
   if (completedSteps.includes('3-4')) {
-    const module4and5 = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
-    console.log(`🏆 WORKSHOP COMPLETED: Step 3-4 finished, unlocking all Module 4 & 5 resources:`, module4and5);
+    const module4and5 = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2'];
+    console.log(`🏆 WORKSHOP COMPLETED: Step 3-4 finished, unlocking all Module 4 & remaining Module 5 resources:`, module4and5);
     module4and5.forEach(stepId => {
       if (!unlocked.includes(stepId)) {
         unlocked.push(stepId);
         console.log(`🎯 WORKSHOP COMPLETION: Unlocked ${stepId}`);
       }
     });
+    // 5-3 is already unlocked earlier, so ensure it's still there
+    if (!unlocked.includes('5-3')) {
+      unlocked.push('5-3');
+    }
   } else {
-    console.log(`📝 Workshop in progress. Complete 3-4 to unlock Modules 4 & 5`);
+    console.log(`📝 Workshop in progress. Complete 2-4 to unlock 5-3, or complete 3-4 to unlock Modules 4 & 5`);
   }
 
   // console.log('🔓 SIMPLIFIED MODE: Unlocked steps:', unlocked);
@@ -270,8 +285,17 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
     '2': true,  // Module 2: Strength and Flow
     '3': true,  // Module 3: Visualize Your Potential
     '4': false, // Module 4: Takeaways & Next Steps (unlocked after 3-4)
-    '5': false  // Module 5: More Information (unlocked after 3-4)
+    '5': false  // Module 5: More Information (5-3 unlocked after 2-4, full unlock after 3-4)
   };
+  
+  // EARLY EXPANSION: Module 5 expands when step 2-4 is completed (to show unlocked 5-3)
+  // TEMPORARY: Always expand Module 5 for testing
+  expansion['5'] = true;
+  if (completedSteps.includes('2-4')) {
+    console.log(`📖 AST Module 5 early expansion: Step 2-4 completed → Module 5 expanded for 5-3 access`);
+  } else {
+    console.log(`📖 AST Module 5 TEMP expansion: Always visible for testing`);
+  }
   
   // Workshop completion: unlock Modules 4, 5 permanently
   if (workshopCompleted) {

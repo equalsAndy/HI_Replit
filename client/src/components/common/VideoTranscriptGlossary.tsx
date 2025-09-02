@@ -51,11 +51,16 @@ export default function VideoTranscriptGlossary({
     );
   }, [title]);
 
+  useEffect(() => {
+    // Helps verify which routes use this component and confirm CSS is loaded
+    // eslint-disable-next-line no-console
+    console.debug("[VTG] mounted", { title: normTitle, youtubeId: youtubeId, tabInitial: tab });
+  }, []);
+
   const id = getYouTubeId(youtubeId || undefined);
   const base = id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
   const inlineSrc = base ? `${base}?enablejsapi=1&modestbranding=1&playsinline=1&rel=0` : null;
   const modalSrc  = base ? `${base}?enablejsapi=1&modestbranding=1&playsinline=1&rel=0&autoplay=1` : null;
-
 
   const handleLarger = () => {
     inlineRef.current?.contentWindow?.postMessage(
@@ -70,40 +75,70 @@ export default function VideoTranscriptGlossary({
     setModalOpen(false);
   };
 
+  const stripFor = (k: 'watch'|'read'|'glossary') => {
+    switch (k) {
+      case 'watch': return '#3b82f6';   // blue
+      case 'read': return '#22c55e';    // green
+      case 'glossary': return '#8b5cf6';// purple
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
-      <div className="vtg-tab-container">
-        {['watch', 'read', 'glossary'].map(k => {
+    <div className="vtg-root bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
+      {/* Tabs - 32px overlapping rounded boxes */}
+      <div className="vtg-tabs-32" role="tablist" aria-label="Lesson content">
+        {(['watch','read','glossary'] as const).map(k => {
           const label = k.charAt(0).toUpperCase() + k.slice(1);
           const isActive = tab === k;
+          const style = ({ ['--vtg-strip' as any]: stripFor(k) } as React.CSSProperties);
+          const muted = ({ ['--vtg-strip-muted' as any]: '#e5e7eb' } as React.CSSProperties);
           return (
-            <div key={k} className="vtg-tab-wrapper">
-              <div className="vtg-tab-bg" />
-              <button
-                onClick={() => setTab(k as any)}
-                className={`vtg-tab${isActive ? ' active' : ''}`}
-              >
-                {label}
-              </button>
-            </div>
+            <button
+              key={k}
+              role="tab"
+              id={`vtg-tab-${k}`}
+              aria-controls={`vtg-panel-${k}`}
+              aria-selected={isActive}
+              onClick={() => setTab(k)}
+              className={`vtg-pill-32 ${isActive ? 'is-active' : ''}`}
+              type="button"
+              style={{...style, ...muted}}
+            >
+              <span className="vtg-pill-32__text">{label}</span>
+              <span className="vtg-pill-32__strip" aria-hidden="true" />
+            </button>
           );
         })}
       </div>
 
-      {tab==='watch' && (
-        <>
-          {inlineSrc ? (
-            <>  
-            <div className="hi-video-shell w-full max-w-2xl mx-auto">
-              <iframe
-                ref={inlineRef}
-                src={inlineSrc}
-                title={normTitle}
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            </div>
+      {/* Panels */}
+      <div
+        id="vtg-panel-watch"
+        role="tabpanel"
+        aria-labelledby="vtg-tab-watch"
+        hidden={tab !== 'watch'}
+        className="vtg-tabpanel"
+      >
+        {(() => {
+          if (!inlineSrc) {
+            return (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                No video available. Please add a YouTube ID in the admin console.
+              </div>
+            );
+          }
+          return (
+            <>
+              <div className="hi-video-shell w-full max-w-2xl mx-auto">
+                <iframe
+                  ref={inlineRef}
+                  src={inlineSrc}
+                  title={normTitle}
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
               <p className="mt-2">
                 <button onClick={handleLarger} className="text-blue-600 underline">
                   Watch larger
@@ -111,7 +146,7 @@ export default function VideoTranscriptGlossary({
               </p>
               {modalOpen && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-                  <div className="hi-video-shell w-[90vw] max-w-4xl">
+                  <div className="hi-video-shell relative w-[90vw] max-w-4xl">
                     <iframe
                       ref={modalRef}
                       src={modalSrc!}
@@ -120,47 +155,55 @@ export default function VideoTranscriptGlossary({
                       allowFullScreen
                       className="w-full h-full"
                     />
-                    <button onClick={handleClose} className="absolute top-2 right-2 text-white">
+                    <button
+                      onClick={handleClose}
+                      className="absolute top-2 right-2 inline-flex items-center justify-center rounded-full bg-black/60 text-white w-8 h-8"
+                      aria-label="Close video"
+                    >
                       ✕
                     </button>
                   </div>
                 </div>
               )}
             </>
-          ) : (
-            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
-              No video available. Please add a YouTube ID in the admin console.
-            </div>
-          )}
-        </>
-      )}
+          );
+        })()}
+      </div>
 
-      {tab==='read' && (
-        <div>
-          {transcriptMd ? (
-            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: transcriptMd }} />
-          ) : (
-            <div>Transcript not available.</div>
-          )}
-        </div>
-      )}
+      <div
+        id="vtg-panel-read"
+        role="tabpanel"
+        aria-labelledby="vtg-tab-read"
+        hidden={tab !== 'read'}
+        className="vtg-tabpanel"
+      >
+        {transcriptMd ? (
+          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: transcriptMd }} />
+        ) : (
+          <div>Transcript not available.</div>
+        )}
+      </div>
 
-      {tab==='glossary' && (
-        <div>
-          {glossary && glossary.length > 0 ? (
-            <dl className="space-y-2">
-              {glossary.map(g => (
-                <div key={g.term}>
-                  <dt className="font-semibold">{g.term}</dt>
-                  <dd className="ml-4">{g.definition}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <div>Glossary not available.</div>
-          )}
-        </div>
-      )}
+      <div
+        id="vtg-panel-glossary"
+        role="tabpanel"
+        aria-labelledby="vtg-tab-glossary"
+        hidden={tab !== 'glossary'}
+        className="vtg-tabpanel"
+      >
+        {glossary && glossary.length > 0 ? (
+          <dl className="space-y-2">
+            {glossary.map(g => (
+              <div key={g.term}>
+                <dt className="font-semibold">{g.term}</dt>
+                <dd className="ml-4">{g.definition}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <div>Glossary not available.</div>
+        )}
+      </div>
     </div>
   );
 }

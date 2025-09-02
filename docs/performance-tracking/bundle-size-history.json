@@ -1,58 +1,16 @@
 [
   {
-    "timestamp": "2025-08-30T15:47:44.729Z",
-    "mainBundleSize": 651999,
-    "totalSize": 753223,
+    "timestamp": "2025-09-01T18:25:22.709Z",
     "bundles": [
       {
-        "name": "html2canvas-CYaDscTX.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-B5VTGfuw.js",
-        "type": "js",
-        "size": 2173330,
-        "estimatedGzipped": 651999,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 637KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-30T15:54:13.686Z",
-    "bundles": [
-      {
-        "name": "assets/index-B5VTGfuw.js",
-        "size": 2171721,
-        "estimatedGzipped": 651516,
+        "name": "assets/index-L9brGZ6X.js",
+        "size": 2189438,
+        "estimatedGzipped": 656831,
         "isEntry": true,
-        "modules": 1131
+        "modules": 1141
       },
       {
-        "name": "assets/html2canvas-CYaDscTX.js",
+        "name": "assets/html2canvas-YKlUacdq.js",
         "size": 879,
         "estimatedGzipped": 264,
         "isEntry": false,
@@ -66,19 +24,19 @@
         "modules": 1
       }
     ],
-    "totalSize": 2374007,
-    "gzippedSize": 712202,
+    "totalSize": 2391724,
+    "gzippedSize": 717517,
     "budgetViolations": [
-      "assets/index-B5VTGfuw.js: 636KB exceeds main bundle budget of 500KB"
+      "assets/index-L9brGZ6X.js: 641KB exceeds main bundle budget of 500KB"
     ]
   },
   {
-    "timestamp": "2025-08-30T15:54:13.941Z",
-    "mainBundleSize": 651999,
-    "totalSize": 753223,
+    "timestamp": "2025-09-01T18:25:22.901Z",
+    "mainBundleSize": 657319,
+    "totalSize": 757481,
     "bundles": [
       {
-        "name": "html2canvas-CYaDscTX.js",
+        "name": "html2canvas-YKlUacdq.js",
         "type": "js",
         "size": 879,
         "estimatedGzipped": 264,
@@ -92,17 +50,17 @@
         "isMain": false
       },
       {
-        "name": "index-B5VTGfuw.js",
+        "name": "index-L9brGZ6X.js",
         "type": "js",
-        "size": 2173330,
-        "estimatedGzipped": 651999,
+        "size": 2191063,
+        "estimatedGzipped": 657319,
         "isMain": true
       },
       {
-        "name": "index-DdM3B41y.css",
+        "name": "index-Ddnf3VNc.css",
         "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
+        "size": 156849,
+        "estimatedGzipped": 39212,
         "isMain": false
       }
     ],
@@ -110,22 +68,522 @@
       "mainBundleStatus": "FAIL",
       "totalSizeStatus": "PASS",
       "warnings": [
-        "Main bundle approaching size limit: 637KB / 500KB"
+        "Main bundle approaching size limit: 642KB / 500KB"
       ]
     }
   },
   {
-    "timestamp": "2025-08-30T16:35:55.263Z",
+    "timestamp": "2025-09-01T18:38:28.754Z",
     "bundles": [
       {
-        "name": "assets/index-FGDvgPGj.js",
-        "size": 3514327,
-        "estimatedGzipped": 1054298,
+        "name": "assets/index-L9brGZ6X.js",
+        "size": 2189438,
+        "estimatedGzipped": 656831,
+        "isEntry": true,
+        "modules": 1141
+      },
+      {
+        "name": "assets/html2canvas-YKlUacdq.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2391724,
+    "gzippedSize": 717517,
+    "budgetViolations": [
+      "assets/index-L9brGZ6X.js: 641KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T18:38:28.939Z",
+    "mainBundleSize": 657319,
+    "totalSize": 757481,
+    "bundles": [
+      {
+        "name": "html2canvas-YKlUacdq.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-L9brGZ6X.js",
+        "type": "js",
+        "size": 2191063,
+        "estimatedGzipped": 657319,
+        "isMain": true
+      },
+      {
+        "name": "index-Ddnf3VNc.css",
+        "type": "css",
+        "size": 156849,
+        "estimatedGzipped": 39212,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 642KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T19:55:07.671Z",
+    "bundles": [
+      {
+        "name": "assets/index-DpPoV0OQ.js",
+        "size": 2194094,
+        "estimatedGzipped": 658228,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-BGNAIDls.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2396380,
+    "gzippedSize": 718914,
+    "budgetViolations": [
+      "assets/index-DpPoV0OQ.js: 643KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T19:55:07.878Z",
+    "mainBundleSize": 658724,
+    "totalSize": 758886,
+    "bundles": [
+      {
+        "name": "html2canvas-BGNAIDls.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DpPoV0OQ.js",
+        "type": "js",
+        "size": 2195745,
+        "estimatedGzipped": 658724,
+        "isMain": true
+      },
+      {
+        "name": "index-Ddnf3VNc.css",
+        "type": "css",
+        "size": 156849,
+        "estimatedGzipped": 39212,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T19:57:48.570Z",
+    "bundles": [
+      {
+        "name": "assets/index-DpPoV0OQ.js",
+        "size": 2194094,
+        "estimatedGzipped": 658228,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-BGNAIDls.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2396380,
+    "gzippedSize": 718914,
+    "budgetViolations": [
+      "assets/index-DpPoV0OQ.js: 643KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T19:57:48.762Z",
+    "mainBundleSize": 658724,
+    "totalSize": 758886,
+    "bundles": [
+      {
+        "name": "html2canvas-BGNAIDls.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DpPoV0OQ.js",
+        "type": "js",
+        "size": 2195745,
+        "estimatedGzipped": 658724,
+        "isMain": true
+      },
+      {
+        "name": "index-Ddnf3VNc.css",
+        "type": "css",
+        "size": 156849,
+        "estimatedGzipped": 39212,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T20:04:23.122Z",
+    "bundles": [
+      {
+        "name": "assets/index-DNS-NUvX.js",
+        "size": 2194094,
+        "estimatedGzipped": 658228,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-C6tI6s6F.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2396380,
+    "gzippedSize": 718914,
+    "budgetViolations": [
+      "assets/index-DNS-NUvX.js: 643KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T20:04:23.304Z",
+    "mainBundleSize": 658724,
+    "totalSize": 758886,
+    "bundles": [
+      {
+        "name": "html2canvas-C6tI6s6F.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DNS-NUvX.js",
+        "type": "js",
+        "size": 2195745,
+        "estimatedGzipped": 658724,
+        "isMain": true
+      },
+      {
+        "name": "index-Ddnf3VNc.css",
+        "type": "css",
+        "size": 156849,
+        "estimatedGzipped": 39212,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T20:46:59.918Z",
+    "bundles": [
+      {
+        "name": "assets/index-WWZxKQ58.js",
+        "size": 2198544,
+        "estimatedGzipped": 659563,
+        "isEntry": true,
+        "modules": 1141
+      },
+      {
+        "name": "assets/html2canvas-V_nWxY0Y.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2400830,
+    "gzippedSize": 720249,
+    "budgetViolations": [
+      "assets/index-WWZxKQ58.js: 644KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T20:47:00.118Z",
+    "mainBundleSize": 660062,
+    "totalSize": 760224,
+    "bundles": [
+      {
+        "name": "html2canvas-V_nWxY0Y.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-WWZxKQ58.js",
+        "type": "js",
+        "size": 2200205,
+        "estimatedGzipped": 660062,
+        "isMain": true
+      },
+      {
+        "name": "index-Ddnf3VNc.css",
+        "type": "css",
+        "size": 156849,
+        "estimatedGzipped": 39212,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 645KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T21:47:53.353Z",
+    "bundles": [
+      {
+        "name": "assets/index-B02md7SD.js",
+        "size": 2201432,
+        "estimatedGzipped": 660430,
+        "isEntry": true,
+        "modules": 1143
+      },
+      {
+        "name": "assets/html2canvas-YZ28NphN.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2403718,
+    "gzippedSize": 721116,
+    "budgetViolations": [
+      "assets/index-B02md7SD.js: 645KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T22:35:35.560Z",
+    "bundles": [
+      {
+        "name": "assets/index-BSr3CuGS.js",
+        "size": 2201019,
+        "estimatedGzipped": 660306,
+        "isEntry": true,
+        "modules": 1143
+      },
+      {
+        "name": "assets/html2canvas-DIz_ituS.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2403305,
+    "gzippedSize": 720992,
+    "budgetViolations": [
+      "assets/index-BSr3CuGS.js: 645KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T22:38:54.091Z",
+    "bundles": [
+      {
+        "name": "assets/index-BSr3CuGS.js",
+        "size": 2201019,
+        "estimatedGzipped": 660306,
+        "isEntry": true,
+        "modules": 1143
+      },
+      {
+        "name": "assets/html2canvas-DIz_ituS.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2403305,
+    "gzippedSize": 720992,
+    "budgetViolations": [
+      "assets/index-BSr3CuGS.js: 645KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T22:38:54.283Z",
+    "mainBundleSize": 660802,
+    "totalSize": 760964,
+    "bundles": [
+      {
+        "name": "html2canvas-DIz_ituS.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-BSr3CuGS.js",
+        "type": "js",
+        "size": 2202672,
+        "estimatedGzipped": 660802,
+        "isMain": true
+      },
+      {
+        "name": "index-Ddnf3VNc.css",
+        "type": "css",
+        "size": 156849,
+        "estimatedGzipped": 39212,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 645KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T23:11:48.804Z",
+    "bundles": [
+      {
+        "name": "assets/index-i4apZlCF.js",
+        "size": 2200078,
+        "estimatedGzipped": 660023,
         "isEntry": true,
         "modules": 1144
       },
       {
-        "name": "assets/html2canvas-CQz6kmaI.js",
+        "name": "assets/html2canvas-Cn6kyCaS.js",
         "size": 879,
         "estimatedGzipped": 264,
         "isEntry": false,
@@ -139,50 +597,19 @@
         "modules": 1
       }
     ],
-    "totalSize": 3716613,
-    "gzippedSize": 1114984,
+    "totalSize": 2402364,
+    "gzippedSize": 720709,
     "budgetViolations": [
-      "assets/index-FGDvgPGj.js: 1030KB exceeds main bundle budget of 500KB"
+      "assets/index-i4apZlCF.js: 645KB exceeds main bundle budget of 500KB"
     ]
   },
   {
-    "timestamp": "2025-08-31T16:01:54.867Z",
+    "timestamp": "2025-09-01T23:11:49.010Z",
+    "mainBundleSize": 660519,
+    "totalSize": 760675,
     "bundles": [
       {
-        "name": "assets/index-DZDrkMhO.js",
-        "size": 2185053,
-        "estimatedGzipped": 655516,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-BGcscfCB.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2387339,
-    "gzippedSize": 716202,
-    "budgetViolations": [
-      "assets/index-DZDrkMhO.js: 640KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T16:01:55.139Z",
-    "mainBundleSize": 655999,
-    "totalSize": 757223,
-    "bundles": [
-      {
-        "name": "html2canvas-BGcscfCB.js",
+        "name": "html2canvas-Cn6kyCaS.js",
         "type": "js",
         "size": 879,
         "estimatedGzipped": 264,
@@ -196,1247 +623,17 @@
         "isMain": false
       },
       {
-        "name": "index-DZDrkMhO.js",
+        "name": "index-i4apZlCF.js",
         "type": "js",
-        "size": 2186664,
-        "estimatedGzipped": 655999,
+        "size": 2201731,
+        "estimatedGzipped": 660519,
         "isMain": true
       },
       {
-        "name": "index-DdM3B41y.css",
+        "name": "index-Dm_RKoAC.css",
         "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 641KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T16:23:29.208Z",
-    "bundles": [
-      {
-        "name": "assets/index-CYQrHaMb.js",
-        "size": 2185188,
-        "estimatedGzipped": 655556,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-CfLNrBs9.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2387474,
-    "gzippedSize": 716242,
-    "budgetViolations": [
-      "assets/index-CYQrHaMb.js: 640KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T16:23:29.502Z",
-    "mainBundleSize": 656040,
-    "totalSize": 757264,
-    "bundles": [
-      {
-        "name": "html2canvas-CfLNrBs9.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-CYQrHaMb.js",
-        "type": "js",
-        "size": 2186799,
-        "estimatedGzipped": 656040,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 641KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T20:14:53.575Z",
-    "bundles": [
-      {
-        "name": "assets/index-2vhuin1p.js",
-        "size": 2197825,
-        "estimatedGzipped": 659348,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-DHGyO7R2.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2400111,
-    "gzippedSize": 720034,
-    "budgetViolations": [
-      "assets/index-2vhuin1p.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T20:14:53.929Z",
-    "mainBundleSize": 659830,
-    "totalSize": 761054,
-    "bundles": [
-      {
-        "name": "html2canvas-DHGyO7R2.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-2vhuin1p.js",
-        "type": "js",
-        "size": 2199432,
-        "estimatedGzipped": 659830,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T20:48:25.411Z",
-    "bundles": [
-      {
-        "name": "assets/index-D8Jihwie.js",
-        "size": 3550570,
-        "estimatedGzipped": 1065171,
-        "isEntry": true,
-        "modules": 1151
-      },
-      {
-        "name": "assets/html2canvas-DlFPN49K.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 3752856,
-    "gzippedSize": 1125857,
-    "budgetViolations": [
-      "assets/index-D8Jihwie.js: 1040KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T21:20:52.686Z",
-    "bundles": [
-      {
-        "name": "assets/index-SghomMK3.js",
-        "size": 2197900,
-        "estimatedGzipped": 659370,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-BsLZTkMb.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2400186,
-    "gzippedSize": 720056,
-    "budgetViolations": [
-      "assets/index-SghomMK3.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T21:20:53.203Z",
-    "mainBundleSize": 659852,
-    "totalSize": 761076,
-    "bundles": [
-      {
-        "name": "html2canvas-BsLZTkMb.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-SghomMK3.js",
-        "type": "js",
-        "size": 2199507,
-        "estimatedGzipped": 659852,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T22:02:48.625Z",
-    "bundles": [
-      {
-        "name": "assets/index-BEP2jato.js",
-        "size": 2197896,
-        "estimatedGzipped": 659369,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-CkqSF32u.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2400182,
-    "gzippedSize": 720055,
-    "budgetViolations": [
-      "assets/index-BEP2jato.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T22:02:48.980Z",
-    "mainBundleSize": 659851,
-    "totalSize": 761075,
-    "bundles": [
-      {
-        "name": "html2canvas-CkqSF32u.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-BEP2jato.js",
-        "type": "js",
-        "size": 2199503,
-        "estimatedGzipped": 659851,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T22:42:24.665Z",
-    "bundles": [
-      {
-        "name": "assets/index-DapnbOz1.js",
-        "size": 2197610,
-        "estimatedGzipped": 659283,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-BpiOdLTG.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399896,
-    "gzippedSize": 719969,
-    "budgetViolations": [
-      "assets/index-DapnbOz1.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T22:42:25.079Z",
-    "mainBundleSize": 659763,
-    "totalSize": 760987,
-    "bundles": [
-      {
-        "name": "html2canvas-BpiOdLTG.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-DapnbOz1.js",
-        "type": "js",
-        "size": 2199209,
-        "estimatedGzipped": 659763,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T23:01:13.240Z",
-    "bundles": [
-      {
-        "name": "assets/index-CECX9WfY.js",
-        "size": 2197806,
-        "estimatedGzipped": 659342,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-B9WIgB5j.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2400092,
-    "gzippedSize": 720028,
-    "budgetViolations": [
-      "assets/index-CECX9WfY.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T23:01:13.604Z",
-    "mainBundleSize": 659822,
-    "totalSize": 761046,
-    "bundles": [
-      {
-        "name": "html2canvas-B9WIgB5j.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-CECX9WfY.js",
-        "type": "js",
-        "size": 2199405,
-        "estimatedGzipped": 659822,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T23:05:25.424Z",
-    "bundles": [
-      {
-        "name": "assets/index-o4uO53Xn.js",
-        "size": 2197024,
-        "estimatedGzipped": 659107,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-DRWvfrpU.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399310,
-    "gzippedSize": 719793,
-    "budgetViolations": [
-      "assets/index-o4uO53Xn.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T23:05:25.892Z",
-    "mainBundleSize": 659587,
-    "totalSize": 760811,
-    "bundles": [
-      {
-        "name": "html2canvas-DRWvfrpU.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-o4uO53Xn.js",
-        "type": "js",
-        "size": 2198623,
-        "estimatedGzipped": 659587,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T23:09:52.787Z",
-    "bundles": [
-      {
-        "name": "assets/index-DNM9sq1M.js",
-        "size": 2197409,
-        "estimatedGzipped": 659223,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-7nMBO7tk.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399695,
-    "gzippedSize": 719909,
-    "budgetViolations": [
-      "assets/index-DNM9sq1M.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T23:09:53.215Z",
-    "mainBundleSize": 659702,
-    "totalSize": 760926,
-    "bundles": [
-      {
-        "name": "html2canvas-7nMBO7tk.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-DNM9sq1M.js",
-        "type": "js",
-        "size": 2199008,
-        "estimatedGzipped": 659702,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-31T23:12:47.790Z",
-    "bundles": [
-      {
-        "name": "assets/index-B-TnaFvO.js",
-        "size": 2197293,
-        "estimatedGzipped": 659188,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-Bd_PPwhk.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399579,
-    "gzippedSize": 719874,
-    "budgetViolations": [
-      "assets/index-B-TnaFvO.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-08-31T23:12:48.083Z",
-    "mainBundleSize": 659668,
-    "totalSize": 760892,
-    "bundles": [
-      {
-        "name": "html2canvas-Bd_PPwhk.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-B-TnaFvO.js",
-        "type": "js",
-        "size": 2198892,
-        "estimatedGzipped": 659668,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-09-01T00:20:42.982Z",
-    "bundles": [
-      {
-        "name": "assets/index-DMVIWwu1.js",
-        "size": 2197640,
-        "estimatedGzipped": 659292,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-C2xuBjRX.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399926,
-    "gzippedSize": 719978,
-    "budgetViolations": [
-      "assets/index-DMVIWwu1.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T00:20:43.479Z",
-    "mainBundleSize": 659771,
-    "totalSize": 760995,
-    "bundles": [
-      {
-        "name": "html2canvas-C2xuBjRX.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-DMVIWwu1.js",
-        "type": "js",
-        "size": 2199235,
-        "estimatedGzipped": 659771,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-09-01T00:27:41.147Z",
-    "bundles": [
-      {
-        "name": "assets/index-fX8vSu_K.js",
-        "size": 2196818,
-        "estimatedGzipped": 659045,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-M0ME2dXc.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399104,
-    "gzippedSize": 719731,
-    "budgetViolations": [
-      "assets/index-fX8vSu_K.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T00:27:41.516Z",
-    "mainBundleSize": 659524,
-    "totalSize": 760748,
-    "bundles": [
-      {
-        "name": "html2canvas-M0ME2dXc.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-fX8vSu_K.js",
-        "type": "js",
-        "size": 2198413,
-        "estimatedGzipped": 659524,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-09-01T00:30:29.950Z",
-    "bundles": [
-      {
-        "name": "assets/index-B5J_XbdT.js",
-        "size": 2196748,
-        "estimatedGzipped": 659024,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-NC2rQyQ9.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399034,
-    "gzippedSize": 719710,
-    "budgetViolations": [
-      "assets/index-B5J_XbdT.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T00:30:30.261Z",
-    "mainBundleSize": 659503,
-    "totalSize": 760727,
-    "bundles": [
-      {
-        "name": "html2canvas-NC2rQyQ9.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-B5J_XbdT.js",
-        "type": "js",
-        "size": 2198343,
-        "estimatedGzipped": 659503,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-09-01T01:08:44.276Z",
-    "bundles": [
-      {
-        "name": "assets/index-B5J_XbdT.js",
-        "size": 2196748,
-        "estimatedGzipped": 659024,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-NC2rQyQ9.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399034,
-    "gzippedSize": 719710,
-    "budgetViolations": [
-      "assets/index-B5J_XbdT.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T01:08:44.611Z",
-    "mainBundleSize": 659503,
-    "totalSize": 760727,
-    "bundles": [
-      {
-        "name": "html2canvas-NC2rQyQ9.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-B5J_XbdT.js",
-        "type": "js",
-        "size": 2198343,
-        "estimatedGzipped": 659503,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-09-01T01:18:55.441Z",
-    "bundles": [
-      {
-        "name": "assets/index-UbEoJnyE.js",
-        "size": 2196741,
-        "estimatedGzipped": 659022,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-B8ZbT3fh.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399027,
-    "gzippedSize": 719708,
-    "budgetViolations": [
-      "assets/index-UbEoJnyE.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T01:18:55.671Z",
-    "mainBundleSize": 659501,
-    "totalSize": 760725,
-    "bundles": [
-      {
-        "name": "html2canvas-B8ZbT3fh.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-UbEoJnyE.js",
-        "type": "js",
-        "size": 2198336,
-        "estimatedGzipped": 659501,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-09-01T01:38:34.855Z",
-    "bundles": [
-      {
-        "name": "assets/index-UbEoJnyE.js",
-        "size": 2196741,
-        "estimatedGzipped": 659022,
-        "isEntry": true,
-        "modules": 1138
-      },
-      {
-        "name": "assets/html2canvas-B8ZbT3fh.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2399027,
-    "gzippedSize": 719708,
-    "budgetViolations": [
-      "assets/index-UbEoJnyE.js: 644KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T01:38:35.186Z",
-    "mainBundleSize": 659501,
-    "totalSize": 760725,
-    "bundles": [
-      {
-        "name": "html2canvas-B8ZbT3fh.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-UbEoJnyE.js",
-        "type": "js",
-        "size": 2198336,
-        "estimatedGzipped": 659501,
-        "isMain": true
-      },
-      {
-        "name": "index-DdM3B41y.css",
-        "type": "css",
-        "size": 161096,
-        "estimatedGzipped": 40274,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 644KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-09-01T02:05:22.874Z",
-    "bundles": [
-      {
-        "name": "assets/index-DvNcz4cy.js",
-        "size": 2201603,
-        "estimatedGzipped": 660481,
-        "isEntry": true,
-        "modules": 1142
-      },
-      {
-        "name": "assets/html2canvas-BZ8Qif-Y.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2403889,
-    "gzippedSize": 721167,
-    "budgetViolations": [
-      "assets/index-DvNcz4cy.js: 645KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T02:07:42.593Z",
-    "bundles": [
-      {
-        "name": "assets/index-DvNcz4cy.js",
-        "size": 2201603,
-        "estimatedGzipped": 660481,
-        "isEntry": true,
-        "modules": 1142
-      },
-      {
-        "name": "assets/html2canvas-BZ8Qif-Y.js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2403889,
-    "gzippedSize": 721167,
-    "budgetViolations": [
-      "assets/index-DvNcz4cy.js: 645KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-09-01T02:07:43.046Z",
-    "mainBundleSize": 660959,
-    "totalSize": 762190,
-    "bundles": [
-      {
-        "name": "html2canvas-BZ8Qif-Y.js",
-        "type": "js",
-        "size": 879,
-        "estimatedGzipped": 264,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "index-DvNcz4cy.js",
-        "type": "js",
-        "size": 2203198,
-        "estimatedGzipped": 660959,
-        "isMain": true
-      },
-      {
-        "name": "index-Dnf58REM.css",
-        "type": "css",
-        "size": 161122,
-        "estimatedGzipped": 40281,
+        "size": 156822,
+        "estimatedGzipped": 39206,
         "isMain": false
       }
     ],
@@ -1449,17 +646,17 @@
     }
   },
   {
-    "timestamp": "2025-09-01T02:20:39.615Z",
+    "timestamp": "2025-09-01T23:18:34.327Z",
     "bundles": [
       {
-        "name": "assets/index-DvNcz4cy.js",
-        "size": 2201603,
-        "estimatedGzipped": 660481,
+        "name": "assets/index-CocVCXA4.js",
+        "size": 2366560,
+        "estimatedGzipped": 709968,
         "isEntry": true,
-        "modules": 1142
+        "modules": 1145
       },
       {
-        "name": "assets/html2canvas-BZ8Qif-Y.js",
+        "name": "assets/html2canvas-CqB5w9e_.js",
         "size": 879,
         "estimatedGzipped": 264,
         "isEntry": false,
@@ -1473,19 +670,19 @@
         "modules": 1
       }
     ],
-    "totalSize": 2403889,
-    "gzippedSize": 721167,
+    "totalSize": 2568846,
+    "gzippedSize": 770654,
     "budgetViolations": [
-      "assets/index-DvNcz4cy.js: 645KB exceeds main bundle budget of 500KB"
+      "assets/index-CocVCXA4.js: 693KB exceeds main bundle budget of 500KB"
     ]
   },
   {
-    "timestamp": "2025-09-01T02:20:39.982Z",
-    "mainBundleSize": 660959,
-    "totalSize": 762190,
+    "timestamp": "2025-09-01T23:18:34.544Z",
+    "mainBundleSize": 710465,
+    "totalSize": 810621,
     "bundles": [
       {
-        "name": "html2canvas-BZ8Qif-Y.js",
+        "name": "html2canvas-CqB5w9e_.js",
         "type": "js",
         "size": 879,
         "estimatedGzipped": 264,
@@ -1499,17 +696,17 @@
         "isMain": false
       },
       {
-        "name": "index-DvNcz4cy.js",
+        "name": "index-CocVCXA4.js",
         "type": "js",
-        "size": 2203198,
-        "estimatedGzipped": 660959,
+        "size": 2368217,
+        "estimatedGzipped": 710465,
         "isMain": true
       },
       {
-        "name": "index-Dnf58REM.css",
+        "name": "index-Dm_RKoAC.css",
         "type": "css",
-        "size": 161122,
-        "estimatedGzipped": 40281,
+        "size": 156822,
+        "estimatedGzipped": 39206,
         "isMain": false
       }
     ],
@@ -1517,22 +714,22 @@
       "mainBundleStatus": "FAIL",
       "totalSizeStatus": "PASS",
       "warnings": [
-        "Main bundle approaching size limit: 645KB / 500KB"
+        "Main bundle approaching size limit: 694KB / 500KB"
       ]
     }
   },
   {
-    "timestamp": "2025-09-01T02:50:29.166Z",
+    "timestamp": "2025-09-01T23:30:56.018Z",
     "bundles": [
       {
-        "name": "assets/index-DvNcz4cy.js",
-        "size": 2201603,
-        "estimatedGzipped": 660481,
+        "name": "assets/index-VAhv82f2.js",
+        "size": 2366561,
+        "estimatedGzipped": 709968,
         "isEntry": true,
-        "modules": 1142
+        "modules": 1145
       },
       {
-        "name": "assets/html2canvas-BZ8Qif-Y.js",
+        "name": "assets/html2canvas-A4UnAJ4o.js",
         "size": 879,
         "estimatedGzipped": 264,
         "isEntry": false,
@@ -1546,19 +743,19 @@
         "modules": 1
       }
     ],
-    "totalSize": 2403889,
-    "gzippedSize": 721167,
+    "totalSize": 2568847,
+    "gzippedSize": 770654,
     "budgetViolations": [
-      "assets/index-DvNcz4cy.js: 645KB exceeds main bundle budget of 500KB"
+      "assets/index-VAhv82f2.js: 693KB exceeds main bundle budget of 500KB"
     ]
   },
   {
-    "timestamp": "2025-09-01T02:50:29.351Z",
-    "mainBundleSize": 660959,
-    "totalSize": 762190,
+    "timestamp": "2025-09-01T23:30:56.226Z",
+    "mainBundleSize": 710465,
+    "totalSize": 810621,
     "bundles": [
       {
-        "name": "html2canvas-BZ8Qif-Y.js",
+        "name": "html2canvas-A4UnAJ4o.js",
         "type": "js",
         "size": 879,
         "estimatedGzipped": 264,
@@ -1572,17 +769,17 @@
         "isMain": false
       },
       {
-        "name": "index-DvNcz4cy.js",
+        "name": "index-VAhv82f2.js",
         "type": "js",
-        "size": 2203198,
-        "estimatedGzipped": 660959,
+        "size": 2368218,
+        "estimatedGzipped": 710465,
         "isMain": true
       },
       {
-        "name": "index-Dnf58REM.css",
+        "name": "index-Dm_RKoAC.css",
         "type": "css",
-        "size": 161122,
-        "estimatedGzipped": 40281,
+        "size": 156822,
+        "estimatedGzipped": 39206,
         "isMain": false
       }
     ],
@@ -1590,22 +787,22 @@
       "mainBundleStatus": "FAIL",
       "totalSizeStatus": "PASS",
       "warnings": [
-        "Main bundle approaching size limit: 645KB / 500KB"
+        "Main bundle approaching size limit: 694KB / 500KB"
       ]
     }
   },
   {
-    "timestamp": "2025-09-01T03:05:57.372Z",
+    "timestamp": "2025-09-01T23:39:32.757Z",
     "bundles": [
       {
-        "name": "assets/index-98PtAXPN.js",
-        "size": 2201596,
-        "estimatedGzipped": 660479,
+        "name": "assets/index-C0nM9uAX.js",
+        "size": 2366434,
+        "estimatedGzipped": 709930,
         "isEntry": true,
-        "modules": 1142
+        "modules": 1145
       },
       {
-        "name": "assets/html2canvas-CG2PJh2D.js",
+        "name": "assets/html2canvas-BpSOeANC.js",
         "size": 879,
         "estimatedGzipped": 264,
         "isEntry": false,
@@ -1619,19 +816,19 @@
         "modules": 1
       }
     ],
-    "totalSize": 2403882,
-    "gzippedSize": 721165,
+    "totalSize": 2568720,
+    "gzippedSize": 770616,
     "budgetViolations": [
-      "assets/index-98PtAXPN.js: 645KB exceeds main bundle budget of 500KB"
+      "assets/index-C0nM9uAX.js: 693KB exceeds main bundle budget of 500KB"
     ]
   },
   {
-    "timestamp": "2025-09-01T03:05:57.561Z",
-    "mainBundleSize": 660957,
-    "totalSize": 762188,
+    "timestamp": "2025-09-01T23:39:32.954Z",
+    "mainBundleSize": 710427,
+    "totalSize": 810583,
     "bundles": [
       {
-        "name": "html2canvas-CG2PJh2D.js",
+        "name": "html2canvas-BpSOeANC.js",
         "type": "js",
         "size": 879,
         "estimatedGzipped": 264,
@@ -1645,17 +842,455 @@
         "isMain": false
       },
       {
-        "name": "index-98PtAXPN.js",
+        "name": "index-C0nM9uAX.js",
         "type": "js",
-        "size": 2203191,
-        "estimatedGzipped": 660957,
+        "size": 2368091,
+        "estimatedGzipped": 710427,
         "isMain": true
       },
       {
-        "name": "index-Dnf58REM.css",
+        "name": "index-Dm_RKoAC.css",
         "type": "css",
-        "size": 161122,
-        "estimatedGzipped": 40281,
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 694KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T23:42:23.570Z",
+    "bundles": [
+      {
+        "name": "assets/index-BCTyTpKx.js",
+        "size": 2365890,
+        "estimatedGzipped": 709767,
+        "isEntry": true,
+        "modules": 1145
+      },
+      {
+        "name": "assets/html2canvas-71BsqaEZ.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2568176,
+    "gzippedSize": 770453,
+    "budgetViolations": [
+      "assets/index-BCTyTpKx.js: 693KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T23:42:23.768Z",
+    "mainBundleSize": 710264,
+    "totalSize": 810420,
+    "bundles": [
+      {
+        "name": "html2canvas-71BsqaEZ.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-BCTyTpKx.js",
+        "type": "js",
+        "size": 2367547,
+        "estimatedGzipped": 710264,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 694KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T23:50:57.693Z",
+    "bundles": [
+      {
+        "name": "assets/index-C8FeZ61f.js",
+        "size": 2365879,
+        "estimatedGzipped": 709764,
+        "isEntry": true,
+        "modules": 1145
+      },
+      {
+        "name": "assets/html2canvas-DQkh3NYu.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2568165,
+    "gzippedSize": 770450,
+    "budgetViolations": [
+      "assets/index-C8FeZ61f.js: 693KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T23:50:57.907Z",
+    "mainBundleSize": 710261,
+    "totalSize": 810417,
+    "bundles": [
+      {
+        "name": "html2canvas-DQkh3NYu.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-C8FeZ61f.js",
+        "type": "js",
+        "size": 2367536,
+        "estimatedGzipped": 710261,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 694KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-01T23:53:24.250Z",
+    "bundles": [
+      {
+        "name": "assets/index-Cy9cltyx.js",
+        "size": 2365931,
+        "estimatedGzipped": 709779,
+        "isEntry": true,
+        "modules": 1145
+      },
+      {
+        "name": "assets/html2canvas-D1jhodPT.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2568217,
+    "gzippedSize": 770465,
+    "budgetViolations": [
+      "assets/index-Cy9cltyx.js: 693KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-01T23:53:24.463Z",
+    "mainBundleSize": 710276,
+    "totalSize": 810432,
+    "bundles": [
+      {
+        "name": "html2canvas-D1jhodPT.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-Cy9cltyx.js",
+        "type": "js",
+        "size": 2367588,
+        "estimatedGzipped": 710276,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 694KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T00:16:31.386Z",
+    "bundles": [
+      {
+        "name": "assets/index-8GxOD8Uj.js",
+        "size": 2366256,
+        "estimatedGzipped": 709877,
+        "isEntry": true,
+        "modules": 1146
+      },
+      {
+        "name": "assets/html2canvas-PGOIS48W.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2568542,
+    "gzippedSize": 770563,
+    "budgetViolations": [
+      "assets/index-8GxOD8Uj.js: 693KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T00:16:31.589Z",
+    "mainBundleSize": 710374,
+    "totalSize": 810530,
+    "bundles": [
+      {
+        "name": "html2canvas-PGOIS48W.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-8GxOD8Uj.js",
+        "type": "js",
+        "size": 2367913,
+        "estimatedGzipped": 710374,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 694KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T00:36:40.605Z",
+    "bundles": [
+      {
+        "name": "assets/index-8GxOD8Uj.js",
+        "size": 2366256,
+        "estimatedGzipped": 709877,
+        "isEntry": true,
+        "modules": 1146
+      },
+      {
+        "name": "assets/html2canvas-PGOIS48W.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2568542,
+    "gzippedSize": 770563,
+    "budgetViolations": [
+      "assets/index-8GxOD8Uj.js: 693KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T00:36:40.814Z",
+    "mainBundleSize": 710374,
+    "totalSize": 810530,
+    "bundles": [
+      {
+        "name": "html2canvas-PGOIS48W.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-8GxOD8Uj.js",
+        "type": "js",
+        "size": 2367913,
+        "estimatedGzipped": 710374,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 694KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T00:39:49.876Z",
+    "bundles": [
+      {
+        "name": "assets/index-C5HiaYTB.js",
+        "size": 2199663,
+        "estimatedGzipped": 659899,
+        "isEntry": true,
+        "modules": 1145
+      },
+      {
+        "name": "assets/html2canvas-5S24tu3s.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2401949,
+    "gzippedSize": 720585,
+    "budgetViolations": [
+      "assets/index-C5HiaYTB.js: 644KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T00:39:50.080Z",
+    "mainBundleSize": 660395,
+    "totalSize": 760551,
+    "bundles": [
+      {
+        "name": "html2canvas-5S24tu3s.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-C5HiaYTB.js",
+        "type": "js",
+        "size": 2201316,
+        "estimatedGzipped": 660395,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
         "isMain": false
       }
     ],
@@ -1668,17 +1303,17 @@
     }
   },
   {
-    "timestamp": "2025-09-01T03:22:54.054Z",
+    "timestamp": "2025-09-02T00:50:04.522Z",
     "bundles": [
       {
-        "name": "assets/index-DPpEvdq3.js",
-        "size": 2207228,
-        "estimatedGzipped": 662168,
+        "name": "assets/index-DWOQkkSB.js",
+        "size": 2192686,
+        "estimatedGzipped": 657806,
         "isEntry": true,
         "modules": 1144
       },
       {
-        "name": "assets/html2canvas-DXKhvmZ_.js",
+        "name": "assets/html2canvas-D1qtPq0t.js",
         "size": 879,
         "estimatedGzipped": 264,
         "isEntry": false,
@@ -1692,19 +1327,19 @@
         "modules": 1
       }
     ],
-    "totalSize": 2409514,
-    "gzippedSize": 722854,
+    "totalSize": 2394972,
+    "gzippedSize": 718492,
     "budgetViolations": [
-      "assets/index-DPpEvdq3.js: 647KB exceeds main bundle budget of 500KB"
+      "assets/index-DWOQkkSB.js: 642KB exceeds main bundle budget of 500KB"
     ]
   },
   {
-    "timestamp": "2025-09-01T03:22:54.248Z",
-    "mainBundleSize": 662652,
-    "totalSize": 763883,
+    "timestamp": "2025-09-02T00:50:04.734Z",
+    "mainBundleSize": 658302,
+    "totalSize": 758458,
     "bundles": [
       {
-        "name": "html2canvas-DXKhvmZ_.js",
+        "name": "html2canvas-D1qtPq0t.js",
         "type": "js",
         "size": 879,
         "estimatedGzipped": 264,
@@ -1718,17 +1353,17 @@
         "isMain": false
       },
       {
-        "name": "index-DPpEvdq3.js",
+        "name": "index-DWOQkkSB.js",
         "type": "js",
-        "size": 2208841,
-        "estimatedGzipped": 662652,
+        "size": 2194341,
+        "estimatedGzipped": 658302,
         "isMain": true
       },
       {
-        "name": "index-Dnf58REM.css",
+        "name": "index-Dm_RKoAC.css",
         "type": "css",
-        "size": 161122,
-        "estimatedGzipped": 40281,
+        "size": 156822,
+        "estimatedGzipped": 39206,
         "isMain": false
       }
     ],
@@ -1736,22 +1371,22 @@
       "mainBundleStatus": "FAIL",
       "totalSizeStatus": "PASS",
       "warnings": [
-        "Main bundle approaching size limit: 647KB / 500KB"
+        "Main bundle approaching size limit: 643KB / 500KB"
       ]
     }
   },
   {
-    "timestamp": "2025-09-01T03:28:27.827Z",
+    "timestamp": "2025-09-02T00:57:15.502Z",
     "bundles": [
       {
-        "name": "assets/index-tqX5LAlb.js",
-        "size": 2207849,
-        "estimatedGzipped": 662355,
+        "name": "assets/index-DZTj7WWj.js",
+        "size": 2191877,
+        "estimatedGzipped": 657563,
         "isEntry": true,
-        "modules": 1144
+        "modules": 1142
       },
       {
-        "name": "assets/html2canvas-DulPbN4W.js",
+        "name": "assets/html2canvas-CwT0DphN.js",
         "size": 879,
         "estimatedGzipped": 264,
         "isEntry": false,
@@ -1765,19 +1400,19 @@
         "modules": 1
       }
     ],
-    "totalSize": 2410135,
-    "gzippedSize": 723041,
+    "totalSize": 2394163,
+    "gzippedSize": 718249,
     "budgetViolations": [
-      "assets/index-tqX5LAlb.js: 647KB exceeds main bundle budget of 500KB"
+      "assets/index-DZTj7WWj.js: 642KB exceeds main bundle budget of 500KB"
     ]
   },
   {
-    "timestamp": "2025-09-01T03:28:28.009Z",
-    "mainBundleSize": 662839,
-    "totalSize": 764070,
+    "timestamp": "2025-09-02T00:57:15.713Z",
+    "mainBundleSize": 658059,
+    "totalSize": 758215,
     "bundles": [
       {
-        "name": "html2canvas-DulPbN4W.js",
+        "name": "html2canvas-CwT0DphN.js",
         "type": "js",
         "size": 879,
         "estimatedGzipped": 264,
@@ -1791,17 +1426,17 @@
         "isMain": false
       },
       {
-        "name": "index-tqX5LAlb.js",
+        "name": "index-DZTj7WWj.js",
         "type": "js",
-        "size": 2209462,
-        "estimatedGzipped": 662839,
+        "size": 2193530,
+        "estimatedGzipped": 658059,
         "isMain": true
       },
       {
-        "name": "index-Dnf58REM.css",
+        "name": "index-Dm_RKoAC.css",
         "type": "css",
-        "size": 161122,
-        "estimatedGzipped": 40281,
+        "size": 156822,
+        "estimatedGzipped": 39206,
         "isMain": false
       }
     ],
@@ -1809,7 +1444,372 @@
       "mainBundleStatus": "FAIL",
       "totalSizeStatus": "PASS",
       "warnings": [
-        "Main bundle approaching size limit: 647KB / 500KB"
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T01:02:39.810Z",
+    "bundles": [
+      {
+        "name": "assets/index-DZTj7WWj.js",
+        "size": 2191877,
+        "estimatedGzipped": 657563,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-CwT0DphN.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2394163,
+    "gzippedSize": 718249,
+    "budgetViolations": [
+      "assets/index-DZTj7WWj.js: 642KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T01:02:40.029Z",
+    "mainBundleSize": 658059,
+    "totalSize": 758215,
+    "bundles": [
+      {
+        "name": "html2canvas-CwT0DphN.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DZTj7WWj.js",
+        "type": "js",
+        "size": 2193530,
+        "estimatedGzipped": 658059,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T01:55:17.398Z",
+    "bundles": [
+      {
+        "name": "assets/index-DcT6BU15.js",
+        "size": 2193546,
+        "estimatedGzipped": 658064,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-DwcI1GDk.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2395832,
+    "gzippedSize": 718750,
+    "budgetViolations": [
+      "assets/index-DcT6BU15.js: 643KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T01:55:17.595Z",
+    "mainBundleSize": 658560,
+    "totalSize": 758716,
+    "bundles": [
+      {
+        "name": "html2canvas-DwcI1GDk.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DcT6BU15.js",
+        "type": "js",
+        "size": 2195199,
+        "estimatedGzipped": 658560,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T01:57:30.139Z",
+    "bundles": [
+      {
+        "name": "assets/index-DcT6BU15.js",
+        "size": 2193546,
+        "estimatedGzipped": 658064,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-DwcI1GDk.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2395832,
+    "gzippedSize": 718750,
+    "budgetViolations": [
+      "assets/index-DcT6BU15.js: 643KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T01:57:30.348Z",
+    "mainBundleSize": 658560,
+    "totalSize": 758716,
+    "bundles": [
+      {
+        "name": "html2canvas-DwcI1GDk.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DcT6BU15.js",
+        "type": "js",
+        "size": 2195199,
+        "estimatedGzipped": 658560,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T02:02:30.923Z",
+    "bundles": [
+      {
+        "name": "assets/index-CJmB5JKj.js",
+        "size": 2194097,
+        "estimatedGzipped": 658229,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-BUgCRAtT.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2396383,
+    "gzippedSize": 718915,
+    "budgetViolations": [
+      "assets/index-CJmB5JKj.js: 643KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T02:02:31.132Z",
+    "mainBundleSize": 658725,
+    "totalSize": 758881,
+    "bundles": [
+      {
+        "name": "html2canvas-BUgCRAtT.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-CJmB5JKj.js",
+        "type": "js",
+        "size": 2195750,
+        "estimatedGzipped": 658725,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-09-02T14:44:05.086Z",
+    "bundles": [
+      {
+        "name": "assets/index-Crjr2GcE.js",
+        "size": 2193512,
+        "estimatedGzipped": 658054,
+        "isEntry": true,
+        "modules": 1142
+      },
+      {
+        "name": "assets/html2canvas-D7cHPVQo.js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2395798,
+    "gzippedSize": 718740,
+    "budgetViolations": [
+      "assets/index-Crjr2GcE.js: 643KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-09-02T14:44:05.337Z",
+    "mainBundleSize": 658550,
+    "totalSize": 758706,
+    "bundles": [
+      {
+        "name": "html2canvas-D7cHPVQo.js",
+        "type": "js",
+        "size": 879,
+        "estimatedGzipped": 264,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-Crjr2GcE.js",
+        "type": "js",
+        "size": 2195165,
+        "estimatedGzipped": 658550,
+        "isMain": true
+      },
+      {
+        "name": "index-Dm_RKoAC.css",
+        "type": "css",
+        "size": 156822,
+        "estimatedGzipped": 39206,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 643KB / 500KB"
       ]
     }
   }

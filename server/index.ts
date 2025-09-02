@@ -47,6 +47,7 @@ import adminAIResourcesRoutes from './routes/admin-ai-resources.js';
 import iaStepRoutes from './routes/ia-step-routes.js';
 import aiRoutes from './routes/ai.js';
 import iaContinuityRoutes from './routes/ia.js';
+import auth0Routes from './routes/auth0-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
@@ -475,6 +476,7 @@ async function initializeApp() {
         algorithms: ['RS256']
       });
       app.use('/api', jwtCheck, router);
+      app.use('/api/auth', auth0Routes);
       app.use('/api/reports/holistic', holisticReportRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);

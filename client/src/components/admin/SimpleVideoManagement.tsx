@@ -583,6 +583,7 @@ export function SimpleVideoManagement() {
                 <SelectContent>
                   <SelectItem value="all">All Workshops</SelectItem>
                   <SelectItem value="allstarteams">AllStarTeams</SelectItem>
+                  <SelectItem value="ast">AST</SelectItem>
                   <SelectItem value="ia">Imaginal Agility</SelectItem>
                   <SelectItem value="general">General</SelectItem>
                 </SelectContent>
@@ -600,6 +601,7 @@ export function SimpleVideoManagement() {
                 <Badge variant="secondary">
                   <Filter className="h-3 w-3 mr-1" />
                   {filterWorkshop === 'allstarteams' ? 'AllStarTeams' : 
+                   filterWorkshop === 'ast' ? 'AST' :
                    filterWorkshop === 'ia' ? 'Imaginal Agility' : 
                    filterWorkshop}
                 </Badge>
@@ -859,6 +861,7 @@ export function SimpleVideoManagement() {
                       }>
                         {video.workshop_type === 'allstarteams' ? 'AST' : 
                          video.workshop_type === 'ia' ? 'IA' : 
+                         video.workshop_type === 'general' ? 'General' :
                          'Landing'}
                       </Badge>
                     </TableCell>

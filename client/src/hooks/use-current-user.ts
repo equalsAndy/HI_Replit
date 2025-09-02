@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useAuth0 } from '@auth0/auth0-react';
 import { apiRequest } from '@/lib/queryClient';
 
 export interface User {

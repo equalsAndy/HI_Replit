@@ -30,6 +30,7 @@ export function LoginForm() {
   const [, navigate] = useLocation();
   const [showTestInfo, setShowTestInfo] = useState(false);
   
+
   // Initialize react-hook-form
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -48,7 +49,12 @@ export function LoginForm() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data),
+          credentials: 'include',
+          body: JSON.stringify({
+            identifier: data.identifier,
+            username: data.identifier,
+            password: data.password,
+          }),
         });
         
         if (!response.ok) {
@@ -141,6 +147,7 @@ export function LoginForm() {
   
   // Form submission handler
   const onSubmit = (data: LoginFormValues) => {
+    // Use credentials-based login via API to establish session
     loginMutation.mutate(data);
   };
   

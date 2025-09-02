@@ -49,7 +49,7 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
               variant="destructive"
               size="sm"
               className="rounded-md text-xs h-8"
-              onClick={() => logout({ returnTo: window.location.origin })}
+              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
             >
               Logout
             </Button>

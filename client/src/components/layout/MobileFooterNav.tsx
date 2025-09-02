@@ -102,7 +102,7 @@ export function MobileFooterNav() {
           variant="ghost"
           size="sm"
           className="rounded-md text-white hover:bg-yellow-400"
-          onClick={() => logout({ returnTo: window.location.origin })}
+          onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
         >
           Logout
         </Button>

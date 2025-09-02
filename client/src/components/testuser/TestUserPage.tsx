@@ -389,7 +389,7 @@ const TestUserPage: React.FC = () => {
               {/* Red Logout Button */}
               <Button 
                 variant="destructive" 
-                onClick={() => logout({ returnTo: window.location.origin })}
+                onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />

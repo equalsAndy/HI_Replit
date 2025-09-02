@@ -1,16 +1,23 @@
 // TEMP: legacy button safety—remove after cleanup
 (window as any).handleSaveReframe = () => {};
+import React from "react";
 import { createRoot } from "react-dom/client";
-import { Auth0Provider } from '@auth0/auth0-react';
 import App from "./App";
 import "./index.css";
 import { TRPCProvider } from '@/components/providers/TRPCProvider';
-import { useAuth0 } from '@auth0/auth0-react';
+import HIAuth0Provider from './providers/Auth0Provider';
 
 // Polyfill for Node.js process in the browser to fix "require is not defined" error
 window.process = window.process || { env: { NODE_ENV: "production" } };
 
-console.log("Starting React app...");
+// Auth0 Configuration
+const domain = import.meta.env.VITE_AUTH0_DOMAIN!;
+const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID!;
+const redirectUri = import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin;
+const audience = import.meta.env.VITE_AUTH0_AUDIENCE; // optional
+
+console.log("Starting React app with Auth0...");
+console.log("Auth0 Config:", { domain, clientId, redirectUri, audience });
 
 try {
   const rootElement = document.getElementById("root");
@@ -21,29 +28,18 @@ try {
   
   console.log("Root element found, creating React root...");
   const root = createRoot(rootElement);
-  console.log("React root created, setting up TRPC & React Query...");
-  console.log("Rendering App with TRPC provider...");
+  console.log("React root created, setting up Auth0, TRPC & React Query...");
+  console.log("Rendering App with Auth0 and TRPC providers...");
   root.render(
-    <Auth0Provider
-      domain={import.meta.env.VITE_AUTH0_DOMAIN!}
-      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID!}
-      authorizationParams={{
-        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI!,
-        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-      }}
-      onRedirectCallback={(appState) => {
-        // Handle redirect after Auth0 callback
-        const returnTo = appState?.returnTo || '/dashboard';
-        console.log('Auth0 redirect callback, going to:', returnTo);
-        window.location.replace(returnTo);
-      }}
-    >
-      <TRPCProvider>
-        <App />
-      </TRPCProvider>
-    </Auth0Provider>
+    <React.StrictMode>
+      <HIAuth0Provider>
+        <TRPCProvider>
+          <App />
+        </TRPCProvider>
+      </HIAuth0Provider>
+    </React.StrictMode>
   );
-  console.log("App rendered successfully with TRPC");
+  console.log("App rendered successfully with Auth0 and TRPC");
 } catch (error) {
   console.error("Error starting app:", error);
 }

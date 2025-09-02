@@ -32,6 +32,8 @@ import BackgroundView from './BackgroundView';
 import WorkshopResourcesView from './WorkshopResourcesView';
 import FinishWorkshopStep from './FinishWorkshopStep';
 import AstLessonContent from '@/components/ast/AstLessonContentPilot';
+import PositivePsychologyView from '../PositivePsychologyView';
+import AboutCourseView from '../AboutCourseView';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -78,8 +80,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'positive-psychology':
       return (
-        <PlaceholderView 
-          title="Positive Psychology"
+        <PositivePsychologyView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -129,8 +130,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'about-course':
       return (
-        <PlaceholderView 
-          title="About this Course"
+        <AboutCourseView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

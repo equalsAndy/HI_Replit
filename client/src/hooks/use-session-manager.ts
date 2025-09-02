@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { useCurrentUser } from './use-current-user';
 import { useToast } from './use-toast';
+import { useAuth0 } from '@auth0/auth0-react';
 import { queryClient } from '@/lib/queryClient';
 
 export type SessionMessage = 
@@ -48,6 +49,7 @@ export function useSessionManager(options: SessionManagerOptions = {}) {
 
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated, isLoading: authLoading, loginWithRedirect } = useAuth0();
   const { data: user, isLoading: userLoading, error: userError } = useCurrentUser();
   
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>({
@@ -124,11 +126,19 @@ export function useSessionManager(options: SessionManagerOptions = {}) {
       onInvalidSession(reason);
     }
     
-    // Redirect to auth page
-    setLocation('/auth');
-  }, [location, requiresAuth, storeReturnUrl, storeSessionMessage, onInvalidSession, setLocation]);
+    // Use Auth0 login or fallback to auth page
+    if (reason === 'login-required' || reason === 'session-expired') {
+      loginWithRedirect({
+        appState: {
+          returnTo: requiresAuth() ? location : '/dashboard'
+        }
+      });
+    } else {
+      setLocation('/auth');
+    }
+  }, [location, requiresAuth, storeReturnUrl, storeSessionMessage, onInvalidSession, setLocation, loginWithRedirect]);
 
-  // Simplified session check that relies on existing user data instead of making new requests
+  // Simplified session check that relies on Auth0 and user data
   const checkSession = useCallback(async (): Promise<boolean> => {
     // Skip check if route doesn't require auth
     if (!requiresAuth()) {
@@ -140,7 +150,29 @@ export function useSessionManager(options: SessionManagerOptions = {}) {
       return true;
     }
 
-    // Use existing user data instead of making new request
+    // If we already have an app session user, consider session valid
+    if (user?.id) {
+      setSessionStatus({
+        isValid: true,
+        isLoading: false,
+        lastCheck: new Date()
+      });
+      return true;
+    }
+
+    // If Auth0 is still loading, wait
+    if (authLoading) {
+      setSessionStatus(prev => ({ ...prev, isLoading: true }));
+      return false;
+    }
+
+    // If not authenticated with Auth0 and no app session, trigger login
+    if (!isAuthenticated) {
+      handleInvalidSession('login-required');
+      return false;
+    }
+
+    // Auth0 authenticated, check if we have user data
     if (user?.id) {
       setSessionStatus({
         isValid: true,
@@ -149,16 +181,17 @@ export function useSessionManager(options: SessionManagerOptions = {}) {
       });
       return true;
     } else if (!userLoading) {
-      // No user data and not loading - session invalid
+      // Auth0 authenticated but no user data - may need to create user profile
+      console.log('⚠️ Auth0 authenticated but no user profile found');
       handleInvalidSession('login-required');
       return false;
     }
 
-    // Still loading, don't make assumptions
+    // Still loading user data
     return false;
-  }, [requiresAuth, user, userLoading, handleInvalidSession]);
+  }, [requiresAuth, isAuthenticated, authLoading, user, userLoading, handleInvalidSession]);
 
-  // Handle user loading states and errors - rely on useCurrentUser hook instead of duplicating requests
+  // Handle Auth0 and user loading states
   useEffect(() => {
     if (!requiresAuth()) {
       setSessionStatus({
@@ -169,6 +202,34 @@ export function useSessionManager(options: SessionManagerOptions = {}) {
       return;
     }
 
+    // If we already have an app session user, consider session valid early
+    if (user?.id) {
+      setSessionStatus({
+        isValid: true,
+        isLoading: false,
+        lastCheck: new Date()
+      });
+      return;
+    }
+
+    // Auth0 still loading
+    if (authLoading) {
+      setSessionStatus(prev => ({ ...prev, isLoading: true }));
+      return;
+    }
+
+    // Not authenticated with Auth0
+    if (!isAuthenticated) {
+      setSessionStatus({
+        isValid: false,
+        isLoading: false,
+        message: 'login-required',
+        lastCheck: new Date()
+      });
+      return;
+    }
+
+    // Auth0 authenticated, now check user data
     if (userError) {
       // User fetch failed, likely due to expired session
       if (userError.message.includes('401')) {
@@ -179,22 +240,28 @@ export function useSessionManager(options: SessionManagerOptions = {}) {
     } else if (!userLoading) {
       // User loading finished, check if we have valid user data
       if (!user?.id) {
-        handleInvalidSession('login-required');
+        console.log('⚠️ Auth0 authenticated but no user profile - may need to create profile');
+        setSessionStatus({
+          isValid: false,
+          isLoading: false,
+          message: 'login-required',
+          lastCheck: new Date()
+        });
       } else {
         setSessionStatus({
           isValid: true,
-          isLoading: userLoading,
+          isLoading: false,
           lastCheck: new Date()
         });
       }
     } else {
-      // Still loading
+      // Still loading user data
       setSessionStatus(prev => ({
         ...prev,
-        isLoading: userLoading
+        isLoading: true
       }));
     }
-  }, [user, userLoading, userError, requiresAuth, handleInvalidSession]);
+  }, [isAuthenticated, authLoading, user, userLoading, userError, requiresAuth, handleInvalidSession]);
 
   // Redirect to original destination after successful login
   const redirectToReturnUrl = useCallback(() => {
