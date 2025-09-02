@@ -234,12 +234,18 @@ export default function Landing() {
   const [, navigate] = useLocation();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
-  // Enforce Auth0 login redirect for unauthenticated users
-  const { isAuthenticated: auth0IsAuthenticated, loginWithRedirect } = useAuth0();
-  useEffect(() => {
-    if (!auth0IsAuthenticated) loginWithRedirect();
-  }, [auth0IsAuthenticated, loginWithRedirect]);
-  if (!auth0IsAuthenticated) return null;
+  // Remove automatic Auth0 login redirect
+  // const { isAuthenticated: auth0IsAuthenticated, loginWithRedirect } = useAuth0();
+  // useEffect(() => {
+  //   if (!auth0IsAuthenticated) loginWithRedirect();
+  // }, [auth0IsAuthenticated, loginWithRedirect]);
+  // if (!auth0IsAuthenticated) return null;
+
+  // Modify logout logic
+  const handleLogout = () => {
+    logout({ returnTo: window.location.origin });
+  };
+  const { loginWithRedirect } = useAuth0();
 
   // Check if user is already authenticated via app session
   const { data: userData, isLoading } = useQuery({
@@ -252,73 +258,6 @@ export default function Landing() {
   const user = userData?.user;
   const isAuthenticated = !!user;
 
-  // Redirect authenticated users to appropriate location
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      // If user is admin, redirect to admin dashboard
-      if (user.role === 'admin') {
-        navigate('/admin');
-        return;
-      }
-
-      // For other users, redirect to their last completed step in the most recent workshop
-      if (user.navigationProgress) {
-        try {
-          const progress = JSON.parse(user.navigationProgress);
-          const appType = progress.appType;
-          const completedSteps = progress.completedSteps || [];
-          const currentStepId = progress.currentStepId;
-
-          // Determine the redirect path based on app type and progress
-          if (appType === 'ast' || appType === 'allstarteams') {
-            // Set session storage for AllStarTeams
-            sessionStorage.setItem('selectedApp', 'ast');
-            
-            // If user has progress, go to AllStarTeams workshop
-            if (completedSteps.length > 0 || currentStepId) {
-              navigate('/allstarteams');
-            } else {
-              // No progress yet, redirect to workshop start
-              navigate('/auth?app=ast');
-            }
-          } else if (appType === 'ia' || appType === 'imaginal-agility') {
-            // Set session storage for Imaginal Agility
-            sessionStorage.setItem('selectedApp', 'imaginal-agility');
-            
-            // If user has progress, go to Imaginal Agility workshop
-            if (completedSteps.length > 0 || currentStepId) {
-              navigate('/imaginal-agility');
-            } else {
-              // No progress yet, redirect to workshop start
-              navigate('/auth?app=imaginal-agility');
-            }
-          } else {
-            // No app type specified, redirect based on user type
-            if (user.isTestUser) {
-              navigate('/testuser');
-            } else {
-              navigate('/');
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing navigation progress:', error);
-          // Fallback based on user type
-          if (user.isTestUser) {
-            navigate('/testuser');
-          } else {
-            navigate('/');
-          }
-        }
-      } else {
-        // No navigation progress, redirect based on user type
-        if (user.isTestUser) {
-          navigate('/testuser');
-        } else {
-          navigate('/');
-        }
-      }
-    }
-  }, [isAuthenticated, user, navigate]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -332,10 +271,6 @@ export default function Landing() {
     );
   }
 
-  // Don't render the landing page if user is authenticated (they'll be redirected)
-  if (isAuthenticated) {
-    return null;
-  }
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -352,9 +287,9 @@ export default function Landing() {
           {/* Login button removed for production test */}
           <div className="flex items-center space-x-3">
             {/* <Link href="/auth">
-              <Button variant="outline" size="sm" className="rounded-md">Login</Button>
-            </Link> */}
-          </div>
+              <Button variant="outline" size="sm" className="rounded-md">Login</Button> */}
+            {/* <Button variant="outline" size="sm" className="rounded-md">Logout</Button> */}
+            </div>
         </div>
       </header>
 
@@ -372,12 +307,10 @@ export default function Landing() {
           {/* Login and Invite Buttons - Moved Above Cards */}
           <div className="flex justify-center mb-12">
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
+              <Button
                 size="lg"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-md text-lg font-semibold"
-                onClick={() => {
-                  window.location.href = '/auth';
-                }}
+                onClick={() => loginWithRedirect()}
               >
                 Login
               </Button>

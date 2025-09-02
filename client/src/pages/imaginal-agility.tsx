@@ -383,6 +383,7 @@ export default function ImaginalAgilityHome() {
         isOpen={showDiscernmentModal}
         onClose={() => setShowDiscernmentModal(false)}
       />
+      <LogoutButton />
     </div>
   );
 }

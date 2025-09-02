@@ -54,7 +54,7 @@ export default function Home() {
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <span className="text-gray-700">Welcome, {user.name}</span>
-                <Button variant="outline" onClick={() => logout({ returnTo: window.location.origin })}>
+                <Button variant="outline" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
                   Logout
                 </Button>
                 <Link href="/dashboard">
