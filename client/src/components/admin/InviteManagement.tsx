@@ -632,6 +632,28 @@ export const InviteManagement: React.FC = () => {
                   <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={handleBulkDelete}>
                     <Trash2 className="h-4 w-4 mr-1" /> Delete Selected ({selectedIds.length})
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-700 border-red-300 hover:bg-red-50"
+                    onClick={async () => {
+                      if (!confirm('Delete ALL used invites? This cannot be undone.')) return;
+                      try {
+                        const r = await fetch('/api/admin/invites/delete-used', { method: 'POST', credentials: 'include' });
+                        const j = await r.json();
+                        if (j.success) {
+                          toast({ title: 'Deleted used invites', description: `${j.deletedCount} invites removed.` });
+                          fetchInvites();
+                        } else {
+                          toast({ variant: 'destructive', title: 'Error', description: j.error || 'Failed to delete used invites' });
+                        }
+                      } catch (e) {
+                        toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete used invites' });
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" /> Delete All Used
+                  </Button>
                 </div>
               )}
             </div>
@@ -661,7 +683,7 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Test User</TableHead>
                       <TableHead>Organization</TableHead>
                       <TableHead>Cohort</TableHead>
-                      {userRole === 'admin' && <TableHead>Created By</TableHead>}
+                      <TableHead>Created By</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
@@ -738,18 +760,16 @@ export const InviteManagement: React.FC = () => {
                             <span className="text-muted-foreground text-sm">No cohort</span>
                           )}
                         </TableCell>
-                        {userRole === 'admin' && (
-                          <TableCell>
-                            {invite.creator_name ? (
-                              <div className="text-sm">
-                                <div className="font-medium">{invite.creator_name}</div>
-                                <div className="text-muted-foreground text-xs">{invite.creator_email}</div>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">Unknown</span>
-                            )}
-                          </TableCell>
-                        )}
+                        <TableCell>
+                          {invite.creator_name ? (
+                            <div className="text-sm">
+                              <div className="font-medium">{invite.creator_name}</div>
+                              <div className="text-muted-foreground text-xs">{invite.creator_email}</div>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Unknown</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {(() => {
                             const dateValue = invite.createdAt || invite.created_at;

@@ -202,4 +202,33 @@ router.delete('/:id', requireAuth, isAdmin, async (req, res) => {
   }
 });
 
+/**
+ * Bulk delete invites (admin only)
+ */
+router.post('/bulk-delete', requireAuth, isAdmin, async (req, res) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids.map((n: any) => parseInt(n, 10)).filter((n: any) => !isNaN(n)) : [];
+    const result = await inviteService.deleteInvites(ids);
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (error) {
+    console.error('Error bulk deleting invites:', error);
+    res.status(500).json({ success: false, error: 'Failed to bulk delete invites' });
+  }
+});
+
+/**
+ * Delete all used invites (admin only)
+ */
+router.post('/delete-used', requireAuth, isAdmin, async (_req, res) => {
+  try {
+    const result = await inviteService.deleteUsedInvites();
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (error) {
+    console.error('Error deleting used invites:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete used invites' });
+  }
+});
+
 export default router;

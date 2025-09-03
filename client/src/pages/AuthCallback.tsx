@@ -97,14 +97,28 @@ export default function AuthCallback() {
           role: user?.role,
           isBetaTester: user?.isBetaTester
         });
+        console.log('[AuthCallback] Full user object:', user);
+        console.log('[AuthCallback] Full response object:', me);
 
         // Decide destination
         let dest = '/';
-        if (user?.role === 'admin') dest = '/admin';
-        else if (user?.isBetaTester || user?.isTestUser) dest = '/dashboard';
-        else if (user?.astAccess) dest = '/allstarteams';
-        else if (user?.iaAccess) dest = '/imaginal-agility';
+        if (user?.role === 'admin') {
+          dest = '/admin';
+          console.log('[AuthCallback] Admin user detected, routing to /admin');
+        } else if (user?.isBetaTester || user?.isTestUser) {
+          dest = '/dashboard';
+          console.log('[AuthCallback] Beta tester detected, routing to /dashboard');
+        } else if (user?.astAccess) {
+          dest = '/allstarteams';
+          console.log('[AuthCallback] AST access detected, routing to /allstarteams');
+        } else if (user?.iaAccess) {
+          dest = '/imaginal-agility';
+          console.log('[AuthCallback] IA access detected, routing to /imaginal-agility');
+        } else {
+          console.log('[AuthCallback] No specific access detected, defaulting to landing page');
+        }
 
+        console.log('[AuthCallback] Final destination:', dest);
         if (mounted) navigate(dest);
       } catch (e) {
         // On error, go back to landing

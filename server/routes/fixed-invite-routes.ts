@@ -136,4 +136,20 @@ router.post('/bulk-delete', isAdmin, async (req, res) => {
   }
 });
 
+/**
+ * Delete all used invites (admin only)
+ */
+router.post('/delete-used', isAdmin, async (_req, res) => {
+  try {
+    const result = await inviteService.deleteUsedInvites();
+    if (!result.success) {
+      return res.status(500).json({ success: false, error: result.error || 'Failed to delete used invites' });
+    }
+    res.json({ success: true, deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error('Error deleting used invites:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
 export default router;

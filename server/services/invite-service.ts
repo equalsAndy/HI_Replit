@@ -395,6 +395,23 @@ class InviteService {
   }
 
   /**
+   * Delete all used invites (used_at is not null)
+   */
+  async deleteUsedInvites() {
+    try {
+      const result = await db.execute(sql`
+        DELETE FROM invites WHERE used_at IS NOT NULL RETURNING id
+      `);
+      const rows = (result as any).rows || (Array.isArray(result) ? result : []);
+      const count = rows.length ?? 0;
+      return { success: true, deletedCount: count };
+    } catch (error) {
+      console.error('Error deleting used invites:', error);
+      return { success: false, error: 'Failed to delete used invites' };
+    }
+  }
+
+  /**
    * Format invite code with hyphens for display
    */
   formatInviteCode(code: string): string {
