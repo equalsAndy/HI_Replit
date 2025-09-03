@@ -69,6 +69,9 @@ const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 const server = createServer(app);
 
+// Trust proxy for session cookies (important for development with potential proxies)
+app.set('trust proxy', 1);
+
 // Environment variable validation
 function validateEnvironment() {
   const required = ['DATABASE_URL', 'SESSION_SECRET'];
@@ -449,6 +452,7 @@ async function initializeApp() {
       //     method: req.method,
       //     sessionID: req.sessionID,
       //     hasSession: !!req.session,
+      //     userId: (req.session as any)?.userId,
       //     cookies: req.headers.cookie
       //   });
       //   next();
