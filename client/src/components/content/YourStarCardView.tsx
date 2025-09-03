@@ -70,7 +70,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
     try {
       console.log('Starting star card download...');
       
-      // Use the utility function for consistent configuration
+      // Ensure consistent dynamic import of html2canvas
       const { downloadElementAsImage } = await import('@/lib/html2canvas');
       await downloadElementAsImage(starCardRef.current, 'your-star-card.png');
       

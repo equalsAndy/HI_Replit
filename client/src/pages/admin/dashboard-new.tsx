@@ -7,7 +7,7 @@ import IAExerciseInstructions from '../../components/admin/IAExerciseInstruction
 import AdminChat from '../../components/admin/AdminChat';
 import { SimpleVideoManagement } from '../../components/admin/SimpleVideoManagement';
 import { useToast } from '../../hooks/use-toast';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useLogout } from '@/hooks/use-logout';
 import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video } from 'lucide-react';
 import VersionInfo from '../../components/ui/VersionInfo';
 import { FeedbackTrigger } from '../../components/feedback/FeedbackTrigger';
@@ -265,7 +265,6 @@ const InviteManagement: React.FC = () => {
   });
   const [isSendingInvite, setIsSendingInvite] = React.useState(false);
   const { toast } = useToast();
-  const { logout } = useAuth0();
 
   const fetchInvites = async () => {
     setIsLoading(true);
@@ -736,6 +735,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  const appLogout = useLogout();
   const [activeTab, setActiveTab] = React.useState('users');
   const [activeAITab, setActiveAITab] = React.useState('overview');
   const [contentAccess, setContentAccess] = React.useState<'student' | 'professional'>('professional');
@@ -795,8 +795,10 @@ export default function AdminDashboard() {
     updateContentAccessMutation.mutate(newAccess);
   };
 
-  // Logout via Auth0
-  const handleLogout = () => logout({ returnTo: window.location.origin });
+  // Unified app logout
+  const handleLogout = () => {
+    appLogout.mutate();
+  };
 
   const styles = {
     container: {

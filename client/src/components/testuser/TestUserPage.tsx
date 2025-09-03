@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useLogout } from '@/hooks/use-logout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings } from 'lucide-react';
@@ -68,8 +68,8 @@ const TestUserPage: React.FC = () => {
     refetchOnWindowFocus: false
   });
 
-  // Auth0 logout
-  const { logout } = useAuth0();
+  // App logout
+  const appLogout = useLogout();
 
   // Redirect non-test users accessing /testuser specifically (except admins who can access for testing)
   React.useEffect(() => {
@@ -389,7 +389,7 @@ const TestUserPage: React.FC = () => {
               {/* Red Logout Button */}
               <Button 
                 variant="destructive" 
-                onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                onClick={() => appLogout.mutate()}
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />

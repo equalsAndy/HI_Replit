@@ -463,20 +463,23 @@ async function initializeApp() {
         },
       });
 
-      // Protect API routes with Auth0 JWT middleware
-      const jwtCheck = jwt({
-        secret: jwksRsa.expressJwtSecret({
-          cache: true,
-          rateLimit: true,
-          jwksRequestsPerMinute: 5,
-          jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
-        }),
-        audience: process.env.AUTH0_AUDIENCE,
-        issuer: `https://${process.env.AUTH0_DOMAIN}/`,
-        algorithms: ['RS256']
-      });
-      app.use('/api', jwtCheck, router);
+      // Mount auth routes first (session bootstrap)
       app.use('/api/auth', auth0Routes);
+      console.log('🔗 AUTH ROUTES MOUNTED: /api/auth -> auth0Routes');
+      console.log('🔗 Available auth endpoints:');
+      console.log('  POST /api/auth/auth0-session');
+      console.log('  POST /api/auth/session');
+      
+      // Back-compat alias: /api/auth0/* (e.g., /api/auth0/session)
+      app.use('/api/auth0', auth0Routes);
+      console.log('🔗 AUTH0 ALIAS MOUNTED: /api/auth0 -> auth0Routes');
+      
+      // Also expose at /api/auth0-session and /api/session via /api prefix
+      app.use('/api', auth0Routes);
+      console.log('🔗 API DIRECT MOUNTED: /api -> auth0Routes (includes /api/auth0-session, /api/session)');
+
+      // Use cookie-session based auth for app API (JWT disabled here)
+      app.use('/api', router);
       app.use('/api/reports/holistic', holisticReportRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);

@@ -12,7 +12,7 @@ import { Link } from 'wouter';
 import ProfileModal from "../profile/ProfileModal";
 import ProfileEditor from "../profile/ProfileEditor";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth0 } from '@auth0/auth0-react';
+import { useLogout } from '@/hooks/use-logout';
 import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import TestUserBanner from "../auth/TestUserBanner";
@@ -251,9 +251,9 @@ export function NavBar() {
     window.location.href = '/workshop-reset-test';
   };
 
-  const { logout } = useAuth0();
-  // Logout via Auth0
-  const handleLogout = () => logout({ logoutParams: { returnTo: window.location.origin } });
+  const appLogout = useLogout();
+  // App logout to clear session and cache
+  const handleLogout = () => appLogout.mutate();
 
   // Function to toggle between applications
   const toggleApplication = () => {

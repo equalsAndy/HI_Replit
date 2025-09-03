@@ -26,7 +26,7 @@ profileFormSchema.refine((data) => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
 });
 
-const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organization?: string } }> = ({ inviteData }) => {
+const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organization?: string; inviteCode?: string } ; onComplete?: () => void }> = ({ inviteData, onComplete }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
@@ -55,21 +55,31 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      // Handle profile picture upload
-      if (profilePicture) {
-        // Upload logic here
+      const payload = {
+        inviteCode: (inviteData as any).inviteCode,
+        username: (data.externalEmail || inviteData.email),
+        password: data.password,
+        name: data.fullName,
+        email: (data.externalEmail || inviteData.email),
+        organization: data.organization || inviteData.organization || '',
+        jobTitle: data.jobTitle || ''
+      };
+
+      const resp = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+      const result = await resp.json();
+      if (!resp.ok || result.success === false) {
+        throw new Error(result.error || 'Registration failed');
       }
 
-      // Submit profile data
-      // API call to save profile data
-
-      toast({
-        title: 'Profile created',
-        description: 'Your profile has been successfully created.',
-      });
-
-      // Redirect to the login page
-      navigate('/auth');
+      toast({ title: 'Profile created', description: 'Your account has been created.' });
+      if (onComplete) onComplete();
+      // Optionally route now that session is established
+      // navigate('/dashboard');
     } catch (error) {
       console.error('Error creating profile:', error);
       toast({

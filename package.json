@@ -27,7 +27,8 @@
     "db:push": "drizzle-kit push",
     "version:update": "./update-version.sh",
     "bundle:analyze": "node scripts/bundle-size-check.js",
-    "bundle:check": "npm run build && node scripts/bundle-size-check.js"
+    "bundle:check": "npm run build && node scripts/bundle-size-check.js",
+    "danger:backup-delete-users": "USER_IDS=2-11,17-28,31-32 tsx server/scripts/backup-and-delete-users.ts"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",

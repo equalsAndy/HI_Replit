@@ -318,7 +318,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
     if (!cardRef.current) return;
     setDownloading(true);
     try {
-      // Use dynamic import for consistent code-splitting with other components
+      // Ensure consistent dynamic import of html2canvas
       const { downloadElementAsImage } = await import('@/lib/html2canvas');
       await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
     } catch (error) {

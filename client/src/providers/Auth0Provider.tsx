@@ -31,36 +31,12 @@ export default function HIAuth0Provider({ children }: { children: React.ReactNod
       clientId={clientId}
       authorizationParams={{
         redirect_uri: redirectUri,
+        scope: 'openid profile email',
         ...(audience ? { audience } : {}),
       }}
-      onRedirectCallback={async (appState) => {
-        try {
-          const resp = await fetch('/api/auth/me');
-          const result = await resp.json();
-          const user = result.user;
-          // Admins go to admin dashboard
-          if (user.role === 'admin') {
-            navigate('/admin');
-            return;
-          }
-          // Beta/test users go to /dashboard
-          if (user.isBetaTester) {
-            navigate('/dashboard');
-            return;
-          }
-          // Other users go to their workshop step
-          const prog = JSON.parse(user.navigationProgress || '{}');
-          const { appType, completedSteps = [], currentStepId } = prog;
-          if (appType === 'ast' || appType === 'allstarteams') {
-            navigate(completedSteps.length > 0 || currentStepId ? '/allstarteams' : '/');
-          } else if (appType === 'ia' || appType === 'imaginal-agility') {
-            navigate(completedSteps.length > 0 || currentStepId ? '/imaginal-agility' : '/');
-          } else {
-            navigate(appState?.returnTo || '/');
-          }
-        } catch {
-          navigate(appState?.returnTo || '/dashboard');
-        }
+      onRedirectCallback={async () => {
+        // Defer session establishment to our /auth/callback page
+        navigate('/auth/callback');
       }}
     >
       {children}

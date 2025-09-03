@@ -1,5 +1,6 @@
 import express from 'express';
 import { userManagementService } from '../services/user-management-service.js';
+import { createAuth0DbUser } from '../src/auth0/management.js';
 import { inviteService } from '../services/invite-service.js';
 import { z } from 'zod';
 import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code.js';
@@ -128,6 +129,19 @@ router.post('/register', async (req, res) => {
       return res.status(400).json(createResult);
     }
     
+    // Provision Auth0 user if Management API is configured
+    try {
+      if (process.env.AUTH0_TENANT_DOMAIN || process.env.TENANT_DOMAIN) {
+        const created = await createAuth0DbUser({ email: data.email, password: data.password, name: data.name });
+        if (created?.user_id && createResult.user?.id) {
+          await userManagementService.updateUser(createResult.user.id, { auth0Sub: created.user_id });
+        }
+      }
+    } catch (auth0Err) {
+      console.warn('⚠️ Auth0 provisioning failed (continuing with app user):', auth0Err instanceof Error ? auth0Err.message : String(auth0Err));
+      // Continue; app user is already created. Optionally attach error details to response.
+    }
+
     // Mark the invite as used
     await inviteService.markInviteAsUsed(normalizedCode, createResult.user?.id as number);
     

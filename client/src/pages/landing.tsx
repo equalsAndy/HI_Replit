@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useLogout } from '@/hooks/use-logout';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Play, CheckCircle2, Brain, Activity, HeartPulse, Rocket, Users2, Sparkles } from "lucide-react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
@@ -242,10 +243,12 @@ export default function Landing() {
   // if (!auth0IsAuthenticated) return null;
 
   // Modify logout logic
+  const appLogout = useLogout();
   const handleLogout = () => {
-    logout({ returnTo: window.location.origin });
+    appLogout.mutate();
   };
   const { loginWithRedirect } = useAuth0();
+  const authRedirectUri = (import.meta.env.VITE_AUTH0_REDIRECT_URI as string) || (window.location.origin + '/auth/callback');
 
   // Check if user is already authenticated via app session
   const { data: userData, isLoading } = useQuery({
@@ -310,7 +313,15 @@ export default function Landing() {
               <Button
                 size="lg"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-md text-lg font-semibold"
-                onClick={() => loginWithRedirect()}
+                onClick={() =>
+                  loginWithRedirect({
+                    authorizationParams: {
+                      redirect_uri: authRedirectUri,
+                      prompt: 'login',
+                      scope: 'openid profile email',
+                    },
+                  })
+                }
               >
                 Login
               </Button>

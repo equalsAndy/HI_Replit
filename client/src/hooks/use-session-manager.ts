@@ -29,6 +29,7 @@ export interface SessionManagerOptions {
 const DEFAULT_SKIP_ROUTES = [
   '/',
   '/auth',
+  '/auth/callback',
   '/auth/login', 
   '/login',
   '/register',
@@ -126,16 +127,8 @@ export function useSessionManager(options: SessionManagerOptions = {}) {
       onInvalidSession(reason);
     }
     
-    // Use Auth0 login or fallback to auth page
-    if (reason === 'login-required' || reason === 'session-expired') {
-      loginWithRedirect({
-        appState: {
-          returnTo: requiresAuth() ? location : '/dashboard'
-        }
-      });
-    } else {
-      setLocation('/auth');
-    }
+    // Redirect to landing page; login is user-initiated from there
+    setLocation('/');
   }, [location, requiresAuth, storeReturnUrl, storeSessionMessage, onInvalidSession, setLocation, loginWithRedirect]);
 
   // Simplified session check that relies on Auth0 and user data

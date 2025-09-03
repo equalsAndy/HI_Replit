@@ -25,7 +25,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: boolean } = {}) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [showTestInfo, setShowTestInfo] = useState(false);
@@ -51,7 +51,6 @@ export function LoginForm() {
           },
           credentials: 'include',
           body: JSON.stringify({
-            identifier: data.identifier,
             username: data.identifier,
             password: data.password,
           }),
@@ -69,6 +68,7 @@ export function LoginForm() {
       }
     },
     onSuccess: (data) => {
+      let redirectTo: string | null = null;
       // Update authentication state
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
@@ -86,31 +86,28 @@ export function LoginForm() {
       // Route users based on their role and user type
       if (data.user.role === 'admin') {
         // Admins go to admin console
-        navigate('/admin');
-        return;
+        redirectTo = '/admin';
       }
       
-      if (data.user.role === 'facilitator') {
+      if (!redirectTo && data.user.role === 'facilitator') {
         // Facilitators go to dashboard/console
-        navigate('/dashboard');
-        return;
+        redirectTo = '/dashboard';
       }
       
-      if (data.user.isTestUser) {
+      if (!redirectTo && data.user.isTestUser) {
         // Test users go to dashboard/console
-        navigate('/dashboard');
-        return;
+        redirectTo = '/dashboard';
       }
       
       // Beta testers and regular users go directly to workshops
       // Clear any stored return URL to prevent session manager override
       sessionStorage.removeItem('returnUrl');
       
-      if (data.user.isBetaTester || !data.user.isTestUser) {
+      if (!redirectTo && (data.user.isBetaTester || !data.user.isTestUser)) {
         if (data.user.astAccess) {
-          navigate('/allstarteams');
+          redirectTo = '/allstarteams';
         } else if (data.user.iaAccess) {
-          navigate('/imaginal-agility');
+          redirectTo = '/imaginal-agility';
         } else {
           // Check if we should redirect to a specific workshop
           const selectedWorkshop = sessionStorage.getItem('selectedWorkshop');
@@ -121,20 +118,29 @@ export function LoginForm() {
             
             // Redirect to the appropriate workshop
             if (selectedWorkshop === 'allstarteams') {
-              navigate('/allstarteams');
+              redirectTo = '/allstarteams';
             } else if (selectedWorkshop === 'imaginalagility') {
-              navigate('/imaginal-agility');
+              redirectTo = '/imaginal-agility';
             } else {
               // Default to AllStarTeams for regular users
-              navigate('/allstarteams');
+              redirectTo = '/allstarteams';
             }
           } else {
             // Default to AllStarTeams for regular users
-            navigate('/allstarteams');
+            redirectTo = '/allstarteams';
           }
         }
-        return;
       }
+      // Fallback default if none set
+      if (!redirectTo) redirectTo = '/dashboard';
+
+      // Perform navigation with hard redirect fallback
+      navigate(redirectTo);
+      setTimeout(() => {
+        if (window.location.pathname.startsWith('/auth')) {
+          window.location.assign(redirectTo!);
+        }
+      }, 50);
     },
     onError: (error: Error) => {
       toast({
@@ -177,25 +183,26 @@ export function LoginForm() {
         <CardDescription>
           Enter your username and password to access your account
         </CardDescription>
-        <Button 
-          variant="outline" 
-          type="button"
-          onClick={() => {
-            setShowTestInfo(!showTestInfo);
-            if (!showTestInfo) {
-              // Open test user picker when button is clicked
-              const modal = document.querySelector('[role="dialog"]');
-              if (!modal) {
-                const testUserPickerModal = document.createElement('div');
-                testUserPickerModal.setAttribute('role', 'dialog');
-                document.body.appendChild(testUserPickerModal);
+        {showTestInfoToggle && (
+          <Button 
+            variant="outline" 
+            type="button"
+            onClick={() => {
+              setShowTestInfo(!showTestInfo);
+              if (!showTestInfo) {
+                const modal = document.querySelector('[role="dialog"]');
+                if (!modal) {
+                  const testUserPickerModal = document.createElement('div');
+                  testUserPickerModal.setAttribute('role', 'dialog');
+                  document.body.appendChild(testUserPickerModal);
+                }
               }
-            }
-          }}
-          className="text-sm"
-        >
-          {showTestInfo ? "Hide Test User Info" : "Test User Info"}
-        </Button>
+            }}
+            className="text-sm"
+          >
+            {showTestInfo ? "Hide Test User Info" : "Test User Info"}
+          </Button>
+        )}
       </CardHeader>
 
       {showTestInfo && (

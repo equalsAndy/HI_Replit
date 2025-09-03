@@ -8,13 +8,15 @@ import imaginalAgilityLogo from "@/assets/HI_Logo_horizontal.png";
 import logoHorizontal from "@/assets/HI_Logo_horizontal.png";
 
 import { useAuth0 } from '@auth0/auth0-react';
+import { useLogout } from '@/hooks/use-logout';
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
   // Use Auth0 for authentication
-  const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const appLogout = useLogout();
 
   // Handle workshop selection
   const handleWorkshopSelection = (workshopType: 'allstarteams' | 'imaginalagility') => {
@@ -54,7 +56,7 @@ export default function Home() {
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <span className="text-gray-700">Welcome, {user.name}</span>
-                <Button variant="outline" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
+                <Button variant="outline" onClick={() => appLogout.mutate()}>
                   Logout
                 </Button>
                 <Link href="/dashboard">

@@ -7,6 +7,8 @@ import BetaTesterPage from '@/pages/beta-tester';
 import TestUserPage from '@/pages/testuser';
 import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
+import AuthCallback from '@/pages/AuthCallback';
+// import AuthPageEmbedded from '@/pages/auth-page-embedded';
 // Static imports - rollback from lazy loading
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
@@ -207,6 +209,13 @@ const App: React.FC = () => {
                     </Route>
 
                     {/* Authentication routes */}
+                    <Route path="/auth">
+                      {() => { window.location.replace('/'); return null; }}
+                    </Route>
+                    <Route path="/login">
+                      {() => { window.location.replace('/'); return null; }}
+                    </Route>
+                    <Route path="/auth/callback" component={AuthCallback} />
                     <Route path="/beta-tester" component={BetaTesterPage} />
                     <Route path="/beta-feedback-survey">
                       <ProtectedRoute>

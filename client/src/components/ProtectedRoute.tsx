@@ -5,6 +5,6 @@ import { Redirect } from "wouter";
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth0();
   if (isLoading) return null; // or your spinner
-  if (!isAuthenticated) return <Redirect to="/auth" />;
+  if (!isAuthenticated) return <Redirect to="/" />;
   return <>{children}</>;
 }

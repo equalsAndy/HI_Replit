@@ -265,6 +265,7 @@ class UserManagementService {
     astAccess?: boolean;
     iaAccess?: boolean;
     password?: string | null;
+    auth0Sub?: string | null;
   }) {
     try {
       const updateData: any = {};
@@ -284,6 +285,7 @@ class UserManagementService {
       if (data.showDemoDataButtons !== undefined) updateData.showDemoDataButtons = data.showDemoDataButtons;
       if (data.role !== undefined) updateData.role = data.role;
       if (data.navigationProgress !== undefined) updateData.navigationProgress = data.navigationProgress;
+      if (data.auth0Sub !== undefined) (updateData as any).auth0Sub = data.auth0Sub;
       
       // Handle access control fields
       if (data.contentAccess !== undefined) updateData.contentAccess = data.contentAccess;

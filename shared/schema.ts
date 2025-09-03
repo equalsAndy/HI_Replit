@@ -106,6 +106,9 @@ export const users: any = pgTable('users', {
   invitedBy: integer('invited_by'),
   // Talia training access control
   canTrainTalia: boolean('can_train_talia').default(false).notNull(),
+  // Auth0 integration
+  auth0Sub: varchar('auth0_sub', { length: 255 }),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

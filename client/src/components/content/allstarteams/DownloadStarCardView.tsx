@@ -73,7 +73,7 @@ export default function DownloadStarCardView({
       const filename = `Star_Card-${cleanUsername}-${cleanFullName}-${timestamp}.png`;
       console.log('Generated filename:', filename);
       
-      // Use the utility function for consistent configuration
+      // Ensure consistent dynamic import of html2canvas
       const { downloadElementAsImage, captureElementAsBase64 } = await import('@/lib/html2canvas');
       
       // Generate the image and get base64 data
