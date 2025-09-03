@@ -9,8 +9,11 @@ WORKDIR /app
 # Copy package files (root level in monorepo)
 COPY package*.json ./
 
-# Install only production dependencies (use legacy peer deps for canvas compatibility)
-RUN npm ci --only=production --legacy-peer-deps && npm cache clean --force
+# Install build tools and production dependencies (canvas needs native build)
+RUN apk add --no-cache --virtual .build-deps build-base python3 cairo-dev pango-dev giflib-dev libjpeg-turbo-dev libpng-dev pkgconfig && \
+    npm ci --only=production --legacy-peer-deps && \
+    npm cache clean --force && \
+    apk del .build-deps
 
 # Copy built application (already built locally)
 COPY dist ./dist

@@ -453,7 +453,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         <div className="mb-8 max-w-4xl mx-auto">
           <VideoPlayer
             workshopType="allstarteams"
-            stepId="4-1"
+            stepId="3-1"
             fallbackUrl="https://youtu.be/SjEfwPEl65U"
             title="The Cantril Ladder of Well-Being"
             aspectRatio="16:9"

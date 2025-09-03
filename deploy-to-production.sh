@@ -29,24 +29,37 @@ if [[ $confirm != "yes" ]]; then
     exit 1
 fi
 
-# Step 1: Build the Docker image
-echo "🔨 Building Docker image..."
-docker build -t hi-replit-app .
+# Default DATABASE_URL if unset
+DATABASE_URL="${DATABASE_URL:-postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require}"
 
-# Step 2: Tag the image with production version
-echo "🏷️  Tagging image as $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG"
-docker tag hi-replit-app $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG
+# Default session secret if unset
+SESSION_SECRET="${SESSION_SECRET:-dev-secret-key-2025-heliotrope-imaginal}"
 
-# Step 3: Authenticate with ECR
+# Ensure Auth0 environment variables for server-side operations
+: "${AUTH0_DOMAIN:?AUTH0_DOMAIN environment variable must be set}"
+: "${AUTH0_AUDIENCE:?AUTH0_AUDIENCE environment variable must be set}"
+: "${AUTH0_MGMT_CLIENT_ID:?AUTH0_MGMT_CLIENT_ID environment variable must be set}"
+: "${AUTH0_MGMT_CLIENT_SECRET:?AUTH0_MGMT_CLIENT_SECRET environment variable must be set}"
+
+# Step 1: Build and push the Docker image
+echo "🔨 Building & pushing Docker image for linux/amd64 (parallel uploads limited)..."
+export BUILDKIT_PARALLELISM=1
 echo "🔐 Authenticating with ECR..."
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
-
-# Step 4: Push to ECR
-echo "⬆️  Pushing image to ECR..."
-docker push $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG
+docker buildx build --platform linux/amd64 \
+  --tag $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG \
+  --push \
+  .
 
 # Step 5: Deploy to Lightsail PRODUCTION
 echo "🚢 Deploying to Lightsail PRODUCTION..."
+## Wait for any existing deployment to complete to avoid conflicts
+echo "⏳ Checking for ongoing deployments..."
+while aws lightsail get-container-service-deployments --service-name $SERVICE_NAME --region $REGION \
+  --query 'containerServiceDeployments[].status' --output text | grep -q InProgress; do
+  echo "⏳ Previous deployment still in progress; waiting 15s..."
+  sleep 15
+done
 aws lightsail create-container-service-deployment \
   --service-name $SERVICE_NAME \
   --region $REGION \
@@ -55,7 +68,20 @@ aws lightsail create-container-service-deployment \
       \"image\": \"$ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG\",
       \"ports\": {\"8080\": \"HTTP\"},
       \"environment\": {
-        \"NODE_ENV\": \"production\"
+        \"DATABASE_URL\": \"${DATABASE_URL}\",
+        \"SESSION_SECRET\": \"${SESSION_SECRET}\",
+        \"FEATURE_DEBUG_PANEL\": \"${FEATURE_DEBUG_PANEL}\",
+        \"ENVIRONMENT\": \"${ENVIRONMENT}\",
+        \"FEATURE_HOLISTIC_REPORTS\": \"${FEATURE_HOLISTIC_REPORTS}\",
+        \"OPENAI_API_KEY\": \"${OPENAI_API_KEY}\",
+        \"OPENAI_KEY_IA\": \"${OPENAI_KEY_IA}\",
+        \"IMAGINAL_AGILITY_PROJECT_ID\": \"${IMAGINAL_AGILITY_PROJECT_ID}\",
+        \"AUTH0_DOMAIN\": \"${AUTH0_DOMAIN}\",
+        \"AUTH0_AUDIENCE\": \"${AUTH0_AUDIENCE}\",
+        \"AUTH0_MGMT_CLIENT_ID\": \"${AUTH0_MGMT_CLIENT_ID}\",
+        \"AUTH0_MGMT_CLIENT_SECRET\": \"${AUTH0_MGMT_CLIENT_SECRET}\",
+        \"NODE_ENV\": \"production\",
+        \"PORT\": \"8080\"
       }
     }
   }" \

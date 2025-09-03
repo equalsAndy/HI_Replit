@@ -68,74 +68,84 @@
   margin-top: 0.5rem;
 }
 
-/* 32px overlapping pill tabs */
-:root {
-  --vtg-primary: #2563eb;           /* general focus ring color */
-  --vtg-muted: #f1f5f9;             /* light slate bg behind tab row */
-  --vtg-ring: rgba(37, 99, 235, 0.35);
-}
-
-/* Tab row container */
+/* 32px overlapping box tabs - clean minimal design */
 .vtg-tabs-32 {
-  display: inline-flex;
-  gap: 8px;
-  position: relative;
-  padding: 6px 10px;
-  border-radius: 9999px;
-  background: var(--vtg-muted);
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-/* Each pill is 32px tall, rounded, with white fill */
+/* Each tab container with overlapping strip design */
 .vtg-pill-32 {
   position: relative;
-  height: 32px;
-  min-width: 72px;
-  padding: 0 16px 0 16px;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #334155;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 32px;
-  border: 1px solid transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  transition: all 0.2s ease;
 }
 
-.vtg-pill-32:hover { background: #f8fafc; }
+/* The main grey box */
+.vtg-pill-32__box {
+  background: var(--vtg-muted);
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+  position: relative;
+  z-index: 10;
+  min-width: fit-content;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
 
-/* Decorative colored strip (hidden by default, shown when active only) */
-.vtg-pill-32__strip { display: none; }
-
-.vtg-pill-32.is-active .vtg-pill-32__strip {
-  display: block;
+/* Colored strip (hidden by default, shown when active) */
+.vtg-pill-32__strip {
   position: absolute;
   top: 0;
-  left: -3px;        /* overlap */
+  left: -3px;
   width: 20px;
   height: 32px;
-  border-radius: 8px 0 0 8px;  /* only left side rounded */
   background: var(--vtg-strip, #3b82f6);
+  border-radius: 8px 0 0 8px;
   z-index: 1;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-/* Raise the active pill visually with a subtle ring */
-.vtg-pill-32.is-active {
-  color: #111827; /* slightly darker text */
-  border-color: var(--vtg-strip, #3b82f6);
-  box-shadow: 0 0 0 3px var(--vtg-ring);
+/* Active state - show strip and use distinct background */
+.vtg-pill-32.is-active .vtg-pill-32__strip {
+  opacity: 1;
 }
 
-/* label sits above the strip */
-.vtg-pill-32__text { position: relative; z-index: 2; }
+.vtg-pill-32.is-active .vtg-pill-32__box {
+  color: #111827;
+  background: #f8fafc; /* Light blue-grey instead of white */
+}
 
+/* Hover state */
+.vtg-pill-32:hover .vtg-pill-32__box {
+  background: #e2e8f0;
+}
+
+.vtg-pill-32.is-active:hover .vtg-pill-32__box {
+  background: #f1f5f9; /* Slightly darker on hover */
+}
+
+/* Focus state for accessibility */
 .vtg-pill-32:focus-visible {
   outline: none;
+}
+
+.vtg-pill-32:focus-visible .vtg-pill-32__box {
   box-shadow: 0 0 0 3px var(--vtg-ring);
 }
 
 /* panel spacing */
-.vtg-tabpanel { margin-top: 8px; }
+.vtg-tabpanel { 
+  margin-top: 8px; 
+}

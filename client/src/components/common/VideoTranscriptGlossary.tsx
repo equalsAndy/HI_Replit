@@ -78,7 +78,7 @@ export default function VideoTranscriptGlossary({
   const stripFor = (k: 'watch'|'read'|'glossary') => {
     switch (k) {
       case 'watch': return '#3b82f6';   // blue
-      case 'read': return '#22c55e';    // green
+      case 'read': return '#22c55e';    // green (transcript)  
       case 'glossary': return '#8b5cf6';// purple
     }
   };
@@ -88,10 +88,9 @@ export default function VideoTranscriptGlossary({
       {/* Tabs - 32px overlapping rounded boxes */}
       <div className="vtg-tabs-32" role="tablist" aria-label="Lesson content">
         {(['watch','read','glossary'] as const).map(k => {
-          const label = k.charAt(0).toUpperCase() + k.slice(1);
+          const label = k === 'read' ? 'Transcript' : k.charAt(0).toUpperCase() + k.slice(1);
           const isActive = tab === k;
           const style = ({ ['--vtg-strip' as any]: stripFor(k) } as React.CSSProperties);
-          const muted = ({ ['--vtg-strip-muted' as any]: '#e5e7eb' } as React.CSSProperties);
           return (
             <button
               key={k}
@@ -102,10 +101,10 @@ export default function VideoTranscriptGlossary({
               onClick={() => setTab(k)}
               className={`vtg-pill-32 ${isActive ? 'is-active' : ''}`}
               type="button"
-              style={{...style, ...muted}}
+              style={style}
             >
-              <span className="vtg-pill-32__text">{label}</span>
-              <span className="vtg-pill-32__strip" aria-hidden="true" />
+              <div className="vtg-pill-32__strip" aria-hidden="true" />
+              <div className="vtg-pill-32__box">{label}</div>
             </button>
           );
         })}
