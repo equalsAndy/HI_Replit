@@ -1,5 +1,7 @@
 # Experimenting-Heliotrope-Imaginal
 
+**Version**: v2.5.2
+
 ## Development
 
 This project uses:

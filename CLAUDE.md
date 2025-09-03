@@ -255,4 +255,4 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 
 ---
 
-**Last Updated**: January 2025 | **Project Version**: v2.1.0 | **Claude Code Compatible**: ✅
+**Last Updated**: January 2025 | **Project Version**: v2.5.1 | **Claude Code Compatible**: ✅

@@ -9,7 +9,7 @@ The versioning system is a comprehensive automated workflow for tracking fronten
 ### 1. `version.json` - Central Version Registry
 ```json
 {
-  "version": "2.0.0",           // Semantic version (major.minor.patch)
+  "version": "2.5.1",           // Semantic version (major.minor.patch)
   "buildNumber": "7",           // Auto-incrementing build counter
   "lastUpdated": "2025-07-20T16:50:01.280Z",
   "description": "Fixed version number display after manual env edits"
@@ -287,4 +287,4 @@ After running bump-version:
 ---
 
 *Last updated: July 20, 2025*
-*System version: v2.0.0.7*
+*System version: v2.5.1.7*
