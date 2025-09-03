@@ -1,11 +1,35 @@
 # Experimenting-Heliotrope-Imaginal
 
+## Quick Setup
+
+### 🔐 **Setting Secrets** 
+Before running the application, configure environment variables:
+- **Quick Reference**: [WHERE-TO-SET-SECRETS.md](./WHERE-TO-SET-SECRETS.md)
+- **Full Guide**: [docs/SECRET-MANAGEMENT-GUIDE.md](./docs/SECRET-MANAGEMENT-GUIDE.md)
+- **Template**: Copy `.env.example` to `.env` and fill in your values
+
+### 🚀 **Local Development**
+```bash
+# 1. Set up environment
+cp .env.example .env
+# Edit .env with your DATABASE_URL and SESSION_SECRET
+
+# 2. Install dependencies
+npm install
+
+# 3. Check environment setup
+npm run check:env
+
+# 4. Start development server
+npm run dev
+```
+
 ## Development
 
 This project uses:
 - **Frontend**: React 18 with TypeScript, Vite, TailwindCSS
 - **Backend**: Node.js with Express, TypeScript
-- **Database**: SQLite with Drizzle ORM
+- **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Session-based with invite codes
 
 ## Navigation Progress Implementation Constraints
