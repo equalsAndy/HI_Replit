@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { validateFlagConfiguration, featureFlags, isFeatureEnabled } from '../utils/feature-flags.js';
+import { validateFlagConfiguration, featureFlags, isFeatureEnabled } from '../utils/feature-flags.ts';
 
 // Middleware to validate flag configuration on startup
 export function validateFlagsOnStartup() {

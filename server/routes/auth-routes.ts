@@ -1,7 +1,7 @@
 import express from 'express';
-import { userManagementService } from '../services/user-management-service.js';
-import { requireAuth } from '../middleware/auth.js';
-import { validateInviteCode } from '../utils/invite-code.js';
+import { userManagementService } from '../services/user-management-service.ts';
+import { requireAuth } from '../middleware/auth.ts';
+import { validateInviteCode } from '../utils/invite-code.ts';
 import bcrypt from 'bcryptjs';
 
 const router = express.Router();
@@ -450,7 +450,7 @@ router.post('/change-password', requireAuth, async (req, res) => {
 });
 
 // Import registration routes
-import registerRoutes from './auth-routes-register.js';
+import registerRoutes from './auth-routes-register.ts';
 router.use(registerRoutes);
 
 export default router;

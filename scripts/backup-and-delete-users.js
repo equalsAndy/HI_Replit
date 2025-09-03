@@ -1,12 +1,15 @@
-#!/usr/bin/env tsx
-import 'dotenv/config';
-import path from 'path';
-import fs from 'fs';
-import { Client } from 'pg';
+#!/usr/bin/env node
+const path = require('path');
+const fs = require('fs');
+const { Client } = require('pg');
 
-function expandRanges(spec: string): number[] {
-  const parts = spec.split(',').map(s => s.trim()).filter(Boolean);
-  const ids: number[] = [];
+require('dotenv').config({
+  path: path.join(process.cwd(), 'server', `.env.${process.env.NODE_ENV || 'development'}`),
+});
+
+function expandRanges(spec) {
+  const parts = String(spec || '').split(',').map(s => s.trim()).filter(Boolean);
+  const ids = [];
   for (const p of parts) {
     if (p.includes('-')) {
       const [a, b] = p.split('-').map(n => parseInt(n, 10));
@@ -56,21 +59,23 @@ async function main() {
     'connection_suggestions',
   ];
 
-  // Backup
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupDir = path.join(process.cwd(), 'server', 'backups');
   fs.mkdirSync(backupDir, { recursive: true });
   const backupPath = path.join(backupDir, `users-backup-${timestamp}.json`);
 
-  const backup: Record<string, unknown> = { meta: { createdAt: new Date().toISOString(), userIds } } as any;
+  const backup = { meta: { createdAt: new Date().toISOString(), userIds } };
   try {
-    // Users table
     const usersRes = await client.query('SELECT * FROM users WHERE id = ANY($1::int[]) ORDER BY id', [userIds]);
-    (backup as any).users = usersRes.rows;
+    backup.users = usersRes.rows;
 
     for (const tbl of tablesByUserId) {
-      const res = await client.query(`SELECT * FROM ${tbl} WHERE user_id = ANY($1::int[])`, [userIds]);
-      (backup as any)[tbl] = res.rows;
+      try {
+        const res = await client.query(`SELECT * FROM ${tbl} WHERE user_id = ANY($1::int[])`, [userIds]);
+        backup[tbl] = res.rows;
+      } catch (e) {
+        console.warn(`Skipping backup for table ${tbl}:`, e.message || e);
+      }
     }
 
     fs.writeFileSync(backupPath, JSON.stringify(backup, null, 2));
@@ -81,12 +86,22 @@ async function main() {
     process.exit(1);
   }
 
-  // Delete in a transaction (children first, then users)
+  const dry = String(process.env.DRY_RUN || '').toLowerCase();
+  if (dry === '1' || dry === 'true' || dry === 'yes') {
+    console.log('DRY_RUN enabled — skipping deletion.');
+    await client.end();
+    process.exit(0);
+  }
+
   try {
     await client.query('BEGIN');
     for (const tbl of tablesByUserId) {
-      const del = await client.query(`DELETE FROM ${tbl} WHERE user_id = ANY($1::int[])`, [userIds]);
-      console.log(`Deleted ${del.rowCount} from ${tbl}`);
+      try {
+        const del = await client.query(`DELETE FROM ${tbl} WHERE user_id = ANY($1::int[])`, [userIds]);
+        console.log(`Deleted ${del.rowCount} from ${tbl}`);
+      } catch (e) {
+        console.warn(`Skipping delete for table ${tbl}:`, e.message || e);
+      }
     }
     const delUsers = await client.query('DELETE FROM users WHERE id = ANY($1::int[])', [userIds]);
     console.log(`Deleted ${delUsers.rowCount} from users`);

@@ -1,24 +1,24 @@
 import express from 'express';
-import { attachUser } from './middleware/auth.js';
-import { db } from './db.js';
+import { attachUser } from './middleware/auth.ts';
+import { db } from './db.ts';
 import { eq, and, desc } from 'drizzle-orm';
-import * as schema from '../shared/schema.js';
+import * as schema from '../shared/schema.ts';
 
 // Import route modules
-import authRoutes from './routes/auth-routes.js';
-import inviteRoutes from './routes/invite-routes.js';
-import fixedInviteRoutes from './routes/fixed-invite-routes.js';
-import userRoutes from './routes/user-routes.js';
-import workshopDataRoutes from './routes/workshop-data-routes.js';
-import growthPlanRoutes from './routes/growth-plan-routes.js';
-// import coachingChatRoutes from './routes/coaching-chat-routes.js';
-import { resetRouter } from './reset-routes.js';
-import { adminRouter } from './routes/admin-routes.js';
-import { facilitatorRouter } from './routes/facilitator-routes.js';
-import photoRoutes from './routes/photo-routes.js';
-import starCardRoutes from './routes/starcard-routes.js';
-import iaChatRoutes from './routes/ia-chat-routes.js';
-import aiRoutes from './routes/ai.js';
+import authRoutes from './routes/auth-routes.ts';
+import inviteRoutes from './routes/invite-routes.ts';
+import fixedInviteRoutes from './routes/fixed-invite-routes.ts';
+import userRoutes from './routes/user-routes.ts';
+import workshopDataRoutes from './routes/workshop-data-routes.ts';
+import growthPlanRoutes from './routes/growth-plan-routes.ts';
+// import coachingChatRoutes from './routes/coaching-chat-routes.ts';
+import { resetRouter } from './reset-routes.ts';
+import { adminRouter } from './routes/admin-routes.ts';
+import { facilitatorRouter } from './routes/facilitator-routes.ts';
+import photoRoutes from './routes/photo-routes.ts';
+import starCardRoutes from './routes/starcard-routes.ts';
+import iaChatRoutes from './routes/ia-chat-routes.ts';
+import aiRoutes from './routes/ai.ts';
 
 // Create a router
 export const router = express.Router();

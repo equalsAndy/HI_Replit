@@ -20,37 +20,37 @@ import { appRouter } from './trpc/index';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
-import { router } from './routes.js';
-import holisticReportRoutes from './routes/holistic-report-routes.js';
-import adminUploadRoutes from './routes/admin-upload-routes.js';
-import discernmentRoutes from './routes/discernment-routes.js';
-import coachingRoutes from './routes/coaching-routes.js';
-// import coachingChatRoutes from './routes/coaching-chat-routes.js';
-import featureFlagRoutes from './routes/feature-flag-routes.js';
-import jiraRoutes from './routes/jira-routes.js';
-import feedbackRoutes from './routes/feedback-routes.js';
-import trainingDocumentsRoutes from './routes/training-documents-routes.js';
-import trainingRoutes from './routes/training-routes.js';
-import aiManagementRoutes from './routes/ai-management-routes.js';
-// import personaManagementRoutes from './routes/persona-management-routes.js'; // Temporarily disabled - causes startup hang
-import betaTesterRoutes from './routes/beta-tester-routes.js';
-import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.js';
-import metaliaRoutes from './routes/metalia-routes.js';
-import growthPlanRoutes from './routes/growth-plan-routes.js';
-import adminChatRoutes from './routes/admin-chat-routes.js';
-import trainingUploadRoutes from './routes/training-upload-routes.js';
-import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.js';
-import taliaStatusRoutes from './routes/talia-status-routes.js';
-import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.js';
-import assistantTestRoutes from './routes/assistant-test-routes.js';
-import adminAIResourcesRoutes from './routes/admin-ai-resources.js';
-import iaStepRoutes from './routes/ia-step-routes.js';
-import aiRoutes from './routes/ai.js';
-import iaContinuityRoutes from './routes/ia.js';
-import auth0Routes from './routes/auth0-routes.js';
-import { initializeDatabase } from './db.js';
-import { db } from './db.js';
-import { validateFlagsOnStartup } from './middleware/validateFlags.js';
+import { router } from './routes.ts';
+import holisticReportRoutes from './routes/holistic-report-routes.ts';
+import adminUploadRoutes from './routes/admin-upload-routes.ts';
+import discernmentRoutes from './routes/discernment-routes.ts';
+import coachingRoutes from './routes/coaching-routes.ts';
+// import coachingChatRoutes from './routes/coaching-chat-routes.ts';
+import featureFlagRoutes from './routes/feature-flag-routes.ts';
+import jiraRoutes from './routes/jira-routes.ts';
+import feedbackRoutes from './routes/feedback-routes.ts';
+import trainingDocumentsRoutes from './routes/training-documents-routes.ts';
+import trainingRoutes from './routes/training-routes.ts';
+import aiManagementRoutes from './routes/ai-management-routes.ts';
+// import personaManagementRoutes from './routes/persona-management-routes.ts'; // Temporarily disabled - causes startup hang
+import betaTesterRoutes from './routes/beta-tester-routes.ts';
+import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.ts';
+import metaliaRoutes from './routes/metalia-routes.ts';
+import growthPlanRoutes from './routes/growth-plan-routes.ts';
+import adminChatRoutes from './routes/admin-chat-routes.ts';
+import trainingUploadRoutes from './routes/training-upload-routes.ts';
+import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.ts';
+import taliaStatusRoutes from './routes/talia-status-routes.ts';
+import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
+import assistantTestRoutes from './routes/assistant-test-routes.ts';
+import adminAIResourcesRoutes from './routes/admin-ai-resources.ts';
+import iaStepRoutes from './routes/ia-step-routes.ts';
+import aiRoutes from './routes/ai.ts';
+import iaContinuityRoutes from './routes/ia.ts';
+import auth0Routes from './routes/auth0-routes.ts';
+import { initializeDatabase } from './db.ts';
+import { db } from './db.ts';
+import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
@@ -292,7 +292,7 @@ app.get('/api/system/info', async (req, res) => {
 // Vector Service test endpoint
 app.get('/api/vector-status', async (req, res) => {
   try {
-    const { javascriptVectorService } = await import('./services/javascript-vector-service.js');
+    const { javascriptVectorService } = await import('./services/javascript-vector-service.ts');
     const stats = javascriptVectorService.getStats();
     
     // Test vector search with a simple query
@@ -464,6 +464,11 @@ async function initializeApp() {
       });
 
       // Mount auth routes first (session bootstrap)
+      console.log('🔍 BEFORE mounting auth routes - checking router:', !!auth0Routes);
+      if (auth0Routes && typeof auth0Routes === 'object') {
+        console.log('🔍 auth0Routes properties:', Object.getOwnPropertyNames(auth0Routes));
+      }
+      
       app.use('/api/auth', auth0Routes);
       console.log('🔗 AUTH ROUTES MOUNTED: /api/auth -> auth0Routes');
       console.log('🔗 Available auth endpoints:');
@@ -477,6 +482,12 @@ async function initializeApp() {
       // Also expose at /api/auth0-session and /api/session via /api prefix
       app.use('/api', auth0Routes);
       console.log('🔗 API DIRECT MOUNTED: /api -> auth0Routes (includes /api/auth0-session, /api/session)');
+      
+      // DEBUG: Add a simple test route to verify middleware is working
+      app.post('/api/test-route', (req, res) => {
+        res.json({ message: 'Test route is working!', method: req.method });
+      });
+      console.log('🔍 TEST ROUTE ADDED: POST /api/test-route');
 
       // Use cookie-session based auth for app API (JWT disabled here)
       app.use('/api', router);
@@ -971,8 +982,12 @@ app.use('/api/admin/ai', assistantTestRoutes);
         console.log('📁 Production: serving static files from:', staticPath);
         app.use(express.static(staticPath));
         
-        // Catch-all handler for client-side routing (exclude API routes)
-        app.get(/^(?!\/api).*/, (req, res) => {
+        // Catch-all handler for client-side routing (exclude ALL API routes)
+        app.get('*', (req, res, next) => {
+          // Skip if request is for API routes
+          if (req.path.startsWith('/api/') || req.path === '/api') {
+            return next();
+          }
           res.sendFile(path.join(__dirname, 'public/index.html'));
         });
         console.log('✅ Production static file serving ready');
@@ -982,7 +997,12 @@ app.use('/api/admin/ai', assistantTestRoutes);
         console.log('📁 Development: serving static files from:', devStaticPath);
         app.use(express.static(devStaticPath));
         
-        app.get(/^(?!\/api).*/, (req, res) => {
+        // Catch-all handler for client-side routing (exclude ALL API routes)
+        app.get('*', (req, res, next) => {
+          // Skip if request is for API routes
+          if (req.path.startsWith('/api/') || req.path === '/api') {
+            return next();
+          }
           res.sendFile(path.join(__dirname, '../dist/public/index.html'));
         });
         console.log('✅ Development static file serving ready');
@@ -992,7 +1012,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       console.log('🔄 Initializing JavaScript Vector Service...');
       try {
         console.log('⏳ Loading vector service module...');
-        const { javascriptVectorService } = await import('./services/javascript-vector-service.js');
+        const { javascriptVectorService } = await import('./services/javascript-vector-service.ts');
         console.log('⏳ Starting vector service initialization...');
         await javascriptVectorService.initialize();
         console.log('✅ JavaScript Vector Service initialized');

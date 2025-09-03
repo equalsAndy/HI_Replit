@@ -28,7 +28,10 @@
     "version:update": "./update-version.sh",
     "bundle:analyze": "node scripts/bundle-size-check.js",
     "bundle:check": "npm run build && node scripts/bundle-size-check.js",
-    "danger:backup-delete-users": "USER_IDS=2-11,17-28,31-32 tsx server/scripts/backup-and-delete-users.ts"
+    "danger:backup-delete-users": "USER_IDS=2-11,17-28,31-32 node scripts/backup-and-delete-users.cjs",
+    "danger:backup-only": "DRY_RUN=1 USER_IDS=2-11,17-28,31-32 node scripts/backup-and-delete-users.cjs",
+    "danger:backup": "npm run danger:backup-only",
+    "danger": "npm run danger:backup-delete-users"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",

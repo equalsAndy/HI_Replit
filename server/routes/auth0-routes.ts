@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { userManagementService } from '../services/user-management-service.js';
+import { userManagementService } from '../services/user-management-service.ts';
 
 const router = express.Router();
 
@@ -33,8 +33,8 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
     // Fallback: find by Auth0 subject if email not present
     if (!user && decoded?.sub) {
       try {
-        const { db } = await import('../db.js');
-        const { users } = await import('../../shared/schema.js');
+        const { db } = await import('../db.ts');
+        const { users } = await import('../../shared/schema.ts');
         const { eq } = await import('drizzle-orm');
         const result = await db.select().from(users).where(eq(users.auth0Sub as any, decoded.sub));
         if (result && result.length > 0) {
@@ -89,14 +89,23 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
 
     console.log('Session created for user:', user.id);
 
-    res.json({
-      success: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+    // IMPORTANT: Force session save before responding
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Session creation failed' });
       }
+      
+      console.log('✅ Session saved successfully for user:', user.id);
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      });
     });
   } catch (error) {
     console.error('Auth0 session creation error:', error);
