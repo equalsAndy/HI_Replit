@@ -34,6 +34,7 @@ export default function HIAuth0Provider({ children }: { children: React.ReactNod
         scope: 'openid profile email',
         ...(audience ? { audience } : {}),
       }}
+      cacheLocation="memory" // Use memory storage for incognito mode compatibility
       onRedirectCallback={async () => {
         // Defer session establishment to our /auth/callback page
         navigate('/auth/callback');

@@ -30,6 +30,16 @@ export default function AstLessonContentPilot({
         transcriptMd={data.transcriptMd}
         glossary={data.glossary ?? []}
       />
+
+      {/* Section header for AST step 1-1: 60px overlapping rounded box */}
+      {stepId === '1-1' && (
+        <div className="vtg-tabs-60" aria-label="Section header">
+          <div className="vtg-pill-60 is-active">
+            <div className="vtg-pill-60__strip" aria-hidden="true" />
+            <div className="vtg-pill-60__box">Section 1</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
