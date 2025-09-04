@@ -1,7 +1,11 @@
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Install dumb-init for proper signal handling
+# Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
+
+# Upgrade npm to the latest version for production builds
+RUN npm install -g npm@latest
 
 # Create app directory
 WORKDIR /app
