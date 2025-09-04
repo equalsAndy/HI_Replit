@@ -46,13 +46,37 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
     }
 
     if (!user) {
+      // Determine role for new Auth0 user
+      let userRole = 'participant'; // Default role
+      
+      // Check for admin role in Auth0 metadata/roles
+      const auth0Roles = decoded?.['https://schemas.auth0.com/roles'] || decoded?.roles || [];
+      const auth0AppMetadata = decoded?.['https://schemas.auth0.com/app_metadata'] || decoded?.app_metadata || {};
+      
+      if (auth0Roles.includes('admin') || auth0AppMetadata.role === 'admin') {
+        userRole = 'admin';
+        console.log('🔐 Admin role detected from Auth0 metadata for:', email);
+      }
+      
+      // Email-based admin detection as fallback
+      const adminEmails = [
+        'brad@heliotropeimaginal.com',
+        'admin@heliotropeimaginal.com',
+        // Add more admin emails here
+      ];
+      
+      if (email && adminEmails.includes(email.toLowerCase())) {
+        userRole = 'admin';
+        console.log('🔐 Admin role assigned based on email:', email);
+      }
+      
       // Create new user from Auth0 data if they don't exist
       const createResult = await userManagementService.createUser({
         email: email || `${decoded.sub}@placeholder.local`,
         name: decoded.name || (email ? email.split('@')[0] : 'user'),
         username: email || decoded.sub, // Prefer email, fallback to sub
         password: `auth0-generated-${Math.random().toString(36)}`, // Random password for Auth0 users
-        role: 'participant', // Default role
+        role: userRole, // Use determined role
         auth0Sub: decoded.sub,
         lastLoginAt: new Date(),
         organization: '',
@@ -66,6 +90,35 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       user = createResult.user;
       console.log('Created new user from Auth0:', user.id);
     } else {
+      // Check if existing user needs role update (for admin promotion)
+      let needsRoleUpdate = false;
+      let newRole = user.role;
+      
+      // Check for admin role in Auth0 metadata/roles
+      const auth0Roles = decoded?.['https://schemas.auth0.com/roles'] || decoded?.roles || [];
+      const auth0AppMetadata = decoded?.['https://schemas.auth0.com/app_metadata'] || decoded?.app_metadata || {};
+      
+      if (auth0Roles.includes('admin') || auth0AppMetadata.role === 'admin') {
+        if (user.role !== 'admin') {
+          newRole = 'admin';
+          needsRoleUpdate = true;
+          console.log('🔐 Promoting existing user to admin via Auth0 metadata:', user.email);
+        }
+      }
+      
+      // Email-based admin detection as fallback
+      const adminEmails = [
+        'brad@heliotropeimaginal.com',
+        'admin@heliotropeimaginal.com',
+        // Add more admin emails here
+      ];
+      
+      if (email && adminEmails.includes(email.toLowerCase()) && user.role !== 'admin') {
+        newRole = 'admin';
+        needsRoleUpdate = true;
+        console.log('🔐 Promoting existing user to admin via email:', email);
+      }
+      
       // Update user's Auth0 subject if not set and set last login
       const updateData: any = {
         lastLoginAt: new Date()
@@ -73,8 +126,12 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       if (!user.auth0Sub) {
         updateData.auth0Sub = decoded.sub;
       }
+      if (needsRoleUpdate) {
+        updateData.role = newRole;
+        user.role = newRole; // Update local object for session creation
+      }
       await userManagementService.updateUser(user.id, updateData);
-      console.log('Found existing user:', user.id);
+      console.log('Found existing user:', user.id, needsRoleUpdate ? `(promoted to ${newRole})` : '');
     }
 
     // Create session
