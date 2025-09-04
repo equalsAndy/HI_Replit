@@ -258,7 +258,7 @@ export const allStarTeamsNavigationSections = [
     moduleNumber: 1,
     steps: [
       { id: '1-1', title: 'On Self-Awareness', type: 'video' }, // Content unchanged
-      { id: '1-2', title: 'Positive Psychology', type: 'video' }, // Content unchanged
+      { id: '1-2', title: 'The Self-Awareness Opportunity', type: 'video' }, // Content unchanged
       { id: '1-3', title: 'About this Course', type: 'video' } // Content unchanged
     ]
   },

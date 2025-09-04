@@ -37,12 +37,12 @@ const PositivePsychologyView: React.FC<PositivePsychologyViewProps> = ({
     console.log(`🎬 SIMPLIFIED MODE: Next button always active for video step ${stepId}`);
   }, [stepId]);
 
-  const title = "Positive Psychology";
+  const title = "The Self-Awareness Opportunity";
   const description = "Discover the science behind human flourishing and how it applies to understanding your strengths and potential.";
   
   // Video will be loaded from database using stepId 1-2
   const fallbackUrl = "https://youtu.be/7__r4FVj-EI";
-  const videoTitle = "Introduction to Positive Psychology";
+  const videoTitle = "The Self-Awareness Opportunity";
   const nextButton = "Next: About this Course";
   const nextContentId = "about-course";
 
@@ -159,7 +159,7 @@ const PositivePsychologyView: React.FC<PositivePsychologyViewProps> = ({
         </div>
 
         <div className="bg-white p-6 rounded-lg border border-blue-200 shadow-sm mb-8">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Key Concepts in Positive Psychology</h2>
+          <h2 className="text-xl font-semibold text-blue-700 mb-4">Key Concepts in Self-Awareness</h2>
           <ul className="space-y-3">
             <li className="flex items-start">
               <div className="w-2 h-2 bg-blue-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>

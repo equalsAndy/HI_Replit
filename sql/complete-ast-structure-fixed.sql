@@ -7,7 +7,7 @@ DELETE FROM videos WHERE workshop_type = 'allstarteams';
 -- Module 1: Foundation
 INSERT INTO videos (title, description, url, editable_id, workshop_type, section, step_id, autoplay, sort_order, created_at, updated_at) VALUES
 ('On Self-Awareness', 'Introduction to self-awareness and personal development', 'https://www.youtube.com/embed/pp2wrqE8r2o?enablejsapi=1&autoplay=1&rel=0', 'pp2wrqE8r2o', 'allstarteams', 'foundation', '1-1', true, 1, NOW(), NOW()),
-('Positive Psychology', 'Understanding positive psychology principles', 'https://www.youtube.com/embed/TN5b8jx7KSI?enablejsapi=1&autoplay=1&rel=0', 'TN5b8jx7KSI', 'allstarteams', 'foundation', '1-2', true, 2, NOW(), NOW()),
+('The Self-Awareness Opportunity', 'Understanding positive psychology principles', 'https://www.youtube.com/embed/TN5b8jx7KSI?enablejsapi=1&autoplay=1&rel=0', 'TN5b8jx7KSI', 'allstarteams', 'foundation', '1-2', true, 2, NOW(), NOW()),
 ('About this Course', 'Course overview and expectations', 'https://www.youtube.com/embed/JJWb058M-sY?enablejsapi=1&autoplay=1&rel=0', 'JJWb058M-sY', 'allstarteams', 'foundation', '1-3', true, 3, NOW(), NOW());
 
 -- Module 2: Discovery  

@@ -83,6 +83,33 @@ export default function VideoTranscriptGlossary({
     }
   };
 
+  // Convert transcript markdown to HTML with enhanced blockquote formatting
+  const formatTranscript = (transcript: string) => {
+    if (!transcript) return '';
+    
+    // Convert blockquote-style lines (starting with >) to proper blockquotes
+    const formatted = transcript
+      .split('\n')
+      .map(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('> *"') && trimmed.endsWith('"*')) {
+          // Extract the quoted text between > *" and "*
+          const text = trimmed.slice(4, -2); // Remove > *" and "*
+          return `<blockquote><p>${text}</p></blockquote>`;
+        } else if (trimmed.startsWith('# ')) {
+          // Convert headers
+          return `<h1>${trimmed.slice(2)}</h1>`;
+        } else if (trimmed === '') {
+          return '<br>';
+        } else {
+          return `<p>${trimmed}</p>`;
+        }
+      })
+      .join('\n');
+    
+    return formatted;
+  };
+
   return (
     <div className="vtg-root bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
       {/* Tabs - 32px overlapping rounded boxes */}
@@ -128,7 +155,7 @@ export default function VideoTranscriptGlossary({
           }
           return (
             <>
-              <div className="hi-video-shell w-full max-w-2xl mx-auto">
+              <div className="vtg-video-container hi-video-shell w-full max-w-2xl mx-auto">
                 <iframe
                   ref={inlineRef}
                   src={inlineSrc}
@@ -138,11 +165,10 @@ export default function VideoTranscriptGlossary({
                   className="w-full h-full"
                 />
               </div>
-              <p className="mt-2">
-                <button onClick={handleLarger} className="text-blue-600 underline">
-                  Watch larger
-                </button>
-              </p>
+              <button onClick={handleLarger} className="vtg-watch-larger-btn">
+                <span>▶</span>
+                Watch larger
+              </button>
               {modalOpen && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
                   <div className="hi-video-shell relative w-[90vw] max-w-4xl">
@@ -177,7 +203,7 @@ export default function VideoTranscriptGlossary({
         className="vtg-tabpanel"
       >
         {transcriptMd ? (
-          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: transcriptMd }} />
+          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: formatTranscript(transcriptMd) }} />
         ) : (
           <div>Transcript not available.</div>
         )}
@@ -191,14 +217,16 @@ export default function VideoTranscriptGlossary({
         className="vtg-tabpanel"
       >
         {glossary && glossary.length > 0 ? (
-          <dl className="space-y-2">
-            {glossary.map(g => (
-              <div key={g.term}>
-                <dt className="font-semibold">{g.term}</dt>
-                <dd className="ml-4">{g.definition}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="vtg-glossary">
+            <dl>
+              {glossary.map(g => (
+                <div key={g.term}>
+                  <dt>{g.term}</dt>
+                  <dd>{g.definition}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         ) : (
           <div>Glossary not available.</div>
         )}

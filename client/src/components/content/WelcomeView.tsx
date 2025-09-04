@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useQuery } from '@tanstack/react-query';
 import VideoPlayer from './VideoPlayer';
+import VideoTranscriptGlossary from '../common/VideoTranscriptGlossary';
 
 interface WelcomeViewProps {
   currentContent: string;
@@ -215,17 +216,41 @@ useEffect(() => {
 
         {/* YouTube Video Player */}
         <div className="mb-8 max-w-4xl mx-auto">
-          <VideoPlayer
-            workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
-            stepId={stepId}
-            fallbackUrl={fallbackUrl}
-            forceUrl={forceUrl}
-            title={videoTitle}
-            aspectRatio="16:9"
-            autoplay={true}
-            onProgress={handleVideoProgress}
-            startTime={calculateStartTime()}
-          />
+          {!isImaginalAgility ? (
+            // Use enhanced VideoTranscriptGlossary for AST step 1-1 "On Self-Awareness"
+            <VideoTranscriptGlossary
+              youtubeId="pp2wrqE8r2o"
+              title="On Self-Awareness"
+              transcriptMd={`# On Self-Awareness Video Transcript
+
+> *"Self-awareness is the foundation of all personal growth and meaningful relationships."*
+> 
+> *"When we truly know ourselves—our strengths, our challenges, our values—we can make choices that align with who we really are."*
+> 
+> *"This journey begins with honest reflection and curiosity about our inner landscape."*
+> 
+> *"Welcome to AllStarTeams, where self-discovery meets practical application."*`}
+              glossary={[
+                {"term": "Self-Awareness", "definition": "The conscious knowledge of one's own character, feelings, motives, and desires."},
+                {"term": "Personal Growth", "definition": "The ongoing process of understanding and developing oneself to achieve one's fullest potential."},
+                {"term": "Inner Landscape", "definition": "The internal world of thoughts, emotions, values, and beliefs that shape who we are."},
+                {"term": "Authentic Living", "definition": "Living in alignment with your true self, values, and beliefs."}
+              ]}
+            />
+          ) : (
+            // Keep using VideoPlayer for Imaginal Agility
+            <VideoPlayer
+              workshopType="imaginal-agility"
+              stepId={stepId}
+              fallbackUrl={fallbackUrl}
+              forceUrl={forceUrl}
+              title={videoTitle}
+              aspectRatio="16:9"
+              autoplay={true}
+              onProgress={handleVideoProgress}
+              startTime={calculateStartTime()}
+            />
+          )}
         </div>
 
         {isImaginalAgility ? (
