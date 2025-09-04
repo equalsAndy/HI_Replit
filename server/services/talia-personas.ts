@@ -6,7 +6,6 @@
 
 import { Pool } from 'pg';
 import { textSearchService } from './text-search-service.js';
-import { javascriptVectorService } from './javascript-vector-service.js';
 
 // Database connection
 const pool = new Pool({
@@ -193,20 +192,15 @@ export class TaliaPersonaService {
     
     let trainingContext = '';
     try {
-      trainingContext = await javascriptVectorService.generateTrainingContext(query, {
-        maxResults: 3,
-        maxTokens: 1000, // Strict token budget for reflections
-        minSimilarity: 0.1,
-        documentTypes: ['coaching_guide', 'methodology']
-      });
-    } catch (error) {
-      console.warn('Vector search failed, using fallback:', error);
-      // Fallback to existing text search if needed
+      // Use text search service as fallback since vector service was removed
       const fallbackContext = await textSearchService.generateContextForAI([query], {
         maxChunksPerQuery: 1,
-        contextStyle: 'concise'
+        contextStyle: 'summary'
       });
       trainingContext = fallbackContext.context.substring(0, 1000); // Strict limit
+    } catch (error) {
+      console.warn('Text search failed:', error);
+      trainingContext = 'No relevant training context available.';
     }
 
     // Get admin training data
@@ -600,9 +594,9 @@ Respond now as Report Talia:`;
     let trainingContext = '';
     let adminTrainingContext = '';
     
-    // Use JavaScript vector search with persona-specific document filtering
+    // Use text search service since JavaScript vector service was removed
     try {
-      console.log('🔍 Using JavaScript vector search for training context');
+      console.log('🔍 Using text search service for training context');
       
       // Get enabled documents for star_report persona
       const personaResult = await pool.query(
@@ -613,55 +607,40 @@ Respond now as Report Talia:`;
       const enabledDocuments = personaResult.rows[0]?.training_documents || [];
       console.log(`📋 Found ${enabledDocuments.length} enabled documents for star_report persona`);
       
-      // Get supporting documents for training context
-      let supportingContent = '';
-      const supportingResult = await pool.query(
-        'SELECT title, content FROM training_documents WHERE status = $1 AND id::text = ANY($2::text[]) AND title != $3',
-        ['active', enabledDocuments, 'Talia Report Generation Prompt']
-      );
+      // Get supporting documents for training context using text search
+      const searchQuery = `${context.reportType} report template development coaching`;
+      const searchResults = await textSearchService.searchSimilarContent(searchQuery, {
+        maxResults: 2,
+        documentIds: enabledDocuments
+      });
       
-      if (supportingResult.rows.length > 0) {
-        // Prioritize example reports and limit content for token optimization
-        const exampleReports = supportingResult.rows.filter(doc => 
-          doc.title.includes('Report') || doc.title.includes('Example')
-        );
-        
-        if (exampleReports.length > 0) {
-          supportingContent = exampleReports[0].content.substring(0, 2000);
-          console.log(`✅ Found supporting document: ${exampleReports[0].title}`);
-        } else {
-          supportingContent = supportingResult.rows[0].content.substring(0, 2000);
-          console.log(`✅ Using supporting document: ${supportingResult.rows[0].title}`);
-        }
+      if (searchResults.length > 0) {
+        trainingContext = searchResults.map(result => result.content).join('\n\n').substring(0, 2000);
+        console.log(`✅ Text search generated ${trainingContext.length} chars of training context`);
       } else {
-        console.warn('⚠️ No supporting documents found in enabled documents');
+        console.warn('⚠️ No training documents found via text search');
+        trainingContext = 'AllStarTeams methodology focuses on strengths-based development and personalized coaching insights.';
       }
-      
-      trainingContext = supportingContent;
-      
-      console.log(`✅ Vector search generated ${trainingContext.length} chars of training context`);
     } catch (error) {
-      console.warn('Vector search failed, using minimal context:', error);
+      console.warn('Text search failed, using minimal context:', error);
       trainingContext = 'AllStarTeams methodology focuses on strengths-based development and personalized coaching insights.';
     }
 
-    // Use vector search for admin training context with token limits
+    // Use text search service for admin training context
     try {
-      console.log('🔍 Using vector search for admin training context');
+      console.log('🔍 Using text search service for admin training context');
       const { taliaTrainingService } = await import('./talia-training-service.js');
       const adminQuery = `star report coaching approach development insights methodology`;
       
-      // Try vector search first, fallback to admin training service
-      const vectorAdminContext = await javascriptVectorService.generateTrainingContext(adminQuery, {
+      // Use text search for admin context
+      const searchResults = await textSearchService.searchSimilarContent(adminQuery, {
         maxResults: 2,
-        maxTokens: 800, // Smaller budget for admin context
-        minSimilarity: 0.1,
-        documentTypes: ['coaching_guide']
+        minRelevanceScore: 0.1
       });
       
-      if (vectorAdminContext && vectorAdminContext.length > 50) {
-        adminTrainingContext = vectorAdminContext;
-        console.log(`✅ Vector search admin context: ${adminTrainingContext.length} chars`);
+      if (searchResults.length > 0) {
+        adminTrainingContext = searchResults.map(result => result.content).join('\n\n').substring(0, 800);
+        console.log(`✅ Text search admin context: ${adminTrainingContext.length} chars`);
       } else {
         // Fallback to traditional admin training service with strict limits
         const fullTrainingContext = await taliaTrainingService.getTrainingContextForPrompt('star_report');

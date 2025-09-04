@@ -292,47 +292,7 @@ app.get('/api/system/info', async (req, res) => {
   }
 });
 
-// Vector Service test endpoint
-app.get('/api/vector-status', async (req, res) => {
-  try {
-    const { javascriptVectorService } = await import('./services/javascript-vector-service.ts');
-    const stats = javascriptVectorService.getStats();
-    
-    // Test vector search with a simple query
-    const testQuery = "personal development report coaching";
-    const testResults = await javascriptVectorService.findSimilarContent(testQuery, {
-      maxResults: 2,
-      maxTokens: 500,
-      minSimilarity: 0.1
-    });
-    
-    res.status(200).json({
-      status: 'healthy',
-      service: 'JavaScript Vector Search',
-      ...stats,
-      testQuery,
-      testResults: {
-        count: testResults.length,
-        totalTokens: testResults.reduce((sum, r) => sum + r.tokenCount, 0),
-        topSimilarity: testResults[0]?.similarity || 0,
-        documents: testResults.map(r => ({
-          title: r.documentTitle,
-          type: r.documentType,
-          similarity: r.similarity.toFixed(3),
-          tokens: r.tokenCount
-        }))
-      },
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      service: 'JavaScript Vector Search',
-      error: (error as Error).message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
+
 
 // Lazy initialization function
 async function initializeApp() {
@@ -1012,17 +972,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
         console.log('✅ Development static file serving ready');
       }
 
-      // Initialize JavaScript Vector Service for training document retrieval
-      console.log('🔄 Initializing JavaScript Vector Service...');
-      try {
-        console.log('⏳ Loading vector service module...');
-        const { javascriptVectorService } = await import('./services/javascript-vector-service.ts');
-        console.log('⏳ Starting vector service initialization...');
-        await javascriptVectorService.initialize();
-        console.log('✅ JavaScript Vector Service initialized');
-      } catch (error) {
-        console.warn('⚠️ Vector service initialization failed, will use fallback search:', error);
-      }
+
 
       isInitialized = true;
       console.log('✅ Application initialization complete');

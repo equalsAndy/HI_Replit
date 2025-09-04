@@ -137,3 +137,6 @@ certs/*.crt
 .claude/
 build.tgz
 client/stats.html
+
+# Removed/archived files
+*.removed
