@@ -5,7 +5,7 @@ import FeedbackManagement from '@/components/admin/FeedbackManagement';
 import AIManagement from '@/components/admin/AIManagement';
 import IAExerciseInstructions from '@/components/admin/IAExerciseInstructions';
 import AdminChat from '@/components/admin/AdminChat';
-import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
+import { EnhancedVideoManagement } from '@/components/admin/EnhancedVideoManagement';
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
 import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video } from 'lucide-react';
@@ -1122,7 +1122,7 @@ export default function AdminDashboardWorkshop() {
         <div style={styles.tabContent}>
           {activeTab === 'users' && <UserManagement />}
           {activeTab === 'invites' && <InviteManagement />}
-          {activeTab === 'videos' && isAdmin && <SimpleVideoManagement />}
+          {activeTab === 'videos' && isAdmin && <EnhancedVideoManagement />}
           {activeTab === 'ai' && (
             <div>
               <div style={styles.subTabsContainer}>

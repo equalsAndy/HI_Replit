@@ -664,6 +664,64 @@ class UserManagementService {
   }
   
   /**
+   * Create a new video
+   */
+  async createVideo(data: {
+    title: string;
+    description?: string;
+    url: string;
+    editableId?: string;
+    workshopType: string;
+    section: string;
+    stepId?: string | null;
+    sortOrder?: number;
+    autoplay?: boolean;
+    contentMode?: string;
+    requiredWatchPercentage?: number;
+    transcriptMd?: string;
+    glossary?: Array<{ term: string; definition: string; }>;
+  }) {
+    try {
+      // Import videos table from schema
+      const { videos } = await import('../../shared/schema.ts');
+      const { db } = await import('../db.ts');
+
+      // Insert new video
+      const newVideo = await db.insert(videos).values({
+        title: data.title,
+        description: data.description || '',
+        url: data.url,
+        editableId: data.editableId || '',
+        workshopType: data.workshopType,
+        section: data.section,
+        stepId: data.stepId || null,
+        sortOrder: data.sortOrder || 0,
+        autoplay: data.autoplay || false,
+        contentMode: (data.contentMode as any) || 'both',
+        requiredWatchPercentage: data.requiredWatchPercentage || 75,
+        transcriptMd: data.transcriptMd || '',
+        glossary: data.glossary || []
+      }).returning();
+
+      const createdVideo = newVideo[0];
+      console.log('✅ Video created:', createdVideo?.id);
+
+      return {
+        success: true,
+        video: createdVideo,
+        message: 'Video created successfully'
+      };
+    } catch (error) {
+      console.error('❌ Error creating video:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create video',
+        video: null
+      };
+    }
+  }
+
+  /**
    * Update a video
    */
   async updateVideo(id: number, data: any) {

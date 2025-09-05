@@ -460,6 +460,75 @@ router.get('/videos/workshop/:workshopType', requireAuth, isAdmin, async (req: R
   }
 });
 
+// Create new video
+router.post('/videos', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const { 
+      title, 
+      description = '', 
+      url, 
+      editableId, 
+      workshopType, 
+      section, 
+      stepId,
+      sortOrder = 0,
+      autoplay = false,
+      contentMode = 'both',
+      requiredWatchPercentage = 75,
+      transcriptMd = '',
+      glossary = []
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !url || !workshopType || !section) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Missing required fields: title, url, workshopType, section' 
+      });
+    }
+
+    console.log('Admin creating new video:', { title, workshopType, section, stepId });
+    
+    // Create video using the user management service
+    const createResult = await userManagementService.createVideo({
+      title,
+      description,
+      url,
+      editableId: editableId || '',
+      workshopType,
+      section,
+      stepId: stepId || null,
+      sortOrder,
+      autoplay,
+      contentMode,
+      requiredWatchPercentage,
+      transcriptMd,
+      glossary: Array.isArray(glossary) ? glossary : []
+    });
+    
+    if (!createResult.success) {
+      return res.status(400).json({ 
+        success: false,
+        message: createResult.error || 'Failed to create video'
+      });
+    }
+
+    console.log('Video created successfully:', createResult.video?.id);
+    res.status(201).json({
+      success: true,
+      video: createResult.video,
+      message: 'Video created successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error creating video:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while creating video' 
+    });
+  }
+});
+
 // Update video
 router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
