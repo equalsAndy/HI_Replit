@@ -938,7 +938,7 @@ export function EnhancedVideoManagement() {
                               />
                             </FormControl>
                             <FormDescription>
-                              Use blockquotes (>) for key quotes, and markdown formatting for structure.
+                              Use blockquotes (&gt;) for key quotes, and markdown formatting for structure.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -1085,7 +1085,7 @@ export function EnhancedVideoManagement() {
                               />
                             </FormControl>
                             <FormDescription>
-                              Write the video transcript using markdown formatting. Use > for blockquotes.
+                              Write the video transcript using markdown formatting. Use &gt; for blockquotes.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
