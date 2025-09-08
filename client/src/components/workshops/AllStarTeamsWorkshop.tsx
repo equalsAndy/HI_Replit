@@ -538,31 +538,28 @@ export default function AllStarTeamsWorkshop() {
 
   // Function to determine if a step is accessible - uses unlocked steps from navigation progress
   const isStepAccessible = (sectionId: string, stepId: string) => {
-    return true; // TEMPORARY: All steps accessible for testing
-    
-    // ORIGINAL LOGIC (commented out temporarily):
-    // // Use navigation progress unlocked steps instead of completed steps
-    // const unlockedSteps = navProgress?.unlockedSteps || [];
-    // const completedSteps = navProgress?.completedSteps || [];
+    // Use navigation progress unlocked steps instead of completed steps
+    const unlockedSteps = navProgress?.unlockedSteps || [];
+    const completedSteps = navProgress?.completedSteps || [];
 
-    // // Special logic for steps 5-2 and 5-3: available to all users after final reflection completion
-    // if (stepId === '5-2' || stepId === '5-3') {
-    //   const finalReflectionCompleted = completedSteps.includes('4-5');
-    //   
-    //   console.log(`🔓 Step ${stepId} accessibility check: finalReflectionCompleted=${finalReflectionCompleted}`);
-    //   
-    //   // Available to all users who have completed final reflection
-    //   return finalReflectionCompleted;
-    // }
+    // Special logic for steps 5-2 and 5-3: available to all users after final reflection completion
+    if (stepId === '5-2' || stepId === '5-3') {
+      const finalReflectionCompleted = completedSteps.includes('4-5');
+      
+      console.log(`🔓 Step ${stepId} accessibility check: finalReflectionCompleted=${finalReflectionCompleted}`);
+      
+      // Available to all users who have completed final reflection
+      return finalReflectionCompleted;
+    }
 
-    // // Check if step is in unlocked steps
-    // const isUnlocked = unlockedSteps.includes(stepId);
-    // // Only log if step is locked and we're trying to access it (reduce console spam)
-    // if (!isUnlocked && process.env.NODE_ENV === 'development') {
-    //   console.log(`🔓 Step ${stepId} locked - available: ${unlockedSteps.join(', ')}`);
-    // }
+    // Check if step is in unlocked steps
+    const isUnlocked = unlockedSteps.includes(stepId);
+    // Only log if step is locked and we're trying to access it (reduce console spam)
+    if (!isUnlocked && process.env.NODE_ENV === 'development') {
+      console.log(`🔓 Step ${stepId} locked - available: ${unlockedSteps.join(', ')}`);
+    }
 
-    // return isUnlocked;
+    return isUnlocked;
   };
 
   // Handle assessment completion
@@ -587,8 +584,8 @@ export default function AllStarTeamsWorkshop() {
     const baseSequence: Record<string, { prev: string | null; next: string | null; contentKey: string }> = {
     // MODULE 1: GETTING STARTED
     '1-1': { prev: null, next: '1-2', contentKey: 'welcome' }, // ✅ WelcomeView
-    '1-2': { prev: '1-1', next: '1-3', contentKey: 'positive-psychology' }, // NEW - needs content
-    '1-3': { prev: '1-2', next: '2-1', contentKey: 'about-course' }, // NEW - PlaceholderView
+    '1-2': { prev: '1-1', next: '1-3', contentKey: 'self-awareness-opp' }, // ✅ Self Awareness Opportunity View
+    '1-3': { prev: '1-2', next: '2-1', contentKey: 'about-course' }, // ✅ AboutCourseView
 
     // MODULE 2: STRENGTH AND FLOW
     '2-1': { prev: '1-3', next: '2-2', contentKey: 'star-strengths-assessment' }, // ✅ IntroStrengthsView
@@ -609,9 +606,9 @@ export default function AllStarTeamsWorkshop() {
     '4-4': { prev: '4-3', next: '5-1', contentKey: 'team-workshop-prep' }, // ✅ TeamWorkshopPrepView (OLD 5-4)
 
     // MODULE 5: MORE INFORMATION (unlocked after 3-4)
-    '5-1': { prev: '4-4', next: '5-2', contentKey: 'workshop-resources' }, // ✅ WorkshopResourcesView (OLD 6-1)
-    '5-2': { prev: '5-1', next: '5-3', contentKey: 'more-fun-stuff' }, // ✅ PlaceholderView
-    '5-3': { prev: '5-2', next: null, contentKey: 'introducing-imaginal-agility' }, // ✅ PlaceholderView
+    '5-1': { prev: '4-4', next: '5-2', contentKey: 'workshop-resources' }, // ✅ WorkshopResourcesView
+    '5-2': { prev: '5-1', next: '5-3', contentKey: 'extra-stuff' }, // ✅ ExtraStuffView
+    '5-3': { prev: '5-2', next: null, contentKey: 'more-imaginal-agility' }, // ✅ MoreImaginalAgilityView
     };
 
     // For non-test users, modify navigation to skip 5-2 and 5-3 (they're placeholders anyway)

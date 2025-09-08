@@ -7,6 +7,8 @@ import StarCardPreviewView from '../StarCardPreviewView';
 import ReflectionView from '../ReflectionView';
 import FlowIntroView from '../FlowIntroView';
 import IntroToFlowView from '../IntroToFlowView';
+import { ProtectedFlowPatternsView } from '../ProtectedFlowPatternsView';
+import { ProtectedFutureSelfView } from '../ProtectedFutureSelfView';
 
 import FlowRoundingOutView from '../FlowRoundingOutView';
 import FlowStarCardView from '../FlowStarCardView';
@@ -78,7 +80,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );  
 
-    case 'positive-psychology':
+    case 'self-awareness-opp':
       return (
         <PositivePsychologyView 
           navigate={navigate}
@@ -100,7 +102,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'flow-patterns':
       return (
-        <IntroToFlowView 
+        <ProtectedFlowPatternsView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -273,7 +275,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'future-self':
       return (
-        <FutureSelfView 
+        <ProtectedFutureSelfView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -415,7 +417,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );
 
-    case 'more-fun-stuff':
+    case 'extra-stuff':
       return (
         <PlaceholderView 
           title="Interesting Extra Stuff"
@@ -425,10 +427,10 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );
 
-    case 'introducing-imaginal-agility':
+    case 'more-imaginal-agility':
       return (
         <PlaceholderView 
-          title="Introducing Imaginal Agility"
+          title="More About Imaginal Agility"
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

@@ -91,11 +91,11 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   const nextButton = isImaginalAgility
     ? "Next: The Triple Challenge"
-    : "Next: Intro to Star Strengths";
+    : "Next: The Self-Awareness Opportunity";
 
   const nextContentId = isImaginalAgility
     ? "ia-2-1"
-    : "intro-strengths";
+    : "self-awareness-opp";
 
   // Track last logged progress to prevent spam
   const lastLoggedProgressRef = useRef(0);
@@ -251,6 +251,21 @@ useEffect(() => {
               startTime={calculateStartTime()}
             />
           )}
+        </div>
+
+        {/* AST 1-1 sections: Purpose, Activities, Reflections */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-8 mt-16">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Purpose</h2>
+          <p className="text-gray-700 mb-4">Workshop overview and objectives</p>
+
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Activities</h2>
+          <ul className="list-disc ml-6 mb-4">
+            <li>Welcome video introduction</li>
+            <li>Journey through strengths, flow, and potential visualization</li>
+          </ul>
+
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Reflections</h2>
+          <p className="text-gray-700 mb-0">What participants will discover about themselves</p>
         </div>
 
         {isImaginalAgility ? (

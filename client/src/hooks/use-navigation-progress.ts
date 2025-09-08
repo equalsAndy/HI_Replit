@@ -757,10 +757,8 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   };
 
   // Check if step is accessible (unlocked)
-  // TEMPORARILY DISABLED: All steps accessible for testing
   const isStepAccessible = (stepId: string): boolean => {
-    return true; // TEMPORARY: Disable step progression
-    // return progress.unlockedSteps.includes(stepId); // Original logic
+    return progress.unlockedSteps.includes(stepId);
   };
 
   // Check if Next button should be enabled (simplified mode)
@@ -870,8 +868,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   };
 
   const canNavigateToStep = (stepId: string): boolean => {
-    return true; // TEMPORARY: All steps accessible for testing
-    // return progress.unlockedSteps.includes(stepId) || progress.completedSteps.includes(stepId); // Original logic
+    return progress.unlockedSteps.includes(stepId) || progress.completedSteps.includes(stepId);
   };
 
   const getStepDisplayState = (stepId: string) => {
