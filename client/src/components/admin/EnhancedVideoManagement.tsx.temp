@@ -1,0 +1,560 @@
+import React, { useState, useEffect } from 'react';
+import { useToast } from '../../hooks/use-toast';
+
+// UI Components
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../ui/table';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { Badge } from '../ui/badge';
+import { 
+  Loader2, 
+  Pencil, 
+  Play, 
+  Trash2, 
+  Filter,
+  RefreshCw,
+  Plus,
+  Circle
+} from 'lucide-react';
+
+// Types
+interface Video {
+  id: number;
+  title: string;
+  description?: string;
+  url: string;
+  editableId: string;
+  workshopType: string;
+  section?: string;
+  stepId?: string;
+  autoplay?: boolean;
+  sortOrder?: number;
+  contentMode?: 'student' | 'professional' | 'both';
+  requiredWatchPercentage?: number;
+  transcriptMd?: string;
+  glossary?: Array<{ term: string; definition: string; }>;
+}
+
+// AST Step definitions
+const AST_STEPS = [
+  { id: '1-1', name: 'Self Awareness Gap', section: 'foundation' },
+  { id: '1-2', name: 'Self Awareness Opportunity', section: 'foundation' },
+  { id: '1-3', name: 'How to Use This Course', section: 'foundation' },
+  { id: '2-1', name: 'Star Strengths Assessment', section: 'discovery' },
+  { id: '2-2', name: 'Flow Patterns', section: 'discovery' },
+  { id: '2-3', name: 'Review Your Star Card', section: 'discovery' },
+  { id: '3-1', name: 'Well-Being Ladder', section: 'application' },
+  { id: '5-1', name: 'Future Self', section: 'future' },
+  { id: '6-1', name: 'Teamwork', section: 'integration' },
+  { id: '7-1', name: 'HI Background', section: 'background' },
+];
+
+// IA Step definitions
+const IA_STEPS = [
+  { id: 'ia-1-1', name: 'Introduction', section: 'foundation' },
+  { id: 'ia-1-2', name: 'Setup', section: 'foundation' },
+  { id: 'ia-2-1', name: 'Sensing', section: 'practice' },
+  { id: 'ia-2-2', name: 'Presencing', section: 'practice' },
+  { id: 'ia-2-3', name: 'Envisioning', section: 'practice' },
+  { id: 'ia-2-4', name: 'Enacting', section: 'practice' },
+  { id: 'ia-3-1', name: 'Integration', section: 'integration' },
+  { id: 'ia-3-2', name: 'Next Steps', section: 'integration' },
+];
+
+// All steps combined
+const ALL_STEPS = [...AST_STEPS, ...IA_STEPS];
+
+// Workshop type definitions
+const WORKSHOP_TYPES = [
+  { value: 'allstarteams', label: 'AST - All Star Teams', color: 'blue' },
+  { value: 'imaginal-agility', label: 'IA - Imaginal Agility', color: 'purple' },
+  { value: 'general', label: 'General', color: 'gray' },
+];
+
+export function EnhancedVideoManagement() {
+  const { toast } = useToast();
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Filtering state
+  const [filterStep, setFilterStep] = useState<string>('all');
+  const [filterWorkshop, setFilterWorkshop] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Extract YouTube video ID from URL
+  const extractYouTubeId = (url: string): string => {
+    const embedRegex = /youtube\.com\/embed\/([^?&/]+)/;
+    const embedMatch = url.match(embedRegex);
+    if (embedMatch && embedMatch[1]) return embedMatch[1];
+    
+    const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+    const watchMatch = url.match(watchRegex);
+    if (watchMatch && watchMatch[1]) return watchMatch[1];
+    
+    const shortRegex = /youtu\.be\/([^?&/]+)/;
+    const shortMatch = url.match(shortRegex);
+    if (shortMatch && shortMatch[1]) return shortMatch[1];
+    
+    return url;
+  };
+
+  // Get step status indicators
+  const getStepStatus = (stepId: string) => {
+    const stepVideos = videos.filter(v => v.stepId === stepId);
+    const hasVideo = stepVideos.length > 0;
+    const hasTranscript = stepVideos.some(v => v.transcriptMd && v.transcriptMd.trim().length > 0);
+    const hasGlossary = stepVideos.some(v => v.glossary && v.glossary.length > 0);
+    
+    return {
+      video: hasVideo,
+      transcript: hasTranscript,
+      glossary: hasGlossary,
+      count: stepVideos.length
+    };
+  };
+
+  // Fetch videos
+  useEffect(() => {
+    const fetchVideos = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/admin/videos', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch videos: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Fetched videos:", data);
+        setVideos(data);
+      } catch (err) {
+        console.error("Error fetching videos:", err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch videos');
+        toast({
+          title: 'Error',
+          description: 'Failed to load videos. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVideos();
+  }, [toast]);
+
+  // Filter videos
+  const filteredVideos = videos.filter(video => {
+    // Workshop filter
+    if (filterWorkshop !== 'all' && video.workshopType !== filterWorkshop) {
+      return false;
+    }
+
+    // Step filter
+    if (filterStep !== 'all' && video.stepId !== filterStep) {
+      return false;
+    }
+
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        video.title.toLowerCase().includes(searchLower) ||
+        video.description?.toLowerCase().includes(searchLower) ||
+        video.stepId?.toLowerCase().includes(searchLower) ||
+        video.workshopType?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return true;
+  });
+
+  // Sort videos
+  const sortedVideos = [...filteredVideos].sort((a, b) => {
+    // Sort by workshop type first
+    const workshopCompare = (a.workshopType || '').localeCompare(b.workshopType || '');
+    if (workshopCompare !== 0) return workshopCompare;
+
+    // Then by step ID
+    const stepOrder = [
+      '1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '3-1', '5-1', '6-1', '7-1', // AST
+      'ia-1-1', 'ia-1-2', 'ia-2-1', 'ia-2-2', 'ia-2-3', 'ia-2-4', 'ia-3-1', 'ia-3-2' // IA
+    ];
+    
+    const aIndex = stepOrder.indexOf(a.stepId || '');
+    const bIndex = stepOrder.indexOf(b.stepId || '');
+    
+    if (aIndex !== -1 && bIndex !== -1) {
+      return aIndex - bIndex;
+    }
+    
+    // Finally by sort order
+    return (a.sortOrder || 0) - (b.sortOrder || 0);
+  });
+
+  // Delete video
+  const deleteVideo = async (videoId: number) => {
+    const video = videos.find(v => v.id === videoId);
+    const confirmMessage = video 
+      ? `Delete "${video.title}"?\n\nThis action cannot be undone.`
+      : 'Are you sure you want to delete this video?';
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/videos/${videoId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete video');
+      }
+
+      setVideos(prev => prev.filter(video => video.id !== videoId));
+      
+      toast({
+        title: 'Success',
+        description: 'Video deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete video. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <h3 className="text-lg font-semibold text-red-500">Error loading videos</h3>
+        <p className="mt-2">{error}</p>
+        <Button 
+          className="mt-4" 
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Video Management</span>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Video
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <Input
+                placeholder="Search videos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Workshop Type Filter */}
+            <div className="w-full sm:w-[200px]">
+              <Select value={filterWorkshop} onValueChange={setFilterWorkshop}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by workshop" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Workshops</SelectItem>
+                  {WORKSHOP_TYPES.map(workshop => {
+                    const workshopVideos = videos.filter(v => v.workshopType === workshop.value);
+                    return (
+                      <SelectItem key={workshop.value} value={workshop.value}>
+                        <div className="flex items-center gap-2">
+                          <span>{workshop.label}</span>
+                          <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
+                            {workshopVideos.length}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Step Filter */}
+            <div className="w-full sm:w-[300px]">
+              <Select value={filterStep} onValueChange={setFilterStep}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by step" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Steps</SelectItem>
+                  {ALL_STEPS.map(step => {
+                    const status = getStepStatus(step.id);
+                    return (
+                      <SelectItem key={step.id} value={step.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{step.id}: {step.name}</span>
+                          <div className="flex gap-1 ml-2">
+                            <Circle className={`h-2 w-2 ${status.video ? 'text-blue-500 fill-current' : 'text-gray-300'}`} />
+                            <Circle className={`h-2 w-2 ${status.transcript ? 'text-green-500 fill-current' : 'text-gray-300'}`} />
+                            <Circle className={`h-2 w-2 ${status.glossary ? 'text-purple-500 fill-current' : 'text-gray-300'}`} />
+                            {status.count > 1 && (
+                              <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
+                                {status.count}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Refresh Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+
+          {/* Results Summary */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+              <span>
+                Showing {sortedVideos.length} of {videos.length} videos
+              </span>
+              {filterWorkshop !== 'all' && (
+                <Badge variant="secondary">
+                  <Filter className="h-3 w-3 mr-1" />
+                  {WORKSHOP_TYPES.find(w => w.value === filterWorkshop)?.label || filterWorkshop}
+                </Badge>
+              )}
+              {filterStep !== 'all' && (
+                <Badge variant="secondary">
+                  <Filter className="h-3 w-3 mr-1" />
+                  {ALL_STEPS.find(s => s.id === filterStep)?.name || filterStep}
+                </Badge>
+              )}
+            </div>
+            
+            <div className="text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1 mr-4">
+                <Circle className="h-2 w-2 text-blue-500 fill-current" />
+                Video
+              </span>
+              <span className="inline-flex items-center gap-1 mr-4">
+                <Circle className="h-2 w-2 text-green-500 fill-current" />
+                Transcript
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Circle className="h-2 w-2 text-purple-500 fill-current" />
+                Glossary
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Videos Table */}
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableCaption>
+              {sortedVideos.length === 0 && videos.length > 0 ? 
+                'No videos match your current filters' : 
+                'All workshop videos displayed. Use filters to narrow results.'}
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-20">Workshop</TableHead>
+                <TableHead className="w-20">Step</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead className="w-24">Content</TableHead>
+                <TableHead className="w-20">Order</TableHead>
+                <TableHead className="w-28">Video ID</TableHead>
+                <TableHead className="w-20">Auto</TableHead>
+                <TableHead className="text-right w-32">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedVideos.length > 0 ? (
+                sortedVideos.map((video) => {
+                  const stepName = ALL_STEPS.find(s => s.id === video.stepId)?.name || 'Unknown';
+                  const workshopType = WORKSHOP_TYPES.find(w => w.value === video.workshopType);
+                  
+                  return (
+                    <TableRow key={video.id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium text-muted-foreground">
+                            {workshopType ? workshopType.label.split(' - ')[0] : video.workshopType}
+                          </div>
+                          <div className={`text-xs px-2 py-1 rounded text-white ${
+                            workshopType?.color === 'blue' ? 'bg-blue-500' :
+                            workshopType?.color === 'purple' ? 'bg-purple-500' :
+                            'bg-gray-500'
+                          }`}>
+                            {workshopType ? workshopType.label.split(' - ')[1] || workshopType.label : 'Unknown'}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-mono text-sm font-medium">{video.stepId}</div>
+                          <div className="text-xs text-muted-foreground truncate max-w-[100px]">
+                            {stepName}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium max-w-[200px]">
+                        <div className="truncate" title={video.title}>
+                          {video.title}
+                        </div>
+                        {video.description && (
+                          <div className="text-xs text-muted-foreground truncate" title={video.description}>
+                            {video.description}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Circle className="h-3 w-3 text-blue-500 fill-current" />
+                          <Circle className={`h-3 w-3 ${video.transcriptMd?.trim() ? 'text-green-500 fill-current' : 'text-gray-300'}`} />
+                          <Circle className={`h-3 w-3 ${video.glossary?.length ? 'text-purple-500 fill-current' : 'text-gray-300'}`} />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm font-mono">{video.sortOrder || 0}</span>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {video.editableId || extractYouTubeId(video.url)}
+                      </TableCell>
+                      <TableCell>
+                        {video.autoplay ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Yes
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            No
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-1">
+                          <Button 
+                            size="icon" 
+                            variant="outline" 
+                            onClick={() => window.open(video.url, '_blank')}
+                            title="Preview video"
+                            className="h-8 w-8"
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="outline" 
+                            title="Edit video"
+                            className="h-8 w-8"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="outline" 
+                            className="text-destructive hover:bg-red-50 h-8 w-8" 
+                            onClick={() => deleteVideo(video.id)}
+                            title="Delete video"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : videos.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    No videos found. Check your API connection.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <div className="space-y-2">
+                      <p>No videos match your current filters.</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setFilterStep('all');
+                          setFilterWorkshop('all');
+                          setSearchTerm('');
+                        }}
+                      >
+                        Clear Filters
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
