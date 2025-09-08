@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -10,6 +11,11 @@ export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
+    visualizer({
+      filename: 'dist/stats.html',
+      template: 'treemap',
+      gzipSize: true,
+    }),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -49,5 +55,14 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Split hls.js and any @ffmpeg/* modules into separate chunks when present
+        manualChunks(id) {
+          if (id.includes('node_modules/hls.js')) return 'hls';
+          if (id.includes('node_modules/@ffmpeg/')) return 'ffmpeg';
+        },
+      },
+    },
   },
 });
