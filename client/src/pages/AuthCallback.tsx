@@ -16,6 +16,12 @@ export default function AuthCallback() {
 
   useEffect(() => {
     let mounted = true;
+    
+    // Only run once when component mounts and Auth0 is ready
+    if (!isAuthenticated || isLoading) {
+      return () => { mounted = false; };
+    }
+
     (async () => {
       try {
         console.log('[AuthCallback] Starting session bootstrap...');
@@ -130,7 +136,7 @@ export default function AuthCallback() {
       }
     })();
     return () => { mounted = false; };
-  }, [getIdTokenClaims, getAccessTokenSilently, isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading]); // Removed function references that cause re-renders
 
   if (!error) return null;
 
