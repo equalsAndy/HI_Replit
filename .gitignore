@@ -20,7 +20,7 @@ test-*.js
 
 # Claude Code development files
 .claude_code
-"Claude Code Prompts/"
+Claude\ Code\ Prompts/
 check-ast-videos.js
 clean-placeholder-content.js
 clean-placeholder-content.ts
