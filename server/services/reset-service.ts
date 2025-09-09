@@ -116,15 +116,22 @@ export class ResetService {
 
       // STEP 5: Reset any reflections or custom user content
       try {
-        // If there's a reflections table, clear it for this user
+        // Delete from reflection_responses table (the actual table we use)
+        await db.execute(sql`
+          DELETE FROM reflection_responses 
+          WHERE user_id = ${userId}
+        `);
+        console.log(`Deleted reflection responses for user ${userId}`);
+        
+        // Also try the old reflections table for backward compatibility
         await db.execute(sql`
           DELETE FROM user_reflections 
           WHERE user_id = ${userId}
         `);
         console.log(`Attempted to delete user reflections for user ${userId}`);
       } catch (error) {
-        // This is expected to fail if the table doesn't exist
-        console.log(`No reflections table to clear for user ${userId}`);
+        // This is expected to fail if old tables don't exist
+        console.log(`Some reflections tables may not exist for user ${userId}:`, error.message);
       }
 
       // STEP 6: Reset user progress (reset timestamp)

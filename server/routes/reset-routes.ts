@@ -1,10 +1,17 @@
 import { Router, Request, Response } from 'express';
-import { ResetService } from '../services/reset-service';
+import { ResetService } from '../services/reset-service.ts';
 import { workshopStepData, users } from '../../shared/schema.js';
 import { eq, isNull } from 'drizzle-orm';
 
+console.log('🔴 RESET ROUTES FILE LOADED!');
+
 // Create a router for data reset operations
 const resetRouter = Router();
+
+// Test route to verify the reset router is working
+resetRouter.get('/test', (req, res) => {
+  res.json({ message: 'Reset router is working!', timestamp: new Date().toISOString() });
+});
 
 /**
  * Reset all user data - API endpoint
@@ -13,12 +20,18 @@ const resetRouter = Router();
  */
 resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
   try {
+    console.log('🔴 RESET ROUTE CALLED for userId:', req.params.userId);
+    console.log('🔴 Request session:', req.session);
+    console.log('🔴 Request cookies:', req.cookies);
+    
     // Force content type to JSON
     res.setHeader('Content-Type', 'application/json');
     
     const userId = parseInt(req.params.userId);
+    console.log('🔴 Parsed userId:', userId);
     
     if (isNaN(userId)) {
+      console.log('🔴 Invalid userId, returning 400');
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid user ID' 
@@ -30,20 +43,25 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
     if (!currentUserId && req.cookies?.userId) {
       currentUserId = parseInt(req.cookies.userId);
     }
+    console.log('🔴 Current user ID:', currentUserId);
     
     if (!currentUserId) {
+      console.log('🔴 No currentUserId, returning 401');
       return res.status(401).json({
         success: false,
         message: 'Not authenticated'
       });
     }
     
+    console.log('🔴 Checking permissions: currentUserId:', currentUserId, 'userId:', userId);
     if (currentUserId !== userId && currentUserId !== 1) {
+      console.log('🔴 Permission denied, returning 403');
       return res.status(403).json({
         success: false,
         message: 'You can only reset your own data'
       });
     }
+    console.log('🔴 Permission check passed, proceeding with reset');
     
     // Use direct SQL for guaranteed deletion
     try {
@@ -54,8 +72,9 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       // Delete data from all relevant tables for complete reset
       
       // 1. Delete from user_assessments
-      await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
-      console.log(`Deleted from user_assessments for user ${userId}`);
+      console.log('🔴 STARTING database deletion for user:', userId);
+      const userAssessmentsResult = await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
+      console.log(`🔴 Deleted from user_assessments for user ${userId}, result:`, userAssessmentsResult);
       
       // 2. Delete from star_cards table
       try {
@@ -81,7 +100,15 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         console.log(`No workshop participation to reset for user ${userId}`);
       }
       
-      // 5. Reset workshop step data (hybrid approach: hard delete for test users, soft delete for production)
+      // 5. Delete from reflection_responses table
+      try {
+        await db.execute(sql`DELETE FROM reflection_responses WHERE user_id = ${userId}`);
+        console.log(`Deleted from reflection_responses for user ${userId}`);
+      } catch (err) {
+        console.log(`No reflection_responses data or table for user ${userId}`);
+      }
+      
+      // 6. Reset workshop step data (hybrid approach: hard delete for test users, soft delete for production)
       console.log(`=== STARTING HYBRID RESET for user ${userId} ===`);
       try {
         console.log(`=== IMPORTS SUCCESSFUL ===`);
@@ -122,7 +149,7 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         console.error(`ERROR resetting workshop data for user ${userId}:`, err);
       }
       
-      // 6. Clear navigation progress from users table
+      // 7. Clear navigation progress from users table
       try {
         await db.execute(sql`UPDATE users SET navigation_progress = NULL, updated_at = NOW() WHERE id = ${userId}`);
         console.log(`Cleared navigation progress for user ${userId}`);

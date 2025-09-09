@@ -92,6 +92,13 @@ export function ResetDataButton({
       // Clear localStorage data related to workshops (done by forceWorkshopCacheDump but also clear here)
       clearLocalStorageData();
       
+      // Dispatch events to notify components about data clearing
+      window.dispatchEvent(new CustomEvent('userDataCleared'));
+      window.dispatchEvent(new CustomEvent('assessmentDataCleared'));
+      window.dispatchEvent(new CustomEvent('workshopDataReset'));
+      
+      console.log('🔄 Data reset complete, dispatched clearing events');
+      
       if (onResetComplete) {
         onResetComplete();
       }

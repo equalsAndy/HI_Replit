@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useQuery } from '@tanstack/react-query';
-import VideoPlayer from './VideoPlayer';
 import VideoTranscriptGlossary from '../common/VideoTranscriptGlossary';
+import { trpc } from "@/utils/trpc";
+import '@/styles/section-headers.css';
 
 interface WelcomeViewProps {
   currentContent: string;
@@ -49,6 +50,31 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   // Different content based on which app is active
   const stepId = isImaginalAgility ? "ia-1-1" : "1-1";
+  
+  // Fetch video from database using tRPC
+  const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
+    workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
+    stepId: stepId,
+  }, {
+    staleTime: 0, // Force fresh fetch
+    cacheTime: 0, // Don't cache results
+  });
+  
+  // Debug logging
+  console.log('🎬 WelcomeView tRPC query:', {
+    workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
+    stepId: stepId,
+    videoLoading,
+    error: error?.message,
+    videoData: videoData ? {
+      workshop: videoData.workshop,
+      stepId: videoData.stepId,
+      youtubeId: videoData.youtubeId,
+      title: videoData.title,
+      transcriptMd: videoData.transcriptMd ? 'HAS_TRANSCRIPT' : 'NO_TRANSCRIPT',
+      glossary: videoData.glossary ? `HAS_GLOSSARY(${videoData.glossary.length})` : 'NO_GLOSSARY'
+    } : 'NO_VIDEO_DATA'
+  });
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   
@@ -216,56 +242,105 @@ useEffect(() => {
 
         {/* YouTube Video Player */}
         <div className="mb-8 max-w-4xl mx-auto">
-          {!isImaginalAgility ? (
-            // Use enhanced VideoTranscriptGlossary for AST step 1-1 "On Self-Awareness"
+          {videoLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading video...</span>
+            </div>
+          ) : error ? (
+            <div className="rounded-md border border-red-300 bg-red-50 p-4 text-red-900">
+              <strong>Error loading video from database:</strong> {error.message}
+              <br />
+              <small>Workshop: {isImaginalAgility ? 'imaginal-agility' : 'allstarteams'}, Step: {stepId}</small>
+            </div>
+          ) : videoData ? (
             <VideoTranscriptGlossary
-              youtubeId="pp2wrqE8r2o"
-              title="On Self-Awareness"
-              transcriptMd={`# On Self-Awareness Video Transcript
-
-> *"Self-awareness is the foundation of all personal growth and meaningful relationships."*
-> 
-> *"When we truly know ourselves—our strengths, our challenges, our values—we can make choices that align with who we really are."*
-> 
-> *"This journey begins with honest reflection and curiosity about our inner landscape."*
-> 
-> *"Welcome to AllStarTeams, where self-discovery meets practical application."*`}
-              glossary={[
-                {"term": "Self-Awareness", "definition": "The conscious knowledge of one's own character, feelings, motives, and desires."},
-                {"term": "Personal Growth", "definition": "The ongoing process of understanding and developing oneself to achieve one's fullest potential."},
-                {"term": "Inner Landscape", "definition": "The internal world of thoughts, emotions, values, and beliefs that shape who we are."},
-                {"term": "Authentic Living", "definition": "Living in alignment with your true self, values, and beliefs."}
-              ]}
+              youtubeId={videoData.youtubeId}
+              title={videoData.title}
+              transcriptMd={videoData.transcriptMd}
+              glossary={videoData.glossary ?? []}
             />
           ) : (
-            // Keep using VideoPlayer for Imaginal Agility
-            <VideoPlayer
-              workshopType="imaginal-agility"
-              stepId={stepId}
-              fallbackUrl={fallbackUrl}
-              forceUrl={forceUrl}
-              title={videoTitle}
-              aspectRatio="16:9"
-              autoplay={true}
-              onProgress={handleVideoProgress}
-              startTime={calculateStartTime()}
-            />
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              No video data found in database for workshop '{isImaginalAgility ? 'imaginal-agility' : 'allstarteams'}' step '{stepId}'
+            </div>
           )}
         </div>
 
         {/* AST 1-1 sections: Purpose, Activities, Reflections */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-8 mt-16">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Purpose</h2>
-          <p className="text-gray-700 mb-4">Workshop overview and objectives</p>
+        <div className="section-headers-tabs-60 mt-16 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--purpose">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🎯 Purpose</div>
+          </div>
+        </div>
+        <div className="section-content-card-60 section-content-card-60--purpose relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-teal-600 bg-teal-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              🎯 Purpose
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <p>Workshop overview and objectives</p>
+          </div>
+        </div>
 
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Activities</h2>
-          <ul className="list-disc ml-6 mb-4">
-            <li>Welcome video introduction</li>
-            <li>Journey through strengths, flow, and potential visualization</li>
-          </ul>
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--activities">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🧠 Activities</div>
+          </div>
+        </div>
+        <div className="section-content-card-60 section-content-card-60--activities relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-amber-600 bg-amber-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              🧠 Activities
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <ul className="list-disc ml-6">
+              <li>Welcome video introduction</li>
+              <li>Journey through strengths, flow, and potential visualization</li>
+            </ul>
+          </div>
+        </div>
 
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Reflections</h2>
-          <p className="text-gray-700 mb-0">What participants will discover about themselves</p>
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--reflection">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🤔 Reflections</div>
+          </div>
+        </div>
+        <div className="section-content-card-60 section-content-card-60--reflection relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-rose-600 bg-rose-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              🤔 Reflections
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <p>What participants will discover about themselves</p>
+          </div>
         </div>
 
         {isImaginalAgility ? (
@@ -404,51 +479,8 @@ useEffect(() => {
                 </div>
               </>
             ) : (
-              /* Original Adult Content */
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">PART I: INDIVIDUAL MICRO COURSE (SELF-GUIDED)</h2>
-                <p className="text-lg text-gray-700 mb-4">
-                  This self-paced experience is an opportunity for reflection and self-expression. Through several guided exercises and self-assessments, you will:
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Discover your Star Strengths</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Identify your Flow State</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Visualize your Professional Growth</span>
-                  </li>
-                </ul>
-
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">Your Takeaways:</h3>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">A personalized Digital Star Card</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">A personalized AI Holistic Profile Report</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Readiness for High-Impact Teamwork Practice</span>
-                  </li>
-                </ul>
-
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">PART II: TEAMWORK PRACTICE (FACILITATED)</h2>
-                <p className="text-lg text-gray-700 mb-6">
-                  Join your teammates in a guided session where you'll bring your insights to life.
-                </p>
-                <p className="text-lg text-gray-700 mb-6">
-                  Together, you'll align your strengths, deepen collaboration, and practice in real time using a shared digital whiteboard.
-                </p>
-              </>
+              /* Content removed as requested */
+              <></>
             )}
           </>
         )}

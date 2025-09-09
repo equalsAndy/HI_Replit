@@ -48,9 +48,11 @@ import iaStepRoutes from './routes/ia-step-routes.ts';
 import aiRoutes from './routes/ai.ts';
 import iaContinuityRoutes from './routes/ia.ts';
 import auth0Routes from './routes/auth0-routes.ts';
+import { resetRouter } from './routes/reset-routes.ts';
 import { initializeDatabase } from './db.ts';
 import { db } from './db.ts';
 import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
+import { AuthEnvironmentManager } from './config/auth-environment.ts';
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
@@ -327,6 +329,12 @@ async function initializeApp() {
       //   console.warn('⚠️ Persona configurations loading failed, continuing without them:', error.message);
       // }
       
+      // Environment configuration validation
+      console.log('🔧 Validating environment configuration...');
+      AuthEnvironmentManager.validateEnvironmentAlignment();
+      const authConfig = AuthEnvironmentManager.getAuthConfig();
+      console.log('✅ Auth0 environment configuration loaded:', authConfig.environment);
+      
       // Feature flag validation
       console.log('🚩 Validating feature flag configuration...');
       validateFlagsOnStartup();
@@ -338,15 +346,14 @@ async function initializeApp() {
         process.exit(1);
       }
 
-      // Session configuration with proper error handling
+      // Environment-aware session configuration
       const PgSession = connectPgSimple(session);
+      const sessionConfig = AuthEnvironmentManager.getSessionConfig();
       
       const sessionStore = new PgSession({
         conString: process.env.SESSION_DATABASE_URL || process.env.DATABASE_URL,
         tableName: 'session_aws',
-        createTableIfMissing: false, // Table already exists
-
-        // Simplified configuration for better compatibility
+        createTableIfMissing: true,  // Auto-create sessions table in development
         schemaName: 'public',
         pruneSessionInterval: 60 * 15, // 15 minutes
       });
@@ -356,22 +363,19 @@ async function initializeApp() {
         console.error('❌ Session store error:', error);
       });
 
+      console.log('🍪 Session configuration loaded:', {
+        name: sessionConfig.name,
+        secure: sessionConfig.cookie.secure,
+        environment: authConfig.environment
+      });
+
       // Middleware setup - CRITICAL ORDER: Body parsing, cookies, session, then tRPC
       app.use(express.json({ limit: '50mb' }));
       app.use(express.urlencoded({ extended: true }));
       app.use(cookieParser());
       app.use(session({
         store: sessionStore,
-        secret: process.env.SESSION_SECRET || 'aws-production-secret-2025',
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-          secure: false,
-          httpOnly: true,
-          maxAge: 24 * 60 * 60 * 1000,
-          sameSite: 'lax'
-        },
-        name: 'sessionId'
+        ...sessionConfig
       }));
 
       // tRPC endpoint (requires session middleware above)
@@ -483,6 +487,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/admin', adminRouter);
       app.use('/api/metalia', metaliaRoutes);
   app.use('/api/growth-plan', growthPlanRoutes);
+      app.use('/api/reset', resetRouter);
 
       // Changelog endpoint for test users (markdown)
       app.get('/changelog', async (req, res) => {

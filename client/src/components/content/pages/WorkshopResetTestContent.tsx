@@ -304,6 +304,12 @@ export default function WorkshopResetTestContent() {
     localStorage.removeItem('star-card');
     localStorage.removeItem('flow-attributes');
     localStorage.removeItem('strengths-assessment');
+    
+    // Dispatch events to notify components about data clearing
+    window.dispatchEvent(new CustomEvent('userDataCleared'));
+    window.dispatchEvent(new CustomEvent('assessmentDataCleared'));
+    window.dispatchEvent(new CustomEvent('workshopDataReset'));
+    console.log('🔄 Local data cleared, dispatched clearing events');
     localStorage.removeItem('flow-assessment');
     localStorage.removeItem('workshop-progress');
     localStorage.removeItem('cached_assessments');

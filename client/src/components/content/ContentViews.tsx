@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import WelcomeView from './WelcomeView';
-import IntroStrengthsView from './IntroStrengthsView';
+import StrengthsView from './StrengthsView';
 import AssessmentView from './AssessmentView';
 import StarCardPreviewView from './StarCardPreviewView';
 import ReflectionView from './ReflectionView';
@@ -532,7 +532,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     // Discover your Strengths
     case 'intro-strengths':
       return (
-        <IntroStrengthsView 
+        <StrengthsView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -556,6 +556,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
+          starCard={starCard}
         />
       );
 

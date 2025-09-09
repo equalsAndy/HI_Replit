@@ -39,6 +39,26 @@ export default function VideoTranscriptGlossary({
   transcriptMd,
   glossary,
 }: Props) {
+  // Helper functions to check if content is meaningful
+  const hasRealTranscript = (transcript?: string | null): boolean => {
+    if (!transcript) return false;
+    const cleaned = transcript.trim().toLowerCase();
+    return cleaned.length > 0 && 
+           !cleaned.includes('transcript not available') &&
+           !cleaned.includes('coming soon') &&
+           cleaned !== 'n/a' &&
+           cleaned !== 'none';
+  };
+
+  const hasRealGlossary = (glossary?: GlossaryItem[] | null): boolean => {
+    return glossary && glossary.length > 0;
+  };
+
+  // Determine which tabs should be shown
+  const showTranscriptTab = hasRealTranscript(transcriptMd);
+  const showGlossaryTab = hasRealGlossary(glossary);
+  const showTabs = showTranscriptTab || showGlossaryTab;
+
   const [tab, setTab] = useState<'watch'|'read'|'glossary'>('watch');
   const [modalOpen, setModalOpen] = useState(false);
   const inlineRef = useRef<HTMLIFrameElement>(null);
@@ -60,6 +80,14 @@ export default function VideoTranscriptGlossary({
   const id = getYouTubeId(youtubeId || undefined);
   const base = id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
   const inlineSrc = base ? `${base}?enablejsapi=1&modestbranding=1&playsinline=1&rel=0` : null;
+  
+  // Debug logging
+  console.log('🎬 VideoTranscriptGlossary debug:', {
+    youtubeId,
+    extractedId: id,
+    base,
+    inlineSrc
+  });
   const modalSrc  = base ? `${base}?enablejsapi=1&modestbranding=1&playsinline=1&rel=0&autoplay=1` : null;
 
   const handleLarger = () => {
@@ -112,38 +140,40 @@ export default function VideoTranscriptGlossary({
 
   return (
     <div className="vtg-root bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
-      {/* Tabs - 32px overlapping rounded boxes */}
-      <div className="vtg-tabs-32" role="tablist" aria-label="Lesson content">
-        {(['watch','read','glossary'] as const).map(k => {
-          const label = k === 'read' ? 'Transcript' : k.charAt(0).toUpperCase() + k.slice(1);
-          const isActive = tab === k;
-          const style = ({ ['--vtg-strip' as any]: stripFor(k) } as React.CSSProperties);
-          return (
-            <button
-              key={k}
-              role="tab"
-              id={`vtg-tab-${k}`}
-              aria-controls={`vtg-panel-${k}`}
-              aria-selected={isActive}
-              onClick={() => setTab(k)}
-              className={`vtg-pill-32 ${isActive ? 'is-active' : ''}`}
-              type="button"
-              style={style}
-            >
-              <div className="vtg-pill-32__strip" aria-hidden="true" />
-              <div className="vtg-pill-32__box">{label}</div>
-            </button>
-          );
-        })}
-      </div>
+      {/* Tabs - only show if there's transcript or glossary content */}
+      {showTabs && (
+        <div className="vtg-tabs-32" role="tablist" aria-label="Lesson content">
+          {(['watch', ...(showTranscriptTab ? ['read'] : []), ...(showGlossaryTab ? ['glossary'] : [])] as const).map(k => {
+            const label = k === 'read' ? 'Transcript' : k.charAt(0).toUpperCase() + k.slice(1);
+            const isActive = tab === k;
+            const style = ({ ['--vtg-strip' as any]: stripFor(k) } as React.CSSProperties);
+            return (
+              <button
+                key={k}
+                role="tab"
+                id={`vtg-tab-${k}`}
+                aria-controls={`vtg-panel-${k}`}
+                aria-selected={isActive}
+                onClick={() => setTab(k)}
+                className={`vtg-pill-32 ${isActive ? 'is-active' : ''}`}
+                type="button"
+                style={style}
+              >
+                <div className="vtg-pill-32__strip" aria-hidden="true" />
+                <div className="vtg-pill-32__box">{label}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Panels */}
       <div
         id="vtg-panel-watch"
         role="tabpanel"
         aria-labelledby="vtg-tab-watch"
-        hidden={tab !== 'watch'}
-        className="vtg-tabpanel"
+        hidden={showTabs && tab !== 'watch'}
+        className={showTabs ? "vtg-tabpanel" : ""}
       >
         {(() => {
           if (!inlineSrc) {
@@ -195,31 +225,29 @@ export default function VideoTranscriptGlossary({
         })()}
       </div>
 
-      <div
-        id="vtg-panel-read"
-        role="tabpanel"
-        aria-labelledby="vtg-tab-read"
-        hidden={tab !== 'read'}
-        className="vtg-tabpanel"
-      >
-        {transcriptMd ? (
-          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: formatTranscript(transcriptMd) }} />
-        ) : (
-          <div>Transcript not available.</div>
-        )}
-      </div>
+      {showTranscriptTab && (
+        <div
+          id="vtg-panel-read"
+          role="tabpanel"
+          aria-labelledby="vtg-tab-read"
+          hidden={tab !== 'read'}
+          className="vtg-tabpanel"
+        >
+          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: formatTranscript(transcriptMd!) }} />
+        </div>
+      )}
 
-      <div
-        id="vtg-panel-glossary"
-        role="tabpanel"
-        aria-labelledby="vtg-tab-glossary"
-        hidden={tab !== 'glossary'}
-        className="vtg-tabpanel"
-      >
-        {glossary && glossary.length > 0 ? (
+      {showGlossaryTab && (
+        <div
+          id="vtg-panel-glossary"
+          role="tabpanel"
+          aria-labelledby="vtg-tab-glossary"
+          hidden={tab !== 'glossary'}
+          className="vtg-tabpanel"
+        >
           <div className="vtg-glossary">
             <dl>
-              {glossary.map(g => (
+              {glossary!.map(g => (
                 <div key={g.term}>
                   <dt>{g.term}</dt>
                   <dd>{g.definition}</dd>
@@ -227,10 +255,8 @@ export default function VideoTranscriptGlossary({
               ))}
             </dl>
           </div>
-        ) : (
-          <div>Glossary not available.</div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

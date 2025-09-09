@@ -17,8 +17,13 @@ export default function AuthCallback() {
   useEffect(() => {
     let mounted = true;
     
-    // Only run once when component mounts and Auth0 is ready
-    if (!isAuthenticated || isLoading) {
+    // If not loading and user is not authenticated, re-trigger login
+    if (!isLoading && !isAuthenticated) {
+      loginWithRedirect({ authorizationParams: { redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin + '/auth/callback', scope: 'openid profile email', prompt: 'login' } });
+      return () => { mounted = false; };
+    }
+    // Wait until Auth0 finishes loading and user is authenticated
+    if (isLoading || !isAuthenticated) {
       return () => { mounted = false; };
     }
 

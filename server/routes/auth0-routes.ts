@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { userManagementService } from '../services/user-management-service.ts';
+import { PostLoginRouter, type UserRouteConfig } from '../utils/post-login-router.ts';
 
 const router = express.Router();
 
@@ -62,6 +63,7 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       const adminEmails = [
         'brad@heliotropeimaginal.com',
         'admin@heliotropeimaginal.com',
+        'brad@allstarteams.co', // Dev admin access for AllStarTeams workshop
         // Add more admin emails here
       ];
       
@@ -134,17 +136,35 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       console.log('Found existing user:', user.id, needsRoleUpdate ? `(promoted to ${newRole})` : '');
     }
 
-    // Create session
+    // Create session with enhanced user data
     req.session.userId = user.id;
     req.session.userRole = user.role; // Add userRole for middleware compatibility
     req.session.user = {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      astWorkshopCompleted: user.astWorkshopCompleted || false,
+      iaWorkshopCompleted: user.iaWorkshopCompleted || false,
+      cohortId: user.cohortId || null,
+      lastLoginAt: user.lastLoginAt
     };
 
-    console.log('Session created for user:', user.id);
+    // Determine post-login redirect route
+    const userConfig: UserRouteConfig = {
+      role: user.role as any,
+      astCompleted: user.astWorkshopCompleted || false,
+      iaCompleted: user.iaWorkshopCompleted || false,
+      cohortId: user.cohortId || null,
+      isFirstLogin: !user.lastLoginAt
+    };
+
+    const redirectRoute = PostLoginRouter.getEnvironmentAwareRoute(
+      userConfig, 
+      process.env.ENVIRONMENT || 'development'
+    );
+
+    console.log('Session created for user:', user.id, 'redirect:', redirectRoute);
 
     // IMPORTANT: Force session save before responding
     req.session.save((err) => {
@@ -161,7 +181,8 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
           name: user.name,
           email: user.email,
           role: user.role
-        }
+        },
+        redirectTo: redirectRoute
       });
     });
   } catch (error) {

@@ -216,9 +216,9 @@ export default function FinalReflectionView({
         }
       }
       
-      // Show completion modal (but not for beta users - they have their own flow)
+      // Navigate to finish workshop instead of showing modal
       if (!user?.isBetaTester) {
-        setShowModal(true);
+        setCurrentContent('finish-workshop');
       }
       
     } catch (error) {
@@ -230,15 +230,15 @@ export default function FinalReflectionView({
       try {
         await completeWorkshop(appType);
         markStepCompleted('4-5');
-        // Show modal (but not for beta users)
+        // Navigate to finish workshop (but not for beta users)
         if (!user?.isBetaTester) {
-          setShowModal(true);
+          setCurrentContent('finish-workshop');
         }
       } catch (completionError) {
         console.error('❌ Failed to complete workshop after save error:', completionError);
-        // Still show the modal so user isn't stuck (but not for beta users)
+        // Still navigate to finish workshop so user isn't stuck (but not for beta users)
         if (!user?.isBetaTester) {
-          setShowModal(true);
+          setCurrentContent('finish-workshop');
         }
       }
     }

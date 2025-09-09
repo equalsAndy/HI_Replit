@@ -1,7 +1,7 @@
 import React from 'react';
 import { ContentViewProps } from '../../../shared/types';
 import WelcomeView from '../WelcomeView';
-import IntroStrengthsView from '../IntroStrengthsView';
+import StrengthsView from '../StrengthsView';
 import AssessmentView from '../AssessmentView';
 import StarCardPreviewView from '../StarCardPreviewView';
 import ReflectionView from '../ReflectionView';
@@ -17,6 +17,7 @@ import CantrilLadderView from '../CantrilLadderView';
 import VisualizingYouView from '../VisualizingYouView';
 import FutureSelfView from '../FutureSelfView';
 import FinalReflectionView from '../FinalReflectionView';
+import FinishWorkshopView from '../FinishWorkshopView';
 import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
 import PlaceholderView from '../PlaceholderView';
@@ -32,9 +33,8 @@ import NeuroscienceView from './NeuroscienceView';
 import CompendiumView from './CompendiumView';
 import BackgroundView from './BackgroundView';
 import WorkshopResourcesView from './WorkshopResourcesView';
-import FinishWorkshopStep from './FinishWorkshopStep';
 import AstLessonContent from '@/components/ast/AstLessonContentPilot';
-import PositivePsychologyView from '../PositivePsychologyView';
+import SelfAwarenessOpportunityView from '../SelfAwarenessOpportunityView';
 import AboutCourseView from '../AboutCourseView';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
@@ -82,7 +82,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'self-awareness-opp':
       return (
-        <PositivePsychologyView 
+        <SelfAwarenessOpportunityView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -91,7 +91,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'star-strengths-assessment':
       return (
-        <IntroStrengthsView 
+        <StrengthsView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -149,17 +149,11 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );
 
-    case 'finish-workshop':
-      return (
-        <FinishWorkshopStep 
-          stepId="3-4"
-        />
-      );
 
     // Discover your Strengths
     case 'intro-strengths':
       return (
-        <IntroStrengthsView 
+        <StrengthsView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -291,6 +285,16 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
       return (
         <FinalReflectionView 
           currentContent={currentContent}
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'finish-workshop':
+    case '3-4':
+      return (
+        <FinishWorkshopView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

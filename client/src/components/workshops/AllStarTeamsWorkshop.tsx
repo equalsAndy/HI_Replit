@@ -673,6 +673,13 @@ export default function AllStarTeamsWorkshop() {
   // Scroll to top when currentContent changes (including programmatic navigation)
   useEffect(() => {
     document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
+    
+    // Sync current step with content when content changes
+    const stepId = findStepIdFromContentKey(currentContent);
+    if (stepId) {
+      console.log(`🧭 SYNC: Content '${currentContent}' -> Step '${stepId}'`);
+      setCurrentStep(stepId);
+    }
   }, [currentContent]);
 
   // Data check for debugging

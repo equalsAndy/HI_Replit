@@ -88,6 +88,11 @@ router.post('/register', async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);
     
+    // Prevent creating a duplicate user
+    const existingUser = await userManagementService.getUserByEmail(data.email);
+    if (existingUser.success) {
+      return res.status(400).json({ success: false, error: 'A user with this email already exists' });
+    }
     // Normalize the invite code
     const normalizedCode = normalizeInviteCode(data.inviteCode);
     

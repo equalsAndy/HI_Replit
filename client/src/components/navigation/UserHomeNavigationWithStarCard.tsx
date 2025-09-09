@@ -258,11 +258,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
   // Helper function to convert step IDs to content keys used in the app
   const getContentKeyFromStepId = (sectionId: string, stepId: string) => {
-    // Updated content key mapping for 5-Module Structure (RENUMBERED)
+    // Updated content key mapping for 5-Module Structure - matches AllStarTeamsWorkshop.tsx
     const contentKeyMap: Record<string, string> = {
       // MODULE 1: GETTING STARTED
       '1-1': 'welcome',
-      '1-2': 'positive-psychology',
+      '1-2': 'self-awareness-opp',
       '1-3': 'about-course',
 
       // MODULE 2: STRENGTH AND FLOW  
@@ -285,8 +285,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
       // MODULE 5: MORE INFORMATION
       '5-1': 'workshop-resources',
-      '5-2': 'more-fun-stuff',
-      '5-3': 'introducing-imaginal-agility',
+      '5-2': 'extra-stuff',
+      '5-3': 'more-imaginal-agility',
     };
 
     return contentKeyMap[stepId] || `placeholder-${stepId}`;
