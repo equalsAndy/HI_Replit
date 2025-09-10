@@ -1,5 +1,6 @@
 import React from "react";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { getClientAuthConfig, validateClientEnvironment } from '../config/auth-environment';
 
 // If you use wouter:
 let navigate: (to: string) => void;
@@ -14,14 +15,17 @@ try {
   navigate = (to: string) => { window.location.assign(to); };
 }
 
-const domain = import.meta.env.VITE_AUTH0_DOMAIN as string;
-const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID as string;
-const audience = import.meta.env.VITE_AUTH0_AUDIENCE as string | undefined;
-const redirectUri = (import.meta.env.VITE_AUTH0_REDIRECT_URI as string) || (window.location.origin + "/auth/callback");
+// Get environment-aware configuration
+const { config, warnings } = validateClientEnvironment();
+const { domain, clientId, audience, redirectUri } = config;
 
 if (!domain || !clientId) {
-  // eslint-disable-next-line no-console
-  console.warn("[Auth0Provider] Missing VITE_AUTH0_DOMAIN or VITE_AUTH0_CLIENT_ID");
+  console.error("[Auth0Provider] Missing Auth0 configuration for environment:", config.environment);
+  console.error("Required: VITE_AUTH0_DOMAIN, VITE_AUTH0_CLIENT_ID");
+}
+
+if (warnings.length > 0) {
+  console.warn("[Auth0Provider] Configuration warnings:", warnings);
 }
 
 export default function HIAuth0Provider({ children }: { children: React.ReactNode }) {
@@ -34,7 +38,8 @@ export default function HIAuth0Provider({ children }: { children: React.ReactNod
         scope: 'openid profile email',
         ...(audience ? { audience } : {}),
       }}
-      onRedirectCallback={async () => {
+      cacheLocation="localstorage" // Persist tokens across reloads (supports incognito session storage)
+      onRedirectCallback={() => {
         // Defer session establishment to our /auth/callback page
         navigate('/auth/callback');
       }}

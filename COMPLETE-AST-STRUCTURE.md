@@ -4,7 +4,7 @@
 
 ### **Module 1: Foundation**
 - **1-1**: On Self-Awareness
-- **1-2**: Positive Psychology  
+- **1-2**: The Self-Awareness Opportunity  
 - **1-3**: About this Course
 
 ### **Module 2: Discovery**

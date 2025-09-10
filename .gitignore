@@ -18,6 +18,25 @@ test-*.js
 **/pg_search_test.json
 **/process_ast_simple.*
 
+# Claude Code development files
+.claude_code
+Claude\ Code\ Prompts/
+check-ast-videos.js
+clean-placeholder-content.js
+clean-placeholder-content.ts
+diagnose-ast-videos.ts
+execute-ast-video-*.js
+fix-ast-video-sync.ts
+organize-ast-videos.ts
+update-existing-ast-videos.js
+
+# Temporary development and cleanup files
+pages_cleanup_*/
+pages_cleanup_*.txt
+codex_auth0_migration_kit_*/
+src/
+client/src/styles/
+
 # Version and build artifacts (these are managed by versioning system)
 public/version.json
 client/public/version.json

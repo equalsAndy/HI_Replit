@@ -47,7 +47,6 @@ export default function IntroductionVideo() {
             </div>
           </CardContent>
         </Card>
-        
 
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
         

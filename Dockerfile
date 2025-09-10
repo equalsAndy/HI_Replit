@@ -1,7 +1,6 @@
 FROM node:20-alpine AS production
 
 # Install dumb-init for proper signal handling
-# Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
 # Upgrade npm to the latest version for production builds
@@ -19,7 +18,7 @@ RUN apk add --no-cache --virtual .build-deps build-base python3 cairo-dev pango-
     npm cache clean --force && \
     apk del .build-deps
 
-# Copy built application (already built locally)
+# Copy built application (already built locally with production env vars)
 COPY dist ./dist
 COPY shared ./shared
 

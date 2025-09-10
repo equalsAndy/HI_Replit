@@ -34,8 +34,10 @@ const lessonRouter = router({
         .select()
         .from(schema.videos)
         .where(
-          eq(schema.videos.workshopType, input.workshop),
-          eq(schema.videos.stepId, input.stepId)
+          and(
+            eq(schema.videos.workshopType, input.workshop),
+            eq(schema.videos.stepId, input.stepId)
+          )
         )
         .limit(1);
       const row = records[0];
@@ -45,8 +47,8 @@ const lessonRouter = router({
       return {
         workshop: row.workshopType,
         stepId: row.stepId,
-        // Fallback to legacy "url" field for YouTube ID when youtubeId is not defined
-        youtubeId: row.youtubeId ?? row.url,
+        // Use editableId for YouTube ID, fallback to youtubeId or url
+        youtubeId: row.editableId ?? row.youtubeId ?? row.url,
         title: row.title,
         transcriptMd: row.transcriptMd,
         glossary: row.glossary,
@@ -95,16 +97,26 @@ const reflectionRouter = router({
   completeReflection: authenticatedProcedure
     .input(z.object({ reflectionSetId: z.string(), reflectionId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const now = new Date();
+      // Upsert: create if doesn't exist, update if it does
       await ctx.db
-        .update(schema.reflectionResponses)
-        .set({ completed: true, updatedAt: new Date() })
-        .where(
-          and(
-            eq(schema.reflectionResponses.userId, ctx.userId),
-            eq(schema.reflectionResponses.reflectionSetId, input.reflectionSetId),
-            eq(schema.reflectionResponses.reflectionId, input.reflectionId),
-          ),
-        );
+        .insert(schema.reflectionResponses)
+        .values({
+          userId: ctx.userId,
+          reflectionSetId: input.reflectionSetId,
+          reflectionId: input.reflectionId,
+          response: '', // Empty response for completion without text
+          completed: true,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: [
+            schema.reflectionResponses.userId,
+            schema.reflectionResponses.reflectionSetId,
+            schema.reflectionResponses.reflectionId,
+          ],
+          set: { completed: true, updatedAt: now },
+        });
       return { success: true };
     }),
 });

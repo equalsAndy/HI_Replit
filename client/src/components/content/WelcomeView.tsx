@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useQuery } from '@tanstack/react-query';
-import VideoPlayer from './VideoPlayer';
+import VideoTranscriptGlossary from '../common/VideoTranscriptGlossary';
+import { trpc } from "@/utils/trpc";
+import '@/styles/section-headers.css';
 
 interface WelcomeViewProps {
   currentContent: string;
@@ -49,7 +51,33 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Different content based on which app is active
   const stepId = isImaginalAgility ? "ia-1-1" : "1-1";
   
+  // Fetch video from database using tRPC
+  const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
+    workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
+    stepId: stepId,
+  }, {
+    staleTime: 0, // Force fresh fetch
+    cacheTime: 0, // Don't cache results
+  });
+  
+  // Debug logging
+  console.log('🎬 WelcomeView tRPC query:', {
+    workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
+    stepId: stepId,
+    videoLoading,
+    error: error?.message,
+    videoData: videoData ? {
+      workshop: videoData.workshop,
+      stepId: videoData.stepId,
+      youtubeId: videoData.youtubeId,
+      title: videoData.title,
+      transcriptMd: videoData.transcriptMd ? 'HAS_TRANSCRIPT' : 'NO_TRANSCRIPT',
+      glossary: videoData.glossary ? `HAS_GLOSSARY(${videoData.glossary.length})` : 'NO_GLOSSARY'
+    } : 'NO_VIDEO_DATA'
+  });
+  
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const [showJeopardyModal, setShowJeopardyModal] = useState(false);
   
   // Get navigation progress using the main hook
   const { 
@@ -90,11 +118,11 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   const nextButton = isImaginalAgility
     ? "Next: The Triple Challenge"
-    : "Next: Intro to Star Strengths";
+    : "Next: The Self-Awareness Opportunity";
 
   const nextContentId = isImaginalAgility
     ? "ia-2-1"
-    : "intro-strengths";
+    : "self-awareness-opp";
 
   // Track last logged progress to prevent spam
   const lastLoggedProgressRef = useRef(0);
@@ -177,14 +205,6 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   }
 };
 
-// Load Self‑Awareness Jeopardy widget script
-useEffect(() => {
-  const s = document.createElement('script');
-  s.src = '/static/self-awareness-jeopardy-modal.js';
-  s.async = true;
-  document.body.appendChild(s);
-  return () => { document.body.removeChild(s); };
-}, []);
 
   return (
     <>
@@ -215,17 +235,105 @@ useEffect(() => {
 
         {/* YouTube Video Player */}
         <div className="mb-8 max-w-4xl mx-auto">
-          <VideoPlayer
-            workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
-            stepId={stepId}
-            fallbackUrl={fallbackUrl}
-            forceUrl={forceUrl}
-            title={videoTitle}
-            aspectRatio="16:9"
-            autoplay={true}
-            onProgress={handleVideoProgress}
-            startTime={calculateStartTime()}
-          />
+          {videoLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading video...</span>
+            </div>
+          ) : error ? (
+            <div className="rounded-md border border-red-300 bg-red-50 p-4 text-red-900">
+              <strong>Error loading video from database:</strong> {error.message}
+              <br />
+              <small>Workshop: {isImaginalAgility ? 'imaginal-agility' : 'allstarteams'}, Step: {stepId}</small>
+            </div>
+          ) : videoData ? (
+            <VideoTranscriptGlossary
+              youtubeId={videoData.youtubeId}
+              title={videoData.title}
+              transcriptMd={videoData.transcriptMd}
+              glossary={videoData.glossary ?? []}
+            />
+          ) : (
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              No video data found in database for workshop '{isImaginalAgility ? 'imaginal-agility' : 'allstarteams'}' step '{stepId}'
+            </div>
+          )}
+        </div>
+
+        {/* AST 1-1 sections: Purpose, Activities, Reflections */}
+        <div className="section-headers-tabs-60 mt-16 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--purpose">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🎯 Purpose</div>
+          </div>
+        </div>
+        <div className="section-content-card-60 section-content-card-60--purpose relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-teal-600 bg-teal-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              🎯 Purpose
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <p>Workshop overview and objectives</p>
+          </div>
+        </div>
+
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--activities">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🧠 Activities</div>
+          </div>
+        </div>
+        <div className="section-content-card-60 section-content-card-60--activities relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-amber-600 bg-amber-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              🧠 Activities
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <ul className="list-disc ml-6">
+              <li>Welcome video introduction</li>
+              <li>Journey through strengths, flow, and potential visualization</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--reflection">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🤔 Reflections</div>
+          </div>
+        </div>
+        <div className="section-content-card-60 section-content-card-60--reflection relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-rose-600 bg-rose-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              🤔 Reflections
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <p>What participants will discover about themselves</p>
+          </div>
         </div>
 
         {isImaginalAgility ? (
@@ -364,51 +472,8 @@ useEffect(() => {
                 </div>
               </>
             ) : (
-              /* Original Adult Content */
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">PART I: INDIVIDUAL MICRO COURSE (SELF-GUIDED)</h2>
-                <p className="text-lg text-gray-700 mb-4">
-                  This self-paced experience is an opportunity for reflection and self-expression. Through several guided exercises and self-assessments, you will:
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Discover your Star Strengths</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Identify your Flow State</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Visualize your Professional Growth</span>
-                  </li>
-                </ul>
-
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">Your Takeaways:</h3>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">A personalized Digital Star Card</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">A personalized AI Holistic Profile Report</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Readiness for High-Impact Teamwork Practice</span>
-                  </li>
-                </ul>
-
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">PART II: TEAMWORK PRACTICE (FACILITATED)</h2>
-                <p className="text-lg text-gray-700 mb-6">
-                  Join your teammates in a guided session where you'll bring your insights to life.
-                </p>
-                <p className="text-lg text-gray-700 mb-6">
-                  Together, you'll align your strengths, deepen collaboration, and practice in real time using a shared digital whiteboard.
-                </p>
-              </>
+              /* Content removed as requested */
+              <></>
             )}
           </>
         )}
@@ -416,7 +481,7 @@ useEffect(() => {
         <div className="flex justify-end items-center space-x-4">
           <a
             href="#"
-            onClick={(e) => { e.preventDefault(); window.SAJ?.open(); }}
+            onClick={(e) => { e.preventDefault(); setShowJeopardyModal(true); }}
             className="text-blue-600 underline"
           >
             Open Self‑Awareness Jeopardy
@@ -434,7 +499,405 @@ useEffect(() => {
           </Button>
         </div>
       </div>
+
+      {/* Self-Awareness Jeopardy Modal */}
+      {showJeopardyModal && (
+        <SelfAwarenessJeopardyModal onClose={() => setShowJeopardyModal(false)} />
+      )}
     </>
+  );
+};
+
+// Self-Awareness Jeopardy Modal Component
+const SelfAwarenessJeopardyModal = ({ onClose }: { onClose: () => void }) => {
+  const [currentCategory, setCurrentCategory] = useState<string | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  const categories = {
+    'Communication': [
+      'This skill helps you express your thoughts and feelings clearly to others.',
+      'When you know your communication style, you can do this more effectively with teammates.',
+      'This type of listening involves fully focusing on what the other person is saying.',
+      'Being aware of your body language is part of this broader self-knowledge.',
+      'This quality allows you to understand how your words affect others.'
+    ],
+    'Leadership': [
+      'A leader with this quality knows their strengths and weaknesses.',
+      'This type of leader can adapt their style based on what the situation needs.',
+      'When you understand your values, you can lead with this quality.',
+      'This skill helps leaders recognize and manage their emotions during difficult situations.',
+      'A leader with this awareness can better understand and motivate their team members.'
+    ],
+    'Teamwork': [
+      'Knowing your role and contribution style helps improve this group dynamic.',
+      'This awareness helps you understand how your actions affect team morale.',
+      'When you know your work preferences, you can better contribute to this collective effort.',
+      'Understanding your conflict resolution style improves this team process.',
+      'This knowledge helps you know when to lead and when to follow.'
+    ],
+    'Decision Making': [
+      'Understanding your biases and assumptions improves this cognitive process.',
+      'This awareness helps you recognize when emotions might be clouding your judgment.',
+      'Knowing your values helps you make decisions with this quality.',
+      'This skill involves understanding the consequences of your choices.',
+      'Being aware of your decision-making patterns is part of this broader knowledge.'
+    ],
+    'Personal Growth': [
+      'This practice involves regularly examining your thoughts, feelings, and behaviors.',
+      'Understanding your learning style contributes to this lifelong process.',
+      'This awareness helps you identify areas where you want to improve.',
+      'Knowing your motivations and drivers supports this personal journey.',
+      'This skill helps you set goals that align with your true values and interests.'
+    ]
+  };
+
+  const handleCategoryClick = (category: string) => {
+    setCurrentCategory(category);
+    setGameStarted(true);
+  };
+
+  const handleQuestionClick = (question: string) => {
+    setCurrentQuestion(question);
+    setShowAnswer(false);
+  };
+
+  const handleShowAnswer = () => {
+    setShowAnswer(true);
+  };
+
+  const handleBackToCategories = () => {
+    setCurrentCategory(null);
+    setCurrentQuestion(null);
+    setShowAnswer(false);
+  };
+
+  const handleBackToQuestions = () => {
+    setCurrentQuestion(null);
+    setShowAnswer(false);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <div style={{
+        backgroundColor: '#1a237e',
+        color: 'white',
+        borderRadius: '8px',
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        width: '800px',
+        overflow: 'hidden',
+        position: 'relative',
+        border: '3px solid #ffd700'
+      }}>
+        {/* Header */}
+        <div style={{
+          backgroundColor: '#3949ab',
+          padding: '20px',
+          textAlign: 'center',
+          position: 'relative'
+        }}>
+          <h1 style={{
+            margin: 0,
+            fontSize: '2.5em',
+            fontWeight: 'bold',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+          }}>
+            Self-Awareness Jeopardy!
+          </h1>
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '15px',
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: '5px',
+              borderRadius: '50%',
+              width: '35px',
+              height: '35px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        <div style={{ padding: '20px', minHeight: '400px' }}>
+          {!gameStarted ? (
+            // Welcome Screen
+            <div style={{ textAlign: 'center' }}>
+              <h2 style={{ color: '#ffd700', marginBottom: '20px', fontSize: '1.8em' }}>
+                Welcome to Self-Awareness Jeopardy!
+              </h2>
+              <p style={{ fontSize: '1.2em', lineHeight: '1.6', marginBottom: '30px' }}>
+                Test your knowledge about self-awareness and its importance in various aspects of life and work.
+              </p>
+              <p style={{ fontSize: '1.1em', marginBottom: '30px' }}>
+                <strong>How to play:</strong><br />
+                Choose a category, then select a question. Remember, the answer to every question is <em>"What is Self-Awareness?"</em>
+              </p>
+              <button
+                onClick={() => setGameStarted(true)}
+                style={{
+                  backgroundColor: '#ffd700',
+                  color: '#1a237e',
+                  border: 'none',
+                  padding: '15px 30px',
+                  fontSize: '1.3em',
+                  fontWeight: 'bold',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
+                }}
+              >
+                Start Game
+              </button>
+            </div>
+          ) : !currentCategory ? (
+            // Category Selection
+            <div>
+              <h2 style={{ color: '#ffd700', textAlign: 'center', marginBottom: '30px', fontSize: '1.8em' }}>
+                Choose a Category
+              </h2>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '15px'
+              }}>
+                {Object.keys(categories).map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => handleCategoryClick(category)}
+                    style={{
+                      backgroundColor: '#3949ab',
+                      color: 'white',
+                      border: '2px solid #ffd700',
+                      padding: '20px',
+                      fontSize: '1.1em',
+                      fontWeight: 'bold',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = '#5e72e4';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = '#3949ab';
+                    }}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <button
+                  onClick={onClose}
+                  style={{
+                    backgroundColor: '#666',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Exit Game
+                </button>
+              </div>
+            </div>
+          ) : !currentQuestion ? (
+            // Question Selection
+            <div>
+              <h2 style={{ color: '#ffd700', textAlign: 'center', marginBottom: '20px', fontSize: '1.8em' }}>
+                {currentCategory}
+              </h2>
+              <p style={{ textAlign: 'center', marginBottom: '30px', fontSize: '1.1em' }}>
+                Choose a question:
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {categories[currentCategory as keyof typeof categories].map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuestionClick(question)}
+                    style={{
+                      backgroundColor: '#3949ab',
+                      color: 'white',
+                      border: '1px solid #ffd700',
+                      padding: '15px',
+                      fontSize: '1em',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = '#5e72e4';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = '#3949ab';
+                    }}
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <button
+                  onClick={handleBackToCategories}
+                  style={{
+                    backgroundColor: '#666',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    marginRight: '10px'
+                  }}
+                >
+                  Back to Categories
+                </button>
+                <button
+                  onClick={onClose}
+                  style={{
+                    backgroundColor: '#666',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Exit Game
+                </button>
+              </div>
+            </div>
+          ) : (
+            // Question Display
+            <div>
+              <h2 style={{ color: '#ffd700', textAlign: 'center', marginBottom: '20px', fontSize: '1.8em' }}>
+                {currentCategory}
+              </h2>
+              <div style={{
+                backgroundColor: '#3949ab',
+                padding: '30px',
+                borderRadius: '8px',
+                textAlign: 'center',
+                marginBottom: '30px',
+                border: '2px solid #ffd700'
+              }}>
+                <p style={{ fontSize: '1.3em', lineHeight: '1.5', margin: 0 }}>
+                  {currentQuestion}
+                </p>
+              </div>
+              
+              {!showAnswer ? (
+                <div style={{ textAlign: 'center' }}>
+                  <button
+                    onClick={handleShowAnswer}
+                    style={{
+                      backgroundColor: '#ffd700',
+                      color: '#1a237e',
+                      border: 'none',
+                      padding: '15px 30px',
+                      fontSize: '1.2em',
+                      fontWeight: 'bold',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      marginBottom: '20px',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    Show Answer
+                  </button>
+                </div>
+              ) : (
+                <div style={{
+                  backgroundColor: '#2e7d32',
+                  padding: '20px',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  marginBottom: '20px',
+                  border: '2px solid #4caf50'
+                }}>
+                  <h3 style={{ color: '#ffd700', margin: '0 0 10px 0', fontSize: '1.4em' }}>
+                    What is Self-Awareness?
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '1.1em' }}>
+                    Self-awareness is the foundation that enables all of these improvements and capabilities!
+                  </p>
+                </div>
+              )}
+
+              <div style={{ textAlign: 'center' }}>
+                <button
+                  onClick={handleBackToQuestions}
+                  style={{
+                    backgroundColor: '#666',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    marginRight: '10px'
+                  }}
+                >
+                  Back to Questions
+                </button>
+                <button
+                  onClick={handleBackToCategories}
+                  style={{
+                    backgroundColor: '#666',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    marginRight: '10px'
+                  }}
+                >
+                  Back to Categories
+                </button>
+                <button
+                  onClick={onClose}
+                  style={{
+                    backgroundColor: '#666',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Exit Game
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

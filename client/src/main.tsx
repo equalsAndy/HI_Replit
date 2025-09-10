@@ -6,9 +6,13 @@ import App from "./App";
 import "./index.css";
 import { TRPCProvider } from '@/components/providers/TRPCProvider';
 import HIAuth0Provider from './providers/Auth0Provider';
+import { observeLongTasks } from '@/instrument/longTasks';
 
 // Polyfill for Node.js process in the browser to fix "require is not defined" error
 window.process = window.process || { env: { NODE_ENV: "production" } };
+
+// Performance marks for startup
+performance.mark('app-start');
 
 // Auth0 Configuration
 const domain = import.meta.env.VITE_AUTH0_DOMAIN!;
@@ -17,6 +21,7 @@ const redirectUri = import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.o
 const audience = import.meta.env.VITE_AUTH0_AUDIENCE; // optional
 
 console.log("Starting React app with Auth0...");
+  observeLongTasks();
 console.log("Auth0 Config:", { domain, clientId, redirectUri, audience });
 
 try {
@@ -38,8 +43,11 @@ try {
         </TRPCProvider>
       </HIAuth0Provider>
     </React.StrictMode>
-  );
-  console.log("App rendered successfully with Auth0 and TRPC");
+    );
+  // mark mount completion and measure startup time
+  performance.mark('main-mounted');
+  performance.measure('app-mount', 'app-start', 'main-mounted');
+  console.log('Startup performance:', performance.getEntriesByName('app-mount'));
 } catch (error) {
   console.error("Error starting app:", error);
 }

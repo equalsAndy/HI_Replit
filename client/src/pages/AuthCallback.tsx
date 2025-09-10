@@ -16,6 +16,17 @@ export default function AuthCallback() {
 
   useEffect(() => {
     let mounted = true;
+    
+    // If not loading and user is not authenticated, re-trigger login
+    if (!isLoading && !isAuthenticated) {
+      loginWithRedirect({ authorizationParams: { redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin + '/auth/callback', scope: 'openid profile email', prompt: 'login' } });
+      return () => { mounted = false; };
+    }
+    // Wait until Auth0 finishes loading and user is authenticated
+    if (isLoading || !isAuthenticated) {
+      return () => { mounted = false; };
+    }
+
     (async () => {
       try {
         console.log('[AuthCallback] Starting session bootstrap...');
@@ -130,7 +141,7 @@ export default function AuthCallback() {
       }
     })();
     return () => { mounted = false; };
-  }, [getIdTokenClaims, getAccessTokenSilently, isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading]); // Removed function references that cause re-renders
 
   if (!error) return null;
 

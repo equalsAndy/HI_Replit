@@ -34,7 +34,10 @@
     "danger:backup-delete-users": "USER_IDS=2-11,17-28,31-32 node scripts/backup-and-delete-users.cjs",
     "danger:backup-only": "DRY_RUN=1 USER_IDS=2-11,17-28,31-32 node scripts/backup-and-delete-users.cjs",
     "danger:backup": "npm run danger:backup-only",
-    "danger": "npm run danger:backup-delete-users"
+    "danger": "npm run danger:backup-delete-users",
+    "analyze": "vite build --mode production && open dist/stats.html",
+    "client:analyze": "vite build",
+    "client:preview": "vite preview --port 5173"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.4.0",
@@ -166,7 +169,7 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.21",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.8",
     "jsdom": "^26.0.0",
     "postcss": "^8.5.6",

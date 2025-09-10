@@ -149,3 +149,135 @@
 .vtg-tabpanel { 
   margin-top: 8px; 
 }
+
+/* Enhanced Transcript Styling with Blockquotes */
+.vtg-transcript {
+  line-height: 1.8;
+  color: #374151;
+  max-width: none;
+}
+
+.vtg-transcript blockquote {
+  margin: 1rem 0;
+  padding: 1rem 1.5rem;
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  font-weight: 500;
+  color: #1e40af;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  position: relative;
+}
+
+.vtg-transcript blockquote::before {
+  content: '"';
+  position: absolute;
+  top: -0.2rem;
+  left: 0.8rem;
+  font-size: 3rem;
+  color: rgba(59, 130, 246, 0.2);
+  font-family: serif;
+  line-height: 1;
+}
+
+.vtg-transcript blockquote p {
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.vtg-transcript blockquote + blockquote {
+  margin-top: 0.5rem;
+}
+
+.vtg-transcript h1 {
+  color: #1e40af;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.vtg-transcript p {
+  margin: 1rem 0;
+}
+
+/* Glossary Enhanced Styling */
+.vtg-glossary {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.vtg-glossary::-webkit-scrollbar {
+  width: 6px;
+}
+
+.vtg-glossary::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.vtg-glossary::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.vtg-glossary::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.vtg-glossary dl {
+  space-y: 0.75rem;
+}
+
+.vtg-glossary dt {
+  font-weight: 700;
+  color: #7c3aed;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.vtg-glossary dt::before {
+  content: '▸';
+  margin-right: 0.5rem;
+  color: #a855f7;
+  font-size: 0.8rem;
+}
+
+.vtg-glossary dd {
+  margin-left: 1.25rem;
+  color: #4b5563;
+  line-height: 1.6;
+  border-left: 2px solid #e5e7eb;
+  padding-left: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Video Panel Enhancements */
+.vtg-video-container {
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.vtg-watch-larger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  margin-top: 0.75rem;
+}
+
+.vtg-watch-larger-btn:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}

@@ -27,6 +27,11 @@ class InviteService {
         };
       }
       
+      // Prevent duplicate invites for the same email
+      const existingInvites = await db.select().from(invites).where(eq(invites.email, data.email.toLowerCase()));
+      if (existingInvites.length > 0) {
+        return { success: false, error: 'An invite already exists for this email' };
+      }
       // Generate a unique invite code (remove hyphens to fit 12-char limit)
       const inviteCode = generateInviteCode().replace(/-/g, '');
       

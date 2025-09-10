@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useVideoBySection, useVideoByStepId } from '../../hooks/use-videos';
 import { processVideoUrl, type VideoUrlParams } from '../../lib/videoUtils';
+import { useVisible } from '@/hooks/useVisible';
 
 interface VideoPlayerProps {
   workshopType: string;
@@ -41,6 +42,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   // All hooks must be called unconditionally and in the same order
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
+  const isVisible = useVisible(playerRef);
   const [processedUrl, setProcessedUrl] = useState<string>('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [progressSimulated, setProgressSimulated] = useState(false);
@@ -164,12 +167,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const videoTitle = video?.title || title || 'Workshop Video';
 
+  // Debug logging for troubleshooting
+  console.log(`🎬 VideoPlayer Debug:`, {
+    stepId,
+    workshopType,
+    isLoading,
+    video: video ? { id: video.id, title: video.title, url: video.url, editableId: video.editableId } : null,
+    processedUrl,
+    noVideoAvailable,
+    hideWhenUnavailable
+  });
+
   if (!processedUrl) {
     if (hideWhenUnavailable) {
       return null;
     }
     return (
-      <div className={`video-responsive-container ${className}`}>
+      <div ref={playerRef} className={`video-responsive-container ${className}`}>
         <div className={`video-aspect-wrapper ${aspectClass}`}>
           <div className="video-responsive-element bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
             <div className="text-center">
@@ -182,8 +196,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
+  // Temporarily disable visibility check for debugging
+  // if (!isVisible) {
+  //   return (
+  //     <div ref={playerRef} className={`video-responsive-container ${className}`}>
+  //       <div className={`video-aspect-wrapper ${aspectClass}`}>
+  //         <div className="video-responsive-element bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+  //           <div className="text-center">
+  //             <div className="text-gray-400 text-4xl mb-2">📹</div>
+  //             <span className="text-gray-500">Video not visible</span>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   return (
-    <div className={`video-responsive-container ${className}`}>
+    <div ref={playerRef} className={`video-responsive-container ${className}`}>
       <div className={`video-aspect-wrapper ${aspectClass}`}>
         <iframe 
           ref={iframeRef}

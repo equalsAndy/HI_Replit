@@ -13,6 +13,8 @@ import reportRoutes from './server/routes/report-routes.js';
 import adminUploadRoutes from './server/routes/admin-upload-routes.js';
 import discernmentRoutes from './server/routes/discernment-routes.js';
 import authRoutes from './server/routes/auth-routes.js';
+// Auth0 session routes (for AuthCallback)
+import auth0Routes from './server/routes/auth0-routes.js';
 import feedbackRoutes from './server/routes/feedback-routes.js';
 import betaTesterRoutes from './server/routes/beta-tester-routes.js';
 import betaTesterNotesRoutes from './server/routes/beta-tester-notes-routes.js';
@@ -63,7 +65,7 @@ async function startDevServer() {
   const sessionStore = new PgSession({
     conString: process.env.SESSION_DATABASE_URL || process.env.DATABASE_URL,
     tableName: 'session_aws',
-    createTableIfMissing: false, // Table already exists
+    createTableIfMissing: true, // Auto-create sessions table in dev
 
     // Simplified configuration for better compatibility
     schemaName: 'public',
@@ -98,18 +100,28 @@ async function startDevServer() {
     },
   });
   
-  // tRPC endpoint for AST pilot component
+  // tRPC endpoint for AST pilot component (with DB and session context)
   app.use(
     '/trpc',
-    trpcExpress.createExpressMiddleware({ router: appRouter, createContext: () => ({}) })
+    trpcExpress.createExpressMiddleware({
+      router: appRouter,
+      createContext: ({ req }) => ({
+        db,
+        userId: req.session?.userId,
+      }),
+    })
   );
-  // API routes - Make sure we include auth routes
+  // API routes - core router & reports
   app.use('/api', router);
   app.use('/api/reports', reportRoutes);
   app.use('/api/admin', upload.single('file'), adminUploadRoutes);
   app.use('/api/discernment', discernmentRoutes);
+  // Auth routes
   app.use('/api/auth', authRoutes);
-  // Feedback and Beta Tester routes needed for the modal
+  // Auth0 session endpoints (for AuthCallback)
+  app.use('/api/auth', auth0Routes);
+  app.use('/api/auth0', auth0Routes);
+  // Feedback and Beta Tester routes
   app.use('/api/feedback', feedbackRoutes);
   app.use('/api/beta-tester', betaTesterRoutes);
   app.use('/api/beta-tester', betaTesterNotesRoutes);

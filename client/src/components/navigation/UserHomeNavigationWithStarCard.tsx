@@ -258,11 +258,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
   // Helper function to convert step IDs to content keys used in the app
   const getContentKeyFromStepId = (sectionId: string, stepId: string) => {
-    // Updated content key mapping for 5-Module Structure (RENUMBERED)
+    // Updated content key mapping for 5-Module Structure - matches AllStarTeamsWorkshop.tsx
     const contentKeyMap: Record<string, string> = {
       // MODULE 1: GETTING STARTED
       '1-1': 'welcome',
-      '1-2': 'positive-psychology',
+      '1-2': 'self-awareness-opp',
       '1-3': 'about-course',
 
       // MODULE 2: STRENGTH AND FLOW  
@@ -285,8 +285,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
       // MODULE 5: MORE INFORMATION
       '5-1': 'workshop-resources',
-      '5-2': 'more-fun-stuff',
-      '5-3': 'introducing-imaginal-agility',
+      '5-2': 'extra-stuff',
+      '5-3': 'more-imaginal-agility',
     };
 
     return contentKeyMap[stepId] || `placeholder-${stepId}`;
@@ -450,6 +450,17 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
                       // Check step accessibility using the passed function from parent (which includes navigation progress state)
                       const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
+                      
+                      // Determine if this is the current step
+                      const isCurrent = (isImaginalAgility ? step.id === currentContent : getContentKeyFromStepId(section.id, step.id) === currentContent) ||
+                                       (navigationProgress?.currentStepId === step.id);
+                      
+                      // Check if this is a resource step (Modules 4 & 5) - these don't get progression dots
+                      const isResourceStep = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'].includes(step.id);
+                      
+                      // Determine if this is the next available step (accessible but not completed and not current)
+                      // Resource steps should never show as "next available" - they're just accessible or not
+                      const isNextAvailable = !isResourceStep && isAccessible && !isCompleted && !isCurrent;
 
                       return (
                         <TooltipProvider key={step.id}>
@@ -458,13 +469,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               <li 
                                 className={cn(
                                   "rounded-md p-2 flex items-center text-sm transition",
-                                  // Check if this item corresponds to current content OR current step - Purple for IA, Indigo for AST
-                                  ((isImaginalAgility ? step.id === currentContent : getContentKeyFromStepId(section.id, step.id) === currentContent) ||
-                                   (navigationProgress?.currentStepId === step.id))
+                                  // Current step gets background highlight
+                                  isCurrent
                                     ? (isImaginalAgility 
                                         ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium" 
                                         : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium") 
                                     : "",
+                                  // Completed steps get green styling
                                   isCompleted 
                                     ? "text-green-700 bg-green-50" 
                                     : isAccessible
@@ -487,7 +498,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 <div className="mr-2 flex-shrink-0">
                                   {isCompleted ? (
                                     <CheckCircle className="h-4 w-4 text-green-600 bg-white rounded-full" />
-                                  ) : !isAccessible && !(isImaginalAgility && step.id === currentContent) ? (
+                                  ) : isCurrent ? (
+                                    <div className="w-4 h-4 bg-indigo-600 rounded-full" />
+                                  ) : isNextAvailable ? (
+                                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                                  ) : !isAccessible ? (
                                     <Lock className="h-4 w-4 text-gray-400" />
                                   ) : null}
                                 </div>

@@ -325,7 +325,8 @@ export const InviteManagement: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/invites/${inviteId}`, {
+      // Use the correct endpoint from invite-routes.ts
+      const response = await fetch(`/api/invites/${inviteId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -371,7 +372,7 @@ export const InviteManagement: React.FC = () => {
     if (selectedIds.length === 0) return;
     if (!confirm(`Delete ${selectedIds.length} selected invites?`)) return;
     try {
-      const response = await fetch(`/api/admin/invites/bulk-delete`, {
+      const response = await fetch(`/api/invites/bulk-delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -639,7 +640,7 @@ export const InviteManagement: React.FC = () => {
                     onClick={async () => {
                       if (!confirm('Delete ALL used invites? This cannot be undone.')) return;
                       try {
-                        const r = await fetch('/api/admin/invites/delete-used', { method: 'POST', credentials: 'include' });
+                        const r = await fetch('/api/invites/delete-used', { method: 'POST', credentials: 'include' });
                         const j = await r.json();
                         if (j.success) {
                           toast({ title: 'Deleted used invites', description: `${j.deletedCount} invites removed.` });
@@ -792,44 +793,53 @@ export const InviteManagement: React.FC = () => {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    disabled={invite.isUsed}
-                                    onClick={() => {/* TODO: Add regenerate functionality */}}
-                                  >
-                                    <RefreshCw className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Regenerate code</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
-                                    onClick={() => handleDeleteInvite(invite.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete invite</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                        <TableCell className="min-w-[200px]">
+                          <div className="border border-red-500 p-2 bg-yellow-100">
+                            <div className="text-black font-bold mb-2">DEBUG: Actions for ID {invite.id}</div>
+                            <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                              <button
+                                style={{
+                                  padding: '4px 8px',
+                                  backgroundColor: 'red',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => handleDeleteInvite(invite.id)}
+                              >
+                                DELETE
+                              </button>
+                              <button
+                                style={{
+                                  padding: '4px 8px',
+                                  backgroundColor: 'blue',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => copyToClipboard(invite.inviteCode || invite.invite_code)}
+                              >
+                                COPY
+                              </button>
+                              <button
+                                style={{
+                                  padding: '4px 8px',
+                                  backgroundColor: 'green',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => window.open(`mailto:${invite.email}`, '_blank')}
+                              >
+                                EMAIL
+                              </button>
+                            </div>
                           </div>
                         </TableCell>
                       </TableRow>

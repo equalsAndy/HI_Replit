@@ -9,15 +9,15 @@ import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
 import AuthCallback from '@/pages/AuthCallback';
 // import AuthPageEmbedded from '@/pages/auth-page-embedded';
-// Static imports - rollback from lazy loading
-import AllStarTeamsPage from '@/pages/allstarteams';
-import ImaginalAgilityPage from '@/pages/imaginal-agility';
+// KAN-147 Phase 3: Lazy load main workshop components 
+const AllStarTeamsPage = React.lazy(() => import('@/pages/allstarteams'));
+const ImaginalAgilityPage = React.lazy(() => import('@/pages/imaginal-agility'));
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 
-// Static imports - rollback from lazy loading  
-import AdminDashboard from '@/pages/admin/dashboard-new';
-import AiTrainingPage from '@/pages/ai-training';
+// KAN-147 Phase 2: Lazy load Admin components
+const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard-new'));
+const AiTrainingPage = React.lazy(() => import('@/pages/ai-training'));
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import ResetTestPage from '@/pages/reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -227,12 +227,24 @@ const App: React.FC = () => {
                     {/* Workshop routes with lazy loading */}
                     <Route path="/allstarteams">
                       <ProtectedRoute>
-                        <AllStarTeamsPage />
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+                          </div>
+                        }>
+                          <AllStarTeamsPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ast">
                       <ProtectedRoute>
-                        <AllStarTeamsPage />
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+                          </div>
+                        }>
+                          <AllStarTeamsPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/imaginal-agility">
@@ -242,24 +254,48 @@ const App: React.FC = () => {
                     </Route>
                     <Route path="/ia-legacy">
                       <ProtectedRoute>
-                        <ImaginalAgilityPage />
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+                          </div>
+                        }>
+                          <ImaginalAgilityPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
 
                     {/* Admin routes with lazy loading */}
                     <Route path="/admin">
                       <ProtectedRoute requireAdmin={true}>
-                        <AdminDashboard />
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+                          </div>
+                        }>
+                          <AdminDashboard />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/admin/dashboard">
                       <ProtectedRoute requireAdmin={true}>
-                        <AdminDashboard />
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+                          </div>
+                        }>
+                          <AdminDashboard />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ai-training">
                       <ProtectedRoute requireAdmin={true}>
-                        <AiTrainingPage />
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+                          </div>
+                        }>
+                          <AiTrainingPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     {/* Backward compatibility: redirect old path to new */}
