@@ -1,51 +1,37 @@
 #!/bin/bash
+# Fast Production Build Script
+# Builds locally with production environment variables, then uses fast Docker deployment
 
-echo "🔨 Building AllStarTeams for Production Container..."
+set -e
 
-# Create build directory
-mkdir -p dist
+echo "🏗️ Building locally with production environment variables..."
 
-# Build the frontend
-echo "📦 Building frontend..."
-npm run build
+# Set production environment variables for frontend build
+export VITE_AUTH0_CLIENT_ID="c28c7gpoPuIrmPrP85NMqtCYhige5Qd9"
+export VITE_AUTH0_DOMAIN="auth.heliotropeimaginal.com"  
+export VITE_AUTH0_AUDIENCE="https://api.heliotropeimaginal.com"
+export VITE_AUTH0_REDIRECT_URI="https://app2.heliotropeimaginal.com/auth/callback"
 
-# Verify build files exist
-if [ ! -d "dist/public" ]; then
-    echo "❌ Frontend build failed - dist/public directory not found"
-    exit 1
-fi
+echo "✅ Production environment variables set:"
+echo "   VITE_AUTH0_CLIENT_ID: $VITE_AUTH0_CLIENT_ID"
+echo "   VITE_AUTH0_DOMAIN: $VITE_AUTH0_DOMAIN"
+echo "   VITE_AUTH0_AUDIENCE: $VITE_AUTH0_AUDIENCE"
+echo "   VITE_AUTH0_REDIRECT_URI: $VITE_AUTH0_REDIRECT_URI"
 
-echo "✅ Frontend build complete"
+# Update version for production
+echo "📋 Updating version for production..."
+./version-manager.sh production
 
-# Skip TypeScript compilation since we use tsx in production
-echo "🔧 Skipping backend compilation (using tsx runtime)..."
+# Clean previous build
+echo "🧹 Cleaning previous build..."
+rm -rf dist/
 
-echo "✅ Backend ready for tsx runtime"
+# Build with production environment variables
+echo "🔨 Running production build..."
+npm run build:production
 
-# Verify all required files exist
-REQUIRED_FILES=(
-    "server/index-production.ts"
-    "shared/schema.ts"
-    "dist/public/index.html"
-)
-
-for file in "${REQUIRED_FILES[@]}"; do
-    if [ ! -f "$file" ]; then
-        echo "❌ Required file missing: $file"
-        exit 1
-    fi
-done
-
-echo "✅ All required files verified"
-
-# Build the Docker image
-echo "🐳 Building Docker image..."
-docker build -f Dockerfile.production -t allstarteams-prod .
-
-if [ $? -eq 0 ]; then
-    echo "🎉 Production build complete!"
-    echo "🚀 Run with: docker run -p 8080:8080 --env-file .env allstarteams-prod"
-else
-    echo "❌ Docker build failed"
-    exit 1
-fi
+echo "✅ Production build complete!"
+echo "📁 Built files are in ./dist/"
+echo ""
+echo "🚀 Ready for fast Docker deployment!"
+echo "   Run: echo 'yes' | ./deploy-to-production-fast.sh"

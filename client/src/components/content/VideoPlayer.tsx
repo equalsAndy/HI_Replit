@@ -167,6 +167,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const videoTitle = video?.title || title || 'Workshop Video';
 
+  // Debug logging for troubleshooting
+  console.log(`🎬 VideoPlayer Debug:`, {
+    stepId,
+    workshopType,
+    isLoading,
+    video: video ? { id: video.id, title: video.title, url: video.url, editableId: video.editableId } : null,
+    processedUrl,
+    noVideoAvailable,
+    hideWhenUnavailable
+  });
+
   if (!processedUrl) {
     if (hideWhenUnavailable) {
       return null;
@@ -185,20 +196,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
-  if (!isVisible) {
-    return (
-      <div ref={playerRef} className={`video-responsive-container ${className}`}>
-        <div className={`video-aspect-wrapper ${aspectClass}`}>
-          <div className="video-responsive-element bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-gray-400 text-4xl mb-2">📹</div>
-              <span className="text-gray-500">Video not visible</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Temporarily disable visibility check for debugging
+  // if (!isVisible) {
+  //   return (
+  //     <div ref={playerRef} className={`video-responsive-container ${className}`}>
+  //       <div className={`video-aspect-wrapper ${aspectClass}`}>
+  //         <div className="video-responsive-element bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+  //           <div className="text-center">
+  //             <div className="text-gray-400 text-4xl mb-2">📹</div>
+  //             <span className="text-gray-500">Video not visible</span>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div ref={playerRef} className={`video-responsive-container ${className}`}>

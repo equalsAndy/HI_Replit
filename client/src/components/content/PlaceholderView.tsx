@@ -22,14 +22,19 @@ const PlaceholderView: React.FC<PlaceholderViewProps> = ({
   // Handle navigation to next content
   const handleNext = () => {
     if (nextContentKey && setCurrentContent) {
-      setCurrentContent(nextContentKey);
+      // Map content titles to step IDs
+      const stepIdMap: Record<string, string> = {
+        'Module 2 Recap': '2-4',
+        'Module 3 Recap': '3-4',
+        // Add other mappings as needed
+      };
       
-      // Find the step ID based on the content key (would need proper implementation)
-      // For now, just showing the concept
-      const stepId = '1-1'; // This would be dynamically determined
-      if (markStepCompleted) {
+      const stepId = stepIdMap[title];
+      if (stepId && markStepCompleted) {
         markStepCompleted(stepId);
       }
+      
+      setCurrentContent(nextContentKey);
     }
   };
   

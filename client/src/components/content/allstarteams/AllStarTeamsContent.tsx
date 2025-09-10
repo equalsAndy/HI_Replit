@@ -21,6 +21,7 @@ import FinishWorkshopView from '../FinishWorkshopView';
 import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
 import PlaceholderView from '../PlaceholderView';
+import Mod2RecapView from '../Mod2RecapView';
 import DownloadStarCardView from './DownloadStarCardView';
 import HolisticReportView from './HolisticReportView';
 import HolisticReportGenerationView from './HolisticReportGenerationView';
@@ -141,8 +142,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'module-2-recap':
       return (
-        <PlaceholderView 
-          title="Module 2 Recap"
+        <Mod2RecapView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

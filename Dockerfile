@@ -9,37 +9,18 @@ RUN npm install -g npm@latest
 # Create app directory
 WORKDIR /app
 
-# Copy package files for both root and client
+# Copy package files (root level in monorepo)
 COPY package*.json ./
-COPY client/package*.json ./client/
 
-# Install build tools and ALL dependencies (needed for building)
+# Install build tools and production dependencies (canvas needs native build)
 RUN apk add --no-cache --virtual .build-deps build-base python3 cairo-dev pango-dev giflib-dev libjpeg-turbo-dev libpng-dev pkgconfig && \
-    npm ci --legacy-peer-deps && \
-    cd client && npm ci --legacy-peer-deps && cd .. && \
-    npm cache clean --force
+    npm ci --only=production --legacy-peer-deps && \
+    npm cache clean --force && \
+    apk del .build-deps
 
-# Copy source code
-COPY . .
-
-# Build arguments for frontend environment variables
-ARG VITE_AUTH0_CLIENT_ID
-ARG VITE_AUTH0_DOMAIN  
-ARG VITE_AUTH0_AUDIENCE
-ARG VITE_AUTH0_REDIRECT_URI
-
-# Set environment variables for build
-ENV VITE_AUTH0_CLIENT_ID=${VITE_AUTH0_CLIENT_ID}
-ENV VITE_AUTH0_DOMAIN=${VITE_AUTH0_DOMAIN}
-ENV VITE_AUTH0_AUDIENCE=${VITE_AUTH0_AUDIENCE}
-ENV VITE_AUTH0_REDIRECT_URI=${VITE_AUTH0_REDIRECT_URI}
-
-# Build the application with production environment variables
-RUN npm run build:production
-
-# Remove build dependencies and dev dependencies
-RUN apk del .build-deps && \
-    npm prune --production
+# Copy built application (already built locally with production env vars)
+COPY dist ./dist
+COPY shared ./shared
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
