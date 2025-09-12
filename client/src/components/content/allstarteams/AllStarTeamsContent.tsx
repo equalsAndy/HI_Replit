@@ -20,6 +20,7 @@ import FinalReflectionView from '../FinalReflectionView';
 import FinishWorkshopView from '../FinishWorkshopView';
 import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
+import IntroIAView from './IntroIAView';
 import PlaceholderView from '../PlaceholderView';
 import Mod2RecapView from '../Mod2RecapView';
 import DownloadStarCardView from './DownloadStarCardView';
@@ -433,8 +434,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'more-imaginal-agility':
       return (
-        <PlaceholderView 
-          title="More About Imaginal Agility"
+        <IntroIAView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

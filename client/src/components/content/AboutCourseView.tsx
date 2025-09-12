@@ -18,10 +18,15 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
   const stepId = "1-3";
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   
-  // Fetch video from database using tRPC
+  // Fetch first video from database using tRPC
   const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
     workshop: 'allstarteams',
     stepId,
+  });
+
+  // Fetch second video from database using direct YouTube ID
+  const { data: secondVideoData, isLoading: secondVideoLoading, error: secondVideoError } = trpc.lesson.byYouTubeId.useQuery({
+    youtubeId: 'bnHjo3hJCsM'
   });
   
   // Get navigation progress using the main hook
@@ -219,6 +224,37 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
               <span className="text-base text-gray-700">AI-generated holistic report of your profile</span>
             </li>
           </ul>
+        </div>
+
+        {/* Second Video */}
+        <div className="mb-8 max-w-4xl mx-auto">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Course Deep Dive</h2>
+          {secondVideoLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading second video...</span>
+            </div>
+          ) : secondVideoError ? (
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              Error loading second video. Using fallback.
+              <VideoTranscriptGlossary
+                youtubeId="bnHjo3hJCsM"
+                title="Course Deep Dive"
+              />
+            </div>
+          ) : secondVideoData ? (
+            <VideoTranscriptGlossary
+              youtubeId={secondVideoData.youtubeId}
+              title={secondVideoData.title}
+              transcriptMd={secondVideoData.transcriptMd}
+              glossary={secondVideoData.glossary ?? []}
+            />
+          ) : (
+            <VideoTranscriptGlossary
+              youtubeId="bnHjo3hJCsM"
+              title="Course Deep Dive"
+            />
+          )}
         </div>
 
         <div className="flex justify-end items-center space-x-4">

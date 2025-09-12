@@ -169,70 +169,13 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
     }
   }, [answers, debouncedSave]);
 
-  // Complete reflection function
-  const completeReflection = async () => {
-    try {
-      console.log('completeReflection: Starting save process...');
-      setSaving(true);
-      
-      // Transform answers to match API expected format
-      const transformedData = {
-        strengths: answers[2] || '', // Question 2: "Which strengths or qualities do you need to nurture — and why?"
-        values: answers[1] || '',    // Question 1: "When does stress or distraction tend to show up for you?"
-        passions: answers[3] || '',  // Question 3: "How will you harness your strengths to create forward momentum..."
-        growthAreas: answers[4] || '' // Question 4: "What would you like to explore, develop, or try that's new for you?"
-      };
-      
-      console.log('completeReflection: Making API request with transformed data:', transformedData);
-      const response = await fetch('/api/workshop-data/rounding-out', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(transformedData)
-      });
-      
-      console.log('completeReflection: API response status:', response.status);
-      const result = await response.json();
-      console.log('completeReflection: API response data:', result);
-      
-      if (result.success) {
-        console.log('completeReflection: Save successful, updating UI...');
-        toast({
-          title: "Reflection saved!",
-          description: "Your responses have been saved successfully.",
-          duration: 3000
-        });
-        markStepCompleted('3-2');
-        // Navigate to the next step: Add Flow to Star Card
-        if (navigate) {
-          console.log('completeReflection: Navigating to step 3-4...');
-          navigate('find-your-flow', '3-4');
-        } else {
-          console.log('completeReflection: Navigate function not available');
-        }
-      } else {
-        console.log('completeReflection: Save failed:', result);
-      }
-    } catch (error) {
-      console.error('completeReflection: Error occurred:', error);
-      toast({
-        title: "Failed to save reflection",
-        description: "Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      console.log('completeReflection: Finishing save process...');
-      setSaving(false);
-    }
-  };
-
   // Get current question
   const question = roundingOutQuestions[currentQuestion];
   const currentAnswer = answers[question?.id] || '';
 
   // Continue to next step
   const handleContinue = () => {
-    setCurrentContent('star-card');
+    setCurrentContent('final-reflection');
   };
 
   // Move to next question
@@ -295,15 +238,10 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           description: "Your responses have been saved successfully.",
           duration: 2000
         });
-        
-        // Mark step completed and navigate immediately
-        markStepCompleted('3-2');
-        
-        // Navigate to step 3-3 immediately
-        console.log('Navigating to step 3-3...');
-        if (setCurrentContent) {
-          setCurrentContent('flow-star-card');
-        }
+
+        // Mark step completed and navigate to Module 2 Recap
+        markStepCompleted('2-3');
+        setCurrentContent('module-2-recap');
       } else {
         throw new Error('Save failed: ' + JSON.stringify(result));
       }
@@ -578,7 +516,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                         : "bg-gray-300 cursor-not-allowed text-gray-500"
                     }`}
                   >
-                    {workshopCompleted ? 'Workshop Completed' : saving ? 'Saving...' : 'Next: Add Flow to Star Card'}
+                    {workshopCompleted ? 'Workshop Completed' : saving ? 'Saving...' : 'Next: Final Reflections'}
                   </Button>
                 )}
               </div>

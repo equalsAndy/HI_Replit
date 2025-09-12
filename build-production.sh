@@ -6,11 +6,12 @@ set -e
 
 echo "🏗️ Building locally with production environment variables..."
 
-# Set production environment variables for frontend build
-export VITE_AUTH0_CLIENT_ID="c28c7gpoPuIrmPrP85NMqtCYhige5Qd9"
-export VITE_AUTH0_DOMAIN="auth.heliotropeimaginal.com"  
-export VITE_AUTH0_AUDIENCE="https://api.heliotropeimaginal.com"
-export VITE_AUTH0_REDIRECT_URI="https://app2.heliotropeimaginal.com/auth/callback"
+# Get production environment variables from AWS Parameter Store
+echo "🔐 Retrieving Auth0 configuration from AWS SSM Parameter Store..."
+export VITE_AUTH0_CLIENT_ID=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_CLIENT_ID" --with-decryption --query "Parameter.Value" --output text)
+export VITE_AUTH0_DOMAIN=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_DOMAIN" --with-decryption --query "Parameter.Value" --output text)
+export VITE_AUTH0_AUDIENCE=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_AUDIENCE" --with-decryption --query "Parameter.Value" --output text)
+export VITE_AUTH0_REDIRECT_URI=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_REDIRECT_URI" --with-decryption --query "Parameter.Value" --output text)
 
 echo "✅ Production environment variables set:"
 echo "   VITE_AUTH0_CLIENT_ID: $VITE_AUTH0_CLIENT_ID"

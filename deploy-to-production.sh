@@ -55,6 +55,7 @@ MGMT_CLIENT_SECRET=$(aws ssm get-parameter --name "/prod/hi-replit/MGMT_CLIENT_S
 VITE_AUTH0_CLIENT_ID=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_CLIENT_ID" --with-decryption --query "Parameter.Value" --output text)
 VITE_AUTH0_DOMAIN=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_DOMAIN" --with-decryption --query "Parameter.Value" --output text)
 VITE_AUTH0_AUDIENCE=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_AUDIENCE" --with-decryption --query "Parameter.Value" --output text)
+VITE_AUTH0_REDIRECT_URI=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_REDIRECT_URI" --with-decryption --query "Parameter.Value" --output text)
 
 # Validate retrieved parameters
 : "${DATABASE_URL:?DATABASE_URL must be set}"
@@ -81,13 +82,13 @@ export BUILDKIT_PARALLELISM=1
 echo "🔑 Authenticating with ECR..."
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-# Build Docker image with production environment variables for frontend build
-echo "🏗️ Building with production environment variables..."
+# Build locally first with correct production environment variables
+echo "🏗️ Building locally with production configuration..."
+./build-production.sh
+
+# Build Docker image (using pre-built files)
+echo "🐳 Building Docker image with pre-built files..."
 docker buildx build --platform linux/amd64 \
-  --build-arg VITE_AUTH0_CLIENT_ID="${VITE_AUTH0_CLIENT_ID}" \
-  --build-arg VITE_AUTH0_DOMAIN="${VITE_AUTH0_DOMAIN}" \
-  --build-arg VITE_AUTH0_AUDIENCE="${VITE_AUTH0_AUDIENCE}" \
-  --build-arg VITE_AUTH0_REDIRECT_URI="https://app2.heliotropeimaginal.com/auth/callback" \
   --tag $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG \
   --push \
   .

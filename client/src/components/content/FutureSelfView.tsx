@@ -328,8 +328,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const handleSubmit = async () => {
     if (workshopCompleted) {
       // If workshop is completed, just navigate
-      markStepCompleted('2-3');
-      setCurrentContent('module-2-recap');
+      markStepCompleted('3-2');
+      setCurrentContent('final-reflection');
       return;
     }
     
@@ -359,13 +359,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       }
       
       // Mark step completed and navigate regardless of save status
-      markStepCompleted('2-3');
-      setCurrentContent('module-2-recap');
+      markStepCompleted('3-2');
+      setCurrentContent('final-reflection');
     } catch (error) {
       console.error('FutureSelfView: Error saving or completing:', error);
       // Still proceed to next step even if save fails
-      markStepCompleted('2-3');
-      setCurrentContent('module-2-recap');
+      markStepCompleted('3-2');
+      setCurrentContent('final-reflection');
     }
   };
 

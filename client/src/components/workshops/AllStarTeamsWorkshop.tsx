@@ -590,12 +590,12 @@ export default function AllStarTeamsWorkshop() {
     // MODULE 2: STRENGTH AND FLOW
     '2-1': { prev: '1-3', next: '2-2', contentKey: 'star-strengths-assessment' }, // ✅ IntroStrengthsView
     '2-2': { prev: '2-1', next: '2-3', contentKey: 'flow-patterns' }, // ✅ IntroToFlowView (OLD 3-1)
-    '2-3': { prev: '2-2', next: '2-4', contentKey: 'future-self' }, // ✅ FutureSelfView (OLD 4-4)
+    '2-3': { prev: '2-2', next: '2-4', contentKey: 'rounding-out' }, // ✅ FlowRoundingOutView (OLD 3-2)
     '2-4': { prev: '2-3', next: '3-1', contentKey: 'module-2-recap' }, // NEW - PlaceholderView
 
     // MODULE 3: VISUALIZE YOUR POTENTIAL
     '3-1': { prev: '2-4', next: '3-2', contentKey: 'wellbeing-ladder' }, // ✅ WellBeingView (OLD 4-1)
-    '3-2': { prev: '3-1', next: '3-3', contentKey: 'rounding-out' }, // ✅ FlowRoundingOutView (OLD 3-2)
+    '3-2': { prev: '3-1', next: '3-3', contentKey: 'future-self' }, // ✅ FutureSelfView (OLD 4-4)
     '3-3': { prev: '3-2', next: '3-4', contentKey: 'final-reflection' }, // ✅ FinalReflectionView (OLD 4-5)
     '3-4': { prev: '3-3', next: '4-1', contentKey: 'finish-workshop' }, // ✅ FinishWorkshopStep
 
