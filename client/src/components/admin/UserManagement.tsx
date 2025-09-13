@@ -1087,11 +1087,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                   // Filter IA steps (those with "ia-" prefix)
                                   const iaSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
                                   
-                                  console.log(`Debug IA Progress for user ${user.id}:`, {
-                                    allCompletedSteps: completedSteps,
-                                    iaSteps: iaSteps,
-                                    currentStepId: currentStepId
-                                  });
                                   
                                   if (iaSteps.includes('ia-8-1')) {
                                     iaStep = 'Complete';

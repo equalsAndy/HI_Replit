@@ -106,42 +106,23 @@ export default function StrengthReflections({
   setCurrentContent,
   markStepCompleted 
 }: StrengthReflectionsProps) {
-  const [configs, setConfigs] = useState<any[]>([]);
-
-  // Custom completion handler that navigates to flow patterns
-  const handleReflectionComplete = useCallback(() => {
-    console.log('StrengthReflections: All reflections complete, navigating to flow patterns');
-    
-    if (markStepCompleted) {
-      markStepCompleted('2-1'); // Mark strengths step as completed
-    }
-    
-    if (setCurrentContent) {
-      setCurrentContent('intro-to-flow'); // Navigate to AST 2-2 (intro to flow)
-    }
-    
-    if (onComplete) {
-      onComplete();
-    }
-  }, [markStepCompleted, setCurrentContent, onComplete]);
-
-  useEffect(() => {
-    // Create configs for 4 strength questions + 2 additional questions
+  // Build reflection configs once when strengths change
+  const configs = React.useMemo(() => {
     const strengthConfigs = strengths.map((s, i) => {
       const promptData = getStrengthPrompt(s.label.toUpperCase());
       return {
         id: `strength-${i+1}`,
-        question: `Your ${s.position}${s.position === 1 ? 'st' : s.position === 2 ? 'nd' : s.position === 3 ? 'rd' : 'th'} strength is ${s.label}`,
+        question: `Your ${s.position}${
+          s.position === 1 ? 'st' : s.position === 2 ? 'nd' : s.position === 3 ? 'rd' : 'th'
+        } strength is ${s.label}`,
         instruction: promptData.question,
         bullets: promptData.bullets,
         examples: promptData.examples,
-        example: getStrengthExample(s.label, s.score), // Keep for backward compatibility
+        example: getStrengthExample(s.label, s.score),
         strengthColor: getStrengthColors(s.label),
         minLength: 25,
       };
     });
-
-    // Add Team Values question (question 5)
     const teamValuesConfig = {
       id: 'team-values',
       question: 'What You Value Most in Team Environments',
@@ -159,8 +140,6 @@ export default function StrengthReflections({
       strengthColor: { bg: 'bg-gray-500', border: 'border-gray-200', text: 'text-gray-800', name: 'TEAM VALUES' },
       minLength: 25,
     };
-
-    // Add Unique Contribution question (question 6)
     const uniqueContributionConfig = {
       id: 'unique-contribution',
       question: 'Your Unique Contribution',
@@ -178,11 +157,16 @@ export default function StrengthReflections({
       strengthColor: { bg: 'bg-purple-500', border: 'border-purple-200', text: 'text-purple-800', name: 'UNIQUE CONTRIBUTION' },
       minLength: 25,
     };
-
-    setConfigs([...strengthConfigs, teamValuesConfig, uniqueContributionConfig]);
+    return [...strengthConfigs, teamValuesConfig, uniqueContributionConfig];
   }, [strengths]);
 
-  if (!configs.length) return <div>Loading reflections...</div>;
+  // Custom completion handler that navigates to flow patterns
+  const handleReflectionComplete = React.useCallback(() => {
+    console.log('StrengthReflections: All reflections complete, navigating to flow patterns');
+    markStepCompleted?.('2-1');
+    setCurrentContent?.('intro-to-flow');
+    onComplete?.();
+  }, [markStepCompleted, setCurrentContent, onComplete]);
 
   return (
     <div className="max-w-4xl mx-auto">

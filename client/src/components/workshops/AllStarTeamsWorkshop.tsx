@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
-import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
+import WorkshopNavigationSidebar from '@/components/navigation/WorkshopNavigationSidebar';
 import AllStarTeamsContent from '@/components/content/allstarteams/AllStarTeamsContent';
 import CoachingModalProvider from '@/components/modals/CoachingModalProvider';
 import { navigationSections, imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useApplication } from '@/hooks/use-application';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { useTestUser } from '@/hooks/useTestUser';
 import { forceAssessmentCacheDump } from '@/utils/forceRefresh';
 import { useStarCardData } from '@/hooks/useStarCardData';
@@ -27,19 +27,21 @@ export default function AllStarTeamsWorkshop() {
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
   const { shouldShowDemoButtons } = useTestUser();
+  // Updated to use unified navigation system
+  const navigation = useUnifiedWorkshopNavigation('ast');
   const {
     progress: navProgress,
     updateVideoProgress,
     markStepCompleted: markNavStepCompleted,
-    updateCurrentStep: setCurrentStep,
-    isStepAccessibleByProgression: isStepUnlocked,
+    navigateToStep: setCurrentStep,
+    isStepAccessible: isStepUnlocked,
     canProceedToNext,
-    shouldShowGreenCheckmark: isStepCompleted,
-    getCurrentVideoProgress: getVideoProgress
-  } = useNavigationProgress('ast');
+    isStepCompleted: shouldShowGreenCheckmark,
+    getVideoProgress
+  } = navigation;
 
   // Use navigation progress state instead of separate completedSteps state
-  const completedSteps = navProgress?.completedSteps || [];
+  const completedSteps = navigation.completedSteps || [];
 
   // Set app type for navigation and listen for auto-navigation events
   useEffect(() => {
@@ -527,21 +529,38 @@ export default function AllStarTeamsWorkshop() {
     }
   });
 
-  // Function to mark a step as completed
+  // Function to mark a step as completed - FIXED: Use unified navigation progression
   const markStepCompleted = (stepId: string) => {
-    console.log("markStepCompleted called with:", stepId, "completedSteps:", completedSteps);
+    console.log(`🎯 markStepCompleted called with: ${stepId}`);
+    console.log(`🎯 Current navigation state:`, {
+      currentStep: navigation.currentStep,
+      completedSteps: navigation.completedSteps,
+      nextStep: navigation.nextStep
+    });
 
-    // Use the navigation progress hook's markStepCompleted function
-    markNavStepCompleted(stepId);
-    console.log(`Step ${stepId} marked as completed`);
+    // FIXED: If this is the current step being completed, use goToNextStep for progression
+    if (stepId === navigation.currentStep) {
+      console.log(`🎯 Completing current step ${stepId} and moving to next`);
+      const nextStep = navigation.goToNextStep();
+      if (nextStep) {
+        // Update local content to match the new step
+        const navInfo = navigationSequence[nextStep];
+        if (navInfo) {
+          console.log(`🎯 Updating content to: ${navInfo.contentKey}`);
+          setCurrentContent(navInfo.contentKey);
+        }
+      }
+    } else {
+      // For manual completion of non-current steps, just mark as complete
+      console.log(`🎯 Marking non-current step ${stepId} as complete`);
+      navigation.completeStep(stepId);
+    }
+    
+    console.log(`🎯 Step ${stepId} marked as completed`);
   };
 
-  // Function to determine if a step is accessible - uses unlocked steps from navigation progress
+  // Function to determine if a step is accessible - FIXED: Use unified navigation hook directly
   const isStepAccessible = (sectionId: string, stepId: string) => {
-    // Use navigation progress unlocked steps instead of completed steps
-    const unlockedSteps = navProgress?.unlockedSteps || [];
-    const completedSteps = navProgress?.completedSteps || [];
-
     // Special logic for steps 5-2 and 5-3: available to all users after final reflection completion
     if (stepId === '5-2' || stepId === '5-3') {
       const finalReflectionCompleted = completedSteps.includes('4-5');
@@ -552,14 +571,8 @@ export default function AllStarTeamsWorkshop() {
       return finalReflectionCompleted;
     }
 
-    // Check if step is in unlocked steps
-    const isUnlocked = unlockedSteps.includes(stepId);
-    // Only log if step is locked and we're trying to access it (reduce console spam)
-    if (!isUnlocked && process.env.NODE_ENV === 'development') {
-      console.log(`🔓 Step ${stepId} locked - available: ${unlockedSteps.join(', ')}`);
-    }
-
-    return isUnlocked;
+    // FIXED: Use unified navigation hook's accessibility check
+    return navigation.isStepAccessible(stepId);
   };
 
   // Handle assessment completion
@@ -640,6 +653,9 @@ export default function AllStarTeamsWorkshop() {
   const handleStepClick = (sectionId: string, stepId: string) => {
     console.log(`🧭 Menu navigation clicked: stepId=${stepId}, sectionId=${sectionId}`);
 
+    // FIXED: Use unified navigation to navigate to step FIRST
+    navigation.navigateToStep(stepId);
+
     // Get navigation info for this step
     const navInfo = navigationSequence[stepId];
     console.log(`🧭 Navigation info for ${stepId}:`, navInfo);
@@ -650,7 +666,6 @@ export default function AllStarTeamsWorkshop() {
       setCurrentContent(`placeholder-${stepId}`);
       // Scroll to content top anchor
       document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
-      // DO NOT auto-mark as completed - only Next button progression should do this
       return;
     }
 
@@ -664,10 +679,6 @@ export default function AllStarTeamsWorkshop() {
     // SIMPLIFIED MODE: Menu clicks should NEVER mark steps as completed
     // Only Next button progression should mark steps complete
     console.log(`🧭 SIMPLIFIED MODE: Menu navigation to ${stepId} - NO auto-completion`);
-
-    // Set content based on navigation sequence
-    setCurrentContent(navInfo.contentKey);
-    setCurrentStep(stepId);
   };
 
   // Scroll to top when currentContent changes (including programmatic navigation)
@@ -750,7 +761,7 @@ export default function AllStarTeamsWorkshop() {
           />
 
           {/* Left Navigation Drawer */}
-          <UserHomeNavigation
+          <WorkshopNavigationSidebar
             drawerOpen={drawerOpen}
             toggleDrawer={toggleDrawer}
             navigationSections={updatedNavigationSections}
@@ -769,7 +780,7 @@ export default function AllStarTeamsWorkshop() {
             <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
             <AllStarTeamsContent
               currentContent={currentContent}
-              markStepCompleted={markNavStepCompleted}
+              markStepCompleted={markStepCompleted}
               setCurrentContent={setCurrentContent}
               starCard={starCardData}
               user={userProfile}

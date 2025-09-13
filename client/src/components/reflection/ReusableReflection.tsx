@@ -74,29 +74,23 @@ export default function ReusableReflection({
   // Listen for data clearing events to refresh reflection data
   useEffect(() => {
     const handleDataCleared = () => {
-      console.log('🔄 Data cleared event received, invalidating reflection cache...');
+      console.log('🔄 Data cleared event received for reflectionSetId=', reflectionSetId);
       console.log('🔄 Current reflectionSetId:', reflectionSetId);
       
       // Use proper tRPC utils to invalidate the specific query
+      console.log('🔍 Invalidating tRPC query for reflections.getReflectionSet');
       trpcUtils.reflections.getReflectionSet.invalidate({ reflectionSetId })
-        .then(() => {
-          console.log('✅ tRPC query invalidated successfully');
-        })
-        .catch((err) => {
-          console.error('❌ tRPC query invalidation failed:', err);
-        });
+        .then(() => console.log('✅ tRPC query invalidated successfully'))
+        .catch((err) => console.error('❌ tRPC query invalidation failed:', err));
       
       // Force a complete refresh by updating the key
       setForceRefreshKey(prev => prev + 1);
-      
       // Also force refetch this specific query
       refetch();
-      
-      // Reset local state
+      // Reset local UI state
       setResponses({});
       setCurrentReflectionIndex(0);
-      
-      console.log('🔄 Local state reset complete');
+      console.log('🔄 Local reflection state reset complete');
     };
 
     const handleAssessmentCompleted = () => {
@@ -135,13 +129,9 @@ export default function ReusableReflection({
   const completeReflection = async (id: string) => {
     if (!workshopLocked) {
       await completeMutation.mutateAsync({ reflectionSetId, reflectionId: id });
-      // Refetch data to ensure progressive reveal logic has latest completion state
-      await refetch();
     }
     if (progressiveReveal) {
-      const next = currentReflectionIndex + 1;
-      if (next < reflections.length) setCurrentReflectionIndex(next);
-      else onComplete?.();
+      setCurrentReflectionIndex(prev => prev + 1);
     } else {
       onComplete?.();
     }
@@ -154,9 +144,6 @@ export default function ReusableReflection({
     return resp.trim().length >= min;
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   const visible = progressiveReveal ? reflections.slice(0, currentReflectionIndex + 1) : reflections;
 

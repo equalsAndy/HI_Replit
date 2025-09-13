@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { useQuery } from '@tanstack/react-query';
 import VideoTranscriptGlossary from '../common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
@@ -81,12 +81,12 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   
-  // Get navigation progress using the main hook
+  // Get navigation progress using the unified hook
+  const navigation = useUnifiedWorkshopNavigation(isImaginalAgility ? 'ia' : 'ast');
   const { 
-    progress: navigationProgress, 
     updateVideoProgress,
     markStepCompleted: navMarkStepCompleted
-  } = useNavigationProgress();
+  } = navigation;
 
   // Simplified mode: Next button always active for video steps
   useEffect(() => {
@@ -134,7 +134,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   // Calculate start time for video resume based on current progress
   const calculateStartTime = (): number => {
-    const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
+    const videoProgress = navigation.getVideoProgress(stepId) || 0;
     
     // Convert percentage to seconds (assuming average video duration of 150 seconds)
     // Only resume if progress is between 5% and 95% to avoid edge cases
@@ -183,10 +183,17 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
       console.log(`🚀 Next button clicked for step: ${stepId}`);
       
       // Try both markStepCompleted functions - props first, then navigation hook
+      console.log(`🔍 Available functions:`, { 
+        hasPropsMarkCompleted: !!markStepCompleted, 
+        hasNavMarkCompleted: !!navMarkStepCompleted 
+      });
+      
       if (markStepCompleted) {
+        console.log(`🎯 Calling PROPS markStepCompleted(${stepId})`);
         await markStepCompleted(stepId);
         console.log(`✅ Step ${stepId} marked complete via props, navigating to ${nextContentId}`);
       } else if (navMarkStepCompleted) {
+        console.log(`🎯 Calling UNIFIED HOOK markStepCompleted(${stepId})`);
         await navMarkStepCompleted(stepId);
         console.log(`✅ Step ${stepId} marked complete via navigation hook, navigating to ${nextContentId}`);
       } else {
@@ -271,6 +278,68 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             <div className="section-headers-pill-60__box">📚 Content</div>
           </div>
         </div>
+        {/* Graphics Cards Container - Side by side on wide screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* First Content Card - Organizational Challenges Diagram */}
+          <div className="section-content-card-60 section-content-card-60--content relative h-full">
+            <div
+              className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+              style={{ marginLeft: '-8px' }}
+            >
+              <div
+                className="text-xs font-bold text-purple-600 bg-purple-50 px-0.5 py-1 rounded text-center"
+                style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+              >
+                📚 Content
+              </div>
+            </div>
+            <div className="section-content-card-60__strip" aria-hidden="true" />
+            <div className="section-content-card-60__box h-full">
+              <div className="flex flex-col items-center justify-center h-[420px] py-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Here's What Happens Without Self-Awareness</h3>
+                <div className="w-full max-w-lg flex justify-center flex-grow items-center">
+                  <img 
+                    src="/assets/organizational-challenges-diagram.png" 
+                    alt="Organizational challenges diagram showing relational, individual, and organizational levels" 
+                    className="w-full h-auto rounded-lg shadow-sm max-h-[300px] object-contain"
+                    style={{ maxWidth: '115%' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Second Content Card - Ben Franklin Quote */}
+          <div className="section-content-card-60 section-content-card-60--content relative h-full">
+            <div
+              className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+              style={{ marginLeft: '-8px' }}
+            >
+              <div
+                className="text-xs font-bold text-purple-600 bg-purple-50 px-0.5 py-1 rounded text-center"
+                style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+              >
+                📚 Content
+              </div>
+            </div>
+            <div className="section-content-card-60__strip" aria-hidden="true" />
+            <div className="section-content-card-60__box h-full">
+              <div className="flex flex-col items-center justify-center h-[420px] py-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Self-Awareness is Not Easy</h3>
+                <div className="w-full max-w-lg flex justify-center flex-grow items-center">
+                  <img 
+                    src="/assets/ben-franklin-quote.png" 
+                    alt="Ben Franklin quote" 
+                    className="w-full h-auto rounded-lg shadow-sm max-h-[300px] object-contain"
+                    style={{ maxWidth: '115%' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Third Content Card - What Is NOT Self-Awareness */}
         <div className="section-content-card-60 section-content-card-60--content relative">
           <div
             className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
@@ -285,22 +354,49 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           </div>
           <div className="section-content-card-60__strip" aria-hidden="true" />
           <div className="section-content-card-60__box">
-            <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
-              <div className="flex flex-col items-center flex-1 max-w-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Here's What Happens Without Self-Awareness</h3>
-                <img 
-                  src="/assets/organizational-challenges-diagram.png" 
-                  alt="Organizational challenges diagram showing relational, individual, and organizational levels" 
-                  className="w-[115%] h-auto rounded-lg shadow-sm"
-                />
+            <div className="bg-red-50 border-l-4 border-red-400 p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold text-red-800 mb-4 flex items-center">
+                <span className="mr-2">❌</span>
+                What Is NOT Self-Awareness
+              </h3>
+              <p className="text-red-700 mb-4 text-sm italic">
+                According to researcher Tasha Eurich, many people mistake these behaviors for genuine self-awareness:
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Endless Introspection:</strong>
+                    <span className="text-red-700"> Overanalyzing feelings and asking "why" questions traps people in rumination without offering actionable insight.</span>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Self-Loathing or Self-Consciousness:</strong>
+                    <span className="text-red-700"> Being overly focused on flaws or anxious about self-image is not true self-awareness.</span>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Focusing Only on Internal Thoughts:</strong>
+                    <span className="text-red-700"> Genuine self-awareness balances internal knowledge with external awareness of how others see you.</span>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Ignoring Feedback:</strong>
+                    <span className="text-red-700"> Not seeking or integrating how others perceive your actions means missing half of self-awareness.</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col items-center flex-1 max-w-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">It's Not Easy</h3>
-                <img 
-                  src="/assets/ben-franklin-quote.png" 
-                  alt="Ben Franklin quote" 
-                  className="w-[115%] h-auto rounded-lg shadow-sm"
-                />
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+                <p className="text-green-800 font-medium">
+                  <span className="mr-2">✅</span>
+                  <strong>True Self-Awareness:</strong> The will and skill to understand both who you are (internal) and how others see you (external), using this balanced insight to take actionable, positive steps forward.
+                </p>
               </div>
             </div>
           </div>

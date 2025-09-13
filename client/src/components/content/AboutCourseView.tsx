@@ -24,7 +24,7 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
     stepId,
   });
 
-  // Fetch second video from database using direct YouTube ID
+  // Second video - fetch from database using YouTube ID
   const { data: secondVideoData, isLoading: secondVideoLoading, error: secondVideoError } = trpc.lesson.byYouTubeId.useQuery({
     youtubeId: 'bnHjo3hJCsM'
   });
@@ -235,26 +235,27 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
               <span className="ml-3 text-gray-600">Loading second video...</span>
             </div>
           ) : secondVideoError ? (
-            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
-              Error loading second video. Using fallback.
-              <VideoTranscriptGlossary
-                youtubeId="bnHjo3hJCsM"
-                title="Course Deep Dive"
-              />
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900 mb-4">
+              <p className="font-semibold mb-2">⚠️ Error loading second video from database:</p>
+              <p className="text-sm mb-4">{secondVideoError?.message || 'Unknown error'}</p>
+              <p className="text-sm">Using fallback video with YouTube ID: bnHjo3hJCsM</p>
             </div>
-          ) : secondVideoData ? (
+          ) : null}
+          
+          {/* Always show the video - either from database or fallback */}
+          {secondVideoData ? (
             <VideoTranscriptGlossary
               youtubeId={secondVideoData.youtubeId}
               title={secondVideoData.title}
               transcriptMd={secondVideoData.transcriptMd}
               glossary={secondVideoData.glossary ?? []}
             />
-          ) : (
+          ) : !secondVideoLoading ? (
             <VideoTranscriptGlossary
               youtubeId="bnHjo3hJCsM"
               title="Course Deep Dive"
             />
-          )}
+          ) : null}
         </div>
 
         <div className="flex justify-end items-center space-x-4">

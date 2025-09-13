@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "../db.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 import * as schema from "../../shared/schema.js";
 
 // Context carries DB handle and authenticated user
@@ -20,7 +20,12 @@ const authenticatedProcedure = t.procedure.use(({ ctx, next }) => {
   if (!ctx.userId) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
-  return next({ ctx });
+  return next({ 
+    ctx: {
+      ...ctx,
+      userId: ctx.userId as number // Type assertion since we've checked it above
+    }
+  });
 });
 
 export type AppRouter = typeof appRouter;
@@ -47,8 +52,35 @@ const lessonRouter = router({
       return {
         workshop: row.workshopType,
         stepId: row.stepId,
-        // Use editableId for YouTube ID, fallback to youtubeId or url
-        youtubeId: row.editableId ?? row.youtubeId ?? row.url,
+        // Use editableId for YouTube ID, fallback to url
+        youtubeId: row.editableId ?? row.url,
+        title: row.title,
+        transcriptMd: row.transcriptMd,
+        glossary: row.glossary,
+      };
+    }),
+  byYouTubeId: publicProcedure
+    .input(z.object({ youtubeId: z.string() }))
+    .query(async ({ input }) => {
+      const records = await db
+        .select()
+        .from(schema.videos)
+        .where(
+          or(
+            eq(schema.videos.editableId, input.youtubeId),
+            eq(schema.videos.url, input.youtubeId)
+          )
+        )
+        .limit(1);
+      const row = records[0];
+      if (!row) {
+        throw new TRPCError({ code: "NOT_FOUND", message: `Video with YouTube ID ${input.youtubeId} not found` });
+      }
+      return {
+        workshop: row.workshopType,
+        stepId: row.stepId,
+        // Use editableId for YouTube ID, fallback to url
+        youtubeId: row.editableId ?? row.url,
         title: row.title,
         transcriptMd: row.transcriptMd,
         glossary: row.glossary,

@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import { ChevronDown, ChevronRight, Check, Lock, LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { cn } from '@/lib/utils';
 
 interface NavigationStep {
@@ -36,7 +36,8 @@ interface CollapsibleSectionProps {
 
 export function CollapsibleSection({ section, icon: Icon, children }: CollapsibleSectionProps) {
   const [location, navigate] = useLocation();
-  const { progress, isStepAccessibleByProgression } = useNavigationProgress();
+  const navigation = useUnifiedWorkshopNavigation('ast'); // TODO: Get appType from context
+  const { progress, isStepAccessibleByProgression } = navigation; // Maintain compatibility
   
   // Check if this section is expanded based on progress state
   const isExpanded = progress.sectionExpansion?.[section.id] ?? true;

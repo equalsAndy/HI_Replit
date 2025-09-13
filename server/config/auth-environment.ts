@@ -15,12 +15,6 @@ export class AuthEnvironmentManager {
     if (env === 'production') return 'production';
     if (env === 'staging') return 'staging';
     
-    // Smart detection: AWS database = staging
-    const dbUrl = process.env.DATABASE_URL;
-    if (dbUrl && dbUrl.includes('amazonaws.com') && env === 'development') {
-      console.log('🔄 Environment override: AWS database detected, treating as staging');
-      return 'staging';
-    }
     
     return 'development';
   }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import UserHomeNavigationWithStarCard from '@/components/navigation/UserHomeNavigationWithStarCard';
+import UserHomeNavigation from '@/components/navigation/WorkshopNavigationSidebar';
 import ContentViews from '@/components/content/ContentViews';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import { User } from '@/shared/types';
@@ -308,7 +308,7 @@ export default function ImaginalAgilityWorkshop() {
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
-        <UserHomeNavigationWithStarCard
+        <UserHomeNavigation
           drawerOpen={true}
           toggleDrawer={() => {}}
           navigationSections={imaginalAgilityNavigationSections}

@@ -1,5 +1,5 @@
 import { Video, BookOpen, Zap, Glasses, PenLine, Download, ChevronRight, CheckCircle, Circle, Clock, Activity } from 'lucide-react';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { CollapsibleSection } from './CollapsibleSection';
 import { navigationSections, imaginalAgilityNavigationSections } from './navigationData';
 
@@ -9,7 +9,8 @@ interface NavigationSidebarProps {
 }
 
 export function NavigationSidebar({ appType = 'ast', customSections }: NavigationSidebarProps = {}) {
-  const { progress, getSectionProgressData } = useNavigationProgress(appType);
+  const navigation = useUnifiedWorkshopNavigation(appType);
+  const { progress, getSectionProgressData } = navigation; // Maintain compatibility
   
   // Use custom sections if provided, otherwise use the default sections based on app type
   const sections = customSections || (appType === 'ia' ? imaginalAgilityNavigationSections : navigationSections);
