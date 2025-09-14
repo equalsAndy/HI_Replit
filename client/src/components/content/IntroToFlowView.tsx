@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
-import { Gauge, ChevronRight, X, GripVertical, Zap } from 'lucide-react';
+import { Gauge, ChevronRight, X, GripVertical, Zap, Check } from 'lucide-react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import FlowAssessmentModal from '@/components/flow/FlowAssessmentModal';
@@ -173,6 +173,58 @@ const getRankBadgeColor = (rank: number): string => {
   }
 };
 
+// Flow assessment questions for results display
+const flowQuestions = [
+  { id: 1, text: "I often feel deeply focused and energized by my work." },
+  { id: 2, text: "The challenges I face are well matched to my skills." },
+  { id: 3, text: "I lose track of time when I'm fully engaged." },
+  { id: 4, text: "I feel in control of what I'm doing, even under pressure." },
+  { id: 5, text: "I receive clear feedback that helps me stay on track." },
+  { id: 6, text: "I know exactly what needs to be done in my work." },
+  { id: 7, text: "I feel more spontaneous when I'm in flow." },
+  { id: 8, text: "I can do things almost effortlessly." },
+  { id: 9, text: "I enjoy the process itself, not just the results." },
+  { id: 10, text: "I have rituals or environments that help me quickly get into deep focus." },
+  { id: 11, text: "I forget to take breaks because I'm so immersed." },
+  { id: 12, text: "I want to recapture this experience again—it's deeply rewarding." },
+];
+
+// Helper functions for assessment results
+const valueToLabel = (value: number) => {
+  switch (value) {
+    case 1: return "Never";
+    case 2: return "Rarely";
+    case 3: return "Sometimes";
+    case 4: return "Often";
+    case 5: return "Always";
+    default: return "";
+  }
+};
+
+const getInterpretation = (score: number) => {
+  if (score >= 50) {
+    return {
+      level: "Flow Fluent",
+      description: "You reliably access flow and have developed strong internal and external conditions to sustain it."
+    };
+  } else if (score >= 39) {
+    return {
+      level: "Flow Aware",
+      description: "You are familiar with the experience but have room to reinforce routines or reduce blockers."
+    };
+  } else if (score >= 26) {
+    return {
+      level: "Flow Blocked",
+      description: "You occasionally experience flow but face challenges in entry, recovery, or sustaining focus."
+    };
+  } else {
+    return {
+      level: "Flow Distant",
+      description: "You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed."
+    };
+  }
+};
+
 const IntroToFlowView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
@@ -195,6 +247,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   // Flow assessment state
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
+  const [assessmentResults, setAssessmentResults] = useState<any>(null);
   
   // Workshop status for locking functionality
   const { completed: workshopCompleted, isWorkshopLocked } = useWorkshopStatus();
@@ -310,6 +363,12 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           const data = await response.json();
           if (data.success && data.data && data.data.completed) {
             setHasCompletedAssessment(true);
+            // Load the full assessment results for inline display
+            setAssessmentResults({
+              answers: data.data.answers,
+              flowScore: data.data.flowScore,
+              completed: true
+            });
           }
         }
       } catch (error) {
@@ -324,8 +383,9 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   const handleAssessmentComplete = (results: any) => {
     console.log('Flow assessment completed with results:', results);
     setHasCompletedAssessment(true);
+    setAssessmentResults(results);
     setIsAssessmentModalOpen(false);
-    
+
     // Mark this step as completed since the assessment is now done
     if (markStepCompleted) {
       markStepCompleted('3-1');
@@ -649,16 +709,9 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               <div className="space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <p className="text-green-800 font-medium">
-                    ✅ You've completed the flow assessment! Your results have been saved.
+                    ✅ You've completed the flow assessment! Your results are displayed below.
                   </p>
                 </div>
-                <Button
-                  onClick={() => setIsAssessmentModalOpen(true)}
-                  variant="outline"
-                  className="mr-4 border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  View Results
-                </Button>
               </div>
             ) : (
               <Button
@@ -671,6 +724,62 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             )}
           </div>
         </div>
+
+        {/* Inline Flow Assessment Results */}
+        {hasCompletedAssessment && assessmentResults && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 className="text-2xl font-bold text-blue-900 mb-6">Your Flow Assessment Results</h3>
+
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4 mx-auto">
+                  <Check className="h-8 w-8 text-blue-600" />
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-3xl font-bold text-blue-700 mb-2">
+                    {assessmentResults.flowScore} / {flowQuestions.length * 5}
+                  </p>
+                  <p className="text-xl font-semibold text-gray-800">
+                    {getInterpretation(assessmentResults.flowScore).level}
+                  </p>
+                </div>
+
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg text-left max-w-2xl mx-auto">
+                  <p className="text-gray-700">{getInterpretation(assessmentResults.flowScore).description}</p>
+                </div>
+              </div>
+
+              {/* Questions Summary */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Your Responses Summary</h4>
+                <div className="max-h-60 overflow-y-auto">
+                  <div className="space-y-2">
+                    {flowQuestions.map((q) => (
+                      <div key={q.id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+                        <div className="flex-1 pr-4">
+                          <span className="text-sm font-medium text-gray-900">Q{q.id}:</span>
+                          <span className="text-sm text-gray-700 ml-2">{q.text}</span>
+                        </div>
+                        <div className={`
+                          px-3 py-1 rounded-full text-xs font-medium text-white
+                          ${assessmentResults.answers[q.id] === 1 ? 'bg-red-500' :
+                            assessmentResults.answers[q.id] === 2 ? 'bg-orange-500' :
+                            assessmentResults.answers[q.id] === 3 ? 'bg-yellow-600' :
+                            assessmentResults.answers[q.id] === 4 ? 'bg-green-500' :
+                            assessmentResults.answers[q.id] === 5 ? 'bg-blue-600' : 'bg-gray-400'}
+                        `}>
+                          {assessmentResults.answers[q.id] ? valueToLabel(assessmentResults.answers[q.id]) : 'Not answered'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
 
         <div className="bg-gray-50 rounded-lg p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">What's Next?</h3>
@@ -935,11 +1044,11 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   }
                   
                   markStepCompleted('2-2');
-                  setCurrentContent("future-self");
+                  setCurrentContent("rounding-out");
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                Next: Your Future Self <ChevronRight className="ml-2 h-4 w-4" />
+                Next: Rounding Out <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           )}

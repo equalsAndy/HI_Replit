@@ -78,7 +78,8 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
       const updateContext = () => {
         const urlStepId = getStepIdFromUrl();
         const effectiveStepId = currentStepId || urlStepId;
-        console.log('🔄 Updating context for step:', effectiveStepId, 'URL:', window.location.pathname, 'URL changed:', currentUrl !== window.location.pathname);
+        // Reduced logging to prevent console spam
+        // console.log('🔄 Updating context for step:', effectiveStepId, 'URL:', window.location.pathname, 'URL changed:', currentUrl !== window.location.pathname);
         
         // Get current page context using effective step ID
         const context = detectCurrentPage(effectiveStepId || undefined);
@@ -97,7 +98,7 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
           pageContext.url !== enhancedContext.url;
         
         if (contextChanged) {
-          console.log('📝 Context actually changed, updating...');
+          // console.log('📝 Context actually changed, updating...');
           setPageContext(enhancedContext);
           setSystemInfo(getSystemInfo());
           
@@ -111,7 +112,7 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
             setShowSuccess(false);
           }
         } else {
-          console.log('🚫 Context unchanged, skipping update to preserve form data');
+          // console.log('🚫 Context unchanged, skipping update to preserve form data');
         }
       };
 
@@ -120,7 +121,7 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
 
       // Listen for URL changes to force context updates
       const handleUrlChange = () => {
-        console.log('🔄 URL changed, forcing context update');
+        // console.log('🔄 URL changed, forcing context update');
         setTimeout(updateContext, 100); // Small delay to let step detection update
       };
 
@@ -177,7 +178,7 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
       
       // If there are multiple form inputs, don't show question context
       if (formInputs.length > 1 || textAreas.length > 1) {
-        console.log('🚫 Multiple inputs detected - skipping question context');
+        // console.log('🚫 Multiple inputs detected - skipping question context');
         return undefined;
       }
       
@@ -209,7 +210,8 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
           });
           
           if (isUserInput) {
-            console.log('🚫 Filtered out user input:', text.substring(0, 50));
+            // Commented out to reduce console spam on every keystroke
+            // console.log('🚫 Filtered out user input:', text.substring(0, 50));
             return;
           }
           
@@ -245,13 +247,14 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
       
       // Only return if we found exactly one clear question
       if (contextTexts.length === 1) {
-        console.log('✅ Found single question context:', contextTexts[0]);
+        // Reduced logging to prevent console spam
+        // console.log('✅ Found single question context:', contextTexts[0]);
         return contextTexts[0];
       } else if (contextTexts.length > 1) {
-        console.log('🚫 Multiple questions detected - skipping context');
+        // console.log('🚫 Multiple questions detected - skipping context');
         return undefined;
       } else {
-        console.log('ℹ️ No clear question context found');
+        // console.log('ℹ️ No clear question context found');
         return undefined;
       }
     } catch (error) {

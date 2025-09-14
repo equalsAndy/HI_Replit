@@ -16,6 +16,7 @@ import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { useTestUser } from '@/hooks/useTestUser';
+import '@/utils/clearAssessmentData'; // Load admin functions
 import { forceAssessmentCacheDump } from '@/utils/forceRefresh';
 import { useStarCardData } from '@/hooks/useStarCardData';
 
@@ -37,7 +38,8 @@ export default function AllStarTeamsWorkshop() {
     isStepAccessible: isStepUnlocked,
     canProceedToNext,
     isStepCompleted: shouldShowGreenCheckmark,
-    getVideoProgress
+    getVideoProgress,
+    saveProgress // NEW: Manual save function
   } = navigation;
 
   // Use navigation progress state instead of separate completedSteps state
@@ -244,34 +246,28 @@ export default function AllStarTeamsWorkshop() {
   // Navigation progress is now automatically persisted to database
   // No need for localStorage-based saving
 
-  // Auto-navigate to current step on page load
+  // Auto-navigate to current step on page load - ONLY on initial load, not during active navigation
   React.useEffect(() => {
-    if (navProgress?.currentStepId) {
+    // Only auto-navigate on initial page load, not during active session navigation
+    const isInitialLoad = currentContent === "welcome" && !sessionStorage.getItem('hasNavigatedManually');
+    
+    if (navProgress?.currentStepId && isInitialLoad) {
       const currentStepId = navProgress.currentStepId;
-      console.log(`🧭 AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
-      console.log(`🧭 AUTO-NAVIGATION: Available navigation sequence:`, Object.keys(navigationSequence));
+      console.log(`🧭 INITIAL AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
+      console.log(`🧭 INITIAL AUTO-NAVIGATION: Available navigation sequence:`, Object.keys(navigationSequence));
 
       // Map step ID to content key and navigate there
       const navInfo = navigationSequence[currentStepId];
       if (navInfo) {
-        console.log(`🧭 AUTO-NAVIGATION: Navigating to content: ${navInfo.contentKey}`);
+        console.log(`🧭 INITIAL AUTO-NAVIGATION: Navigating to content: ${navInfo.contentKey}`);
         setCurrentContent(navInfo.contentKey);
+        // Also update the navigation hook to match
+        navigation.navigateToStep(currentStepId);
       } else {
-        console.log(`🧭 AUTO-NAVIGATION: No navigation mapping for ${currentStepId}, staying on current content`);
-        // Force navigation based on current step ID
-        if (currentStepId === '4-1') {
-          console.log(`🧭 AUTO-NAVIGATION: Force navigating to wellbeing for step 4-1`);
-          setCurrentContent('wellbeing');
-        } else if (currentStepId === '3-1') {
-          console.log(`🧭 AUTO-NAVIGATION: Force navigating to intro-to-flow for step 3-1`);
-          setCurrentContent('intro-to-flow');
-        } else if (currentStepId === '2-4') {
-          console.log(`🧭 AUTO-NAVIGATION: Force navigating to reflection for step 2-4`);
-          setCurrentContent('reflection');
-        }
+        console.log(`🧭 INITIAL AUTO-NAVIGATION: No navigation mapping for ${currentStepId}, staying on welcome`);
       }
     }
-  }, [navProgress?.currentStepId]);
+  }, [navProgress?.currentStepId]); // Only trigger when navProgress loads
 
   const { data: userProfile, isLoading: userProfileLoading } = useQuery({
     queryKey: ['/api/auth/me'],
@@ -530,9 +526,9 @@ export default function AllStarTeamsWorkshop() {
   });
 
   // Function to mark a step as completed - FIXED: Use unified navigation progression
-  const markStepCompleted = (stepId: string) => {
+  const markStepCompleted = async (stepId: string) => {
     console.log(`🎯 markStepCompleted called with: ${stepId}`);
-    console.log(`🎯 Current navigation state:`, {
+    console.log(`🎯 Current navigation state BEFORE:`, {
       currentStep: navigation.currentStep,
       completedSteps: navigation.completedSteps,
       nextStep: navigation.nextStep
@@ -542,20 +538,43 @@ export default function AllStarTeamsWorkshop() {
     if (stepId === navigation.currentStep) {
       console.log(`🎯 Completing current step ${stepId} and moving to next`);
       const nextStep = navigation.goToNextStep();
+      console.log(`🎯 goToNextStep returned: ${nextStep}`);
+      
       if (nextStep) {
         // Update local content to match the new step
         const navInfo = navigationSequence[nextStep];
         if (navInfo) {
           console.log(`🎯 Updating content to: ${navInfo.contentKey}`);
           setCurrentContent(navInfo.contentKey);
+        } else {
+          console.log(`🛠️ No navigation info found for next step: ${nextStep}`);
         }
+      } else {
+        console.log(`🛠️ goToNextStep returned null - no next step available`);
       }
+      
+      // Clear manual navigation flag so auto-navigation can work after progress
+      sessionStorage.removeItem('hasNavigatedManually');
+      console.log(`🎯 Cleared manual navigation flag after step completion`);
+      
+      // SAVE TO DATABASE: Only save when completing steps via Next button
+      console.log(`💾 Saving progress to database after completing step ${stepId}`);
+      await saveProgress();
     } else {
       // For manual completion of non-current steps, just mark as complete
       console.log(`🎯 Marking non-current step ${stepId} as complete`);
       navigation.completeStep(stepId);
+      
+      // SAVE TO DATABASE: Save when manually completing steps too
+      console.log(`💾 Saving progress to database after manually completing step ${stepId}`);
+      await saveProgress();
     }
     
+    console.log(`🎯 Navigation state AFTER:`, {
+      currentStep: navigation.currentStep,
+      completedSteps: navigation.completedSteps,
+      nextStep: navigation.nextStep
+    });
     console.log(`🎯 Step ${stepId} marked as completed`);
   };
 
@@ -610,7 +629,7 @@ export default function AllStarTeamsWorkshop() {
     '3-1': { prev: '2-4', next: '3-2', contentKey: 'wellbeing-ladder' }, // ✅ WellBeingView (OLD 4-1)
     '3-2': { prev: '3-1', next: '3-3', contentKey: 'future-self' }, // ✅ FutureSelfView (OLD 4-4)
     '3-3': { prev: '3-2', next: '3-4', contentKey: 'final-reflection' }, // ✅ FinalReflectionView (OLD 4-5)
-    '3-4': { prev: '3-3', next: '4-1', contentKey: 'finish-workshop' }, // ✅ FinishWorkshopStep
+    '3-4': { prev: '3-3', next: '4-1', contentKey: 'workshop-recap' }, // ✅ FinishWorkshopStep
 
     // MODULE 4: TAKEAWAYS & NEXT STEPS (unlocked after 3-4)
     '4-1': { prev: '3-4', next: '4-2', contentKey: 'download-star-card' }, // ✅ DownloadStarCardView (OLD 5-1)
@@ -653,10 +672,13 @@ export default function AllStarTeamsWorkshop() {
   const handleStepClick = (sectionId: string, stepId: string) => {
     console.log(`🧭 Menu navigation clicked: stepId=${stepId}, sectionId=${sectionId}`);
 
-    // FIXED: Use unified navigation to navigate to step FIRST
+    // Mark that user has manually navigated (prevents auto-navigation from overriding)
+    sessionStorage.setItem('hasNavigatedManually', 'true');
+
+    // FIXED: Let navigation hook manage currentStep - it will trigger content updates
     navigation.navigateToStep(stepId);
 
-    // Get navigation info for this step
+    // Get navigation info for this step to update content
     const navInfo = navigationSequence[stepId];
     console.log(`🧭 Navigation info for ${stepId}:`, navInfo);
 
@@ -664,14 +686,11 @@ export default function AllStarTeamsWorkshop() {
       // For steps not defined in the sequence (like resource items)
       console.log(`🧭 No navigation info found for ${stepId}, showing placeholder`);
       setCurrentContent(`placeholder-${stepId}`);
-      // Scroll to content top anchor
-      document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
-      return;
+    } else {
+      // Set the content based on the navigation mapping
+      console.log(`🧭 Setting content to: ${navInfo.contentKey}`);
+      setCurrentContent(navInfo.contentKey);
     }
-
-    // Set the content based on the navigation mapping
-    console.log(`🧭 Setting content to: ${navInfo.contentKey}`);
-    setCurrentContent(navInfo.contentKey);
 
     // Scroll to content top anchor
     document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
@@ -685,12 +704,9 @@ export default function AllStarTeamsWorkshop() {
   useEffect(() => {
     document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
     
-    // Sync current step with content when content changes
-    const stepId = findStepIdFromContentKey(currentContent);
-    if (stepId) {
-      console.log(`🧭 SYNC: Content '${currentContent}' -> Step '${stepId}'`);
-      setCurrentStep(stepId);
-    }
+    // REMOVED: Sync current step with content - this was causing race conditions
+    // The navigation hook should be the single source of truth for currentStep
+    // Content changes should come FROM navigation state, not drive it
   }, [currentContent]);
 
   // Data check for debugging
@@ -772,6 +788,7 @@ export default function AllStarTeamsWorkshop() {
             flowAttributesData={flowAttributesData}
             currentContent={currentContent}
             isImaginalAgility={currentApp === 'imaginal-agility'}
+            navigation={navigation}
           />
 
           {/* Content Area */}

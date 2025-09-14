@@ -269,7 +269,7 @@ export const allStarTeamsNavigationSections = [
     steps: [
       { id: '2-1', title: 'Star Strengths Assessment', type: 'video' }, // Content unchanged
       { id: '2-2', title: 'Flow Patterns', type: 'video' }, // Content: OLD 3-1 "Flow Patterns"
-      { id: '2-3', title: 'Your Future Self', type: 'reflection' }, // Content: OLD 4-4 "Your Future Self"
+      { id: '2-3', title: 'Rounding Out', type: 'reflection' }, // Content: OLD 3-2 "Rounding Out"
       { id: '2-4', title: 'Module 2 Recap', type: 'recap' } // Content: PLACEHOLDER
     ]
   },
@@ -279,9 +279,9 @@ export const allStarTeamsNavigationSections = [
     moduleNumber: 3,
     steps: [
       { id: '3-1', title: 'Well-Being Ladder', type: 'interactive' }, // Content: OLD 4-1 "Well-Being Ladder"
-      { id: '3-2', title: 'Rounding Out', type: 'reflection' }, // Content: OLD 3-2 "Rounding Out"
+      { id: '3-2', title: 'Your Future Self', type: 'reflection' }, // Content: OLD 4-4 "Your Future Self"
       { id: '3-3', title: 'Final Reflections', type: 'reflection' }, // Content: OLD 4-5 "Final Reflections"
-      { id: '3-4', title: 'Finish Workshop', type: 'completion' } // Content: NEW completion component
+      { id: '3-4', title: 'Workshop Recap', type: 'completion' } // Content: NEW completion component
     ]
   },
   {

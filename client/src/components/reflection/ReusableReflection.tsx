@@ -3,6 +3,7 @@ import { trpc } from '@/utils/trpc';
 import { useQueryClient } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
 import { CheckCircle, Lock } from 'lucide-react';
+import { syncStrengthReflections } from '@/utils/syncStrengthReflections';
 
 interface ReflectionConfig {
   id: string;
@@ -37,17 +38,33 @@ export default function ReusableReflection({
   const [currentReflectionIndex, setCurrentReflectionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [forceRefreshKey, setForceRefreshKey] = useState(0);
+  
+  // Save progressive revelation state to localStorage
+  const storageKey = `reflection-progress-${reflectionSetId}`;
+  
+  const updateProgressStorage = useCallback((index: number) => {
+    localStorage.setItem(storageKey, index.toString());
+  }, [storageKey]);
+  
+  // Restore progress from localStorage
+  useEffect(() => {
+    const savedProgress = localStorage.getItem(storageKey);
+    if (savedProgress && progressiveReveal) {
+      const savedIndex = parseInt(savedProgress, 10);
+      if (savedIndex >= 0 && savedIndex < reflections.length) {
+        setCurrentReflectionIndex(savedIndex);
+      }
+    }
+  }, [storageKey, progressiveReveal, reflections.length]);
+  
   const queryClient = useQueryClient();
   const trpcUtils = trpc.useUtils();
 
   const { data: existingReflections, isLoading, refetch } = trpc.reflections.getReflectionSet.useQuery(
     { reflectionSetId },
     {
-      staleTime: 0, // Always consider data stale to refresh more frequently
-      cacheTime: 0, // Don't cache this query
-      refetchOnWindowFocus: true, // Refetch when user returns to the tab
-      // Force refetch when forceRefreshKey changes
-      queryKey: ['reflections', 'getReflectionSet', { reflectionSetId }, forceRefreshKey],
+      staleTime: 5000,
+      refetchOnWindowFocus: false,
     }
   );
   const saveMutation = trpc.reflections.saveReflection.useMutation();
@@ -77,20 +94,33 @@ export default function ReusableReflection({
       console.log('🔄 Data cleared event received for reflectionSetId=', reflectionSetId);
       console.log('🔄 Current reflectionSetId:', reflectionSetId);
       
-      // Use proper tRPC utils to invalidate the specific query
-      console.log('🔍 Invalidating tRPC query for reflections.getReflectionSet');
-      trpcUtils.reflections.getReflectionSet.invalidate({ reflectionSetId })
-        .then(() => console.log('✅ tRPC query invalidated successfully'))
-        .catch((err) => console.error('❌ tRPC query invalidation failed:', err));
+      // AGGRESSIVE CACHE CLEARING
+      // 1. Invalidate all reflection queries
+      console.log('🔍 Invalidating ALL tRPC reflection queries');
+      trpcUtils.reflections.invalidate()
+        .then(() => console.log('✅ ALL tRPC reflection queries invalidated'))
+        .catch((err) => console.error('❌ tRPC reflection invalidation failed:', err));
       
-      // Force a complete refresh by updating the key
+      // 2. Remove specific query from cache
+      queryClient.removeQueries({
+        queryKey: ['trpc', 'reflections', 'getReflectionSet'],
+        exact: false
+      });
+      
+      // 3. Clear all cached data for this specific reflection set
+      queryClient.removeQueries({
+        queryKey: ['reflections', 'getReflectionSet', { reflectionSetId }],
+        exact: false
+      });
+      
+      // 4. Force a complete refresh by updating the key
       setForceRefreshKey(prev => prev + 1);
-      // Also force refetch this specific query
-      refetch();
-      // Reset local UI state
+      
+      // 5. Reset local UI state completely
       setResponses({});
       setCurrentReflectionIndex(0);
-      console.log('🔄 Local reflection state reset complete');
+      
+      console.log('🔄 Complete reflection cache clearing completed');
     };
 
     const handleAssessmentCompleted = () => {
@@ -102,15 +132,17 @@ export default function ReusableReflection({
     window.addEventListener('userDataCleared', handleDataCleared);
     window.addEventListener('assessmentDataCleared', handleDataCleared);
     window.addEventListener('workshopDataReset', handleDataCleared);
+    window.addEventListener('reflectionDataCleared', handleDataCleared); // New event specifically for reflections
     window.addEventListener('assessmentCompleted', handleAssessmentCompleted);
 
     return () => {
       window.removeEventListener('userDataCleared', handleDataCleared);
       window.removeEventListener('assessmentDataCleared', handleDataCleared);
       window.removeEventListener('workshopDataReset', handleDataCleared);
+      window.removeEventListener('reflectionDataCleared', handleDataCleared);
       window.removeEventListener('assessmentCompleted', handleAssessmentCompleted);
     };
-  }, [refetch, trpcUtils, reflectionSetId]);
+  }, [refetch, trpcUtils, reflectionSetId, queryClient]);
 
   const debouncedSave = useCallback(
     debounce(async (id, resp) => {
@@ -124,14 +156,93 @@ export default function ReusableReflection({
   const handleChange = (id: string, value: string) => {
     setResponses(prev => ({ ...prev, [id]: value }));
     debouncedSave(id, value);
+
+    // Force re-render to update button state
+    setForceRefreshKey(prev => prev + 1);
   };
 
   const completeReflection = async (id: string) => {
     if (!workshopLocked) {
       await completeMutation.mutateAsync({ reflectionSetId, reflectionId: id });
     }
+    
+    // SYNC DATA AFTER EACH REFLECTION COMPLETION - SYNC ALL CURRENT RESPONSES
+    if (reflectionSetId === 'strength-reflections') {
+      try {
+        console.log('🔄 Auto-syncing ALL reflection data after completing:', id);
+        
+        // Get current responses from local state and fetch latest from server
+        const currentReflectionData = await trpcUtils.reflections.getReflectionSet.fetch({
+          reflectionSetId: 'strength-reflections'
+        });
+        
+        const transformedData = {
+          strength1: '',
+          strength2: '',
+          strength3: '',
+          strength4: '',
+          teamValues: '',
+          uniqueContribution: ''
+        };
+        
+        // Use the most recent data from tRPC
+        currentReflectionData.forEach((reflection) => {
+          switch (reflection.reflectionId) {
+            case 'strength-1':
+              transformedData.strength1 = reflection.response || '';
+              break;
+            case 'strength-2':
+              transformedData.strength2 = reflection.response || '';
+              break;
+            case 'strength-3':
+              transformedData.strength3 = reflection.response || '';
+              break;
+            case 'strength-4':
+              transformedData.strength4 = reflection.response || '';
+              break;
+            case 'team-values':
+              transformedData.teamValues = reflection.response || '';
+              break;
+            case 'unique-contribution':
+              transformedData.uniqueContribution = reflection.response || '';
+              break;
+          }
+        });
+        
+        console.log('📊 Auto-sync data being sent:', transformedData);
+        
+        // Save to correct endpoint
+        const response = await fetch('/api/workshop-data/step-by-step-reflection', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(transformedData)
+        });
+        
+        if (response.ok) {
+          console.log('✅ Auto-sync completed successfully for:', id);
+        } else {
+          console.error('❌ Auto-sync failed with status:', response.status);
+        }
+      } catch (error) {
+        console.error('⚠️ Auto-sync failed for reflection:', id, error);
+      }
+    }
+    
     if (progressiveReveal) {
-      setCurrentReflectionIndex(prev => prev + 1);
+      const currentIdx = reflections.findIndex(r => r.id === id);
+      if (currentIdx === reflections.length - 1) {
+        // This is the last reflection - call onComplete and clear storage
+        console.log('🎯 Last reflection completed, calling onComplete');
+        localStorage.removeItem(storageKey); // Clear progress when workshop is complete
+        onComplete?.();
+      } else {
+        // Move to next reflection and save progress
+        const nextIndex = currentIdx + 1;
+        setCurrentReflectionIndex(nextIndex);
+        updateProgressStorage(nextIndex);
+        console.log(`📈 Progress saved: moved to reflection ${nextIndex + 1} of ${reflections.length}`);
+      }
     } else {
       onComplete?.();
     }
@@ -139,9 +250,27 @@ export default function ReusableReflection({
 
   const isValid = (ref: ReflectionConfig) => {
     if (workshopLocked) return true;
-    const resp = responses[ref.id] || '';
+
+    // Check local state first
+    const localResp = responses[ref.id] || '';
     const min = ref.minLength || 20;
-    return resp.trim().length >= min;
+
+    // Also check current textarea value directly (in case responses state is stale)
+    const textareaElement = document.querySelector(`textarea[data-reflection-id="${ref.id}"]`) as HTMLTextAreaElement;
+    const currentTextareaValue = textareaElement?.value || '';
+
+    // Also check if reflection is marked as completed in database
+    const dbReflection = existingReflections?.find(r => r.reflectionId === ref.id);
+    const isCompletedInDb = dbReflection?.completed;
+    const dbResp = dbReflection?.response || '';
+
+    // Valid if any of these conditions are met:
+    // 1. Local response meets min length
+    // 2. Current textarea value meets min length
+    // 3. Completed in database with valid response
+    return localResp.trim().length >= min ||
+           currentTextareaValue.trim().length >= min ||
+           (isCompletedInDb && dbResp.trim().length >= min);
   };
 
 
@@ -149,6 +278,196 @@ export default function ReusableReflection({
 
   return (
     <div className={className}>
+      {/* TEMPORARY DEBUG PANEL - Remove after testing */}
+      <div className="mb-6 bg-yellow-100 border-4 border-yellow-500 p-4 rounded-lg">
+        <h3 className="text-lg font-bold text-yellow-800 mb-2">
+          🔧 DEBUG TOOLS (ReusableReflection)
+        </h3>
+        <div className="flex gap-2 flex-wrap mb-2">
+          <button 
+            onClick={async () => {
+              console.log('🧹 NUCLEAR cache clear - deleting database records...');
+              try {
+                // First clear query cache
+                queryClient.removeQueries({ queryKey: ['trpc'], exact: false });
+                queryClient.removeQueries({ queryKey: ['reflections'], exact: false });
+                await trpcUtils.reflections.invalidate();
+                
+                // CLEAR the actual database records by setting empty responses
+                const reflectionData = await trpcUtils.reflections.getReflectionSet.fetch({
+                  reflectionSetId: 'strength-reflections'
+                });
+                
+                console.log(`Found ${reflectionData.length} reflections to clear`);
+                
+                // Clear each reflection by deleting from database
+                const clearPromises = reflectionData.map(async (reflection) => {
+                  try {
+                    // DELETE request to clear the reflection completely
+                    const response = await fetch(`/api/reflections/${reflectionSetId}/${reflection.reflectionId}`, {
+                      method: 'DELETE',
+                      credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                      console.log(`Deleted: ${reflection.reflectionId}`);
+                      return true;
+                    } else {
+                      // Fallback: clear response content
+                      await saveMutation.mutateAsync({
+                        reflectionSetId: 'strength-reflections',
+                        reflectionId: reflection.reflectionId,
+                        response: '' // Clear the response content
+                      });
+                      console.log(`Cleared content: ${reflection.reflectionId}`);
+                      return true;
+                    }
+                  } catch (err) {
+                    console.warn(`Could not clear ${reflection.reflectionId}:`, err);
+                    try {
+                      // Fallback: clear response content
+                      await saveMutation.mutateAsync({
+                        reflectionSetId: 'strength-reflections',
+                        reflectionId: reflection.reflectionId,
+                        response: '' // Clear the response content
+                      });
+                      console.log(`Fallback cleared: ${reflection.reflectionId}`);
+                      return true;
+                    } catch (fallbackErr) {
+                      console.error(`Fallback also failed for ${reflection.reflectionId}:`, fallbackErr);
+                      return false;
+                    }
+                  }
+                });
+                
+                // Wait for all clearing operations to complete
+                await Promise.all(clearPromises);
+                console.log('All reflection clearing mutations completed');
+                
+                // Clear local state completely
+                setResponses({});
+                setCurrentReflectionIndex(0);
+                setForceRefreshKey(prev => prev + 1);
+                
+                // Clear localStorage state
+                localStorage.removeItem(storageKey);
+                localStorage.removeItem('ast-star-card-visible');
+                
+                // Reset progressive revelation state
+                setCurrentReflectionIndex(0); // This should show only the first reflection
+                
+                // Final cache invalidation
+                await trpcUtils.reflections.invalidate();
+                
+                console.log('✅ Database records cleared and cache refreshed');
+                alert('CACHE CLEARED: All reflection data has been cleared');
+              } catch (error) {
+                console.error('❌ Nuclear clear error:', error);
+                alert('Nuclear clear failed - check console');
+              }
+            }}
+            className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+          >
+            🧹 Clear Cache
+          </button>
+          
+          <button 
+            onClick={async () => {
+              console.log('🗺 Manual sync starting...');
+              try {
+                // Get reflection data
+                const reflectionData = await trpcUtils.reflections.getReflectionSet.fetch({
+                  reflectionSetId: 'strength-reflections'
+                });
+                
+                // Transform data
+                const transformedData = {
+                  strength1: '',
+                  strength2: '',
+                  strength3: '',
+                  strength4: '',
+                  teamValues: '',
+                  uniqueContribution: ''
+                };
+                
+                reflectionData.forEach((reflection) => {
+                  switch (reflection.reflectionId) {
+                    case 'strength-1':
+                      transformedData.strength1 = reflection.response || '';
+                      break;
+                    case 'strength-2':
+                      transformedData.strength2 = reflection.response || '';
+                      break;
+                    case 'strength-3':
+                      transformedData.strength3 = reflection.response || '';
+                      break;
+                    case 'strength-4':
+                      transformedData.strength4 = reflection.response || '';
+                      break;
+                    case 'team-values':
+                      transformedData.teamValues = reflection.response || '';
+                      break;
+                    case 'unique-contribution':
+                      transformedData.uniqueContribution = reflection.response || '';
+                      break;
+                  }
+                });
+                
+                console.log('📊 Transformed data:', transformedData);
+                
+                // Save to correct endpoint
+                const response = await fetch('/api/workshop-data/step-by-step-reflection', {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(transformedData)
+                });
+                
+                if (response.ok) {
+                  console.log('✅ Sync successful');
+                  alert('Sync successful! Data saved to step-by-step-reflection endpoint');
+                } else {
+                  throw new Error(`HTTP ${response.status}`);
+                }
+              } catch (error) {
+                console.error('❌ Sync error:', error);
+                alert('Sync failed - check console');
+              }
+            }}
+            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+          >
+            🗺 Sync Data
+          </button>
+          
+          <button 
+            onClick={async () => {
+              console.log('🔍 Debug current state...');
+              try {
+                const reflectionData = await trpcUtils.reflections.getReflectionSet.fetch({
+                  reflectionSetId: 'strength-reflections'
+                });
+                console.log('📊 Current tRPC data:', reflectionData);
+                
+                const stepData = await fetch('/api/workshop-data/step-by-step-reflection', {
+                  credentials: 'include'
+                }).then(r => r.json());
+                console.log('📊 Current step-by-step data:', stepData);
+                
+                alert('Debug complete - check console for data');
+              } catch (error) {
+                console.error('❌ Debug error:', error);
+              }
+            }}
+            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+          >
+            🔍 Debug
+          </button>
+        </div>
+        <p className="text-xs text-yellow-700">
+          Reflection set: {reflectionSetId} | Responses: {Object.keys(responses).length} | Current index: {currentReflectionIndex}
+        </p>
+      </div>
+      
       {visible.map((ref, idx) => (
         <div key={ref.id} className="mb-6">
           {ref.strengthColor && (
@@ -179,11 +498,12 @@ export default function ReusableReflection({
           )}
 
           <textarea
-            className="w-full border p-2 rounded resize-vertical" 
+            className="w-full border p-2 rounded resize-vertical"
             rows={4}
             value={responses[ref.id] || ''}
             onChange={e => handleChange(ref.id, e.target.value)}
             disabled={workshopLocked}
+            data-reflection-id={ref.id}
           />
 
           {/* Examples */}

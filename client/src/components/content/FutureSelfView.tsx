@@ -4,21 +4,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { ChevronRight, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import VideoPlayer from './VideoPlayer';
-import { validateAtLeastOneField } from '@/lib/validation';
-import { ValidationMessage } from '@/components/ui/validation-message';
+import FutureSelfReflections from './FutureSelfReflections';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { searchUnsplash } from '@/services/api-services';
 import { useToast } from '@/hooks/use-toast';
 import { ContentViewProps } from '../../shared/types';
-
-// Define the new data structure for Future Self exercise
-interface FutureSelfData {
-  direction: 'backward' | 'forward';
-  twentyYearVision: string;
-  tenYearMilestone: string;
-  fiveYearFoundation: string;
-  flowOptimizedLife: string;
-}
 
 // Define data structure for image selection
 interface ImageData {
@@ -26,62 +16,13 @@ interface ImageData {
   imageMeaning: string;
 }
 
-
-
-interface ReflectionCardProps {
-  title: string;
-  question: string;
-  value: string;
-  onChange: (value: string) => void;
-  isActive: boolean;
-  index: number;
-  disabled?: boolean;
-}
-
-const ReflectionCard: React.FC<ReflectionCardProps> = ({
-  title,
-  question,
-  value,
-  onChange,
-  isActive,
-  index,
-  disabled = false
-}) => {
-  return (
-    <div className="space-y-4">
-      <div className="text-center">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-700 text-sm leading-relaxed">{question}</p>
-      </div>
-      <Textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={disabled ? "This workshop is completed and locked for editing" : "Your reflection..."}
-        className={`min-h-[140px] w-full resize-none border-gray-200 focus:border-amber-400 focus:ring-amber-400 rounded-lg ${
-          disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'bg-white/80'
-        }`}
-        disabled={disabled}
-        readOnly={disabled}
-      />
-    </div>
-  );
-};
-
 const FutureSelfView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent,
   starCard
 }) => {
-  const [formData, setFormData] = useState<FutureSelfData>({
-    direction: 'backward',
-    twentyYearVision: '',
-    tenYearMilestone: '',
-    fiveYearFoundation: '',
-    flowOptimizedLife: ''
-  });
-  
-  // Image selection state
+  // Image selection state - keeping this functionality
   const [imageData, setImageData] = useState<ImageData>({
     selectedImages: [],
     imageMeaning: ''
@@ -93,55 +34,15 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   
   const [isLoading, setIsLoading] = useState(true);
   const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
-  const [validationError, setValidationError] = useState<string>('');
   const { toast } = useToast();
 
 
-  // Load existing data when component mounts
+  // Load existing image data when component mounts
   useEffect(() => {
-    const loadExistingData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Load future self data
-        const futureResponse = await fetch('/api/workshop-data/future-self', {
-          credentials: 'include'
-        });
-        const futureResult = await futureResponse.json();
-        
-        if (futureResult.success && futureResult.data) {
-          const loadedData: FutureSelfData = {
-            direction: futureResult.data.direction || 'backward',
-            twentyYearVision: futureResult.data.twentyYearVision || '',
-            tenYearMilestone: futureResult.data.tenYearMilestone || '',
-            fiveYearFoundation: futureResult.data.fiveYearFoundation || '',
-            flowOptimizedLife: futureResult.data.flowOptimizedLife || ''
-          };
-          setFormData(loadedData);
-        }
-      } catch (error) {
-        console.log('No existing data found:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadExistingData();
+    // Note: Image data loading can be added here if needed
+    setIsLoading(false);
   }, []);
 
-
-  // Handle direction change
-  const handleDirectionChange = (newDirection: 'backward' | 'forward') => {
-    setFormData(prev => ({ ...prev, direction: newDirection }));
-  };
-
-  // Handle reflection changes
-  const handleReflectionChange = (field: keyof FutureSelfData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   // Image handling functions
   const handleSearch = async () => {
@@ -307,87 +208,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Demo data function - SIMPLIFIED
-  const fillDemoData = () => {
-    const demoData: FutureSelfData = {
-      direction: formData.direction,
-      twentyYearVision: "I've become a respected leader who transforms organizations through human-centered innovation.",
-      tenYearMilestone: "I hold a senior leadership position where I guide strategic transformation initiatives.", 
-      fiveYearFoundation: "I'm actively developing my leadership presence and expertise in organizational psychology.",
-      flowOptimizedLife: "My life is designed around sustained periods of deep work, meaningful collaboration, and continuous learning."
-    };
-    
-    setFormData(demoData);
-  };
-
-  // Check if minimum requirements are met
-  const hasMinimumContent = 
-    formData.twentyYearVision.trim().length >= 10 || 
-    formData.tenYearMilestone.trim().length >= 3;
-
-  const handleSubmit = async () => {
-    if (workshopCompleted) {
-      // If workshop is completed, just navigate
-      markStepCompleted('3-2');
-      setCurrentContent('final-reflection');
-      return;
-    }
-    
-    // Validate that at least one field has content
-    if (formData.twentyYearVision.trim().length < 10 && formData.tenYearMilestone.trim().length < 3) {
-      setValidationError('Please complete either the future self reflection or capture an intention to continue.');
-      return;
-    }
-    
-    // Clear validation error
-    setValidationError('');
-    
-    try {
-      // Save the data before proceeding to next step
-      const response = await fetch('/api/workshop-data/future-self', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData)
-      });
-      
-      const result = await response.json();
-      if (result.success) {
-        console.log('FutureSelfView: Data saved successfully before navigation');
-      } else {
-        console.warn('FutureSelfView: Save failed but proceeding anyway');
-      }
-      
-      // Mark step completed and navigate regardless of save status
-      markStepCompleted('3-2');
-      setCurrentContent('final-reflection');
-    } catch (error) {
-      console.error('FutureSelfView: Error saving or completing:', error);
-      // Still proceed to next step even if save fails
-      markStepCompleted('3-2');
-      setCurrentContent('final-reflection');
-    }
-  };
-
-  // Define the timeline order based on direction
-  const timelineOrder = formData.direction === 'backward' 
-    ? [{ year: 20, key: 'twentyYearVision' }, { year: 10, key: 'tenYearMilestone' }, { year: 5, key: 'fiveYearFoundation' }]
-    : [{ year: 5, key: 'fiveYearFoundation' }, { year: 10, key: 'tenYearMilestone' }, { year: 20, key: 'twentyYearVision' }];
-
-  // Define questions based on direction
-  const questions = {
-    backward: {
-      twentyYearVision: "What is the masterpiece of your life?",
-      tenYearMilestone: "What level of mastery or influence must you have reached by now to be on track?",
-      fiveYearFoundation: "What capacities or conditions need to be actively developing now?"
-    },
-    forward: {
-      fiveYearFoundation: "What capacities or conditions need to be actively developing now?",
-      tenYearMilestone: "What level of mastery or influence must you have reached by now to be on track?",
-      twentyYearVision: "What is the masterpiece of your life?"
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -439,7 +259,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="max-w-4xl mx-auto mb-12">
           <VideoPlayer
             workshopType="allstarteams"
-            stepId="2-3"
+            stepId="3-2"
             youtubeId="Lb-h2icusB4"
             autoplay={true}
           />
@@ -624,110 +444,42 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
 
 
-        {/* Main reflection section */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Describe Your Future Self</h2>
-          
-          <div className="bg-amber-50 p-6 rounded-lg border border-amber-200 mb-8">
-            <p className="text-amber-800 leading-relaxed mb-4">
-              Use the images you selected to guide your reflection. Write 3–4 sentences responding to these prompts:
-            </p>
-            <ol className="list-decimal list-inside text-amber-800 space-y-2">
-              <li><strong>In 5 years, what capacities or qualities are you growing into?</strong></li>
-              <li><strong>What does your life look like when aligned with flow and well-being?</strong></li>
-              <li><strong>How are you contributing to others — team, family, or community?</strong></li>
-            </ol>
-          </div>
-
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Your Future Self Reflection</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  Write a thoughtful response that addresses the three prompts above
-                </p>
-              </div>
-              <Textarea
-                value={formData.twentyYearVision}
-                onChange={(e) => handleReflectionChange('twentyYearVision', e.target.value)}
-                placeholder={workshopCompleted ? "This workshop is completed and locked for editing" : "In 5 years, I see myself growing into... My life aligned with flow looks like... I contribute to others by..."}
-                className={`min-h-[200px] w-full resize-none border-gray-200 focus:border-amber-400 focus:ring-amber-400 rounded-lg ${
-                  workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'bg-white/80'
-                }`}
-                disabled={workshopCompleted}
-                readOnly={workshopCompleted}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Intention section */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Capture an Intention</h2>
-          
-          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-8">
-            <p className="text-blue-800 leading-relaxed text-center">
-              Complete this sentence with one clear, actionable intention:
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-              <div className="space-y-4">
-                <label className="block text-lg font-medium text-gray-900 text-center">
-                  The most important intention I want to carry forward is…
-                </label>
-                <Input
-                  value={formData.tenYearMilestone}
-                  onChange={(e) => handleReflectionChange('tenYearMilestone', e.target.value)}
-                  placeholder={workshopCompleted ? "This workshop is completed and locked for editing" : "I intend to..."}
-                  className={`w-full text-center text-lg p-4 border-gray-300 focus:border-blue-400 focus:ring-blue-400 rounded-lg ${
-                    workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'bg-white'
-                  }`}
-                  disabled={workshopCompleted}
-                  readOnly={workshopCompleted}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* No save status display - user controls saving via Next button */}
-
-        {/* Validation error display */}
-        {validationError && (
-          <div className="max-w-4xl mx-auto mb-4">
-            <ValidationMessage 
-              message={validationError} 
-              type="error" 
-              show={!!validationError}
-            />
-          </div>
+        {/* Progressive Future Self Reflections */}
+        {!workshopCompleted && (
+          <FutureSelfReflections
+            onComplete={() => {
+              // Navigate to final reflection step
+              markStepCompleted('3-2');
+              setCurrentContent('final-reflection');
+            }}
+            setCurrentContent={setCurrentContent}
+            markStepCompleted={markStepCompleted}
+          />
         )}
 
-        {/* Next Button */}
-        <div className="max-w-4xl mx-auto flex justify-center">
-          <Button 
-            onClick={handleSubmit}
-            disabled={!hasMinimumContent && !workshopCompleted}
-            className={`px-8 py-3 ${
-              (hasMinimumContent || workshopCompleted) 
-                ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                : "bg-gray-300 cursor-not-allowed text-gray-500"
-            }`}
-            size="lg"
-          >
-            <span>
-              {workshopCompleted 
-                ? "Continue to Module 2 Recap"
-                : hasMinimumContent 
-                  ? "Save & Continue to Module 2 Recap"
-                  : "Add reflection to continue"
-              }
-            </span>
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+        {/* Show completed message if workshop is done */}
+        {workshopCompleted && (
+          <div className="max-w-4xl mx-auto text-center py-12">
+            <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+              <ChevronRight className="mx-auto h-12 w-12 text-green-500 mb-4" />
+              <h3 className="text-lg font-semibold text-green-800 mb-2">
+                Future Self Reflections Complete
+              </h3>
+              <p className="text-green-700">
+                Your future self reflections have been completed and saved. 
+                You can review your responses in your holistic report.
+              </p>
+              <div className="flex justify-center mt-6">
+                <Button
+                  onClick={() => setCurrentContent('final-reflection')}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  Continue to Final Reflection <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

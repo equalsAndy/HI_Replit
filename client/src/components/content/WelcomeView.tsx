@@ -275,7 +275,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
         <div className="section-headers-tabs-60 mt-16 mb-4">
           <div className="section-headers-pill-60 section-headers-pill-60--content">
             <div className="section-headers-pill-60__strip" aria-hidden="true" />
-            <div className="section-headers-pill-60__box">📚 Content</div>
+            <div className="section-headers-pill-60__box">📚 Some Things to Know</div>
           </div>
         </div>
         {/* Graphics Cards Container - Side by side on wide screens */}
@@ -290,7 +290,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
                 className="text-xs font-bold text-purple-600 bg-purple-50 px-0.5 py-1 rounded text-center"
                 style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
               >
-                📚 Content
+                📚 Some Things to Know
               </div>
             </div>
             <div className="section-content-card-60__strip" aria-hidden="true" />
@@ -319,7 +319,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
                 className="text-xs font-bold text-purple-600 bg-purple-50 px-0.5 py-1 rounded text-center"
                 style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
               >
-                📚 Content
+                📚 Some Things to Know
               </div>
             </div>
             <div className="section-content-card-60__strip" aria-hidden="true" />

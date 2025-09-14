@@ -188,7 +188,7 @@ export default function FinalReflectionView({
       setSaveStatus('saved');
       
       // Mark step as completed
-      markStepCompleted('4-5');
+      markStepCompleted('3-3');
       
       // Check if server auto-completed the workshop
       if (result.workshopCompleted) {
@@ -216,9 +216,9 @@ export default function FinalReflectionView({
         }
       }
       
-      // Navigate to finish workshop instead of showing modal
+      // Navigate to workshop recap instead of showing modal
       if (!user?.isBetaTester) {
-        setCurrentContent('finish-workshop');
+        setCurrentContent('workshop-recap');
       }
       
     } catch (error) {
@@ -229,16 +229,16 @@ export default function FinalReflectionView({
       console.log(`🎯 Fallback: Trying to complete workshop after save error...`);
       try {
         await completeWorkshop(appType);
-        markStepCompleted('4-5');
-        // Navigate to finish workshop (but not for beta users)
+        markStepCompleted('3-3');
+        // Navigate to workshop recap (but not for beta users)
         if (!user?.isBetaTester) {
-          setCurrentContent('finish-workshop');
+          setCurrentContent('workshop-recap');
         }
       } catch (completionError) {
         console.error('❌ Failed to complete workshop after save error:', completionError);
-        // Still navigate to finish workshop so user isn't stuck (but not for beta users)
+        // Still navigate to workshop recap so user isn't stuck (but not for beta users)
         if (!user?.isBetaTester) {
-          setCurrentContent('finish-workshop');
+          setCurrentContent('workshop-recap');
         }
       }
     }

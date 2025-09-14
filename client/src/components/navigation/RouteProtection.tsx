@@ -85,10 +85,10 @@ export const RouteProtection: React.FC<RouteProtectionProps> = ({
         '1-3': 'About this Course',
         '2-1': 'Star Strengths Assessment',
         '2-2': 'Flow Patterns',
-        '2-3': 'Your Future Self',
+        '2-3': 'Rounding Out',
         '2-4': 'Module 2 Recap',
         '3-1': 'Well-Being Ladder',
-        '3-2': 'Rounding Out',
+        '3-2': 'Your Future Self',
         '3-3': 'Final Reflections',
         '3-4': 'Finish Workshop'
       };

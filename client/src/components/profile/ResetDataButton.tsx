@@ -96,8 +96,9 @@ export function ResetDataButton({
       window.dispatchEvent(new CustomEvent('userDataCleared'));
       window.dispatchEvent(new CustomEvent('assessmentDataCleared'));
       window.dispatchEvent(new CustomEvent('workshopDataReset'));
+      window.dispatchEvent(new CustomEvent('reflectionDataCleared')); // New specific event for reflections
       
-      console.log('🔄 Data reset complete, dispatched clearing events');
+      console.log('🔄 Data reset complete, dispatched clearing events including reflectionDataCleared');
       
       if (onResetComplete) {
         onResetComplete();

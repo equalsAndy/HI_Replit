@@ -17,6 +17,7 @@ import CantrilLadderView from './CantrilLadderView';
 import VisualizingYouView from './VisualizingYouView';
 import FutureSelfView from './FutureSelfView';
 import FinalReflectionView from './FinalReflectionView';
+import FinishWorkshopView from './FinishWorkshopView';
 import YourStarCardView from './YourStarCardView';
 import StarCardResourceView from './StarCardResourceView';
 import DownloadStarCardView from './allstarteams/DownloadStarCardView';
@@ -1375,6 +1376,16 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'workshop-resources':
       return (
         <WorkshopResourcesView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'finish-workshop':
+    case 'workshop-recap':
+      return (
+        <FinishWorkshopView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
