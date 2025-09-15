@@ -135,6 +135,16 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
+      {/* Reflections Header */}
+      {!workshopCompleted && (
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--reflection">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🤔 Reflections</div>
+          </div>
+        </div>
+      )}
+
       {/* Progressive Flow Reflections */}
       {!workshopCompleted && (
         <FlowReflections

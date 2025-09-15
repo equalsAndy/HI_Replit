@@ -31,6 +31,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import '@/styles/section-headers.css';
 
 // Interface for flow attributes
 interface FlowAttribute {
@@ -630,6 +631,14 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               title="Flow Patterns"
             />
           )}
+        </div>
+
+        {/* Some Things to Know Header */}
+        <div className="section-headers-tabs-60 mt-16 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--content">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">📚 Some Things to Know</div>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

@@ -426,29 +426,6 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           </div>
         </div>
 
-        <div className="section-headers-tabs-60 mb-4">
-          <div className="section-headers-pill-60 section-headers-pill-60--reflection">
-            <div className="section-headers-pill-60__strip" aria-hidden="true" />
-            <div className="section-headers-pill-60__box">🤔 Reflections</div>
-          </div>
-        </div>
-        <div className="section-content-card-60 section-content-card-60--reflection relative">
-          <div
-            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
-            style={{ marginLeft: '-8px' }}
-          >
-            <div
-              className="text-xs font-bold text-rose-600 bg-rose-50 px-0.5 py-1 rounded text-center"
-              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
-            >
-              🤔 Reflections
-            </div>
-          </div>
-          <div className="section-content-card-60__strip" aria-hidden="true" />
-          <div className="section-content-card-60__box">
-            <p>What participants will discover about themselves</p>
-          </div>
-        </div>
 
         {isImaginalAgility ? (
           <>
