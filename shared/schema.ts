@@ -10,6 +10,15 @@ export interface QuadrantData {
   planning: number;
 }
 
+// Define ProfileData interface for StarCard components
+export interface ProfileData {
+  name: string;
+  title: string;
+  organization: string;
+  avatarUrl?: string;
+  profilePictureUrl?: string; // New field for photo storage system
+}
+
 /**
  * User reflection responses for various reflection sets (e.g., strength reflections)
  */
@@ -84,9 +93,11 @@ export const users: any = pgTable('users', {
   organization: text('organization'),
   jobTitle: text('job_title'),
   profilePicture: text('profile_picture'),
+  profilePictureId: integer('profile_picture_id'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
+  hasSeenWelcomeVideo: boolean('has_seen_welcome_video').default(false).notNull(),
   showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(), // Admin-granted permission for demo data access
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields

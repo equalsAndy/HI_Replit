@@ -7,11 +7,11 @@ import StarCardPreviewView from '../StarCardPreviewView';
 import ReflectionView from '../ReflectionView';
 import FlowIntroView from '../FlowIntroView';
 import IntroToFlowView from '../IntroToFlowView';
+import FlowStarCardView from '../FlowStarCardView';
 import { ProtectedFlowPatternsView } from '../ProtectedFlowPatternsView';
 import { ProtectedFutureSelfView } from '../ProtectedFutureSelfView';
 
 import FlowRoundingOutView from '../FlowRoundingOutView';
-import FlowStarCardView from '../FlowStarCardView';
 import WellBeingView from '../WellBeingView';
 import CantrilLadderView from '../CantrilLadderView';
 import VisualizingYouView from '../VisualizingYouView';
@@ -35,6 +35,7 @@ import NeuroscienceView from './NeuroscienceView';
 import CompendiumView from './CompendiumView';
 import BackgroundView from './BackgroundView';
 import WorkshopResourcesView from './WorkshopResourcesView';
+import WorkshopRecap from '../WorkshopRecap';
 import AstLessonContent from '@/components/ast/AstLessonContentPilot';
 import SelfAwarenessOpportunityView from '../SelfAwarenessOpportunityView';
 import AboutCourseView from '../AboutCourseView';
@@ -47,6 +48,7 @@ interface AllStarTeamsContentProps extends ContentViewProps {
   starCard?: any;
   user?: any;
   flowAttributesData?: any;
+  triggerWelcomeVideo?: () => void;
 }
 
 const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
@@ -57,7 +59,8 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
   starCard,
   user,
   flowAttributesData,
-  setIsAssessmentModalOpen
+  setIsAssessmentModalOpen,
+  triggerWelcomeVideo
 }) => {
   // Phase 0: guard V2 layout on AST 1‑1
   const AST_V2_LAYOUT = process.env.NEXT_PUBLIC_AST_V2_LAYOUT === '1';
@@ -73,12 +76,13 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     // Introduction View
     case 'welcome':
       return (
-        <WelcomeView 
+        <WelcomeView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
           isImaginalAgility={false}
+          triggerWelcomeVideo={triggerWelcomeVideo}
         />
       );  
 
@@ -227,13 +231,11 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'flow-star-card':
       return (
-        <FlowStarCardView 
+        <FlowStarCardView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
-          user={user}
-          flowAttributesData={flowAttributesData}
         />
       );
 
@@ -289,6 +291,14 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'workshop-recap':
+      return (
+        <WorkshopRecap 
+          setCurrentContent={setCurrentContent}
+          markStepCompleted={markStepCompleted}
         />
       );
 

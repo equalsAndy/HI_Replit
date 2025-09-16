@@ -40,45 +40,61 @@ class UserManagementService {
       // Hash the password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(data.password, salt);
-      
-      // Insert the user into the database using raw SQL to avoid schema conflicts
+
+      // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, profile_picture, is_test_user, is_beta_tester, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
-        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${data.profilePicture || null}, ${(data as any).isTestUser || false}, ${data.isBetaTester || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
+        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
+        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${(data as any).isTestUser || false}, ${data.isBetaTester || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
         RETURNING *
       `);
-      
-      // Return the user without the password
+
       const userData = (result as any)[0] || (result as any).rows?.[0];
-      if (userData) {
-        const { password, ...userWithoutPassword } = userData;
-        return {
-          success: true,
-          user: {
-            id: userData.id,
-            username: userData.username,
-            name: userData.name,
-            email: userData.email,
-            role: userData.role,
-            organization: userData.organization,
-            jobTitle: userData.job_title,
-            profilePicture: userData.profile_picture,
-            isTestUser: userData.is_test_user,
-            isBetaTester: userData.is_beta_tester,
-            showDemoDataButtons: userData.show_demo_data_buttons,
-            contentAccess: userData.content_access,
-            astAccess: userData.ast_access,
-            iaAccess: userData.ia_access,
-            invitedBy: userData.invited_by,
-            createdAt: userData.created_at,
-            updatedAt: userData.updated_at
-          }
-        };
+      if (!userData) {
+        return { success: false, error: 'Failed to create user' };
       }
-      
+
+      // Process profile picture if provided
+      let profilePictureId = null;
+      if (data.profilePicture) {
+        try {
+          profilePictureId = await processProfilePicture(data.profilePicture, userData.id);
+          if (profilePictureId) {
+            // Update the user with profile picture ID
+            await db.execute(sql`
+              UPDATE users SET profile_picture_id = ${profilePictureId} WHERE id = ${userData.id}
+            `);
+            console.log(`✅ Profile picture stored with ID ${profilePictureId} for user ${userData.id}`);
+          }
+        } catch (error) {
+          console.warn('⚠️ Failed to process profile picture during registration:', error);
+          // Continue without profile picture - don't fail the registration
+        }
+      }
+
+      // Return the user without the password, including profile picture info
+      const { password, ...userWithoutPassword } = userData;
       return {
-        success: false,
-        error: 'Failed to create user'
+        success: true,
+        user: {
+          id: userData.id,
+          username: userData.username,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          organization: userData.organization,
+          jobTitle: userData.job_title,
+          profilePictureId: profilePictureId,
+          profilePicture: null, // Legacy field, set to null
+          isTestUser: userData.is_test_user,
+          isBetaTester: userData.is_beta_tester,
+          showDemoDataButtons: userData.show_demo_data_buttons,
+          contentAccess: userData.content_access,
+          astAccess: userData.ast_access,
+          iaAccess: userData.ia_access,
+          invitedBy: userData.invited_by,
+          createdAt: userData.created_at,
+          updatedAt: userData.updated_at
+        }
       };
     } catch (error) {
       console.error('Error creating user:', error);
@@ -127,30 +143,13 @@ class UserManagementService {
         };
       }
       
-      // Return the user without the password and map database fields to camelCase
+      // Return the user without the password and convert to photo reference format
       const { password: _, ...rawUser } = user;
+      const userWithPhotoReference = convertUserToPhotoReference(rawUser);
+
       return {
         success: true,
-        user: {
-          id: rawUser.id,
-          username: rawUser.username,
-          name: rawUser.name,
-          email: rawUser.email,
-          role: rawUser.role,
-          organization: rawUser.organization,
-          jobTitle: rawUser.job_title,
-          profilePicture: rawUser.profile_picture,
-          isTestUser: rawUser.is_test_user,
-          isBetaTester: rawUser.is_beta_tester,
-          hasSeenBetaWelcome: rawUser.has_seen_beta_welcome,
-          showDemoDataButtons: rawUser.show_demo_data_buttons,
-          contentAccess: rawUser.content_access,
-          astAccess: rawUser.ast_access,
-          iaAccess: rawUser.ia_access,
-          invitedBy: rawUser.invited_by,
-          createdAt: rawUser.created_at,
-          updatedAt: rawUser.updated_at
-        }
+        user: userWithPhotoReference
       };
     } catch (error) {
       console.error('Error authenticating user:', error);
@@ -179,30 +178,13 @@ class UserManagementService {
       
       const user = result[0];
       
-      // Return the user without the password and map database fields to camelCase
+      // Return the user without the password and convert to photo reference format
       const { password: _, ...rawUser } = user;
+      const userWithPhotoReference = convertUserToPhotoReference(rawUser);
+
       return {
         success: true,
-        user: {
-          id: rawUser.id,
-          username: rawUser.username,
-          name: rawUser.name,
-          email: rawUser.email,
-          role: rawUser.role,
-          organization: rawUser.organization,
-          jobTitle: rawUser.jobTitle,
-          profilePicture: rawUser.profilePicture,
-          isTestUser: rawUser.isTestUser,
-          isBetaTester: rawUser.isBetaTester,
-          hasSeenBetaWelcome: rawUser.hasSeenBetaWelcome,
-          showDemoDataButtons: rawUser.showDemoDataButtons,
-          contentAccess: rawUser.contentAccess,
-          astAccess: rawUser.astAccess,
-          iaAccess: rawUser.iaAccess,
-          invitedBy: rawUser.invitedBy,
-          createdAt: rawUser.createdAt,
-          updatedAt: rawUser.updatedAt
-        }
+        user: userWithPhotoReference
       };
     } catch (error) {
       console.error('Error getting user by ID:', error);
@@ -331,11 +313,13 @@ class UserManagementService {
       // Debug log the returned user
       console.log(`🔍 DEBUG: User ${id} updated successfully. isBetaTester in result:`, user.isBetaTester || user.is_beta_tester);
       
-      // Return the user without the password
-      const { password, ...userWithoutPassword } = user;
+      // Return the user without the password and convert to photo reference format
+      const { password, ...rawUser } = user;
+      const userWithPhotoReference = convertUserToPhotoReference(rawUser);
+
       return {
         success: true,
-        user: userWithoutPassword,
+        user: userWithPhotoReference,
         temporaryPassword
       };
     } catch (error) {
@@ -346,7 +330,40 @@ class UserManagementService {
       };
     }
   }
-  
+
+  /**
+   * Update user's profile picture ID (for photo storage system)
+   */
+  async updateUserProfilePictureId(userId: number, profilePictureId: number | null) {
+    try {
+      const result = await db.update(users)
+        .set({
+          profilePictureId: profilePictureId,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      return {
+        success: true,
+        user: result[0]
+      };
+    } catch (error) {
+      console.error('Error updating user profile picture ID:', error);
+      return {
+        success: false,
+        error: 'Failed to update profile picture'
+      };
+    }
+  }
+
   /**
    * Toggle a user's test status
    */
@@ -852,6 +869,7 @@ class UserManagementService {
         finalReflections: 0,
         discernmentProgress: 0,
         workshopStepData: 0,
+        photos: 0,
         holisticReports: 0,
         holisticReportFiles: 0
       };
@@ -958,7 +976,18 @@ class UserManagementService {
       // Add workshop step data to deleted data tracking
       deletedData.workshopStepData = workshopStepDataDeleted;
 
-      // 9. Delete holistic report DB records
+      // 9. Delete user photos from photo_storage
+      try {
+        const photoResult = await db.execute(sql`DELETE FROM photo_storage WHERE uploaded_by = ${userId}`);
+        const deletedPhotos = photoResult.length || 0;
+        console.log(`Deleted ${deletedPhotos} photos for user ${userId}`);
+        deletedData.photos = deletedPhotos;
+      } catch (error) {
+        console.error(`ERROR deleting photos for user ${userId}:`, error);
+        deletedData.photos = 0;
+      }
+
+      // 10. Delete holistic report DB records
       try {
         const holisticResult = await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
         deletedData.holisticReports = holisticResult.length || 0;
@@ -1256,6 +1285,38 @@ class UserManagementService {
       return {
         success: false,
         error: 'Failed to update beta welcome status'
+      };
+    }
+  }
+
+  /**
+   * Mark welcome video as seen for a user
+   */
+  async markWelcomeVideoAsSeen(userId: number) {
+    try {
+      const result = await db.execute(sql`
+        UPDATE users
+        SET has_seen_welcome_video = true, updated_at = NOW()
+        WHERE id = ${userId}
+        RETURNING id, username, name, email, has_seen_welcome_video
+      `);
+
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      return {
+        success: true,
+        user: result[0]
+      };
+    } catch (error) {
+      console.error('Error marking welcome video as seen:', error);
+      return {
+        success: false,
+        error: 'Failed to update welcome video status'
       };
     }
   }

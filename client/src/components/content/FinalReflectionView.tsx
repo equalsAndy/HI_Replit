@@ -42,7 +42,7 @@ export default function FinalReflectionView({
   const appType = currentApp === 'allstarteams' ? 'ast' : 'ia';
   
   // Workshop status
-  const { astCompleted, iaCompleted, loading, isWorkshopLocked, completeWorkshop, triggerGlobalCompletion } = useWorkshopStatus();
+  const { astCompleted, iaCompleted, loading, isWorkshopLocked, triggerGlobalCompletion } = useWorkshopStatus();
   const completed = appType === 'ast' ? astCompleted : iaCompleted;
   
   // Return visit auto-modal countdown (5 seconds)
@@ -180,41 +180,15 @@ export default function FinalReflectionView({
     // Clear any previous validation errors
     setValidationError('');
     
-    // Save the final reflection data - server will auto-complete workshop
+    // Save the final reflection data - workshop completion handled separately
     setSaveStatus('saving');
     try {
       const saveData = { futureLetterText: insight.trim() };
       const result = await saveMutation.mutateAsync(saveData);
       setSaveStatus('saved');
-      
+
       // Mark step as completed
       markStepCompleted('3-3');
-      
-      // Check if server auto-completed the workshop
-      if (result.workshopCompleted) {
-        console.log(`🎉 ${appType.toUpperCase()} Workshop auto-completed by server - all steps are now locked`);
-        
-        // Update local workshop status to reflect completion
-        if (result.completedAt) {
-          const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
-          const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
-          
-          // Update global completion state manually
-          window.dispatchEvent(new CustomEvent('workshopCompleted', {
-            detail: {
-              [completionField]: true,
-              [timestampField]: result.completedAt
-            }
-          }));
-        }
-      } else {
-        console.warn('⚠️ Server did not auto-complete workshop, trying manual completion...');
-        // Fallback to manual completion if server didn't auto-complete
-        const fallbackResult = await completeWorkshop(appType);
-        if (!fallbackResult.success) {
-          console.error('❌ Failed to complete workshop manually:', fallbackResult.error);
-        }
-      }
       
       // Navigate to workshop recap instead of showing modal
       if (!user?.isBetaTester) {
@@ -224,23 +198,6 @@ export default function FinalReflectionView({
     } catch (error) {
       console.error('Failed to save final reflection:', error);
       setSaveStatus('error');
-      
-      // Still try to complete the workshop even if save fails
-      console.log(`🎯 Fallback: Trying to complete workshop after save error...`);
-      try {
-        await completeWorkshop(appType);
-        markStepCompleted('3-3');
-        // Navigate to workshop recap (but not for beta users)
-        if (!user?.isBetaTester) {
-          setCurrentContent('workshop-recap');
-        }
-      } catch (completionError) {
-        console.error('❌ Failed to complete workshop after save error:', completionError);
-        // Still navigate to workshop recap so user isn't stuck (but not for beta users)
-        if (!user?.isBetaTester) {
-          setCurrentContent('workshop-recap');
-        }
-      }
     }
   };
 

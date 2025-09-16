@@ -612,7 +612,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
     case 'flow-star-card':
       return (
-        <FlowStarCardView 
+        <FlowStarCardView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

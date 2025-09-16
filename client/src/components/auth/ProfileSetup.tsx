@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 
@@ -15,6 +15,7 @@ import { useLocation } from 'wouter';
 const profileFormSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   jobTitle: z.string().optional(),
+  organization: z.string().optional(),
   externalEmail: z.string().email('Invalid email address').optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Must include an uppercase letter').regex(/[a-z]/, 'Must include a lowercase letter').regex(/[0-9]/, 'Must include a number'),
   confirmPassword: z.string().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Must include an uppercase letter').regex(/[a-z]/, 'Must include a lowercase letter').regex(/[0-9]/, 'Must include a number'),
@@ -30,6 +31,8 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [, navigate] = useLocation();
 
   // Initialize form
@@ -51,10 +54,32 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
     form.setValue('organization', inviteData.organization || '');
   }, [inviteData, form]);
 
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   // Handle form submission
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
+      // Convert profile picture to base64 if selected
+      let profilePictureBase64 = null;
+      if (profilePicture) {
+        try {
+          profilePictureBase64 = await fileToBase64(profilePicture);
+          console.log('🔍 Profile picture converted to base64, length:', profilePictureBase64.length);
+        } catch (error) {
+          console.error('Error converting profile picture to base64:', error);
+          // Continue without profile picture if conversion fails
+        }
+      }
+
       const payload = {
         inviteCode: (inviteData as any).inviteCode,
         username: (data.externalEmail || inviteData.email),
@@ -62,8 +87,11 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
         name: data.fullName,
         email: (data.externalEmail || inviteData.email),
         organization: data.organization || inviteData.organization || '',
-        jobTitle: data.jobTitle || ''
+        jobTitle: data.jobTitle || '',
+        profilePicture: profilePictureBase64
       };
+
+      console.log('🔍 Registration payload:', payload);
 
       const resp = await fetch('/api/auth/register', {
         method: 'POST',
@@ -71,7 +99,11 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
         credentials: 'include',
         body: JSON.stringify(payload)
       });
+
+      console.log('🔍 Registration response status:', resp.status);
       const result = await resp.json();
+      console.log('🔍 Registration response:', result);
+
       if (!resp.ok || result.success === false) {
         throw new Error(result.error || 'Registration failed');
       }
@@ -82,10 +114,11 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
       // navigate('/dashboard');
     } catch (error) {
       console.error('Error creating profile:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         variant: 'destructive',
         title: 'Profile creation failed',
-        description: 'There was a problem creating your profile. Please try again.',
+        description: `There was a problem creating your profile: ${errorMessage}`,
       });
     } finally {
       setIsSubmitting(false);
@@ -110,6 +143,38 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Profile Picture Section - Moved to top */}
+            <div className="flex flex-col items-center mb-6">
+              <label htmlFor="profilePicture" className="cursor-pointer">
+                <div className="relative">
+                  {profilePicture ? (
+                    <img
+                      src={URL.createObjectURL(profilePicture)}
+                      alt="Profile"
+                      className="h-24 w-24 object-cover rounded-full border-4 border-blue-100 hover:border-blue-300 transition-colors"
+                    />
+                  ) : (
+                    <div className="h-24 w-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center border-4 border-blue-100 hover:border-blue-300 transition-colors">
+                      <span className="text-xs text-blue-600 font-medium text-center px-2">Click to add avatar</span>
+                    </div>
+                  )}
+                  <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white rounded-full p-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                </div>
+              </label>
+              <input
+                id="profilePicture"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="hidden"
+              />
+              <div className="text-sm text-gray-500 mt-2 text-center">Upload a profile picture (optional)</div>
+            </div>
+
             <FormField
               control={form.control}
               name="fullName"
@@ -141,9 +206,9 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
               name="externalEmail"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>External Email</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="External Email" />
+                    <Input {...field} placeholder="Email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,7 +221,27 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} placeholder="Create a secure password" />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        {...field}
+                        placeholder="Create a secure password"
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,7 +254,27 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} placeholder="Confirm your password" />
+                    <div className="relative">
+                      <Input
+                        type={showConfirmPassword ? "text" : "password"}
+                        {...field}
+                        placeholder="Confirm your password"
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,32 +293,6 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
                 </FormItem>
               )}
             />
-            <div className="flex flex-col items-center">
-              <label htmlFor="profilePicture" className="cursor-pointer">
-                <div className="text-center mb-2">Profile Picture</div>
-                <div className="border border-dashed border-gray-300 p-4 rounded-full overflow-hidden">
-                  {profilePicture ? (
-                    <img
-                      src={URL.createObjectURL(profilePicture)}
-                      alt="Profile"
-                      className="h-24 w-24 object-cover rounded-full"
-                    />
-                  ) : (
-                    <div className="h-24 w-24 bg-gray-200 rounded-full flex items-center justify-center">
-                      Click to update avatar
-                    </div>
-                  )}
-                </div>
-              </label>
-              <input
-                id="profilePicture"
-                type="file"
-                accept="image/*"
-                onChange={handleProfilePictureChange}
-                className="hidden"
-              />
-              <div className="text-sm text-gray-500 mt-2">Upload a profile picture (optional)</div>
-            </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>

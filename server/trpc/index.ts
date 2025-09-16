@@ -44,6 +44,7 @@ const lessonRouter = router({
             eq(schema.videos.stepId, input.stepId)
           )
         )
+        .orderBy(schema.videos.sortOrder)
         .limit(1);
       const row = records[0];
       if (!row) {
@@ -58,6 +59,36 @@ const lessonRouter = router({
         transcriptMd: row.transcriptMd,
         glossary: row.glossary,
       };
+    }),
+  // New endpoint to get all videos for a step
+  allByStep: publicProcedure
+    .input(z.object({ workshop: z.string(), stepId: z.string() }))
+    .query(async ({ input }) => {
+      const records = await db
+        .select()
+        .from(schema.videos)
+        .where(
+          and(
+            eq(schema.videos.workshopType, input.workshop),
+            eq(schema.videos.stepId, input.stepId)
+          )
+        )
+        .orderBy(schema.videos.sortOrder);
+
+      if (records.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: `No lessons found for ${input.stepId}` });
+      }
+
+      return records.map(row => ({
+        workshop: row.workshopType,
+        stepId: row.stepId,
+        // Use editableId for YouTube ID, fallback to url
+        youtubeId: row.editableId ?? row.url,
+        title: row.title,
+        transcriptMd: row.transcriptMd,
+        glossary: row.glossary,
+        sortOrder: row.sortOrder,
+      }));
     }),
   byYouTubeId: publicProcedure
     .input(z.object({ youtubeId: z.string() }))

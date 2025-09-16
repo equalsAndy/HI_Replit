@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
+import { ChevronRight, Search, Upload, Save, Image, X, Plus, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import VideoPlayer from './VideoPlayer';
 import FutureSelfReflections from './FutureSelfReflections';
@@ -9,12 +9,14 @@ import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { searchUnsplash } from '@/services/api-services';
 import { useToast } from '@/hooks/use-toast';
 import { ContentViewProps } from '../../shared/types';
+import {
+  saveFutureSelfComplete,
+  loadFutureSelfComplete,
+  FutureSelfImageData
+} from '@/utils/saveFutureSelfReflections';
 
-// Define data structure for image selection
-interface ImageData {
-  selectedImages: any[];
-  imageMeaning: string;
-}
+// Use the imported interface for type consistency
+type ImageData = FutureSelfImageData;
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
   navigate,
@@ -33,16 +35,90 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [isSavingImages, setIsSavingImages] = useState(false);
   
   const [isLoading, setIsLoading] = useState(true);
-  const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
+  const { astCompleted: workshopCompleted, loading: workshopLoading, isWorkshopLocked } = useWorkshopStatus();
+
+  // Module-specific locking for step 3-2 (Module 3 - locked after completion)
+  const stepId = "3-2";
+  const isStepLocked = isWorkshopLocked('ast', stepId);
   const { toast } = useToast();
 
 
   // Load existing image data when component mounts
   useEffect(() => {
-    // Note: Image data loading can be added here if needed
-    setIsLoading(false);
+    const loadData = async () => {
+      try {
+        const { imageData: loadedImageData } = await loadFutureSelfComplete();
+        console.log('📖 Loaded image data:', loadedImageData);
+        setImageData(loadedImageData);
+      } catch (error) {
+        console.error('❌ Error loading Future Self data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
+  // Save function for image data
+  const saveImageData = async () => {
+    if (isStepLocked) {
+      console.log('🔒 Step is locked, skipping save');
+      return;
+    }
+
+    try {
+      console.log('💾 Saving image data...', imageData);
+      // We need to get the text reflections from FutureSelfReflections component
+      // For now, we'll save just the image data with properly formatted empty reflections
+      const emptyReflections = {
+        'future-self-1': '',
+        'future-self-2': '',
+        'future-self-3': ''
+      };
+      const result = await saveFutureSelfComplete(emptyReflections, imageData);
+
+      if (result.success) {
+        console.log('✅ Image data saved successfully');
+      } else {
+        console.error('❌ Failed to save image data:', result.error);
+        toast({
+          title: "Save failed",
+          description: "Failed to save your image selections. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error saving image data:', error);
+      toast({
+        title: "Save failed",
+        description: "An error occurred while saving. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Auto-save when image data changes
+  useEffect(() => {
+    console.log('🔄 Auto-save check:', {
+      isLoading,
+      selectedImages: imageData.selectedImages.length,
+      imageMeaning: imageData.imageMeaning.trim().length
+    });
+
+    if (!isLoading && (imageData.selectedImages.length > 0 || imageData.imageMeaning.trim().length > 0)) {
+      console.log('⏰ Auto-save scheduled in 1 second...');
+      // Debounce the save to avoid too many calls
+      const timeoutId = setTimeout(() => {
+        console.log('💾 Auto-save triggered');
+        saveImageData();
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      console.log('❌ Auto-save skipped - no data to save');
+    }
+  }, [imageData, isLoading]);
 
   // Image handling functions
   const handleSearch = async () => {
@@ -350,24 +426,33 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Search for images:</h4>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="text-sm font-medium">Search for images:</h4>
+                      {isStepLocked && (
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Lock className="w-3 h-3" />
+                          <span>Locked</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       <Input
-                        placeholder="e.g. sunrise, office, mountain, success"
+                        placeholder={isStepLocked ? "Step is locked - view only" : "e.g. sunrise, office, mountain, success"}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !isSearching && searchQuery.trim()) {
+                          if (e.key === 'Enter' && !isSearching && searchQuery.trim() && !isStepLocked) {
                             e.preventDefault();
                             handleSearch();
                           }
                         }}
-                        className="flex-1"
+                        className={`flex-1 ${isStepLocked ? 'opacity-60' : ''}`}
+                        disabled={isStepLocked}
                       />
-                      <Button 
-                        variant="default" 
+                      <Button
+                        variant="default"
                         onClick={handleSearch}
-                        disabled={isSearching || !searchQuery.trim()}
+                        disabled={isSearching || !searchQuery.trim() || isStepLocked}
                         className="flex items-center gap-2"
                       >
                         <Search className="h-4 w-4" /> 
@@ -430,14 +515,31 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               </p>
               <Textarea
                 value={imageData.imageMeaning}
-                onChange={(e) => setImageData(prev => ({ ...prev, imageMeaning: e.target.value }))}
-                placeholder={workshopCompleted ? "This workshop is completed and locked for editing" : "These images represent my future self because..."}
+                onChange={(e) => {
+                  console.log('📝 Image meaning text changed:', e.target.value);
+                  setImageData(prev => ({ ...prev, imageMeaning: e.target.value }));
+                }}
+                placeholder={isStepLocked ? "This step is locked - view only" : "These images represent my future self because..."}
                 className={`w-full p-2 min-h-[120px] border border-gray-300 rounded-md ${
-                  workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+                  isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
                 }`}
-                disabled={workshopCompleted}
-                readOnly={workshopCompleted}
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
               />
+              {/* Manual save button for testing */}
+              {!isStepLocked && (
+                <div className="mt-3">
+                  <Button
+                    onClick={saveImageData}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    <Save className="w-3 h-3 mr-1" />
+                    Save Image Data
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

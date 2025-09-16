@@ -212,16 +212,8 @@ export default function StrengthReflections({
   const handleResponseChange = async (value: string) => {
     if (!currentReflection) return;
     setResponses(prev => ({ ...prev, [currentReflection.id]: value }));
-    
-    // Auto-mark as completed if this is the last reflection and it meets minimum length
-    const isLastReflection = currentIndex === reflectionConfigs.length - 1;
-    const meetsMinLength = value.trim().length >= (currentReflection.minLength || 25);
-    
-    if (isLastReflection && meetsMinLength && !completedIndices.has(currentIndex)) {
-      setCompletedIndices(prev => new Set([...prev, currentIndex]));
-    }
-    
-    // Auto-save when editing completed reflections
+
+    // Auto-save when editing completed reflections (but don't auto-complete)
     if (allReflectionsCompleted && isEditing) {
       const updatedResponses = { ...responses, [currentReflection.id]: value };
       try {
@@ -254,12 +246,12 @@ export default function StrengthReflections({
   };
 
   const allCompleted = reflectionConfigs.every((reflection, index) => {
-    // Check if reflection is marked as completed OR if it's the current reflection and meets minimum length
+    // Only consider reflections as completed if they are explicitly marked as completed
+    // This prevents premature completion while user is still typing
     const isMarkedCompleted = completedIndices.has(index);
     const meetsMinLength = responses[reflection.id]?.trim().length >= (reflection.minLength || 25);
-    const isCurrentAndValid = index === currentIndex && meetsMinLength;
 
-    return (isMarkedCompleted || isCurrentAndValid) && meetsMinLength;
+    return isMarkedCompleted && meetsMinLength;
   });
 
   const handleComplete = async () => {
@@ -460,6 +452,14 @@ export default function StrengthReflections({
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
                   >
                     Next <ChevronRight className="ml-1 w-4 h-4" />
+                  </Button>
+                ) : !completedIndices.has(currentIndex) && isCurrentComplete ? (
+                  <Button
+                    onClick={handleNext}
+                    disabled={isSaving}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
+                  >
+                    Mark Complete <ChevronRight className="ml-1 w-4 h-4" />
                   </Button>
                 ) : allCompleted ? (
                   <Button

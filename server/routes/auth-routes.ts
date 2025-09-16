@@ -287,7 +287,7 @@ router.get('/me', requireAuth, async (req, res) => {
         error: 'Authentication required'
       });
     }
-    
+
     const result = await userManagementService.getUserById((req.session as any).userId);
 
     if (!result.success) {
@@ -297,6 +297,7 @@ router.get('/me', requireAuth, async (req, res) => {
       });
     }
 
+    // The getUserById already converts profilePictureId to profilePictureUrl via convertUserToPhotoReference
     res.json({
       success: true,
       user: result.user
@@ -445,6 +446,35 @@ router.post('/change-password', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to change password. Please try again later.'
+    });
+  }
+});
+
+/**
+ * Mark welcome video as seen for current user
+ */
+router.post('/mark-welcome-video-seen', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const result = await userManagementService.markWelcomeVideoAsSeen(userId);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error marking welcome video as seen:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to mark welcome video as seen. Please try again later.'
     });
   }
 });

@@ -26,7 +26,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     organization: user?.organization || '',
     jobTitle: user?.jobTitle || user?.title || '',
   });
-  const [profileImage, setProfileImage] = useState(user?.profilePicture);
+  const [profileImage, setProfileImage] = useState(user?.profilePictureUrl || user?.profilePicture);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -51,7 +51,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         jobTitle: user.jobTitle || user.title || '',
       };
       setFormData(mappedData);
-      setProfileImage(user.profilePicture);
+      setProfileImage(user.profilePictureUrl || user.profilePicture);
     }
   }, [user]);
 
@@ -110,7 +110,9 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
       return response.json();
     },
     onSuccess: (data) => {
-      setProfileImage(data.profilePicture);
+      // Use the new profilePictureUrl if available, fallback to profilePicture for compatibility
+      const photoUrl = data.profilePictureUrl || data.profilePicture;
+      setProfileImage(photoUrl);
       toast({
         title: 'Photo uploaded successfully',
         description: 'Your profile photo has been updated.',
@@ -292,7 +294,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         organization: user.organization || '',
         jobTitle: user.jobTitle || user.title || '',
       });
-      setProfileImage(user.profilePicture);
+      setProfileImage(user.profilePictureUrl || user.profilePicture);
     }
     setIsEditing(false);
   };
@@ -308,7 +310,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         organization: user.organization || '',
         jobTitle: user.jobTitle || user.title || '',
       });
-      setProfileImage(user.profilePicture);
+      setProfileImage(user.profilePictureUrl || user.profilePicture);
     }
   };
 
@@ -332,7 +334,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={user?.profilePicture} />
+            <AvatarImage src={user?.profilePictureUrl || user?.profilePicture} />
             <AvatarFallback className="text-xs">
               {user?.name ? getUserInitials(user.name) : <User className="h-3 w-3" />}
             </AvatarFallback>

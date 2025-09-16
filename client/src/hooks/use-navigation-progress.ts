@@ -556,10 +556,19 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     loadProgress();
   }, [appType]);
 
-  // Simplified database sync with debouncing
+  // FIXED: Database sync with proper progress state and enhanced logging
   const syncToDatabase = async (progressData: NavigationProgress) => {
     try {
-      // console.log('🔄 SIMPLIFIED MODE: Syncing to database...', progressData);
+      console.log('🔄 Attempting to save navigation state...');
+      console.log('📤 Payload:', {
+        currentStepId: progressData.currentStepId,
+        completedSteps: progressData.completedSteps,
+        appType: progressData.appType,
+        stepConfig: {
+          unlockedSteps: progressData.unlockedSteps?.length || 0,
+          videoProgressCount: Object.keys(progressData.videoProgress || {}).length
+        }
+      });
       
       // Use the workshop-data navigation progress endpoint with correct parameters
       const response = await fetch('/api/workshop-data/navigation-progress', {
@@ -570,7 +579,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         credentials: 'include',
         body: JSON.stringify({
           completedSteps: progressData.completedSteps,
-          currentStepId: progressData.currentStepId,
+          currentStepId: progressData.currentStepId, // CRITICAL: Use progressData, not stale progress state
           appType: progressData.appType,
           unlockedSteps: progressData.unlockedSteps,
           videoProgress: progressData.videoProgress
@@ -578,7 +587,9 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
       });
 
       if (response.ok) {
-        // console.log('✅ SIMPLIFIED MODE: Progress synced to database');
+        const result = await response.json();
+        console.log('✅ Navigation state saved successfully:', result);
+        console.log('📊 Saved state: currentStep=' + progressData.currentStepId + ', completed=[' + progressData.completedSteps.join(',') + ']');
       } else {
         const error = await response.text();
         console.error('❌ SIMPLIFIED MODE: Failed to sync progress to database:', error);
@@ -662,7 +673,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     });
   };
 
-  // ENHANCED: Manual progression with immediate counter updates
+  // ENHANCED: Manual progression with immediate counter updates - FIXED DATABASE SYNC
   const markStepCompleted = async (stepId: string) => {
     console.log(`🎯 SIMPLIFIED MODE: Manual progression - marking step ${stepId} completed`);
 
@@ -702,42 +713,49 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
     console.log(`✅ SIMPLIFIED MODE: Completing step ${stepId} via Next button click`);
 
-    setProgress(prev => {
-      const newCompletedSteps = [...prev.completedSteps, stepId];
-      const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps, appType);
-      const nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
-      
-      // Calculate workshop completion status
-      const workshopCompleted = isWorkshopCompleted(newCompletedSteps, appType);
-      
-      // Recalculate section expansion state
-      const sectionExpansion = calculateSectionExpansion(
-        nextStepId, 
-        newCompletedSteps, 
-        appType, 
-        workshopCompleted
-      );
+    // Calculate the new progress data outside of setProgress to avoid stale closures
+    const newCompletedSteps = [...progress.completedSteps, stepId];
+    const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps, appType);
+    const nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
 
-      const newProgress = {
-        ...prev,
-        completedSteps: newCompletedSteps,
-        currentStepId: nextStepId,
-        unlockedSteps: newUnlockedSteps,
-        lastVisitedAt: new Date().toISOString(),
-        sectionExpansion,
-        workshopCompleted
-      };
+    // Calculate workshop completion status
+    const workshopCompleted = isWorkshopCompleted(newCompletedSteps, appType);
 
-      console.log(`📊 SIMPLIFIED MODE: Progress counters updated immediately`);
-      console.log(`  ✅ Completed: ${newCompletedSteps.length} steps`);
-      console.log(`  🔓 Unlocked: ${newUnlockedSteps.length} steps`);
-      console.log(`  ➡️ Next step: ${nextStepId}`);
+    // Recalculate section expansion state
+    const sectionExpansion = calculateSectionExpansion(
+      nextStepId,
+      newCompletedSteps,
+      appType,
+      workshopCompleted
+    );
 
-      // Sync to database
-      scheduleSync(newProgress);
+    const newProgress = {
+      ...progress,
+      completedSteps: newCompletedSteps,
+      currentStepId: nextStepId, // CRITICAL FIX: Update currentStepId atomically
+      unlockedSteps: newUnlockedSteps,
+      lastVisitedAt: new Date().toISOString(),
+      sectionExpansion,
+      workshopCompleted
+    };
 
-      return newProgress;
-    });
+    console.log(`📊 SIMPLIFIED MODE: Progress counters updated immediately`);
+    console.log(`  ✅ Completed: ${newCompletedSteps.length} steps`);
+    console.log(`  🔓 Unlocked: ${newUnlockedSteps.length} steps`);
+    console.log(`  ➡️ Next step: ${nextStepId}`);
+    console.log(`  💾 About to sync to database with currentStepId: ${nextStepId}`);
+
+    // CRITICAL FIX: Update state and sync to database with the same data
+    setProgress(newProgress);
+
+    // CRITICAL FIX: Use a slight delay to ensure React state update completes, then sync with fresh data
+    setTimeout(() => {
+      console.log(`💾 Auto-saving navigation progress after completing step ${stepId}...`);
+      console.log(`📊 Syncing to database: currentStepId=${nextStepId}, completed=[${newCompletedSteps.join(', ')}]`);
+      syncToDatabase(newProgress); // Use the calculated newProgress, not stale progress state
+    }, 100); // Reduced timeout for faster response
+
+    return nextStepId; // Return the next step ID for navigation
   };
 
   // Set current step (for navigation)

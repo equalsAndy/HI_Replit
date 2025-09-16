@@ -15,6 +15,7 @@ import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgili
 import ProfileEditor from '@/components/profile/ProfileEditor';
 import { NavBar } from '@/components/layout/NavBar';
 import { useApplication } from '@/hooks/use-application';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import DiscernmentModal from '@/components/imaginal-agility/DiscernmentModal';
 
 // Constants
@@ -40,6 +41,9 @@ export default function ImaginalAgilityWorkshop() {
     shouldShowGreenCheckmark: isStepCompleted,
     getCurrentVideoProgress: getVideoProgress
   } = useNavigationProgress('ia'); // Pass 'ia' for Imaginal Agility
+
+  // Module-specific locking for IA workshop
+  const { isWorkshopLocked, isModuleAccessible, getStepModule } = useWorkshopStatus();
 
   // Use navigation progress state
   const completedSteps = navProgress?.completedSteps || [];

@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import VideoTranscriptGlossary from '../common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import '@/styles/section-headers.css';
-import { Check, X } from 'lucide-react';
+import { Check, X, Play } from 'lucide-react';
 import JeopardySelfAwarenessGame from './JeopardySelfAwarenessGame';
 // import organizationalChallengesImg from '@/assets/graphics/organizational-challenges-diagram.png';
 
@@ -16,13 +16,15 @@ interface WelcomeViewProps {
   setCurrentContent?: (content: string) => void;
   starCard?: any;
   isImaginalAgility?: boolean;
+  triggerWelcomeVideo?: () => void;
 }
 
 const WelcomeView: React.FC<WelcomeViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent,
-  isImaginalAgility = false
+  isImaginalAgility = false,
+  triggerWelcomeVideo
 }) => {
   // Get user data for content customization
   const { data: userData, isLoading: userLoading } = useQuery<{
@@ -53,8 +55,10 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   // Different content based on which app is active
   const stepId = isImaginalAgility ? "ia-1-1" : "1-1";
+
+  // Welcome video functionality for replay (passed as prop)
   
-  // Fetch video from database using tRPC
+  // Fetch video from database using tRPC (single video for backwards compatibility)
   const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
     workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
     stepId: stepId,
@@ -62,7 +66,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     staleTime: 0, // Force fresh fetch
     cacheTime: 0, // Don't cache results
   });
-  
+
   // Debug logging
   console.log('🎬 WelcomeView tRPC query:', {
     workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
@@ -221,6 +225,19 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     <>
       <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
 
+      {/* Play Welcome Video Again Link - Only for AST */}
+      {!isImaginalAgility && triggerWelcomeVideo && (
+        <div className="mb-6">
+          <button
+            onClick={triggerWelcomeVideo}
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm font-medium"
+          >
+            <Play className="h-4 w-4" />
+            Play welcome video again
+          </button>
+        </div>
+      )}
+
       <div className="prose max-w-none">
         {!isImaginalAgility && !isStudentOrFacilitator && (
           <p className="text-lg text-gray-700 mb-6">
@@ -263,10 +280,24 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
               title={videoData.title}
               transcriptMd={videoData.transcriptMd}
               glossary={videoData.glossary ?? []}
+              forceUrl={forceUrl}
+              startTime={calculateStartTime()}
+              onProgress={handleVideoProgress}
             />
           ) : (
             <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
               No video data found in database for workshop '{isImaginalAgility ? 'imaginal-agility' : 'allstarteams'}' step '{stepId}'
+              <br />
+              <small>Falling back to default video: {fallbackUrl}</small>
+              <VideoTranscriptGlossary
+                youtubeId={fallbackUrl}
+                title={videoTitle}
+                transcriptMd=""
+                glossary={[]}
+                forceUrl={forceUrl}
+                startTime={calculateStartTime()}
+                onProgress={handleVideoProgress}
+              />
             </div>
           )}
         </div>

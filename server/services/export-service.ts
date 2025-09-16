@@ -1,6 +1,7 @@
 import { db } from '../db.js';
 import { users, userAssessments, workshopParticipation, navigationProgress, workshopStepData } from '../../shared/schema.js';
 import { eq, and, isNull } from 'drizzle-orm';
+import { convertUserToPhotoReference } from '../utils/user-photo-utils.js';
 
 export interface ExportData {
   userInfo: {
@@ -11,7 +12,10 @@ export interface ExportData {
     role: string;
     organization?: string | null;
     jobTitle?: string | null;
-    profilePicture?: string | null;
+    profilePicture?: string | null; // Legacy field for backward compatibility
+    profilePictureUrl?: string | null; // New photo storage URL
+    profilePictureId?: number | null; // Photo storage ID
+    hasProfilePicture?: boolean; // Indicates if user has a profile picture
     isTestUser: boolean;
     createdAt: string;
     updatedAt: string;
@@ -49,6 +53,9 @@ export class ExportService {
       }
 
       const user = userResult[0];
+
+      // Convert user to photo reference format to get proper photo URLs
+      const userWithPhotoReference = convertUserToPhotoReference(user);
 
       // Get all assessments for the user
       const assessments = await db.select()
@@ -133,17 +140,20 @@ export class ExportService {
       // Structure the export data according to the specification
       const exportData: ExportData = {
         userInfo: {
-          id: user.id,
-          username: user.username,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          organization: user.organization,
-          jobTitle: user.jobTitle,
-          profilePicture: null, // Temporarily removed for testing
-          isTestUser: user.isTestUser,
-          createdAt: user.createdAt.toISOString(),
-          updatedAt: user.updatedAt.toISOString()
+          id: userWithPhotoReference.id,
+          username: userWithPhotoReference.username,
+          name: userWithPhotoReference.name,
+          email: userWithPhotoReference.email,
+          role: userWithPhotoReference.role,
+          organization: userWithPhotoReference.organization,
+          jobTitle: userWithPhotoReference.jobTitle,
+          profilePicture: null, // Legacy field, kept as null
+          profilePictureUrl: userWithPhotoReference.profilePictureUrl || null,
+          profilePictureId: userWithPhotoReference.profilePictureId || null,
+          hasProfilePicture: userWithPhotoReference.hasProfilePicture || false,
+          isTestUser: userWithPhotoReference.isTestUser,
+          createdAt: userWithPhotoReference.createdAt.toISOString(),
+          updatedAt: userWithPhotoReference.updatedAt.toISOString()
         },
         navigationProgress: navProgress,
         assessments: {},

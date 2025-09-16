@@ -124,35 +124,85 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * Middleware to check workshop completion status and prevent editing
+ * Helper function to determine which module a step belongs to
+ */
+const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
+  if (!stepId) return null;
+
+  // AST Workshop step mapping
+  if (stepId.match(/^[1-5]-[1-9]$/)) {
+    return parseInt(stepId.split('-')[0]) as 1 | 2 | 3 | 4 | 5;
+  }
+
+  // IA Workshop step mapping (ia-X-Y format)
+  if (stepId.match(/^ia-[1-5]-[1-9]$/)) {
+    return parseInt(stepId.split('-')[1]) as 1 | 2 | 3 | 4 | 5;
+  }
+
+  return null;
+};
+
+/**
+ * Helper function to check if a module should be locked
+ * @param module Module number (1-5)
+ * @param isWorkshopCompleted Whether the workshop is completed
+ * @returns true if the module should be locked for editing
+ */
+const isModuleLocked = (module: number, isWorkshopCompleted: boolean): boolean => {
+  if (module >= 1 && module <= 3) {
+    // Modules 1-3: Lock AFTER workshop completion
+    return isWorkshopCompleted;
+  } else if (module >= 4 && module <= 5) {
+    // Modules 4-5: Lock BEFORE workshop completion (unlock AFTER completion)
+    return !isWorkshopCompleted;
+  }
+  return false;
+};
+
+/**
+ * Enhanced middleware to check workshop completion status with module-specific locking
  */
 const checkWorkshopLocked = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req.session as any).userId;
-    
+
     // Determine workshop type from request body or params
     const appType = req.body.workshopType || req.body.appType || req.params.appType || 'ast';
-    
+
     if (!['ast', 'ia'].includes(appType)) {
       return next(); // Skip check for invalid app types
     }
-    
+
     const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user[0]) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
-    const isLocked = user[0][completionField];
-    
-    if (isLocked) {
-      return res.status(403).json({ 
-        error: 'Workshop is completed and locked for editing',
-        workshopType: appType.toUpperCase(),
-        completedAt: user[0][appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']
-      });
+    const isWorkshopCompleted = user[0][completionField];
+
+    // Get step ID from request to determine module
+    const stepId = req.body.stepId || req.params.stepId || req.body.data?.stepId;
+
+    if (stepId) {
+      const module = getStepModule(stepId);
+
+      if (module && isModuleLocked(module, isWorkshopCompleted)) {
+        const lockReason = isWorkshopCompleted
+          ? `Module ${module} is locked because the workshop is completed`
+          : `Module ${module} is locked until the workshop is completed`;
+
+        return res.status(403).json({
+          error: lockReason,
+          workshopType: appType.toUpperCase(),
+          stepId,
+          module,
+          isWorkshopCompleted,
+          completedAt: user[0][appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']
+        });
+      }
     }
-    
+
     next();
   } catch (error) {
     console.error('Error checking workshop lock status:', error);
@@ -886,20 +936,22 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
     }
     
     // Handle both new timeline structure and legacy format for backward compatibility
-    const { 
+    const {
       direction,
-      twentyYearVision, 
-      tenYearMilestone, 
-      fiveYearFoundation, 
+      twentyYearVision,
+      tenYearMilestone,
+      fiveYearFoundation,
       flowOptimizedLife,
       // Legacy fields for backward compatibility
-      futureSelfDescription, 
-      visualizationNotes, 
-      additionalNotes 
+      futureSelfDescription,
+      visualizationNotes,
+      additionalNotes,
+      // Image data for visualization exercise
+      imageData
     } = req.body;
 
     // Validate that at least one field has meaningful content
-    const hasContent = (
+    const hasTextContent = (
       (twentyYearVision && twentyYearVision.trim().length >= 10) ||
       (tenYearMilestone && tenYearMilestone.trim().length >= 10) ||
       (fiveYearFoundation && fiveYearFoundation.trim().length >= 10) ||
@@ -908,11 +960,32 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
       (visualizationNotes && visualizationNotes.trim().length >= 10)
     );
 
-    if (!hasContent) {
+    // Check if image data has meaningful content
+    const hasImageContent = (
+      imageData && (
+        (Array.isArray(imageData.selectedImages) && imageData.selectedImages.length > 0) ||
+        (typeof imageData.imageMeaning === 'string' && imageData.imageMeaning.trim().length >= 5)
+      )
+    );
+
+    console.log('🔍 Future Self validation check:', {
+      hasTextContent,
+      hasImageContent,
+      imageDataExists: !!imageData,
+      selectedImagesCount: imageData?.selectedImages?.length || 0,
+      imageMeaningLength: imageData?.imageMeaning?.trim().length || 0
+    });
+
+    if (!hasTextContent && !hasImageContent) {
       return res.status(400).json({
         success: false,
-        error: 'At least one reflection field must contain at least 10 characters',
-        code: 'VALIDATION_ERROR'
+        error: 'At least one reflection field must contain at least 10 characters, or image data must be provided',
+        code: 'VALIDATION_ERROR',
+        debug: {
+          hasTextContent,
+          hasImageContent,
+          imageDataStructure: imageData ? Object.keys(imageData) : null
+        }
       });
     }
 
@@ -947,15 +1020,28 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
       tenYearMilestone: tenYearMilestone ? tenYearMilestone.trim() : '',
       fiveYearFoundation: fiveYearFoundation ? fiveYearFoundation.trim() : '',
       flowOptimizedLife: flowOptimizedLife ? flowOptimizedLife.trim() : '',
-      
+
       // Legacy fields for backward compatibility
       futureSelfDescription: futureSelfDescription ? futureSelfDescription.trim() : '',
       visualizationNotes: visualizationNotes ? visualizationNotes.trim() : '',
       additionalNotes: additionalNotes ? additionalNotes.trim() : '',
-      
+
+      // Image data for visualization exercise
+      imageData: imageData || null,
+
       // Completion timestamp
       completedAt: new Date().toISOString()
     };
+    
+    console.log('💾 Future Self data being saved:', {
+      userId,
+      hasImageData: !!imageData,
+      imageDataStructure: imageData ? {
+        selectedImages: imageData.selectedImages?.length || 0,
+        imageMeaning: imageData.imageMeaning?.length || 0
+      } : null,
+      assessmentDataKeys: Object.keys(assessmentData)
+    });
     
     // Check if assessment already exists
     const existingAssessment = await db
@@ -1887,85 +1973,18 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
         results: JSON.stringify(assessmentData)
       });
     }
-    
-    // AUTO-COMPLETE WORKSHOP: Final reflection submission should complete the workshop
-    console.log(`🎯 Final reflection saved for user ${userId}, auto-completing AST workshop...`);
-    
-    try {
-      // Mark workshop as completed
-      const completedAt = new Date();
-      await db.update(users)
-        .set({ 
-          astWorkshopCompleted: true,
-          astCompletedAt: completedAt
-        })
-        .where(eq(users.id, userId));
 
-      // Auto-generate StarCard and unlock holistic reports
-      console.log(`🎯 AST workshop completed for user ${userId}, generating StarCard and unlocking reports...`);
-      
-      // Get user's navigation progress
-      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-      let progress = {};
-      try {
-        progress = JSON.parse(user[0]?.navigationProgress || '{}');
-      } catch (e) {
-        progress = {};
+    console.log(`✅ Final reflection saved for user ${userId}`);
+
+    // Simple response - no auto-completion
+    res.json({
+      success: true,
+      data: assessmentData,
+      meta: {
+        saved_at: new Date().toISOString(),
+        assessmentType: 'finalReflection'
       }
-      
-      // Auto-generate StarCard PNG and store in photo service
-      try {
-        await generateAndStoreStarCard(userId);
-      } catch (starCardError) {
-        console.error(`⚠️ StarCard generation failed for user ${userId}, continuing without it:`, starCardError);
-        // Continue with workshop completion even if StarCard generation fails
-      }
-      
-      // Update navigation progress to unlock holistic reports (step 5-2)
-      const updatedProgress = {
-        ...progress,
-        ast: {
-          ...progress.ast,
-          holisticReportsUnlocked: true,
-          completedSteps: [...(progress.ast?.completedSteps || []), '5-2'].filter((step, index, arr) => arr.indexOf(step) === index)
-        }
-      };
-      
-      await db.update(users)
-        .set({ 
-          navigationProgress: JSON.stringify(updatedProgress)
-        })
-        .where(eq(users.id, userId));
-        
-      console.log(`✅ AST workshop auto-completed, StarCard generated and holistic reports unlocked for user ${userId}`);
-      
-      res.json({
-        success: true,
-        data: assessmentData,
-        workshopCompleted: true,
-        completedAt: completedAt.toISOString(),
-        holisticReportsUnlocked: true,
-        meta: { 
-          saved_at: new Date().toISOString(),
-          assessmentType: 'finalReflection' 
-        }
-      });
-      
-    } catch (workshopError) {
-      console.error(`⚠️ Failed to auto-complete workshop for user ${userId}:`, workshopError);
-      
-      // Still return success for the reflection save, but without workshop completion
-      res.json({
-        success: true,
-        data: assessmentData,
-        workshopCompleted: false,
-        error: 'Final reflection saved but workshop completion failed',
-        meta: { 
-          saved_at: new Date().toISOString(),
-          assessmentType: 'finalReflection' 
-        }
-      });
-    }
+    });
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -2940,19 +2959,25 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
       progress = {};
     }
     
-    // Define required steps for each workshop type (progression steps only, not menu items)
-    const requiredSteps = appType === 'ast' 
-      ? ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'] 
+    // Define required steps for each workshop type (only core modules 1-3 for AST)
+    const requiredSteps = appType === 'ast'
+      ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4']
       : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
     
     const completedSteps = progress[appType]?.completedSteps || [];
     const allCompleted = requiredSteps.every(step => completedSteps.includes(step));
-    
+
+    console.log(`🔍 Workshop completion check for user ${userId} (${appType.toUpperCase()}):`);
+    console.log(`  📋 Required steps:`, requiredSteps);
+    console.log(`  ✅ Completed steps:`, completedSteps);
+    console.log(`  🎯 All completed:`, allCompleted);
+
     if (!allCompleted) {
       const missingSteps = requiredSteps.filter(step => !completedSteps.includes(step));
-      return res.status(400).json({ 
+      console.log(`  ❌ Missing steps:`, missingSteps);
+      return res.status(400).json({
         error: 'Cannot complete workshop - not all steps finished',
-        missingSteps 
+        missingSteps
       });
     }
     

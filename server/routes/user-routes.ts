@@ -679,29 +679,47 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
       });
     }
 
-    // Convert file to base64 for database storage
+    // Convert file to base64 for photo storage system
     const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
 
     console.log(`Uploading photo for user ${userId}, size: ${req.file.size} bytes`);
 
-    // Update user's profile picture
-    const result = await userManagementService.updateUser(userId, {
-      profilePicture: base64Image
-    });
+    // Import photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
 
-    if (!result.success) {
-      return res.status(400).json({
+    try {
+      // Store photo and get photo ID
+      const photoId = await photoStorageService.storePhoto(base64Image, userId, true);
+      console.log(`Photo stored with ID ${photoId} for user ${userId}`);
+
+      // Update user's profile picture ID
+      const result = await userManagementService.updateUserProfilePictureId(userId, photoId);
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: 'Failed to save profile picture reference'
+        });
+      }
+
+      console.log(`Photo uploaded successfully for user ${userId} with photo ID ${photoId}`);
+
+      // Generate photo URL for response
+      const photoUrl = photoStorageService.getPhotoUrl(photoId);
+
+      res.json({
+        success: true,
+        profilePicture: base64Image, // For compatibility
+        profilePictureId: photoId,
+        profilePictureUrl: photoUrl
+      });
+    } catch (error) {
+      console.error('Error storing photo:', error);
+      return res.status(500).json({
         success: false,
-        error: 'Failed to save profile picture'
+        error: 'Failed to store profile picture'
       });
     }
-
-    console.log(`Photo uploaded successfully for user ${userId}`);
-
-    res.json({
-      success: true,
-      profilePicture: base64Image
-    });
   } catch (error) {
     console.error('Error uploading photo:', error);
     res.status(500).json({

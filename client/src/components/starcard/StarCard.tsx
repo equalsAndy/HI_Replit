@@ -2,20 +2,12 @@ import React, { useState, useRef, useMemo, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { QuadrantData } from '@shared/schema';
+import { QuadrantData, ProfileData } from '@shared/schema';
 import { UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
 import cloudImage from '@/assets/starcardcloudimage.png';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS, DEFAULT_COLOR } from '@/components/starcard/starCardConstants';
-
-// Profile data interface
-interface ProfileData {
-  name: string;
-  title: string;
-  organization: string;
-  avatarUrl?: string;
-}
 
 
 
@@ -161,7 +153,8 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
         name: userProfileData.name || 'Your Name',
         title: userProfileData.title || userProfileData.jobTitle || '',
         organization: userProfileData.organization || '',
-        avatarUrl: userProfileData.profilePicture || undefined
+        avatarUrl: userProfileData.profilePictureUrl || userProfileData.profilePicture || undefined,
+        profilePictureUrl: userProfileData.profilePictureUrl || undefined
       };
       console.log('🎯 StarCard Profile from userProfileData fallback:', profileFromFetch);
       return profileFromFetch;
@@ -377,14 +370,14 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
         {/* User Profile */}
         <div className="flex items-center mb-6">
           <div className="rounded-full h-[70px] w-[70px] overflow-hidden mr-5 border border-gray-300">
-            {(imageUrl || derivedProfile.avatarUrl) && (
-            <img 
-              src={imageUrl || derivedProfile.avatarUrl} 
-              alt={derivedProfile.name} 
+            {(imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl) && (
+            <img
+              src={imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl}
+              alt={derivedProfile.name}
               className="h-full w-full object-cover"
               style={{ marginTop: '-5px' }}
             onError={(e) => {
-            console.log('🖼️ Profile image failed to load:', imageUrl || derivedProfile.avatarUrl);
+            console.log('🖼️ Profile image failed to load:', imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl);
             const target = e.currentTarget;
             const parent = target.parentElement;
               target.style.display = 'none';
@@ -394,11 +387,11 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
                 }
               }}
               onLoad={() => {
-                console.log('🖼️ Profile image loaded successfully:', imageUrl || derivedProfile.avatarUrl);
+                console.log('🖼️ Profile image loaded successfully:', imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl);
               }}
             />
           )}
-            <div className={`h-full w-full bg-gray-200 flex items-center justify-center fallback-avatar ${(imageUrl || derivedProfile.avatarUrl) ? 'hidden' : ''}`}>
+            <div className={`h-full w-full bg-gray-200 flex items-center justify-center fallback-avatar ${(imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl) ? 'hidden' : ''}`}>
               <UserIcon className="h-8 w-8 text-gray-400" />
             </div>
           </div>

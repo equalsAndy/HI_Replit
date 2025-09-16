@@ -529,79 +529,6 @@ export default function Assessment() {
 
   // Results popup handler removed as we now auto-redirect
 
-  // Auto-complete the assessment with random answers for demo purposes
-  const autoCompleteAssessment = async () => {
-    try {
-      // First, start the assessment
-      await startAssessment.mutateAsync();
-
-      const newAnswers: {[key: number]: RankedOption[]} = {};
-
-      // Process each question sequentially
-      for (const question of assessmentQuestions) {
-        // Create a copy of the options array
-        const options = [...question.options];
-
-        // Shuffle the options randomly
-        for (let i = options.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [options[i], options[j]] = [options[j], options[i]];
-        }
-
-        // Create ranking data
-        const rankingData: RankedOption[] = [
-          { optionId: options[0].id, rank: 1 },
-          { optionId: options[1].id, rank: 2 },
-          { optionId: options[2].id, rank: 3 },
-          { optionId: options[3].id, rank: 4 }
-        ];
-
-        // Save answer to server first
-        await saveAnswer.mutateAsync({
-          questionId: question.id,
-          rankings: rankingData  // Use the same parameter name as in the saveAnswer mutation
-        });
-
-        // Then store locally
-        newAnswers[question.id] = rankingData;
-      }
-
-      // Set answers locally
-      setAnswers(newAnswers);
-
-      // Calculate and validate results
-      const results = calculateQuadrantScores(
-        Object.entries(newAnswers).map(([questionId, rankings]) => ({
-          questionId: parseInt(questionId),
-          rankings
-        })), 
-        optionCategoryMapping
-      );
-
-      // Validate results
-      if (!results || Object.values(results).some(val => val === null)) {
-        throw new Error("Invalid results calculated");
-      }
-
-      // Complete the assessment
-      await completeAssessment.mutateAsync();
-
-      // Navigate to report page
-      navigate('/foundations?tab=starcard');
-
-      toast({
-        title: "Assessment Auto-Completed",
-        description: "Navigating to your Star Card..."
-      });
-    } catch (error) {
-      console.error("Error in auto-complete:", error);
-      toast({
-        title: "Auto-Complete Failed",
-        description: String(error),
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <MainContainer showStepNavigation={false} className="bg-gray-50">
@@ -624,49 +551,6 @@ export default function Assessment() {
             </div>
           </div>
 
-          {/* Auto-complete button (visible only to test users) */}
-          {shouldShowDemoButtons && (
-            <Button 
-              onClick={() => {
-                // Fill answers with random data
-                const newAnswers: {[key: number]: RankedOption[]} = {};
-
-                assessmentQuestions.forEach((question) => {
-                  // Create a shuffled copy of options
-                  const shuffledOptions = [...question.options]
-                    .sort(() => Math.random() - 0.5)
-                    .map((option, index) => ({
-                      optionId: option.id,
-                      rank: index + 1
-                    }));
-
-                  newAnswers[question.id] = shuffledOptions;
-                });
-
-                // Set all answers and move to last question
-                setAnswers(newAnswers);
-                setCurrentQuestionIndex(currentAssessmentQuestions.length - 1);
-
-                // Set rankings for last question display
-                const lastQuestion = currentAssessmentQuestions[currentAssessmentQuestions.length - 1];
-                const lastAnswers = newAnswers[lastQuestion.id];
-
-                const newRankings = {
-                  mostLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[0].optionId) || null,
-                  second: lastQuestion.options.find(opt => opt.id === lastAnswers[1].optionId) || null,
-                  third: lastQuestion.options.find(opt => opt.id === lastAnswers[2].optionId) || null,
-                  leastLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[3].optionId) || null
-                };
-
-                setRankings(newRankings);
-              }}
-              variant="outline"
-              size="sm"
-              className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
-            >
-              Demo Answers
-            </Button>
-          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3">

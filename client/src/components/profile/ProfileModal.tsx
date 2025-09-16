@@ -35,6 +35,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
     title: string | null;
     organization: string | null;
     role?: string;
+    profilePicture?: string;
+    profilePictureUrl?: string;
   }>({
     queryKey: ['/api/auth/me'],
     staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop

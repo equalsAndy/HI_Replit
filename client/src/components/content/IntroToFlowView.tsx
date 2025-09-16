@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
-import { Gauge, ChevronRight, X, GripVertical, Zap, Check } from 'lucide-react';
+import { Gauge, ChevronRight, X, GripVertical, Zap, Check, Lock } from 'lucide-react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import FlowAssessmentModal from '@/components/flow/FlowAssessmentModal';
@@ -14,6 +14,7 @@ import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/c
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useStarCardAutoCapture } from '@/hooks/useStarCardAutoCapture';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import WorkshopCompletionBanner from '@/components/common/WorkshopCompletionBanner';
 import { 
   DndContext, 
   closestCenter,
@@ -250,15 +251,16 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
   const [assessmentResults, setAssessmentResults] = useState<any>(null);
   
-  // Workshop status for locking functionality
+  // Workshop status for locking functionality with module-specific locking
   const { completed: workshopCompleted, isWorkshopLocked } = useWorkshopStatus();
+  const stepId = "2-2"; // This is the correct Flow Patterns step
+  const isStepLocked = isWorkshopLocked('ast', stepId);
   
   // StarCard auto-capture functionality
   const { captureStarCardFromPage } = useStarCardAutoCapture();
 
   // Navigation progress hook
   const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
-  const stepId = "2-2"; // This is the correct Flow Patterns step
 
   // Set up the sensors for drag and drop - defined at component level to avoid conditional hooks
   const sensors = useSensors(
@@ -387,10 +389,9 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
     setAssessmentResults(results);
     setIsAssessmentModalOpen(false);
 
-    // Mark this step as completed since the assessment is now done
-    if (markStepCompleted) {
-      markStepCompleted('3-1');
-    }
+    // DON'T mark any step as completed here - assessment completion just saves data
+    // Step 2-2 will be marked complete only after flow attributes are added and user clicks Next
+    console.log('✅ Flow assessment data saved, but no step completion triggered');
   };
 
   // Handle video progress updates (for tracking only, not for unlocking)
@@ -594,7 +595,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
   const handleContinueToRoundingOut = () => {
     if (markStepCompleted) {
-      markStepCompleted('3-1');
+      markStepCompleted('2-2');  // Complete step 2-2 (Flow Patterns), not 3-1
     }
     if (setCurrentContent) {
       setCurrentContent('flow-rounding-out');
@@ -605,6 +606,9 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
     <>
       {/* Intro to Flow Content */}
       <div className="max-w-4xl mx-auto mb-12">
+        {/* Workshop Completion Banner */}
+        <WorkshopCompletionBanner stepId={stepId} />
+
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Flow Patterns</h1>
 
         {/* Flow Patterns Video with Transcript and Glossary */}
@@ -914,9 +918,9 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
                         <DndContext
-                          sensors={sensors}
+                          sensors={isStepLocked ? [] : sensors}
                           collisionDetection={closestCenter}
-                          onDragEnd={handleDragEnd}
+                          onDragEnd={isStepLocked ? undefined : handleDragEnd}
                         >
                           <SortableContext
                             items={selectedAttributes
@@ -951,13 +955,21 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   </div>
 
                   {/* Available attributes */}
-                  <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                    <h4 className="text-sm font-medium mb-2">Flow Attributes:</h4>
+                  <div className={`border border-gray-200 rounded-lg p-3 ${isStepLocked ? 'bg-gray-100' : 'bg-gray-50'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="text-sm font-medium">Flow Attributes:</h4>
+                      {isStepLocked && (
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Lock className="w-3 h-3" />
+                          <span>View only</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {flowAttributes.map((attr: string) => {
                         const isSelected = selectedAttributes.some(selected => selected.text === attr);
                         const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
-                        const isDisabled = hasExistingAttributes && !isUpdating;
+                        const isDisabled = (hasExistingAttributes && !isUpdating) || isStepLocked;
 
                         return (
                           <FlowBadge 

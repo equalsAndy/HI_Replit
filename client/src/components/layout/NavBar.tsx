@@ -135,6 +135,7 @@ export function NavBar() {
       isTestUser: boolean;
       isBetaTester?: boolean;
       profilePicture?: string;
+      profilePictureUrl?: string;
     }
   }>({ 
     queryKey: ['/api/auth/me'],

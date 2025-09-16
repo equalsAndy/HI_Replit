@@ -120,6 +120,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
     extractedUser: user,
     name: user?.name,
     username: user?.username,
+    profilePictureUrl: user?.profilePictureUrl || 'Missing',
     profilePicture: user?.profilePicture ? 'Present (base64)' : 'Missing',
     title: user?.title,
     organization: user?.organization
@@ -129,7 +130,8 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
     name: user?.name || user?.username || '',
     title: user?.title || '',
     organization: user?.organization || '',
-    avatarUrl: user?.profilePicture ? 'Present' : 'Missing'
+    profilePictureUrl: user?.profilePictureUrl || 'Missing',
+    avatarUrl: user?.profilePictureUrl || (user?.profilePicture ? 'Present (legacy)' : 'Missing')
   });
 
   // Ensure consistent base64 format
@@ -153,7 +155,8 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
     name: user?.name || user?.username || '',
     title: user?.title || '',
     organization: user?.organization || '',
-    avatarUrl: processImageUrl(user?.profilePicture) || null
+    avatarUrl: processImageUrl(user?.profilePicture) || null,
+    profilePictureUrl: user?.profilePictureUrl || null
   };
   
   // console.log('🎯 StarCardWithFetch Final Profile:', profile);
@@ -165,7 +168,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
       acting={finalData.acting}
       feeling={finalData.feeling}
       planning={finalData.planning}
-      imageUrl={processImageUrl(finalData.imageUrl) || profile.avatarUrl}
+      imageUrl={processImageUrl(finalData.imageUrl) || profile.profilePictureUrl || profile.avatarUrl}
       state={finalData.state} // Important: pass the state to force quadrant display
       flowAttributes={flowAttributes}
       downloadable={downloadable}

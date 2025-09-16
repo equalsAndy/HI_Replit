@@ -793,54 +793,45 @@ export const InviteManagement: React.FC = () => {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="min-w-[200px]">
-                          <div className="border border-red-500 p-2 bg-yellow-100">
-                            <div className="text-black font-bold mb-2">DEBUG: Actions for ID {invite.id}</div>
-                            <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                              <button
-                                style={{
-                                  padding: '4px 8px',
-                                  backgroundColor: 'red',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  fontSize: '12px',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={() => handleDeleteInvite(invite.id)}
-                              >
-                                DELETE
-                              </button>
-                              <button
-                                style={{
-                                  padding: '4px 8px',
-                                  backgroundColor: 'blue',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  fontSize: '12px',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={() => copyToClipboard(invite.inviteCode || invite.invite_code)}
-                              >
-                                COPY
-                              </button>
-                              <button
-                                style={{
-                                  padding: '4px 8px',
-                                  backgroundColor: 'green',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  fontSize: '12px',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={() => window.open(`mailto:${invite.email}`, '_blank')}
-                              >
-                                EMAIL
-                              </button>
-                            </div>
-                          </div>
+                        <TableCell className="space-x-2">
+                          {/* DEBUG: actions cell rendering */}
+                          <span className="text-red-600 font-bold">DEBUG_ACTIONS</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="destructive" size="icon" onClick={() => handleDeleteInvite(invite.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Delete invite</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => copyToClipboard(invite.inviteCode || invite.invite_code)}>
+                                  <Copy className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Copy invite code</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => window.open(`mailto:${invite.email}`, '_blank')}>
+                                  <Mail className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Send email</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     ))}

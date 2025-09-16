@@ -559,58 +559,6 @@ export default function FindYourFlow() {
     }
   };
   
-  // Auto-complete function for demo mode
-  const autoCompleteFlowAttributes = () => {
-    // Clear any existing selections
-    setSelectedAttributes([]);
-    
-    // Get random attributes from each category (one from each category)
-    const categories = ['green', 'blue', 'yellow', 'red'];
-    const selectedAttrs: RankedAttribute[] = [];
-    
-    categories.forEach((category, index) => {
-      // Find attributes for this category
-      const matchingAttrs = flowAttributes.filter(attr => 
-        getAttributeCategory(attr) === category
-      );
-      
-      // Select a random attribute from this category
-      if (matchingAttrs.length > 0) {
-        const randomIndex = Math.floor(Math.random() * matchingAttrs.length);
-        const randomAttr = matchingAttrs[randomIndex];
-        selectedAttrs.push({
-          text: randomAttr, 
-          rank: index + 1
-        });
-      }
-    });
-    
-    // Set the selected attributes
-    setSelectedAttributes(selectedAttrs);
-    
-    // Update the flow attributes in the StarCard
-    const coloredAttributes = selectedAttrs.map(attr => ({
-      text: attr.text,
-      color: getAttributeColor(attr.text)
-    }));
-    
-    setStarCardFlowAttributes(coloredAttributes);
-    
-    // Convert to server format and save to server
-    const serverAttributes = selectedAttrs.map((attr, index) => ({
-      name: attr.text,
-      score: 100 - (index * 5) // Score from 100 to 85 in decrements of 5
-    }));
-    
-    // Random flow score between 45 and 60 (max possible score)
-    const randomFlowScore = Math.floor(Math.random() * 16) + 45;
-    
-    // Save flow attributes to server
-    flowAttributesMutation.mutate({
-      flowScore: randomFlowScore,
-      attributes: serverAttributes
-    });
-  };
 
   // Show loading state
   if (userLoading) {
@@ -890,17 +838,6 @@ export default function FindYourFlow() {
                         Choose 4 words that best describe your flow state. Drag badges to reorder.
                       </p>
                       
-                      {/* Auto-complete button (visible only to test users) */}
-                      {shouldShowDemoButtons && (
-                        <Button 
-                          onClick={autoCompleteFlowAttributes}
-                          variant="outline"
-                          size="sm"
-                          className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
-                        >
-                          Auto-Complete
-                        </Button>
-                      )}
                     </div>
                     
                     {/* Selected attributes with drag and drop */}

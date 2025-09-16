@@ -365,6 +365,22 @@ const InviteManagement: React.FC = () => {
     }
   };
 
+  const handleDeleteAllUsedInvites = async () => {
+    if (!confirm('Delete ALL used invites? This cannot be undone.')) return;
+    try {
+      const response = await apiRequest('/api/invites/delete-used', { method: 'POST' });
+      if (response.success) {
+        toast({ title: 'Deleted used invites', description: `${response.deletedCount} invites removed.` });
+        fetchInvites();
+      } else {
+        toast({ title: 'Error', description: response.error || 'Failed to delete used invites', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('Error deleting used invites:', error);
+      toast({ title: 'Error', description: 'Failed to delete used invites', variant: 'destructive' });
+    }
+  };
+
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -646,6 +662,13 @@ const InviteManagement: React.FC = () => {
               <p style={{ color: '#6b7280', marginBottom: '30px' }}>
                 View and manage existing invitation codes.
               </p>
+              <button
+                style={{ ...styles.deleteButton, marginBottom: '20px' }}
+                onClick={handleDeleteAllUsedInvites}
+                title="Delete all used invites"
+              >
+                Delete All Used Invites
+              </button>
 
               {invites.length === 0 ? (
                 <div style={{
@@ -705,15 +728,14 @@ const InviteManagement: React.FC = () => {
                           {formatDate(invite.createdAt || invite.created_at)}
                         </td>
                         <td style={styles.td}>
-                          {!invite.isUsed && !invite.used_at && (
-                            <button
-                              style={styles.deleteButton}
-                              onClick={() => handleDeleteInvite(invite.id)}
-                              title="Delete invite"
-                            >
-                              Delete
-                            </button>
-                          )}
+                          {/* Show Delete for both pending and used invites */}
+                          <button
+                            style={styles.deleteButton}
+                            onClick={() => handleDeleteInvite(invite.id)}
+                            title="Delete invite"
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))}

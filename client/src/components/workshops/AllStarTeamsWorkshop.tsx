@@ -16,20 +16,32 @@ import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import '@/utils/clearAssessmentData'; // Load admin functions
 import { forceAssessmentCacheDump } from '@/utils/forceRefresh';
 import { useStarCardData } from '@/hooks/useStarCardData';
+import { useWelcomeVideo } from '@/hooks/useWelcomeVideo';
+import WelcomeVideoModal from '@/components/modals/WelcomeVideoModal';
 
 export default function AllStarTeamsWorkshop() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
-  const [currentContent, setCurrentContent] = useState("welcome");
+  const [currentContent, setCurrentContent] = useState<string | null>(null);
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
   const { shouldShowDemoButtons } = useTestUser();
+
+  // Welcome video modal for first-time users
+  const {
+    showWelcomeModal,
+    handleCloseModal,
+    handleGetStarted,
+    triggerWelcomeVideo,
+  } = useWelcomeVideo();
   // Updated to use unified navigation system
   const navigation = useUnifiedWorkshopNavigation('ast');
+  const { isWorkshopLocked, isModuleAccessible, getStepModule } = useWorkshopStatus();
   const {
     progress: navProgress,
     updateVideoProgress,
@@ -39,7 +51,8 @@ export default function AllStarTeamsWorkshop() {
     canProceedToNext,
     isStepCompleted: shouldShowGreenCheckmark,
     getVideoProgress,
-    saveProgress // NEW: Manual save function
+    saveProgress, // NEW: Manual save function
+    isLoading // NEW: Loading state to prevent premature auto-navigation
   } = navigation;
 
   // Use navigation progress state instead of separate completedSteps state
@@ -246,28 +259,56 @@ export default function AllStarTeamsWorkshop() {
   // Navigation progress is now automatically persisted to database
   // No need for localStorage-based saving
 
-  // Auto-navigate to current step on page load - ONLY on initial load, not during active navigation
+  // Auto-navigate to current step on page load
   React.useEffect(() => {
-    // Only auto-navigate on initial page load, not during active session navigation
-    const isInitialLoad = currentContent === "welcome" && !sessionStorage.getItem('hasNavigatedManually');
-    
-    if (navProgress?.currentStepId && isInitialLoad) {
-      const currentStepId = navProgress.currentStepId;
-      console.log(`🧭 INITIAL AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
-      console.log(`🧭 INITIAL AUTO-NAVIGATION: Available navigation sequence:`, Object.keys(navigationSequence));
+    // Clear any stale manual navigation flag from previous sessions when component mounts
+    sessionStorage.removeItem('hasNavigatedManually');
 
-      // Map step ID to content key and navigate there
-      const navInfo = navigationSequence[currentStepId];
-      if (navInfo) {
-        console.log(`🧭 INITIAL AUTO-NAVIGATION: Navigating to content: ${navInfo.contentKey}`);
-        setCurrentContent(navInfo.contentKey);
-        // Also update the navigation hook to match
-        navigation.navigateToStep(currentStepId);
-      } else {
-        console.log(`🧭 INITIAL AUTO-NAVIGATION: No navigation mapping for ${currentStepId}, staying on welcome`);
-      }
+    console.log(`🔍 AUTO-NAVIGATION DEBUG: Effect triggered`, {
+      currentContent,
+      'navProgress': navProgress,
+      'navProgress?.currentStepId': navProgress?.currentStepId,
+      'navProgress loaded': !!navProgress,
+      'navigationSequence keys': Object.keys(navigationSequence),
+      'isLoading': isLoading
+    });
+
+    // Don't auto-navigate while data is still loading
+    if (isLoading) {
+      console.log(`🔍 AUTO-NAVIGATION DEBUG: Still loading navigation data, waiting...`);
+      return;
     }
-  }, [navProgress?.currentStepId]); // Only trigger when navProgress loads
+
+    // Only set content if it hasn't been set yet (null) to avoid overriding manual navigation
+    if (currentContent === null) {
+      console.log(`🔍 AUTO-NAVIGATION DEBUG: currentContent is null, checking navigation progress...`);
+
+      // Auto-navigate if we have navigation progress
+      if (navProgress?.currentStepId) {
+        const currentStepId = navProgress.currentStepId;
+        console.log(`🧭 INITIAL AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
+        console.log(`🧭 INITIAL AUTO-NAVIGATION: Available navigation sequence:`, Object.keys(navigationSequence));
+
+        // Map step ID to content key and navigate there
+        const navInfo = navigationSequence[currentStepId];
+        if (navInfo) {
+          console.log(`🧭 INITIAL AUTO-NAVIGATION: Navigating to content: ${navInfo.contentKey}`);
+          setCurrentContent(navInfo.contentKey);
+          // Also update the navigation hook to match
+          navigation.navigateToStep(currentStepId);
+        } else {
+          console.log(`🧭 INITIAL AUTO-NAVIGATION: No navigation mapping for ${currentStepId}, staying on welcome`);
+          setCurrentContent("welcome");
+        }
+      } else {
+        // If no progress, start at welcome
+        console.log(`🧭 INITIAL AUTO-NAVIGATION: No current step, starting at welcome. NavProgress:`, navProgress);
+        setCurrentContent("welcome");
+      }
+    } else {
+      console.log(`🔍 AUTO-NAVIGATION DEBUG: currentContent already set to:`, currentContent);
+    }
+  }, [navProgress?.currentStepId, currentContent, isLoading]); // Depend on navProgress, currentContent, and loading state
 
   const { data: userProfile, isLoading: userProfileLoading } = useQuery({
     queryKey: ['/api/auth/me'],
@@ -525,72 +566,67 @@ export default function AllStarTeamsWorkshop() {
     }
   });
 
-  // Function to mark a step as completed - FIXED: Use unified navigation progression
+  // Function to mark a step as completed - FIXED: Use navigation progress hook directly
   const markStepCompleted = async (stepId: string) => {
-    console.log(`🎯 markStepCompleted called with: ${stepId}`);
-    console.log(`🎯 Current navigation state BEFORE:`, {
-      currentStep: navigation.currentStep,
-      completedSteps: navigation.completedSteps,
-      nextStep: navigation.nextStep
-    });
+    try {
+      console.log(`🎯 markStepCompleted called with: ${stepId}`);
+      console.log(`🎯 Current navigation state BEFORE:`, {
+        currentStepId: navProgress?.currentStepId,
+        completedSteps: navProgress?.completedSteps?.length || 0
+      });
 
-    // FIXED: If this is the current step being completed, use goToNextStep for progression
-    if (stepId === navigation.currentStep) {
-      console.log(`🎯 Completing current step ${stepId} and moving to next`);
-      const nextStep = navigation.goToNextStep();
-      console.log(`🎯 goToNextStep returned: ${nextStep}`);
-      
-      if (nextStep) {
-        // Update local content to match the new step
-        const navInfo = navigationSequence[nextStep];
-        if (navInfo) {
-          console.log(`🎯 Updating content to: ${navInfo.contentKey}`);
+      // CRITICAL FIX: Use the navigation hook's method directly
+      const nextStepId = await markNavStepCompleted(stepId);
+
+      if (nextStepId) {
+        console.log(`🎯 Step ${stepId} completed, next step: ${nextStepId}`);
+
+        // Wait for navigation state to update
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Update content based on new currentStepId
+        const updatedCurrentStep = navProgress?.currentStepId;
+        const navInfo = navigationSequence[updatedCurrentStep || ''];
+        if (navInfo && updatedCurrentStep !== stepId) {
+          console.log(`🎯 Updating content to: ${navInfo.contentKey} for step ${updatedCurrentStep}`);
           setCurrentContent(navInfo.contentKey);
-        } else {
-          console.log(`🛠️ No navigation info found for next step: ${nextStep}`);
         }
+
+        // Clear manual navigation flag so auto-navigation can work after progress
+        sessionStorage.removeItem('hasNavigatedManually');
+        console.log(`🎯 Cleared manual navigation flag after step completion`);
+
+        console.log(`✅ Step ${stepId} completion successful. Current step is now: ${updatedCurrentStep}`);
       } else {
-        console.log(`🛠️ goToNextStep returned null - no next step available`);
+        console.log(`🛠️ Step ${stepId} completed but no next step available`);
       }
-      
-      // Clear manual navigation flag so auto-navigation can work after progress
-      sessionStorage.removeItem('hasNavigatedManually');
-      console.log(`🎯 Cleared manual navigation flag after step completion`);
-      
-      // SAVE TO DATABASE: Only save when completing steps via Next button
-      console.log(`💾 Saving progress to database after completing step ${stepId}`);
-      await saveProgress();
-    } else {
-      // For manual completion of non-current steps, just mark as complete
-      console.log(`🎯 Marking non-current step ${stepId} as complete`);
-      navigation.completeStep(stepId);
-      
-      // SAVE TO DATABASE: Save when manually completing steps too
-      console.log(`💾 Saving progress to database after manually completing step ${stepId}`);
-      await saveProgress();
+    } catch (error) {
+      console.error(`❌ Error completing step ${stepId}:`, error);
+      toast({
+        title: "Navigation Error",
+        description: "There was an error progressing to the next step. Please try again.",
+        variant: "destructive"
+      });
     }
-    
-    console.log(`🎯 Navigation state AFTER:`, {
-      currentStep: navigation.currentStep,
-      completedSteps: navigation.completedSteps,
-      nextStep: navigation.nextStep
-    });
-    console.log(`🎯 Step ${stepId} marked as completed`);
   };
 
-  // Function to determine if a step is accessible - FIXED: Use unified navigation hook directly
+  // Enhanced function to determine step accessibility using module-specific locking
   const isStepAccessible = (sectionId: string, stepId: string) => {
-    // Special logic for steps 5-2 and 5-3: available to all users after final reflection completion
-    if (stepId === '5-2' || stepId === '5-3') {
-      const finalReflectionCompleted = completedSteps.includes('4-5');
-      
-      console.log(`🔓 Step ${stepId} accessibility check: finalReflectionCompleted=${finalReflectionCompleted}`);
-      
-      // Available to all users who have completed final reflection
-      return finalReflectionCompleted;
+    // Use the new module-specific locking logic
+    const module = getStepModule(stepId);
+
+    if (module) {
+      // Check if the entire module is accessible
+      const moduleAccessible = isModuleAccessible('ast', module);
+
+      console.log(`🔓 Step ${stepId} (Module ${module}) accessibility check: moduleAccessible=${moduleAccessible}`);
+
+      if (!moduleAccessible) {
+        return false;
+      }
     }
 
-    // FIXED: Use unified navigation hook's accessibility check
+    // If module is accessible (or no module determined), check step-level progression
     return navigation.isStepAccessible(stepId);
   };
 
@@ -598,9 +634,10 @@ export default function AllStarTeamsWorkshop() {
   const handleAssessmentComplete = (result: any) => {
     console.log("Assessment completed with result:", result);
 
-    // DO NOT mark step 2-2 as completed yet - user should stay on assessment results page
-    // Step 2-2 will be marked as completed when user manually clicks Next button
-    console.log("Assessment complete. User should now view results and manually click Next button to proceed to step 2-3");
+    // Mark step 2-1 (Star Strengths Assessment) as completed
+    // This will give it a green checkmark and advance currentStepId to the next step
+    console.log("Assessment complete. Marking step 2-1 as completed and advancing to next step.");
+    markStepCompleted('2-1');
 
     // Refresh the star card data to ensure it's available for the next step
     queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
@@ -629,7 +666,7 @@ export default function AllStarTeamsWorkshop() {
     '3-1': { prev: '2-4', next: '3-2', contentKey: 'wellbeing-ladder' }, // ✅ WellBeingView (OLD 4-1)
     '3-2': { prev: '3-1', next: '3-3', contentKey: 'future-self' }, // ✅ FutureSelfView (OLD 4-4)
     '3-3': { prev: '3-2', next: '3-4', contentKey: 'final-reflection' }, // ✅ FinalReflectionView (OLD 4-5)
-    '3-4': { prev: '3-3', next: '4-1', contentKey: 'workshop-recap' }, // ✅ FinishWorkshopStep
+    '3-4': { prev: '3-3', next: '4-1', contentKey: 'workshop-recap' }, // ✅ WorkshopRecap - NEW
 
     // MODULE 4: TAKEAWAYS & NEXT STEPS (unlocked after 3-4)
     '4-1': { prev: '3-4', next: '4-2', contentKey: 'download-star-card' }, // ✅ DownloadStarCardView (OLD 5-1)
@@ -754,8 +791,15 @@ export default function AllStarTeamsWorkshop() {
       Array.isArray(completedSteps) && completedSteps.includes(step.id)
     ).length;
 
+    // Special handling for modules 4 and 5: expand when workshop recap (3-4) is completed
+    let shouldExpand = section.expanded;
+    if ((section.id === '4' || section.id === '5') && completedSteps.includes('3-4')) {
+      shouldExpand = true;
+    }
+
     return {
       ...section,
+      expanded: shouldExpand,
       completedSteps: completedStepsInSection,
       totalSteps: section.steps.length
     };
@@ -770,10 +814,18 @@ export default function AllStarTeamsWorkshop() {
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
           {/* Assessment Modal */}
-          <AssessmentModal 
-            isOpen={isAssessmentModalOpen} 
+          <AssessmentModal
+            isOpen={isAssessmentModalOpen}
             onClose={() => setIsAssessmentModalOpen(false)}
             onComplete={handleAssessmentComplete}
+          />
+
+          {/* Welcome Video Modal */}
+          <WelcomeVideoModal
+            isOpen={showWelcomeModal}
+            onClose={handleCloseModal}
+            onGetStarted={handleGetStarted}
+            showCloseButton={true}
           />
 
           {/* Left Navigation Drawer */}
@@ -786,7 +838,7 @@ export default function AllStarTeamsWorkshop() {
             handleStepClick={handleStepClick}
             starCard={starCardData}
             flowAttributesData={flowAttributesData}
-            currentContent={currentContent}
+            currentContent={currentContent || ""}
             isImaginalAgility={currentApp === 'imaginal-agility'}
             navigation={navigation}
           />
@@ -795,16 +847,24 @@ export default function AllStarTeamsWorkshop() {
           <div className="flex-1 overflow-auto p-6">
             {/* Anchor for scroll-to-top navigation */}
             <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
-            <AllStarTeamsContent
-              currentContent={currentContent}
-              markStepCompleted={markStepCompleted}
-              setCurrentContent={setCurrentContent}
-              starCard={starCardData}
-              user={userProfile}
-              flowAttributesData={flowAttributesData}
-              setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-              isImaginalAgility={currentApp === 'imaginal-agility'}
-            />
+            {currentContent ? (
+              <AllStarTeamsContent
+                currentContent={currentContent}
+                markStepCompleted={markStepCompleted}
+                setCurrentContent={setCurrentContent}
+                starCard={starCardData}
+                user={userProfile}
+                flowAttributesData={flowAttributesData}
+                setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+                isImaginalAgility={currentApp === 'imaginal-agility'}
+                triggerWelcomeVideo={triggerWelcomeVideo}
+              />
+            ) : (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-gray-600">Loading workshop content...</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

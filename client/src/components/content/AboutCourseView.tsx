@@ -18,16 +18,15 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
   const stepId = "1-3";
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   
-  // Fetch first video from database using tRPC
-  const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
+  // Fetch all videos for this step from database using tRPC
+  const { data: allVideosData, isLoading: videosLoading, error: videosError } = trpc.lesson.allByStep.useQuery({
     workshop: 'allstarteams',
     stepId,
   });
 
-  // Second video - fetch from database using YouTube ID
-  const { data: secondVideoData, isLoading: secondVideoLoading, error: secondVideoError } = trpc.lesson.byYouTubeId.useQuery({
-    youtubeId: 'bnHjo3hJCsM'
-  });
+  // Extract first and second videos from the array
+  const firstVideoData = allVideosData?.[0];
+  const secondVideoData = allVideosData?.[1];
   
   // Get navigation progress using the main hook
   const { 
@@ -137,23 +136,23 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
           {description}
         </p>
 
-        {/* YouTube Video with Read/Transcript tabs */}
+        {/* First YouTube Video with Read/Transcript tabs */}
         <div className="mb-8 max-w-4xl mx-auto">
-          {videoLoading ? (
+          {videosLoading ? (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Loading video...</span>
+              <span className="ml-3 text-gray-600">Loading videos...</span>
             </div>
-          ) : error ? (
+          ) : videosError ? (
             <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
-              Error loading video. Using fallback.
+              Error loading videos. Using fallback.
             </div>
-          ) : videoData ? (
+          ) : firstVideoData ? (
             <VideoTranscriptGlossary
-              youtubeId={videoData.youtubeId}
-              title={videoData.title}
-              transcriptMd={videoData.transcriptMd}
-              glossary={videoData.glossary ?? []}
+              youtubeId={firstVideoData.youtubeId}
+              title={firstVideoData.title}
+              transcriptMd={firstVideoData.transcriptMd}
+              glossary={firstVideoData.glossary ?? []}
             />
           ) : (
             <VideoTranscriptGlossary
@@ -229,20 +228,20 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
         {/* Second Video */}
         <div className="mb-8 max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Course Deep Dive</h2>
-          {secondVideoLoading ? (
+          {videosLoading ? (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <span className="ml-3 text-gray-600">Loading second video...</span>
             </div>
-          ) : secondVideoError ? (
+          ) : videosError && !secondVideoData ? (
             <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900 mb-4">
               <p className="font-semibold mb-2">⚠️ Error loading second video from database:</p>
-              <p className="text-sm mb-4">{secondVideoError?.message || 'Unknown error'}</p>
+              <p className="text-sm mb-4">{videosError?.message || 'Unknown error'}</p>
               <p className="text-sm">Using fallback video with YouTube ID: bnHjo3hJCsM</p>
             </div>
           ) : null}
-          
-          {/* Always show the video - either from database or fallback */}
+
+          {/* Show the second video from database or fallback */}
           {secondVideoData ? (
             <VideoTranscriptGlossary
               youtubeId={secondVideoData.youtubeId}
@@ -250,7 +249,7 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
               transcriptMd={secondVideoData.transcriptMd}
               glossary={secondVideoData.glossary ?? []}
             />
-          ) : !secondVideoLoading ? (
+          ) : !videosLoading ? (
             <VideoTranscriptGlossary
               youtubeId="bnHjo3hJCsM"
               title="Course Deep Dive"
