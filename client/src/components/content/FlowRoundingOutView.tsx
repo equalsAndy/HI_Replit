@@ -36,6 +36,9 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
     });
   }, [updateContext, setFloatingAIStep]);
 
+  // TEMPORARY: Force show reflections for testing enhanced UI
+  const forceShowReflections = true;
+
   return (
     <>
       <div className="mb-6">
@@ -49,7 +52,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       </div>
 
       {/* Workshop Completion Banner */}
-      {workshopCompleted && (
+      {workshopCompleted && !forceShowReflections && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-3">
             <Check className="text-green-600" size={20} />
@@ -60,6 +63,20 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             </div>
             <div className="text-green-600">
               🔒
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TEMPORARY: Testing Banner */}
+      {workshopCompleted && forceShowReflections && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <Edit className="text-blue-600" size={20} />
+            <div className="flex-1">
+              <h3 className="font-medium text-blue-800">
+                🧪 Testing Mode: Enhanced FlowReflections with expandable sections and improved typography
+              </h3>
             </div>
           </div>
         </div>
@@ -136,7 +153,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       </div>
 
       {/* Reflections Header */}
-      {!workshopCompleted && (
+      {(!workshopCompleted || forceShowReflections) && (
         <div className="section-headers-tabs-60 mb-4">
           <div className="section-headers-pill-60 section-headers-pill-60--reflection">
             <div className="section-headers-pill-60__strip" aria-hidden="true" />
@@ -145,8 +162,8 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         </div>
       )}
 
-      {/* Progressive Flow Reflections */}
-      {!workshopCompleted && (
+      {/* Progressive Flow Reflections - FORCE SHOW FOR TESTING */}
+      {(!workshopCompleted || forceShowReflections) && (
         <FlowReflections
           onComplete={() => {
             // This will be handled by the FlowReflections component
@@ -158,7 +175,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       )}
 
       {/* Show completed message if workshop is done */}
-      {workshopCompleted && (
+      {workshopCompleted && !forceShowReflections && (
         <div className="text-center py-12">
           <div className="bg-green-50 rounded-lg p-6 border border-green-200">
             <Check className="mx-auto h-12 w-12 text-green-500 mb-4" />

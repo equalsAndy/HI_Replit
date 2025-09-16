@@ -968,23 +968,34 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
       )
     );
 
+    // More lenient validation - allow saving with just selected images (no meaning required)
+    const hasMinimalImageContent = (
+      imageData &&
+      Array.isArray(imageData.selectedImages) &&
+      imageData.selectedImages.length > 0
+    );
+
     console.log('🔍 Future Self validation check:', {
       hasTextContent,
       hasImageContent,
+      hasMinimalImageContent,
       imageDataExists: !!imageData,
       selectedImagesCount: imageData?.selectedImages?.length || 0,
       imageMeaningLength: imageData?.imageMeaning?.trim().length || 0
     });
 
-    if (!hasTextContent && !hasImageContent) {
+    // Accept if either meaningful text OR any images are selected
+    if (!hasTextContent && !hasMinimalImageContent) {
       return res.status(400).json({
         success: false,
-        error: 'At least one reflection field must contain at least 10 characters, or image data must be provided',
+        error: 'At least one reflection field must contain at least 10 characters, or at least one image must be selected',
         code: 'VALIDATION_ERROR',
         debug: {
           hasTextContent,
           hasImageContent,
-          imageDataStructure: imageData ? Object.keys(imageData) : null
+          hasMinimalImageContent,
+          imageDataStructure: imageData ? Object.keys(imageData) : null,
+          hint: 'Select at least one image or provide meaningful text content'
         }
       });
     }

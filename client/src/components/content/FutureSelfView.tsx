@@ -106,17 +106,26 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       imageMeaning: imageData.imageMeaning.trim().length
     });
 
-    if (!isLoading && (imageData.selectedImages.length > 0 || imageData.imageMeaning.trim().length > 0)) {
+    // Auto-save when we have images selected OR meaningful text (matching server validation)
+    const hasSelectedImages = imageData.selectedImages.length > 0;
+    const hasMeaningfulText = imageData.imageMeaning.trim().length >= 5; // Match server validation
+    const shouldSave = hasSelectedImages || hasMeaningfulText;
+
+    if (!isLoading && shouldSave) {
       console.log('⏰ Auto-save scheduled in 1 second...');
       // Debounce the save to avoid too many calls
       const timeoutId = setTimeout(() => {
-        console.log('💾 Auto-save triggered');
+        console.log('💾 Auto-save triggered with validation criteria met');
         saveImageData();
       }, 1000);
 
       return () => clearTimeout(timeoutId);
     } else {
-      console.log('❌ Auto-save skipped - no data to save');
+      console.log('❌ Auto-save skipped - validation criteria not met:', {
+        hasSelectedImages,
+        hasMeaningfulText,
+        shouldSave
+      });
     }
   }, [imageData, isLoading]);
 
