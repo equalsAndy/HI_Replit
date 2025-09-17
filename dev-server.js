@@ -10,6 +10,7 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { appRouter } from './server/trpc/index.ts';
 import { router } from './server/routes.js';
 import reportRoutes from './server/routes/report-routes.js';
+import holisticReportRoutes from './server/routes/holistic-report-routes.js';
 import adminUploadRoutes from './server/routes/admin-upload-routes.js';
 import discernmentRoutes from './server/routes/discernment-routes.js';
 import authRoutes from './server/routes/auth-routes.js';
@@ -114,6 +115,7 @@ async function startDevServer() {
   // API routes - core router & reports
   app.use('/api', router);
   app.use('/api/reports', reportRoutes);
+  app.use('/api/reports/holistic', holisticReportRoutes);
   app.use('/api/admin', upload.single('file'), adminUploadRoutes);
   app.use('/api/discernment', discernmentRoutes);
   // Auth routes
@@ -134,6 +136,85 @@ async function startDevServer() {
       environment: 'development',
       hmr: 'active'
     });
+  });
+
+  // Create holistic reports table endpoint (development only)
+  app.post('/create-holistic-reports-table', async (req, res) => {
+    try {
+      console.log('🚀 Creating holistic reports table...');
+
+      const createTableQuery = `
+        -- Create holistic_reports table for storing generated PDF reports
+        CREATE TABLE IF NOT EXISTS holistic_reports (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          report_type VARCHAR(20) NOT NULL CHECK (report_type IN ('standard', 'personal')),
+          report_data JSONB NOT NULL,
+          pdf_file_path VARCHAR(500),
+          pdf_file_name VARCHAR(255),
+          pdf_file_size INTEGER,
+          html_content TEXT,
+          generation_status VARCHAR(20) DEFAULT 'pending' CHECK (generation_status IN ('pending', 'generating', 'completed', 'failed')),
+          generated_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          error_message TEXT,
+          generated_by_user_id INTEGER REFERENCES users(id),
+          star_card_image_path VARCHAR(500)
+        )
+      `;
+
+      const indexQueries = [
+        'CREATE INDEX IF NOT EXISTS idx_holistic_reports_user_id ON holistic_reports(user_id)',
+        'CREATE INDEX IF NOT EXISTS idx_holistic_reports_status ON holistic_reports(generation_status)',
+        'CREATE INDEX IF NOT EXISTS idx_holistic_reports_type ON holistic_reports(report_type)',
+        'CREATE INDEX IF NOT EXISTS idx_holistic_reports_generated_at ON holistic_reports(generated_at)'
+      ];
+
+      const results = [];
+
+      // Create table
+      try {
+        await db.execute(createTableQuery);
+        results.push('✅ holistic_reports table created successfully');
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('already exists')) {
+          results.push('⚠️ holistic_reports table already exists');
+        } else {
+          throw error;
+        }
+      }
+
+      // Create indexes
+      for (const query of indexQueries) {
+        try {
+          await db.execute(query);
+          results.push(`✅ Index created: ${query.match(/idx_\w+/)?.[0]}`);
+        } catch (error) {
+          if (error instanceof Error && error.message.includes('already exists')) {
+            results.push(`⚠️ Index already exists: ${query.match(/idx_\w+/)?.[0]}`);
+          } else {
+            console.warn('Index creation warning:', error);
+            results.push(`⚠️ Index creation warning: ${query.match(/idx_\w+/)?.[0]}`);
+          }
+        }
+      }
+
+      console.log('✅ Holistic reports table setup complete');
+
+      res.json({
+        success: true,
+        message: 'Holistic reports table created successfully',
+        results: results
+      });
+
+    } catch (error) {
+      console.error('❌ Error creating holistic reports table:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create holistic reports table',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
   });
 
   // Apply Vite middleware AFTER API routes

@@ -359,6 +359,58 @@ router.get('/test-status/:reportType/:userId', async (req, res) => {
 });
 
 /**
+ * Debug status endpoint (NO AUTH REQUIRED - DEVELOPMENT ONLY)
+ * GET /api/reports/holistic/:reportType/debug-status
+ */
+router.get('/:reportType/debug-status', async (req, res) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(404).json({ error: 'Endpoint not available in production' });
+  }
+
+  const { reportType } = req.params;
+  const userId = 1; // Always use admin user for debug
+
+  if (!['standard', 'personal'].includes(reportType)) {
+    return res.status(400).json({ error: 'Invalid report type' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT id, generation_status, generated_at, error_message FROM holistic_reports WHERE user_id = $1 AND report_type = $2 ORDER BY generated_at DESC LIMIT 1',
+      [userId, reportType]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({
+        reportId: null,
+        status: 'not_generated'
+      } as ReportStatusResponse);
+    }
+
+    const report = result.rows[0];
+    const response: ReportStatusResponse = {
+      reportId: report.id,
+      status: report.generation_status,
+      generatedAt: report.generated_at,
+      errorMessage: report.error_message
+    };
+
+    if (report.generation_status === 'completed') {
+      response.pdfUrl = `/api/reports/holistic/${reportType}/download`; // PDF for viewing in iframe (inline)
+      response.reportUrl = `/api/reports/holistic/${reportType}/view`; // HTML version
+      response.downloadUrl = `/api/reports/holistic/${reportType}/download?download=true`; // PDF for download (attachment)
+      response.htmlUrl = `/api/reports/holistic/${reportType}/html`; // HTML version
+    }
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Error fetching report status:', error);
+    res.status(500).json({ error: 'Failed to fetch report status' });
+  }
+});
+
+/**
  * Get report status
  * GET /api/reports/holistic/:reportType/status
  */

@@ -1021,10 +1021,18 @@ async function startServer() {
       console.log(`🌐 Access your app at: http://0.0.0.0:${port}`);
       console.log(`❤️  Health check available at: http://0.0.0.0:${port}/health`);
       
-      // Start background initialization
-      initializeApp().catch(error => {
-        console.error('❌ Background initialization failed:', error);
-      });
+      // Force immediate initialization in development for debugging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔧 DEV MODE: Forcing immediate initialization...');
+        initializeApp().catch(error => {
+          console.error('❌ Immediate initialization failed:', error);
+        });
+      } else {
+        // Start background initialization for production
+        initializeApp().catch(error => {
+          console.error('❌ Background initialization failed:', error);
+        });
+      }
     });
 
     server.on('error', (err: any) => {
