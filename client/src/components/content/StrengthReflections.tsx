@@ -287,10 +287,22 @@ export default function StrengthReflections({
       if (result.success) {
         console.log('✅ All reflections saved successfully');
         
-        // Navigate to flow patterns
+        // Navigate to flow patterns first
         markStepCompleted?.('2-1');
         setCurrentContent?.('flow-patterns');
         onComplete?.();
+        
+        // Auto-scroll to final continue button after state updates and rendering completes
+        setTimeout(() => {
+          const continueButton = document.querySelector('[data-continue-button="true"]');
+          if (continueButton) {
+            continueButton.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        }, 1000); // Increased delay to ensure DOM updates
+        
       } else {
         console.error('❌ Failed to save reflections:', result.error);
         alert('Failed to save reflections. Please try again.');
@@ -421,7 +433,7 @@ export default function StrengthReflections({
                   >
                     <ListChecks className="w-5 h-5 text-indigo-600 mr-3" />
                     <span className="text-base font-medium text-gray-800 flex-1">
-                      Reflection Suggestions
+                      Reflection Inspiration
                     </span>
                     {showSuggestions ? (
                       <ChevronUp className="w-5 h-5 text-gray-500" />
@@ -619,19 +631,20 @@ export default function StrengthReflections({
           <h4 className="text-lg font-semibold text-gray-900 mb-4">Ready to Continue?</h4>
           <p className="text-gray-600 mb-6">You've completed all your strength reflections. Continue to explore Flow Patterns.</p>
           <Button
-            onClick={handleComplete}
-            disabled={isSaving}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+          onClick={handleComplete}
+          disabled={isSaving}
+          className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+            data-continue-button="true"
           >
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              'Continue to Flow Patterns'
+          {isSaving ? (
+          <>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            Saving...
+            </>
+          ) : (
+            'Continue to Flow Patterns'
             )}
-          </Button>
+            </Button>
         </div>
       )}
     </div>

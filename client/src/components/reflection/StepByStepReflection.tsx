@@ -611,6 +611,17 @@ export default function StepByStepReflection({
         console.log('🔒 Workshop locked - skipping save on completion');
       }
 
+      // Auto-scroll to continue button after a brief delay
+      setTimeout(() => {
+        const continueButton = document.querySelector('[data-continue-button="true"]');
+        if (continueButton) {
+          continueButton.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 1000); // Increased delay to ensure DOM updates
+
       // We're on the last step, mark reflection as completed and advance to next section
       if (markStepCompleted) {
         markStepCompleted('2-4'); // Mark reflection step as completed
@@ -803,7 +814,7 @@ export default function StepByStepReflection({
                     >
                       <ListChecks className="w-5 h-5 text-indigo-600 mr-3" />
                       <span className="text-base font-medium text-gray-800 flex-1">
-                        Reflection Suggestions
+                        Reflection Inspiration
                       </span>
                       {expandedSuggestions[currentStep] ? (
                         <ChevronUp className="w-5 h-5 text-gray-500" />
@@ -925,6 +936,7 @@ export default function StepByStepReflection({
                     ? "bg-indigo-600 hover:bg-indigo-700" 
                     : "bg-gray-400 cursor-not-allowed"
                 }`}
+                data-continue-button={currentStep === totalSteps ? "true" : undefined}
               >
                 {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
               </button>

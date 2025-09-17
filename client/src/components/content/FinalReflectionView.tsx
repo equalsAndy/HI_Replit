@@ -190,6 +190,17 @@ export default function FinalReflectionView({
       // Mark step as completed
       markStepCompleted('3-3');
       
+      // Auto-scroll to continue button after a brief delay
+      setTimeout(() => {
+        const continueButton = document.querySelector('[data-continue-button="true"]');
+        if (continueButton) {
+          continueButton.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 1000); // Increased delay to ensure DOM updates
+      
       // Navigate to workshop recap instead of showing modal
       if (!user?.isBetaTester) {
         setCurrentContent('workshop-recap');
@@ -402,6 +413,7 @@ export default function FinalReflectionView({
                         className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
                         onClick={handleComplete}
                         disabled={insight.length < 10}
+                        data-continue-button="true"
                       >
                         Complete Your Journey
                       </button>
@@ -425,6 +437,7 @@ export default function FinalReflectionView({
                       <button
                         onClick={() => setShowModal(true)}
                         className="continue-button enabled"
+                        data-continue-button="true"
                       >
                         View Options
                       </button>

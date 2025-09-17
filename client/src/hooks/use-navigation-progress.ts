@@ -431,7 +431,7 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
 };
 
 // Get next step prioritizing main sequence over resources (RENUMBERED)
-// After completing the main sequence (through 3-4), advance into Module 4
+// SPECIAL CASE: After completing 3-4 (workshop completion), user stays on 3-4
 const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
 
@@ -442,9 +442,10 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
     }
   }
 
-  // If main sequence is complete (including 3-4), move to Module 4
-  // This prevents the app from restoring users back to workshop completion on refresh
-  return '4-1';
+  // SPECIAL CASE: If main sequence is complete (including 3-4), user stays on 3-4
+  // This is the workshop completion step - modules 4 & 5 unlock but user doesn't auto-advance
+  console.log(`🏆 WORKSHOP COMPLETED: All main steps finished, staying on 3-4 (workshop completion step)`);
+  return '3-4';
 };
 
 interface NavigationStep {
@@ -674,13 +675,17 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   };
 
   // ENHANCED: Manual progression with immediate counter updates - FIXED DATABASE SYNC
-  const markStepCompleted = async (stepId: string) => {
-    console.log(`🎯 SIMPLIFIED MODE: Manual progression - marking step ${stepId} completed`);
+  const markStepCompleted = async (stepId: string, options?: { autoAdvance?: boolean }): Promise<string | null> => {
+    console.log(`🎯 NAVIGATION HOOK: markStepCompleted called with: ${stepId}, options:`, options);
+    console.log(`🎯 NAVIGATION HOOK: Current state before:`, {
+      currentStepId: progress.currentStepId,
+      completedSteps: progress.completedSteps.length
+    });
 
     // Check if already completed
     if (progress.completedSteps.includes(stepId)) {
-      console.log(`Step ${stepId} already completed`);
-      return;
+      console.log(`⚠️ Step ${stepId} already completed`);
+      return progress.currentStepId;
     }
 
     // For step 2-2 (assessment results), check if StarCard exists
@@ -698,16 +703,16 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
           if (!hasValidStarCard) {
             console.log(`❌ Step ${stepId} validation failed - StarCard assessment incomplete`);
-            return;
+            return null;
           }
           console.log(`✅ Step ${stepId} validation passed - StarCard assessment complete`);
         } else {
           console.log(`❌ Step ${stepId} validation failed - could not verify StarCard`);
-          return;
+          return null;
         }
       } catch (error) {
         console.error(`❌ Error validating step ${stepId}:`, error);
-        return;
+        return null;
       }
     }
 
@@ -716,7 +721,16 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     // Calculate the new progress data outside of setProgress to avoid stale closures
     const newCompletedSteps = [...progress.completedSteps, stepId];
     const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps, appType);
-    const nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
+    
+    // SPECIAL CASE: For step 3-4 (workshop completion), user stays on 3-4
+    let nextStepId;
+    if (stepId === '3-4') {
+      nextStepId = '3-4'; // Stay on workshop completion step
+      console.log(`🏆 WORKSHOP COMPLETION: Step 3-4 completed, staying on 3-4 and unlocking modules 4 & 5`);
+    } else {
+      nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
+      console.log(`➡️ NORMAL PROGRESSION: Step ${stepId} completed, advancing to ${nextStepId}`);
+    }
 
     // Calculate workshop completion status
     const workshopCompleted = isWorkshopCompleted(newCompletedSteps, appType);
@@ -745,15 +759,24 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     console.log(`  ➡️ Next step: ${nextStepId}`);
     console.log(`  💾 About to sync to database with currentStepId: ${nextStepId}`);
 
-    // CRITICAL FIX: Update state and sync to database with the same data
+    console.log(`🎯 NAVIGATION HOOK: Calculated new state:`, {
+      currentStepId: nextStepId,
+      completedSteps: newCompletedSteps.length,
+      justCompleted: stepId,
+      nextStep: nextStepId
+    });
+
+    // CRITICAL FIX: Update state with the complete new progress object
     setProgress(newProgress);
 
-    // CRITICAL FIX: Use a slight delay to ensure React state update completes, then sync with fresh data
+    // CRITICAL FIX: Schedule database sync with the new progress data
     setTimeout(() => {
-      console.log(`💾 Auto-saving navigation progress after completing step ${stepId}...`);
-      console.log(`📊 Syncing to database: currentStepId=${nextStepId}, completed=[${newCompletedSteps.join(', ')}]`);
-      syncToDatabase(newProgress); // Use the calculated newProgress, not stale progress state
-    }, 100); // Reduced timeout for faster response
+      console.log(`💾 NAVIGATION HOOK: Syncing to database:`, {
+        currentStepId: newProgress.currentStepId,
+        completedSteps: newProgress.completedSteps.length
+      });
+      syncToDatabase(newProgress);
+    }, 50); // Minimal delay to ensure React state update
 
     return nextStepId; // Return the next step ID for navigation
   };

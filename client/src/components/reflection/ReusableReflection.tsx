@@ -235,6 +235,18 @@ export default function ReusableReflection({
         // This is the last reflection - call onComplete and clear storage
         console.log('🎯 Last reflection completed, calling onComplete');
         localStorage.removeItem(storageKey); // Clear progress when workshop is complete
+        
+        // Auto-scroll to continue button after a brief delay
+        setTimeout(() => {
+          const continueButton = document.querySelector('[data-continue-button="true"]');
+          if (continueButton) {
+            continueButton.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        }, 1000); // Increased delay to ensure DOM updates
+        
         onComplete?.();
       } else {
         // Move to next reflection and save progress
@@ -532,6 +544,7 @@ export default function ReusableReflection({
                 onClick={() => completeReflection(ref.id)}
                 disabled={!isValid(ref)}
                 className={`px-4 py-2 rounded font-medium ${isValid(ref) ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                data-continue-button={idx === reflections.length - 1 ? 'true' : undefined}
               >
                 {idx === reflections.length - 1 ? completionButtonText : 'Next'}
               </button>
@@ -541,6 +554,7 @@ export default function ReusableReflection({
                 onClick={() => completeReflection(ref.id)}
                 disabled={!isValid(ref)}
                 className={`px-4 py-2 rounded font-medium ${isValid(ref) ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                data-continue-button="true"
               >{completionButtonText}</button>
             )}
           </div>

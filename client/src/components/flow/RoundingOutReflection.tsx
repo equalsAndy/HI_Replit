@@ -51,7 +51,17 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
       setCurrentQuestion(prev => prev + 1);
       setShowExample(false);
     } else {
-      // All questions answered
+      // All questions answered - add auto-scroll to continue button
+      setTimeout(() => {
+        const continueButton = document.querySelector('[data-continue-button="true"]');
+        if (continueButton) {
+          continueButton.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 1000); // Delay to ensure DOM updates
+      
       if (onComplete) {
         onComplete();
       }
@@ -189,6 +199,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
               onClick={nextQuestion}
               className="bg-indigo-700 hover:bg-indigo-800 ml-2"
               disabled={currentAnswer.trim().length === 0}
+              data-continue-button={currentQuestion === roundingOutQuestions.length - 1 ? "true" : undefined}
             >
               {currentQuestion === roundingOutQuestions.length - 1 ? "Finish" : "Next"}
             </Button>

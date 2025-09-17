@@ -250,6 +250,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
   const [assessmentResults, setAssessmentResults] = useState<any>(null);
+  const [showAttributesActivity, setShowAttributesActivity] = useState(false);
   
   // Workshop status for locking functionality with module-specific locking
   const { completed: workshopCompleted, isWorkshopLocked } = useWorkshopStatus();
@@ -348,10 +349,13 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
       setStarCardFlowAttributes(coloredAttributes);
       // Hide the selection interface since attributes exist
       setShowSelectionInterface(false);
+      // Show attributes activity since they exist
+      setShowAttributesActivity(true);
       console.log("Hiding selection interface - attributes already exist");
     } else {
-      console.log("No existing attributes found, showing selection interface");
+      console.log("No existing attributes found, hiding attributes activity initially");
       setShowSelectionInterface(true);
+      setShowAttributesActivity(false);
     }
   }, [flowAttributesData, hasExistingAttributes, flowAttributesLoading]);
 
@@ -365,13 +369,14 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data && data.data.completed) {
-            setHasCompletedAssessment(true);
-            // Load the full assessment results for inline display
-            setAssessmentResults({
-              answers: data.data.answers,
-              flowScore: data.data.flowScore,
-              completed: true
-            });
+          setHasCompletedAssessment(true);
+          // Load the full assessment results for inline display
+          setAssessmentResults({
+          answers: data.data.answers,
+          flowScore: data.data.flowScore,
+          completed: true
+          });
+            // Don't automatically show attributes activity - let user click the button
           }
         }
       } catch (error) {
@@ -388,7 +393,8 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
     setHasCompletedAssessment(true);
     setAssessmentResults(results);
     setIsAssessmentModalOpen(false);
-
+    // Don't show attributes activity automatically - user needs to click button first
+    
     // DON'T mark any step as completed here - assessment completion just saves data
     // Step 2-2 will be marked complete only after flow attributes are added and user clicks Next
     console.log('✅ Flow assessment data saved, but no step completion triggered');
@@ -759,8 +765,20 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                 </div>
 
                 <div className="mb-6 p-4 bg-blue-50 rounded-lg text-left max-w-2xl mx-auto">
-                  <p className="text-gray-700">{getInterpretation(assessmentResults.flowScore).description}</p>
+                <p className="text-gray-700">{getInterpretation(assessmentResults.flowScore).description}</p>
                 </div>
+                
+                {/* Show attributes activity button if not already visible */}
+                {!showAttributesActivity && (
+                  <div className="text-center mb-6">
+                    <Button
+                      onClick={() => setShowAttributesActivity(true)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
+                    >
+                      Let's put your flow on your Star Card
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Questions Summary */}
@@ -804,8 +822,10 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
-      {/* Add Flow to Star Card Content */}
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Add Flow to Your Star Card</h1>
+      {/* Add Flow to Star Card Content - Only show after assessment completion and button click */}
+      {showAttributesActivity && (
+        <>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Add Flow to Your Star Card</h1>
 
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
         <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
@@ -1076,6 +1096,9 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
+        </>
+      )}
+      
       {/* Flow Assessment Modal */}
       <FlowAssessmentModal
         isOpen={isAssessmentModalOpen}
