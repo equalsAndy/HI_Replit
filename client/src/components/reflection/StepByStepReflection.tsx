@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText, MessageCircle, Lightbulb, ListChecks } from "lucide-react";
 import { useCoachingModal } from '@/hooks/useCoachingModal';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -120,11 +120,16 @@ export default function StepByStepReflection({
   
   // State for managing reflection steps
   const [currentStep, setCurrentStep] = useState(1);
-  const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
   const { shouldShowDemoButtons, isTestUser, user } = useTestUser();
   const { data: currentUser } = useCurrentUser();
   const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
+  
+  // Expandable section states - per step
+  const [expandedSuggestions, setExpandedSuggestions] = useState<Record<number, boolean>>({});
+  const [expandedExamples, setExpandedExamples] = useState<Record<number, boolean>>({});
+  const [userHasInteractedWithSuggestions, setUserHasInteractedWithSuggestions] = useState(false);
+  const [userHasInteractedWithExamples, setUserHasInteractedWithExamples] = useState(false);
   
   // Talia coaching modal
   const { openModal } = useCoachingModal();
@@ -155,6 +160,17 @@ export default function StepByStepReflection({
     teamValues: '',
     uniqueContribution: ''
   });
+
+  // Smart defaults for expandable sections - auto-expand suggestions on first step
+  useEffect(() => {
+    if (!userHasInteractedWithSuggestions && !userHasInteractedWithExamples) {
+      // Auto-expand suggestions for the first step only
+      setExpandedSuggestions(prev => ({
+        ...prev,
+        [1]: currentStep === 1 // Only auto-expand for first step
+      }));
+    }
+  }, [currentStep, userHasInteractedWithSuggestions, userHasInteractedWithExamples]);
 
   // Fetch star card data on component mount
   useEffect(() => {
@@ -469,7 +485,6 @@ export default function StepByStepReflection({
     }
   };
 
-
   // Get the current reflection question for the coaching modal
   const getCurrentReflectionQuestion = () => {
     if (currentStep <= 4 && sortedQuadrants[currentStep - 1]) {
@@ -559,6 +574,23 @@ export default function StepByStepReflection({
     return !!(currentText && typeof currentText === 'string' && currentText.trim().length >= 10);
   };
 
+  // Handle expandable section toggles
+  const toggleSuggestions = (step: number) => {
+    setExpandedSuggestions(prev => ({
+      ...prev,
+      [step]: !prev[step]
+    }));
+    setUserHasInteractedWithSuggestions(true);
+  };
+
+  const toggleExamples = (step: number) => {
+    setExpandedExamples(prev => ({
+      ...prev,
+      [step]: !prev[step]
+    }));
+    setUserHasInteractedWithExamples(true);
+  };
+
   // Next/previous step handlers
   const handleNext = async () => {
     // Check if current reflection is valid before proceeding
@@ -571,7 +603,6 @@ export default function StepByStepReflection({
 
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
-      setShowExamples(false);
     } else if (currentStep === totalSteps) {
       // Only save reflections if workshop is not locked
       if (!workshopLocked) {
@@ -599,10 +630,8 @@ export default function StepByStepReflection({
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
-      setShowExamples(false);
     }
   };
-
 
   // Check if we have starCard data
   if (!initialStarCard) {
@@ -618,11 +647,11 @@ export default function StepByStepReflection({
       {/* Progress indicator */}
       <div className="flex justify-end mb-4">
         <div className="bg-white rounded-md shadow-sm border border-gray-200 px-3 py-1.5 flex items-center space-x-2">
-          <span className="text-xs font-medium text-gray-500">Your progress:</span>
+          <span className="text-sm font-medium text-gray-500">Your progress:</span>
           <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
             <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
           </div>
-          <span className="text-xs font-medium text-gray-700">Step {currentStep} of {totalSteps}</span>
+          <span className="text-sm font-medium text-gray-700">Step {currentStep} of {totalSteps}</span>
         </div>
       </div>
 
@@ -632,8 +661,8 @@ export default function StepByStepReflection({
           {/* Left side - Purple gradient area */}
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
             <div>
-              <h2 className="text-xl font-bold mb-2">Reflect on your Strengths</h2>
-              <p className="text-white/80">
+              <h2 className="text-2xl font-bold mb-2">Reflect on your Strengths</h2>
+              <p className="text-lg text-white/80">
                 Understanding how your unique strengths work together helps you maximize your potential.
                 Let's explore one strength at a time.
               </p>
@@ -642,7 +671,7 @@ export default function StepByStepReflection({
             {/* Strengths Distribution */}
             <div className="mt-4 bg-white/30 rounded-lg p-4">
               <div className="flex flex-col items-center">
-                <h3 className="text-white font-bold text-center mb-3">Your Strengths Distribution</h3>
+                <h3 className="text-lg font-bold text-center mb-3">Your Strengths Distribution</h3>
 
                 <div className="flex flex-col gap-2 mb-2 w-full max-w-md">
                   {sortedQuadrants.map((quadrant, index) => {
@@ -680,9 +709,9 @@ export default function StepByStepReflection({
                             <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center mr-3 font-bold text-gray-700">
                               {index + 1}
                             </div>
-                            <span className="font-medium">{quadrant.label}</span>
+                            <span className="text-base font-medium">{quadrant.label}</span>
                           </div>
-                          <span className="font-bold">{quadrant.score}%</span>
+                          <span className="text-base font-bold">{quadrant.score}%</span>
                         </div>
                       </div>
                     );
@@ -699,40 +728,26 @@ export default function StepByStepReflection({
               <>
                 <div className="flex items-center mb-4">
                   <div className={`${strengthColors[sortedQuadrants[currentStep-1].label].bg} p-2 rounded-full mr-3`}>
-                    <div className={`w-8 h-8 ${strengthColors[sortedQuadrants[currentStep-1].label].circle} rounded-full flex items-center justify-center text-white fontbold`}>
+                    <div className={`w-8 h-8 ${strengthColors[sortedQuadrants[currentStep-1].label].circle} rounded-full flex items-center justify-center text-white font-bold`}>
                       {currentStep}
                     </div>
                   </div>
-                                    <h3 className="text-xl font-bold text-gray-800">
+                  <h3 className="text-2xl font-bold text-gray-800">
                     Your {currentStep === 1 ? '1st' : currentStep === 2 ? '2nd' : currentStep === 3 ? '3rd' : '4th'} Strength: {sortedQuadrants[currentStep-1].label.charAt(0) + sortedQuadrants[currentStep-1].label.slice(1).toLowerCase()} ({sortedQuadrants[currentStep-1].score}%)
                   </h3>
                 </div>
 
-                <p className="text-gray-700 mb-4">
+                <p className="text-base text-gray-700 mb-6">
                   {getStrengthDescription(sortedQuadrants[currentStep-1].label)}
                 </p>
-
-                <div className={`${strengthColors[sortedQuadrants[currentStep-1].label].lightBg} border ${strengthColors[sortedQuadrants[currentStep-1].label].border} rounded-lg p-4 mb-4`}>
-                  <h4 className={`font-medium ${strengthColors[sortedQuadrants[currentStep-1].label].text} mb-3`}>
-                    {getStrengthPrompt(sortedQuadrants[currentStep-1].label).question}
-                  </h4>
-                  <p className="text-gray-700 text-sm mb-3">
-                    Consider moments when your {sortedQuadrants[currentStep-1].label.toLowerCase()} nature made a difference. Reflect on:
-                  </p>
-                  <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
-                    {getStrengthPrompt(sortedQuadrants[currentStep-1].label).bullets.map((bullet, index) => (
-                      <li key={index}>{bullet}</li>
-                    ))}
-                  </ul>
-                </div>
               </>
             )}
 
             {/* Show other content for steps 5-6 */}
             {currentStep === 5 && (
               <>
-                <h3 className="text-xl font-bold text-gray-800 mb-4">What You Value Most in Team Environments</h3>
-                <p className="text-gray-700 mb-4">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">What You Value Most in Team Environments</h3>
+                <p className="text-base text-gray-700 mb-6">
                   Based on your strengths profile, certain team environments will help you perform at your best. 
                   Consider what team qualities or behaviors would complement your unique strengths distribution.
                 </p>
@@ -741,118 +756,140 @@ export default function StepByStepReflection({
 
             {currentStep === 6 && (
               <>
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Your Unique Contribution</h3>
-                <p className="text-gray-700 mb-4">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Unique Contribution</h3>
+                <p className="text-base text-gray-700 mb-6">
                   Your particular strengths profile creates a unique combination that you bring to your team. 
                   Think about how your top strengths work together to create value.
                 </p>
               </>
             )}
-          </div>        </div>
+          </div>
+        </div>
 
-        {/* Reflection Space - Full Width Section */}
+        {/* Reflection Space - Full Width Section with Enhanced Layout */}
         <div className="p-6 bg-gray-50 border-t border-gray-200">
           <div className="max-w-4xl mx-auto">
-            <div className={`mt-4 p-4 ${
-              currentStep <= 4
-                ? sortedQuadrants[currentStep-1].label === 'THINKING'
-                  ? 'bg-green-50 border-2 border-green-200'
-                  : sortedQuadrants[currentStep-1].label === 'ACTING'
-                  ? 'bg-red-50 border-2 border-red-200'
-                  : sortedQuadrants[currentStep-1].label === 'FEELING'
-                  ? 'bg-blue-50 border-2 border-blue-200'
-                  : 'bg-yellow-50 border-2 border-yellow-200'
-                : currentStep === 5 
-                ? 'bg-gray-100 border-2 border-gray-300'
-                : 'bg-gray-200 border-2 border-gray-400'
-            } rounded-lg shadow-sm`}>
-              <label htmlFor="strength-1-reflection" className={`block text-lg font-semibold ${
-                currentStep <= 4
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+              {/* Header */}
+              <div className={`px-6 py-4 border-b border-gray-200 ${
+                currentStep <= 4 
                   ? sortedQuadrants[currentStep-1].label === 'THINKING'
-                    ? 'text-green-800'
+                    ? 'bg-green-500'
                     : sortedQuadrants[currentStep-1].label === 'ACTING'
-                    ? 'text-red-800'
+                    ? 'bg-red-500'
                     : sortedQuadrants[currentStep-1].label === 'FEELING'
-                    ? 'text-blue-800'
-                    : 'text-yellow-800'
+                    ? 'bg-blue-500'
+                    : 'bg-yellow-500'
                   : currentStep === 5
-                  ? 'text-gray-700'
-                  : 'text-gray-800'
-              } mb-2`}>
-                Your {
-                  currentStep <= 4 
-                    ? `${sortedQuadrants[currentStep-1].label.charAt(0) + sortedQuadrants[currentStep-1].label.slice(1).toLowerCase()} Reflection Space`
+                  ? 'bg-indigo-500'
+                  : 'bg-purple-500'
+              }`}>
+                <h3 className="text-2xl font-bold text-white">
+                  {currentStep <= 4 
+                    ? getStrengthPrompt(sortedQuadrants[currentStep-1].label).question
                     : currentStep === 5 
-                    ? "Team Environment Reflection Space"
-                    : "Unique Contribution Reflection Space"
-                }
-              </label>
-              <p className="text-gray-700 mb-3 text-sm italic">
-                {currentStep <= 4 
-                  ? `Write 2-3 sentences about when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively`
-                  : currentStep === 5 
-                  ? "Write 2-3 sentences about your ideal team environment"
-                  : "Write 2-3 sentences about your unique contribution"}
-              </p>
-              
-              {/* Coaching Button - Bottom Section - DISABLED FOR NOW */}
-              {false && currentStep <= 4 && (shouldShowDemoButtons || true) && (
-                <ReflectionCoachingButton 
-                  reflectionContext={{
-                    question: getStrengthPrompt(sortedQuadrants[currentStep-1].label).question,
-                    type: 'strength',
-                    currentStep: currentStep,
-                    strengthLabel: sortedQuadrants[currentStep-1]?.label,
-                    strengthScore: sortedQuadrants[currentStep-1]?.value,
-                    strengthColor: sortedQuadrants[currentStep-1]?.color,
-                    allStrengths: sortedQuadrants.map(q => ({
-                      label: q.label,
-                      score: q.value,
-                      color: q.color
-                    }))
-                  }}
-                  onSaveReflection={(reflectionText) => {
-                    handleReflectionChange(currentStep, reflectionText);
-                  }}
-                />
-              )}
-              
-              <textarea 
-                id={`strength-${currentStep}-reflection`}
-                value={getCurrentReflectionText()}
-                onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
-                disabled={workshopLocked}
-                readOnly={workshopLocked}
-                placeholder={currentStep <= 4 
-                  ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
-                  : currentStep === 5 
-                  ? "Describe the team environment where you perform at your best..."
-                  : "Describe your unique contribution to the team..."}
-                className={`min-h-[140px] w-full p-3 border rounded-md focus:ring-2 focus:border-transparent resize-vertical ${
-                  workshopLocked
-                    ? 'opacity-60 cursor-not-allowed bg-gray-100'
-                    : currentStep <= 4
-                    ? sortedQuadrants[currentStep-1].label === 'THINKING'
-                      ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
-                      : sortedQuadrants[currentStep-1].label === 'ACTING'
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                      : sortedQuadrants[currentStep-1].label === 'FEELING'
-                      ? 'border-blue-300 focus:border-blue-500 focus:ring-blue-500'
-                      : 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500'
-                    : currentStep === 5
-                    ? 'border-gray-400 focus:border-gray-600 focus:ring-gray-500'
-                    : 'border-gray-500 focus:border-gray-700 focus:ring-gray-600'
-                } rounded-md bg-white`}
-              />
+                    ? "What do you value most in team environments?"
+                    : "What is your unique contribution to teams?"}
+                </h3>
+              </div>
 
-              {/* Show example based on current step */}
-              <div className="mt-3 text-xs text-gray-600">
-                <p className="font-medium mb-1">Example:</p>
-                <p className="italic">
-                  {currentStep <= 4 ? getCurrentExamples()[0] :
-                   currentStep === 5 ? "I thrive in environments with clear structure but room for flexibility. I value teams where everyone's input is heard and we maintain open, honest communication." :
-                   "My unique contribution comes from combining my analytical thinking with relationship-building skills to create solutions that are both effective and people-focused."}
-                </p>
+              <div className="p-6">
+                {/* Expandable Suggestions Section */}
+                {currentStep <= 4 && (
+                  <div className="mb-6">
+                    <button
+                      onClick={() => toggleSuggestions(currentStep)}
+                      className="flex items-center w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-all duration-200"
+                    >
+                      <ListChecks className="w-5 h-5 text-indigo-600 mr-3" />
+                      <span className="text-base font-medium text-gray-800 flex-1">
+                        Reflection Suggestions
+                      </span>
+                      {expandedSuggestions[currentStep] ? (
+                        <ChevronUp className="w-5 h-5 text-gray-500" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-gray-500" />
+                      )}
+                    </button>
+                    
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      expandedSuggestions[currentStep] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                    }`}>
+                      <div className="pt-4 pl-11">
+                        <p className="text-base text-gray-600 mb-3">Consider reflecting on:</p>
+                        <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
+                          {getStrengthPrompt(sortedQuadrants[currentStep-1].label).bullets.map((bullet, index) => (
+                            <li key={index} className="leading-relaxed">{bullet}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Expandable Examples Section */}
+                <div className="mb-6">
+                  <button
+                    onClick={() => toggleExamples(currentStep)}
+                    className="flex items-center w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-all duration-200"
+                  >
+                    <Lightbulb className="w-5 h-5 text-blue-600 mr-3" />
+                    <span className="text-base font-medium text-gray-800 flex-1">
+                      Example Responses
+                    </span>
+                    {expandedExamples[currentStep] ? (
+                      <ChevronUp className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                    )}
+                  </button>
+                  
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    expandedExamples[currentStep] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}>
+                    <div className="pt-4 pl-11">
+                      {getCurrentExamples().map((example, index) => (
+                        <div key={index} className="bg-blue-50 p-4 rounded-lg text-base text-gray-700 mb-3 italic leading-relaxed border-l-4 border-blue-300">
+                          "{example}"
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Response Textarea - Enhanced */}
+                <div className="mb-6">
+                  <label className="block text-lg font-medium text-gray-900 mb-3">
+                    Your Response
+                  </label>
+                  <textarea 
+                    id={`strength-${currentStep}-reflection`}
+                    value={getCurrentReflectionText()}
+                    onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
+                    disabled={workshopLocked}
+                    readOnly={workshopLocked}
+                    placeholder={currentStep <= 4 
+                      ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
+                      : currentStep === 5 
+                      ? "Describe the team environment where you perform at your best..."
+                      : "Describe your unique contribution to the team..."}
+                    className={`w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-vertical focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                      workshopLocked
+                        ? 'opacity-60 cursor-not-allowed bg-gray-100'
+                        : 'bg-white'
+                    }`}
+                  />
+                  <div className="flex justify-between mt-3">
+                    <div className="text-base text-gray-500">
+                      {getCurrentReflectionText().length} characters (minimum 10)
+                    </div>
+                    {isCurrentReflectionValid() && !workshopLocked && (
+                      <div className="text-base text-green-600">
+                        ✓ Complete
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -864,7 +901,7 @@ export default function StepByStepReflection({
             <button
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-base px-6 py-3 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -883,7 +920,7 @@ export default function StepByStepReflection({
               <button
                 onClick={handleNext}
                 disabled={!isCurrentReflectionValid()}
-                className={`px-4 py-2 rounded-md text-white font-medium ${
+                className={`text-base px-6 py-3 rounded-md text-white font-medium transition-colors ${
                   isCurrentReflectionValid()
                     ? "bg-indigo-600 hover:bg-indigo-700" 
                     : "bg-gray-400 cursor-not-allowed"

@@ -26,8 +26,10 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // Workshop status - use AST completion for locking
-  const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
+  // Workshop status - use step-specific locking for step 3-1
+  const stepId = "3-1";
+  const { astCompleted: workshopCompleted, loading: workshopLoading, isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ast', stepId);
 
   // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
@@ -67,8 +69,8 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     if (!isInitialized) return;
     
-    // Prevent auto-save when workshop is completed
-    if (workshopCompleted) return;
+    // Prevent auto-save when step is locked
+    if (isStepLocked) return;
 
     const wellbeingData = {
       wellBeingLevel,
@@ -102,7 +104,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [wellBeingLevel, futureWellBeingLevel, isInitialized, workshopCompleted]);
+  }, [wellBeingLevel, futureWellBeingLevel, isInitialized, isStepLocked]);
 
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
@@ -113,14 +115,14 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     <>
 
 
-      {/* Workshop Completion Banner */}
-      {workshopCompleted && (
+      {/* Step Completion Banner */}
+      {isStepLocked && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
             <ChevronRight className="text-green-600" size={20} />
             <div className="flex-1">
               <h3 className="font-medium text-green-800">
-                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
+                Step 3-1 complete. Your responses are locked, but you can watch videos and review your answers.
               </h3>
             </div>
             <div className="text-green-600">
@@ -177,7 +179,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <h3 className="text-md font-medium text-blue-800 mb-2 flex items-center gap-2">
                   Where are you now?
-                  {workshopCompleted && <span className="text-blue-600">🔒</span>}
+                  {isStepLocked && <span className="text-blue-600">🔒</span>}
                 </h3>
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
@@ -193,9 +195,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={workshopCompleted ? undefined : (values) => setWellBeingLevel(values[0])}
-                      className={`py-2 ${workshopCompleted ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      disabled={workshopCompleted}
+                      onValueChange={isStepLocked ? undefined : (values) => setWellBeingLevel(values[0])}
+                      className={`py-2 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      disabled={isStepLocked}
                     />
                     <div className="text-center mt-1">
                       <span className="font-medium text-lg text-blue-700">
@@ -209,7 +211,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                 <h3 className="text-md font-medium text-green-800 mb-2 flex items-center gap-2">
                   Where do you want to be?
-                  {workshopCompleted && <span className="text-green-600">🔒</span>}
+                  {isStepLocked && <span className="text-green-600">🔒</span>}
                 </h3>
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
@@ -225,11 +227,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={workshopCompleted ? undefined : (values) =>
+                      onValueChange={isStepLocked ? undefined : (values) =>
                         setFutureWellBeingLevel(values[0])
                       }
-                      className={`py-2 ${workshopCompleted ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      disabled={workshopCompleted}
+                      className={`py-2 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      disabled={isStepLocked}
                     />
                     <div className="text-center mt-1">
                       <span className="font-medium text-lg text-green-700">
@@ -284,7 +286,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       </div>
 
       {/* Reflections Header */}
-      {!workshopCompleted && (
+      {!isStepLocked && (
         <div className="section-headers-tabs-60 mb-4">
           <div className="section-headers-pill-60 section-headers-pill-60--reflection">
             <div className="section-headers-pill-60__strip" aria-hidden="true" />
@@ -294,7 +296,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       )}
 
       {/* Progressive Well-being Reflections */}
-      {!workshopCompleted && (
+      {!isStepLocked && (
         <WellBeingReflections
           onComplete={() => {
             // Navigate to future self step
@@ -306,8 +308,8 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         />
       )}
 
-      {/* Show completed message if workshop is done */}
-      {workshopCompleted && (
+      {/* Show completed message if step is locked */}
+      {isStepLocked && (
         <div className="text-center py-12">
           <div className="bg-green-50 rounded-lg p-6 border border-green-200">
             <ChevronRight className="mx-auto h-12 w-12 text-green-500 mb-4" />

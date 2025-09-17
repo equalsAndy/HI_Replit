@@ -25,11 +25,18 @@ const StrengthsView: React.FC<ContentViewProps> = ({
   setIsAssessmentModalOpen,
   starCard
 }) => {
-  // Persistent state for UI sections
-  const [showStarCardSection, setShowStarCardSection] = useState(() => {
-    const saved = localStorage.getItem('ast-star-card-visible');
-    return saved === 'true';
-  });
+  // Persistent state for UI sections - but reset for fresh assessments
+  const [showStarCardSection, setShowStarCardSection] = useState(false);
+  
+  // NEW: State for progressive revelation after star card
+  const [showStrengthsButton, setShowStrengthsButton] = useState(false);
+  const [showReflections, setShowReflections] = useState(false);
+  
+  // NEW: Pre-load reflection component invisibly
+  const [preloadReflections, setPreloadReflections] = useState(false);
+  
+  // Track if we've loaded the saved state yet
+  const [hasLoadedSavedState, setHasLoadedSavedState] = useState(false);
   
   const stepId = "2-1";
   const { updateVideoProgress } = useNavigationProgress();
@@ -38,10 +45,44 @@ const StrengthsView: React.FC<ContentViewProps> = ({
   // Use the shared StarCard data hook
   const { data: starCardData, isLoading: isLoadingAssessment, refetch } = useStarCardData();
 
-  // Save Star Card visibility to localStorage
+  // Check if assessment is completed - MOVED UP before useEffect that uses it
+  const hasValidAssessmentData = React.useMemo(() => {
+    return starCardData && starCardData.success !== false && (
+      Number(starCardData.thinking) > 0 || 
+      Number(starCardData.acting) > 0 || 
+      Number(starCardData.feeling) > 0 || 
+      Number(starCardData.planning) > 0
+    );
+  }, [starCardData]);
+
+  const isAssessmentComplete = hasValidAssessmentData;
+
+  // Load saved state only if assessment is already complete
   useEffect(() => {
-    localStorage.setItem('ast-star-card-visible', showStarCardSection.toString());
-  }, [showStarCardSection]);
+    if (isAssessmentComplete && !hasLoadedSavedState) {
+      const saved = localStorage.getItem('ast-star-card-visible');
+      if (saved === 'true') {
+        setShowStarCardSection(true);
+      }
+      setHasLoadedSavedState(true);
+    }
+  }, [isAssessmentComplete, hasLoadedSavedState]);
+
+  // Save Star Card visibility to localStorage and trigger progressive loading
+  useEffect(() => {
+    if (hasLoadedSavedState) {
+      localStorage.setItem('ast-star-card-visible', showStarCardSection.toString());
+    }
+    
+    // NEW: Show "Let's talk about your strengths" button after star card is visible
+    if (showStarCardSection) {
+      setTimeout(() => {
+        setShowStrengthsButton(true);
+        // Pre-load reflections invisibly for faster display
+        setPreloadReflections(true);
+      }, 500); // Small delay for smooth transition
+    }
+  }, [showStarCardSection, hasLoadedSavedState]);
 
   // Update floating AI context
   useEffect(() => {
@@ -54,8 +95,14 @@ const StrengthsView: React.FC<ContentViewProps> = ({
     });
   }, [stepId, updateContext, setCurrentStep]);
 
-  // Listen for assessment completion
+  // Listen for assessment completion and reset progressive state
   const handleAssessmentComplete = React.useCallback(() => {
+    // Reset progressive states for fresh flow
+    setShowStarCardSection(false);
+    setShowStrengthsButton(false);
+    setShowReflections(false);
+    setPreloadReflections(false);
+    
     setTimeout(() => refetch(), 500);
   }, [refetch]);
 
@@ -64,17 +111,7 @@ const StrengthsView: React.FC<ContentViewProps> = ({
     return () => window.removeEventListener('assessmentCompleted', handleAssessmentComplete);
   }, [handleAssessmentComplete]);
 
-  // Check if assessment is completed
-  const hasValidAssessmentData = React.useMemo(() => {
-    return starCardData && starCardData.success !== false && (
-      Number(starCardData.thinking) > 0 || 
-      Number(starCardData.acting) > 0 || 
-      Number(starCardData.feeling) > 0 || 
-      Number(starCardData.planning) > 0
-    );
-  }, [starCardData]);
 
-  const isAssessmentComplete = hasValidAssessmentData;
 
   // Handle video progress tracking
   const handleVideoProgress = (percentage: number) => {
@@ -150,8 +187,7 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                 </div>
               </div>
 
-
-              {/* Let's see your Star Card button (only show if not already expanded) */}
+              {/* Let's see your Star Card! button (only show if not already expanded) */}
               {!showStarCardSection && (
                 <div className="flex justify-center">
                   <Button 
@@ -163,7 +199,7 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                     }}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
                   >
-                    Let's see your Star Card
+                    Let's see your Star Card!
                   </Button>
                 </div>
               )}
@@ -212,30 +248,65 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                   </div>
                 </div>
 
-                {/* Reflections Header */}
-                <div className="section-headers-tabs-60 mb-4">
-                  <div className="section-headers-pill-60 section-headers-pill-60--reflection">
-                    <div className="section-headers-pill-60__strip" aria-hidden="true" />
-                    <div className="section-headers-pill-60__box">🤔 Reflections</div>
+                {/* NEW: Progressive Button: "Let's talk about your strengths" */}
+                {showStrengthsButton && !showReflections && (
+                  <div className="flex justify-center border-t border-gray-200 pt-8">
+                    <Button 
+                      onClick={() => {
+                        setShowReflections(true);
+                        setTimeout(() => {
+                          document.getElementById('reflections-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
+                    >
+                      Let's talk about your strengths
+                    </Button>
                   </div>
-                </div>
+                )}
 
-                {/* 5. Reflect on Your Strengths Component */}
-                <div className="border-t border-gray-200 pt-8">
-                  <StrengthReflections
-                    strengths={strengthsOrdered.map((s, i) => ({ 
-                      label: s.label, 
-                      score: s.score, 
-                      position: i + 1 
-                    }))}
-                    onComplete={() => {
-                      // This will be handled by the StrengthReflections component
-                      // It saves all data and navigates to flow-patterns
-                    }}
-                    setCurrentContent={setCurrentContent}
-                    markStepCompleted={markStepCompleted}
-                  />
-                </div>
+                {/* 5. Reflect on Your Strengths Component - Now with progressive revelation */}
+                {showReflections && (
+                  <div id="reflections-section" className="border-t border-gray-200 pt-8">
+                    {/* Reflections Header */}
+                    <div className="section-headers-tabs-60 mb-4">
+                      <div className="section-headers-pill-60 section-headers-pill-60--reflection">
+                        <div className="section-headers-pill-60__strip" aria-hidden="true" />
+                        <div className="section-headers-pill-60__box">🤔 Reflections</div>
+                      </div>
+                    </div>
+
+                    <StrengthReflections
+                      strengths={strengthsOrdered.map((s, i) => ({ 
+                        label: s.label, 
+                        score: s.score, 
+                        position: i + 1 
+                      }))}
+                      onComplete={() => {
+                        // This will be handled by the StrengthReflections component
+                        // It saves all data and navigates to flow-patterns
+                      }}
+                      setCurrentContent={setCurrentContent}
+                      markStepCompleted={markStepCompleted}
+                    />
+                  </div>
+                )}
+                
+                {/* NEW: Pre-load reflections invisibly for faster loading */}
+                {preloadReflections && !showReflections && (
+                  <div style={{ position: 'absolute', left: '-9999px', visibility: 'hidden', height: 0, overflow: 'hidden' }}>
+                    <StrengthReflections
+                      strengths={strengthsOrdered.map((s, i) => ({ 
+                        label: s.label, 
+                        score: s.score, 
+                        position: i + 1 
+                      }))}
+                      onComplete={() => {}}
+                      setCurrentContent={() => {}}
+                      markStepCompleted={() => {}}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </>

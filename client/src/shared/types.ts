@@ -52,7 +52,7 @@ export interface Workshop {
 export interface ContentViewProps {
   currentContent: string;
   navigate?: any;
-  markStepCompleted?: (stepId: string) => void;
+  markStepCompleted?: (stepId: string, options?: { autoAdvance?: boolean }) => void;
   setCurrentContent?: (content: string) => void;
   starCard?: any;
   user?: any;

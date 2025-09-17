@@ -567,16 +567,16 @@ export default function AllStarTeamsWorkshop() {
   });
 
   // Function to mark a step as completed - FIXED: Use navigation progress hook directly
-  const markStepCompleted = async (stepId: string) => {
+  const markStepCompleted = async (stepId: string, options?: { autoAdvance?: boolean }) => {
     try {
-      console.log(`🎯 markStepCompleted called with: ${stepId}`);
+      console.log(`🎯 markStepCompleted called with: ${stepId}, options:`, options);
       console.log(`🎯 Current navigation state BEFORE:`, {
         currentStepId: navProgress?.currentStepId,
         completedSteps: navProgress?.completedSteps?.length || 0
       });
 
-      // CRITICAL FIX: Use the navigation hook's method directly
-      const nextStepId = await markNavStepCompleted(stepId);
+      // CRITICAL FIX: Use the navigation hook's method directly with options
+      const nextStepId = await markNavStepCompleted(stepId, options);
 
       if (nextStepId) {
         console.log(`🎯 Step ${stepId} completed, next step: ${nextStepId}`);
@@ -634,10 +634,9 @@ export default function AllStarTeamsWorkshop() {
   const handleAssessmentComplete = (result: any) => {
     console.log("Assessment completed with result:", result);
 
-    // Mark step 2-1 (Star Strengths Assessment) as completed
-    // This will give it a green checkmark and advance currentStepId to the next step
-    console.log("Assessment complete. Marking step 2-1 as completed and advancing to next step.");
-    markStepCompleted('2-1');
+    // DON'T mark step as completed - assessment completion only saves assessment data
+    // Step 2-1 will be marked complete when user finishes the entire step content and clicks Next
+    console.log("Assessment complete. Assessment data saved, but step 2-1 remains incomplete until user finishes full step.");
 
     // Refresh the star card data to ensure it's available for the next step
     queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });

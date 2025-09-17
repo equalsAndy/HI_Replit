@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, FileText } from 'lucide-react';
+import { ChevronRight, FileText, ChevronDown, ChevronUp, CheckSquare, Lightbulb } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
 import { debounce } from '@/lib/utils';
 import { useTestUser } from '@/hooks/useTestUser';
@@ -19,6 +19,8 @@ interface CantrilQuestion {
   description: string;
   placeholder: string;
   section: 'current' | 'future' | 'quarterly';
+  suggestions: string[];
+  examples: string[];
 }
 
 interface CantrilFormData {
@@ -38,7 +40,18 @@ const cantrilQuestions: CantrilQuestion[] = [
     question: 'What factors shape your current rating?',
     description: 'What are the main elements contributing to your current well-being?',
     placeholder: 'Consider your work, relationships, health, finances, and personal growth...',
-    section: 'current'
+    section: 'current',
+    suggestions: [
+      'Consider different life domains: work satisfaction, relationships, health, finances, personal growth',
+      'Think about what energizes you versus what drains you in your daily life',
+      'Reflect on recent changes or events that have influenced your well-being',
+      'Consider how your strengths and flow states contribute to your current satisfaction'
+    ],
+    examples: [
+      'Work: "My job aligns well with my analytical strengths, though I wish I had more autonomy in decision-making."',
+      'Relationships: "I have strong family support and good friendships, but I\'d like to build more professional connections."',
+      'Health: "I maintain regular exercise which boosts my energy, though stress sometimes affects my sleep."'
+    ]
   },
   {
     id: 2,
@@ -47,7 +60,18 @@ const cantrilQuestions: CantrilQuestion[] = [
     question: 'What improvements do you envision?',
     description: 'What achievements or changes would make your life better in one year?',
     placeholder: 'Describe specific improvements you hope to see in your life...',
-    section: 'future'
+    section: 'future',
+    suggestions: [
+      'Think about improvements in each life domain that would move you up the ladder',
+      'Consider how you could better utilize your strengths in various areas of life',
+      'Envision changes that would increase your flow states and engagement',
+      'Focus on what would make the biggest positive impact on your well-being'
+    ],
+    examples: [
+      'Career: "Leading a team where I can use my planning strengths to guide others toward success."',
+      'Skills: "Developing my public speaking abilities to feel more confident in presentations."',
+      'Balance: "Having clear boundaries between work and personal time, with flexible scheduling."'
+    ]
   },
   {
     id: 3,
@@ -56,7 +80,18 @@ const cantrilQuestions: CantrilQuestion[] = [
     question: 'What will be different?',
     description: 'How will your experience be noticeably different in tangible ways?',
     placeholder: 'Describe concrete changes you\'ll experience...',
-    section: 'future'
+    section: 'future',
+    suggestions: [
+      'Describe specific, observable changes in your daily experience',
+      'Think about how others might notice the difference in you',
+      'Consider measurable improvements in your routine, responsibilities, or capabilities',
+      'Focus on concrete outcomes rather than abstract feelings'
+    ],
+    examples: [
+      'Daily: "I\'ll start each day with a planning routine that sets clear priorities and reduces decision fatigue."',
+      'Social: "Colleagues will seek my input on strategic decisions, and I\'ll feel confident contributing ideas."',
+      'Personal: "I\'ll have energy for evening activities instead of feeling drained after work."'
+    ]
   },
   {
     id: 4,
@@ -65,7 +100,18 @@ const cantrilQuestions: CantrilQuestion[] = [
     question: 'What progress would you expect in 3 months?',
     description: 'Name one specific indicator that you\'re moving up the ladder.',
     placeholder: 'Describe a measurable sign of progress...',
-    section: 'quarterly'
+    section: 'quarterly',
+    suggestions: [
+      'Choose one clear, measurable indicator of progress',
+      'Think about early wins that would signal you\'re on the right track',
+      'Consider feedback you might receive or recognition you could earn',
+      'Focus on something observable by yourself and others'
+    ],
+    examples: [
+      'Professional: "I\'ll have successfully led a cross-functional project using my planning strengths."',
+      'Personal: "I\'ll consistently maintain my new morning routine for at least 8 weeks."',
+      'Social: "I\'ll have initiated regular coffee meetings with two new professional contacts."'
+    ]
   },
   {
     id: 5,
@@ -74,7 +120,18 @@ const cantrilQuestions: CantrilQuestion[] = [
     question: 'What actions will you commit to this quarter?',
     description: 'Name 1-2 concrete steps you\'ll take before your first quarterly check-in.',
     placeholder: 'Describe specific actions you\'ll take...',
-    section: 'quarterly'
+    section: 'quarterly',
+    suggestions: [
+      'Choose 1-2 specific, actionable steps you can start within the next week',
+      'Focus on actions that leverage your key strengths',
+      'Make commitments that are realistic given your current schedule and resources',
+      'Choose actions that directly support your well-being improvement goals'
+    ],
+    examples: [
+      'Learning: "Sign up for a leadership development workshop within the next two weeks."',
+      'Networking: "Schedule monthly one-on-ones with my manager to discuss growth opportunities."',
+      'Routine: "Implement a weekly planning session every Sunday to align my tasks with my goals."'
+    ]
   }
 ];
 
@@ -96,6 +153,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   // READ-ONLY values loaded from visualization data (set in step 4-1)
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
+  
+  // Expandable sections state
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
+  const [userHasInteracted, setUserHasInteracted] = useState(false);
   const [formData, setFormData] = useState<CantrilFormData>({
     currentFactors: '',
     futureImprovements: '',
@@ -183,16 +245,35 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
         if (result.success && result.data) {
           console.log('CantrilLadderView: Setting form data:', result.data);
           setFormData(result.data);
+          // User has existing data, so they've interacted before
+          setUserHasInteracted(true);
         } else {
           console.log('CantrilLadderView: No existing data found or API failed');
+          // No existing data - show suggestions for first-time users
+          setShowSuggestions(true);
         }
       } catch (error) {
         console.log('CantrilLadderView: Error loading data:', error);
+        // On error, assume first time and show suggestions
+        setShowSuggestions(true);
       }
     };
     
     loadExistingData();
   }, []);
+  
+  // Smart defaults: auto-expand suggestions on first reflection, collapse on subsequent
+  useEffect(() => {
+    if (userHasInteracted) {
+      // User has data, default to collapsed
+      setShowSuggestions(false);
+      setShowExamples(false);
+    } else {
+      // First time, auto-expand suggestions only
+      setShowSuggestions(true);
+      setShowExamples(false);
+    }
+  }, [currentQuestion, userHasInteracted]);
 
   // Set up FloatingAI context for step 4-2 with current question context
   useEffect(() => {
@@ -292,6 +373,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       [field]: value
     }));
     
+    // Mark that user has interacted
+    if (!userHasInteracted && value.trim().length > 0) {
+      setUserHasInteracted(true);
+    }
+    
     // Clear validation error when user starts typing
     if (validationError && value.trim().length >= 10) {
       setValidationError('');
@@ -347,6 +433,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">
         Cantril Ladder Well-being Reflection
+        <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded ml-4">Enhanced v2.0</span>
       </h1>
 
       {/* Progress indicator */}
@@ -398,80 +485,133 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
-      {/* Bottom row: Current question section spanning full width */}
+      {/* Bottom row: Enhanced reflection section with expandable guidance */}
       <div className="mb-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+          {/* Main question header */}
+          <div className="p-6 pb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">
               {currentQuestionData.question}
             </h2>
-            <p className="text-gray-600 text-sm">
+            <p className="text-lg text-gray-700 leading-relaxed">
               {currentQuestionData.description}
             </p>
           </div>
 
-          <div className="mb-6">
+          {/* Expandable Suggestions Section */}
+          <div className="px-6 pb-4">
+            <button
+              onClick={() => setShowSuggestions(!showSuggestions)}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
+            >
+              <CheckSquare className="h-4 w-4" />
+              <span className="font-medium">Reflection Suggestions</span>
+              {showSuggestions ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            
+            {showSuggestions && (
+              <div className="mt-3 pl-6 border-l-2 border-blue-200 bg-blue-50 rounded-r-lg p-4 animate-in slide-in-from-top-2 duration-200">
+                <ul className="space-y-2 text-base text-gray-700">
+                  {currentQuestionData.suggestions.map((suggestion, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-1.5 text-xs">•</span>
+                      <span>{suggestion}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Expandable Examples Section */}
+          <div className="px-6 pb-4">
+            <button
+              onClick={() => setShowExamples(!showExamples)}
+              className="flex items-center gap-2 text-amber-600 hover:text-amber-800 transition-colors duration-200"
+            >
+              <Lightbulb className="h-4 w-4" />
+              <span className="font-medium">Example Reflections</span>
+              {showExamples ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            
+            {showExamples && (
+              <div className="mt-3 pl-6 border-l-2 border-amber-200 bg-amber-50 rounded-r-lg p-4 animate-in slide-in-from-top-2 duration-200">
+                <div className="space-y-3 text-base text-gray-700">
+                  {currentQuestionData.examples.map((example, index) => (
+                    <div key={index} className="italic border-l-2 border-amber-300 pl-3">
+                      {example}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Text area section */}
+          <div className="p-6 pt-2">
             <textarea
               value={currentValue}
               onChange={(e) => handleInputChange(currentQuestionData.key, e.target.value)}
               disabled={workshopCompleted}
               readOnly={workshopCompleted}
-              className={`w-full h-40 p-4 border border-gray-300 rounded-md resize-none ${
+              className={`w-full h-40 p-4 border border-gray-300 rounded-md resize-none text-base leading-relaxed ${
                 workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
               }`}
               placeholder={currentQuestionData.placeholder}
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-sm text-gray-500 mt-2">
               <span>Your task: Write 2-3 sentences about this reflection</span>
               <span>{currentValue.length} characters</span>
             </div>
           </div>
 
           {/* Navigation buttons */}
-          <div className="flex justify-between items-center">
-            <Button
-              variant="outline"
-              onClick={prevQuestion}
-              disabled={currentQuestion === 0 || workshopCompleted}
-              className="flex items-center gap-2"
-            >
-              <ChevronRight className="h-4 w-4 rotate-180" />
-              Previous
-            </Button>
+          <div className="px-6 pb-6">
+            <div className="flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={prevQuestion}
+                disabled={currentQuestion === 0 || workshopCompleted}
+                className="flex items-center gap-2"
+              >
+                <ChevronRight className="h-4 w-4 rotate-180" />
+                Previous
+              </Button>
 
-            <div className="flex items-center gap-2">
-              {shouldShowDemoButtons && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={fillWithDemoData}
-                  disabled={workshopCompleted}
-                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                >
-                  <FileText className="w-4 h-4 mr-1" />
-                  Demo
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {shouldShowDemoButtons && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={fillWithDemoData}
+                    disabled={workshopCompleted}
+                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                  >
+                    <FileText className="w-4 h-4 mr-1" />
+                    Demo
+                  </Button>
+                )}
 
-              {currentQuestion < cantrilQuestions.length - 1 ? (
-                <Button
-                  onClick={nextQuestion}
-                  disabled={workshopCompleted}
-                  className="flex items-center gap-2"
-                >
-                  Next Question
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleNextStep}
-                  disabled={workshopCompleted}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-                >
-                  Next: Visualizing You
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
+                {currentQuestion < cantrilQuestions.length - 1 ? (
+                  <Button
+                    onClick={nextQuestion}
+                    disabled={workshopCompleted}
+                    className="flex items-center gap-2"
+                  >
+                    Next Question
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleNextStep}
+                    disabled={workshopCompleted}
+                    className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  >
+                    Next: Visualizing You
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, Search, Upload, Save, Image, X, Plus, Lock } from 'lucide-react';
+import { ChevronRight, Search, Upload, Save, Image, X, Plus, Lock, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import VideoPlayer from './VideoPlayer';
 import FutureSelfReflections from './FutureSelfReflections';
@@ -24,7 +24,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  // Image selection state - keeping this functionality
+  // Image selection state
   const [imageData, setImageData] = useState<ImageData>({
     selectedImages: [],
     imageMeaning: ''
@@ -34,6 +34,10 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [isSavingImages, setIsSavingImages] = useState(false);
   
+  // NEW: Workflow state management
+  const [imagesConfirmed, setImagesConfirmed] = useState(false);
+  const [reflectionSubmitted, setReflectionSubmitted] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(true);
   const { astCompleted: workshopCompleted, loading: workshopLoading, isWorkshopLocked } = useWorkshopStatus();
 
@@ -42,16 +46,22 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const isStepLocked = isWorkshopLocked('ast', stepId);
   const { toast } = useToast();
 
-
   // Load existing image data when component mounts
   useEffect(() => {
     const loadData = async () => {
       try {
         const { imageData: loadedImageData } = await loadFutureSelfComplete();
-        console.log('📖 Loaded image data:', loadedImageData);
         setImageData(loadedImageData);
+        
+        // Check if images were already confirmed and reflection submitted
+        if (loadedImageData.selectedImages.length > 0) {
+          setImagesConfirmed(true);
+        }
+        if (loadedImageData.imageMeaning && loadedImageData.imageMeaning.trim().length >= 5) {
+          setReflectionSubmitted(true);
+        }
       } catch (error) {
-        console.error('❌ Error loading Future Self data:', error);
+        console.error('Error loading Future Self data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -60,15 +70,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     loadData();
   }, []);
 
-  // Save function for image data
+  // Save function for image data (without auto-saving on every keystroke)
   const saveImageData = async () => {
     if (isStepLocked) {
-      console.log('🔒 Step is locked, skipping save');
-      return;
+      return false;
     }
 
     try {
-      console.log('💾 Saving image data...', imageData);
       // We need to get the text reflections from FutureSelfReflections component
       // For now, we'll save just the image data with properly formatted empty reflections
       const emptyReflections = {
@@ -79,55 +87,24 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       const result = await saveFutureSelfComplete(emptyReflections, imageData);
 
       if (result.success) {
-        console.log('✅ Image data saved successfully');
+        return true;
       } else {
-        console.error('❌ Failed to save image data:', result.error);
         toast({
           title: "Save failed",
           description: "Failed to save your image selections. Please try again.",
           variant: "destructive"
         });
+        return false;
       }
     } catch (error) {
-      console.error('❌ Error saving image data:', error);
       toast({
         title: "Save failed",
         description: "An error occurred while saving. Please try again.",
         variant: "destructive"
       });
+      return false;
     }
   };
-
-  // Auto-save when image data changes
-  useEffect(() => {
-    console.log('🔄 Auto-save check:', {
-      isLoading,
-      selectedImages: imageData.selectedImages.length,
-      imageMeaning: imageData.imageMeaning.trim().length
-    });
-
-    // Auto-save when we have images selected OR meaningful text (matching server validation)
-    const hasSelectedImages = imageData.selectedImages.length > 0;
-    const hasMeaningfulText = imageData.imageMeaning.trim().length >= 5; // Match server validation
-    const shouldSave = hasSelectedImages || hasMeaningfulText;
-
-    if (!isLoading && shouldSave) {
-      console.log('⏰ Auto-save scheduled in 1 second...');
-      // Debounce the save to avoid too many calls
-      const timeoutId = setTimeout(() => {
-        console.log('💾 Auto-save triggered with validation criteria met');
-        saveImageData();
-      }, 1000);
-
-      return () => clearTimeout(timeoutId);
-    } else {
-      console.log('❌ Auto-save skipped - validation criteria not met:', {
-        hasSelectedImages,
-        hasMeaningfulText,
-        shouldSave
-      });
-    }
-  }, [imageData, isLoading]);
 
   // Image handling functions
   const handleSearch = async () => {
@@ -161,8 +138,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     if (imageData.selectedImages.length >= 2) {
       toast({
         title: "Maximum images reached",
-        description: "You can select up to 2 images maximum.",
-        variant: "destructive"
+        description: "To add another image, please delete one first.",
+        variant: "default"
       });
       return;
     }
@@ -220,8 +197,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     if (imageData.selectedImages.length >= 2) {
       toast({
         title: "Maximum images reached",
-        description: "You can select up to 2 images maximum.",
-        variant: "destructive"
+        description: "To add another image, please delete one first.",
+        variant: "default"
       });
       return;
     }
@@ -293,6 +270,50 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     reader.readAsDataURL(file);
   };
 
+  // NEW: Handle "These are my images" confirmation
+  const handleConfirmImages = async () => {
+    if (imageData.selectedImages.length === 0) {
+      toast({
+        title: "No images selected",
+        description: "Please select at least one image before proceeding.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const saved = await saveImageData();
+    if (saved) {
+      setImagesConfirmed(true);
+      toast({
+        title: "Images confirmed!",
+        description: "Now describe what these images represent.",
+        duration: 3000
+      });
+    }
+  };
+
+  // NEW: Handle reflection submission
+  const handleSubmitReflection = async () => {
+    if (imageData.imageMeaning.trim().length < 5) {
+      toast({
+        title: "Reflection too short",
+        description: "Please provide a more detailed description of what these images represent.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const saved = await saveImageData();
+    if (saved) {
+      setReflectionSubmitted(true);
+      toast({
+        title: "Reflection saved!",
+        description: "Now you can continue with your future self reflections.",
+        duration: 3000
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -323,22 +344,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
       {/* Full-width container */}
       <div className="w-full px-6 py-8">
-        
-        {/* Demo button - Only for test users - TEMPORARILY COMMENTED OUT */}
-        {/*
-        {!workshopCompleted && shouldShowDemoButtons && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={fillDemoData}
-              className="text-gray-500 hover:text-gray-700 text-xs"
-            >
-              Demo
-            </Button>
-          </div>
-        )}
-        */}
 
         {/* Video Section */}
         <div className="max-w-4xl mx-auto mb-12">
@@ -354,7 +359,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="max-w-4xl mx-auto mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Future Self Journey</h1>
           
-          {/* Image Selection Section */}
+          {/* STEP 1: Image Selection */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Visualize Your Future Self</h2>
             
@@ -368,6 +373,12 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             <div className="mb-6">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-medium">Your Selected Images ({imageData.selectedImages.length}/2)</h3>
+                {imagesConfirmed && (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <Check className="w-4 h-4" />
+                    <span className="text-sm">Confirmed</span>
+                  </div>
+                )}
               </div>
 
               {imageData.selectedImages.length > 0 ? (
@@ -428,7 +439,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               )}
             </div>
 
-            {/* Search interface */}
+            {/* Search interface - always show for adding/changing images */}
             {!workshopCompleted && (
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-6">
                 <h3 className="text-lg font-medium mb-4">Find Images</h3>
@@ -481,6 +492,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                         accept="image/*" 
                         className="hidden"
                         onChange={handleFileUpload}
+                        disabled={isStepLocked}
                       />
                     </label>
                     <p className="text-xs text-gray-500 mt-1">Maximum file size: 10MB</p>
@@ -495,18 +507,20 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                           <div 
                             key={image.id} 
                             className="relative group rounded-md overflow-hidden border border-gray-200 cursor-pointer"
-                            onClick={() => addImage(image)}
+                            onClick={() => !isStepLocked && addImage(image)}
                           >
                             <img 
                               src={image.urls.regular} 
                               alt={`Search result for ${searchQuery}`}
                               className="w-full h-32 object-cover"
                             />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all">
-                              <div className="bg-white rounded-full p-1 transform scale-0 group-hover:scale-100 transition-transform">
-                                <Plus className="h-5 w-5 text-indigo-600" />
+                            {!isStepLocked && (
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all">
+                                <div className="bg-white rounded-full p-1 transform scale-0 group-hover:scale-100 transition-transform">
+                                  <Plus className="h-5 w-5 text-indigo-600" />
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -516,66 +530,117 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               </div>
             )}
 
-            {/* Image meaning */}
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
-              <h3 className="text-lg font-medium text-purple-800 mb-3">What do these images represent?</h3>
-              <p className="text-sm text-purple-600 mb-4">
-                Explain what these images symbolize about your future self and aspirations.
-              </p>
-              <Textarea
-                value={imageData.imageMeaning}
-                onChange={(e) => {
-                  console.log('📝 Image meaning text changed:', e.target.value);
-                  setImageData(prev => ({ ...prev, imageMeaning: e.target.value }));
-                }}
-                placeholder={isStepLocked ? "This step is locked - view only" : "These images represent my future self because..."}
-                className={`w-full p-2 min-h-[120px] border border-gray-300 rounded-md ${
-                  isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
-                }`}
-                disabled={isStepLocked}
-                readOnly={isStepLocked}
-              />
-              {/* Manual save button for testing */}
-              {!isStepLocked && (
-                <div className="mt-3">
-                  <Button
-                    onClick={saveImageData}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                  >
-                    <Save className="w-3 h-3 mr-1" />
-                    Save Image Data
-                  </Button>
+            {/* Images confirmation section - moved to bottom */}
+            {!workshopCompleted && imageData.selectedImages.length > 0 && (
+              <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-100 mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-indigo-800">Ready to proceed with these images?</h3>
+                  {imagesConfirmed && (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Check className="w-4 h-4" />
+                      <span className="text-sm">Confirmed</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+                
+                {!imagesConfirmed ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-indigo-600">
+                      You have selected {imageData.selectedImages.length} image{imageData.selectedImages.length > 1 ? 's' : ''}. 
+                      You can still add more images or remove existing ones above.
+                    </p>
+                    <Button
+                      onClick={handleConfirmImages}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2"
+                    >
+                      <Check className="w-4 h-4 mr-2" />
+                      These are my images
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-indigo-600">
+                      Images confirmed! You can still change your selection by removing images above and selecting new ones.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setImagesConfirmed(false);
+                        setReflectionSubmitted(false);
+                        setImageData(prev => ({ ...prev, imageMeaning: '' }));
+                      }}
+                      variant="outline"
+                      className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                    >
+                      Change my image selection
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 2: Image meaning reflection - only show after images confirmed */}
+            {imagesConfirmed && !reflectionSubmitted && (
+              <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
+                <h3 className="text-lg font-medium text-purple-800 mb-3">What do these images represent?</h3>
+                <p className="text-sm text-purple-600 mb-4">
+                  Explain what these images symbolize about your future self and aspirations.
+                </p>
+                <Textarea
+                  value={imageData.imageMeaning}
+                  onChange={(e) => setImageData(prev => ({ ...prev, imageMeaning: e.target.value }))}
+                  placeholder={isStepLocked ? "This step is locked - view only" : "These images represent my future self because..."}
+                  className={`w-full p-2 min-h-[120px] border border-gray-300 rounded-md mb-4 ${
+                    isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+                  }`}
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
+                />
+                <Button
+                  onClick={handleSubmitReflection}
+                  disabled={isStepLocked || imageData.imageMeaning.trim().length < 5}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2"
+                >
+                  Submit Reflection
+                </Button>
+              </div>
+            )}
+
+            {/* Show completed reflection if already submitted */}
+            {reflectionSubmitted && (
+              <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
+                <h3 className="text-lg font-medium text-purple-800 mb-3">What these images represent:</h3>
+                <div className="bg-white p-4 rounded border">
+                  <p className="text-gray-700">{imageData.imageMeaning}</p>
+                </div>
+                <div className="flex items-center gap-2 text-green-600 mt-3">
+                  <Check className="w-4 h-4" />
+                  <span className="text-sm">Reflection submitted</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-
-
-        {/* Reflections Header */}
-        {!workshopCompleted && (
-          <div className="section-headers-tabs-60 mb-4">
-            <div className="section-headers-pill-60 section-headers-pill-60--reflection">
-              <div className="section-headers-pill-60__strip" aria-hidden="true" />
-              <div className="section-headers-pill-60__box">🤔 Reflections</div>
+        {/* STEP 3: Reflections section - only show after reflection submitted */}
+        {reflectionSubmitted && !workshopCompleted && (
+          <>
+            <div className="section-headers-tabs-60 mb-4">
+              <div className="section-headers-pill-60 section-headers-pill-60--reflection">
+                <div className="section-headers-pill-60__strip" aria-hidden="true" />
+                <div className="section-headers-pill-60__box">🤔 Reflections</div>
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Progressive Future Self Reflections */}
-        {!workshopCompleted && (
-          <FutureSelfReflections
-            onComplete={() => {
-              // Navigate to final reflection step
-              markStepCompleted('3-2');
-              setCurrentContent('final-reflection');
-            }}
-            setCurrentContent={setCurrentContent}
-            markStepCompleted={markStepCompleted}
-          />
+            <FutureSelfReflections
+              onComplete={() => {
+                // Navigate to final reflection step
+                markStepCompleted('3-2');
+                setCurrentContent('final-reflection');
+              }}
+              setCurrentContent={setCurrentContent}
+              markStepCompleted={markStepCompleted}
+            />
+          </>
         )}
 
         {/* Show completed message if workshop is done */}

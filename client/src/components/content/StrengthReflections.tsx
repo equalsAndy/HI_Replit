@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, ChevronRight } from 'lucide-react';
+import { CheckCircle, ChevronRight, ChevronDown, ChevronUp, Lightbulb, ListChecks } from 'lucide-react';
 import { saveStrengthReflections, loadStrengthReflections } from '@/utils/saveStrengthReflections';
 
 interface StrengthData {
@@ -101,6 +101,12 @@ export default function StrengthReflections({
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Expandable section states
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
+  const [userHasInteractedWithSuggestions, setUserHasInteractedWithSuggestions] = useState(false);
+  const [userHasInteractedWithExamples, setUserHasInteractedWithExamples] = useState(false);
+
   // Build reflection configs
   const reflectionConfigs = React.useMemo(() => {
     const strengthConfigs = strengths.map((s, i) => {
@@ -158,6 +164,22 @@ export default function StrengthReflections({
 
     return [...strengthConfigs, teamValuesConfig, uniqueContributionConfig];
   }, [strengths]);
+
+  // Smart defaults: Auto-expand suggestions for first reflection if user hasn't interacted
+  useEffect(() => {
+    if (currentIndex === 0 && !userHasInteractedWithSuggestions && !userHasInteractedWithExamples) {
+      setShowSuggestions(true);
+    }
+  }, [currentIndex, userHasInteractedWithSuggestions, userHasInteractedWithExamples]);
+
+  // Reset expandable states when changing reflections, but respect user preferences
+  useEffect(() => {
+    // Only reset if user hasn't set their preferences
+    if (!userHasInteractedWithSuggestions && !userHasInteractedWithExamples) {
+      setShowSuggestions(currentIndex === 0); // Show for first reflection
+      setShowExamples(false);
+    }
+  }, [currentIndex, userHasInteractedWithSuggestions, userHasInteractedWithExamples]);
 
   // Load existing reflections on mount
   useEffect(() => {
@@ -281,11 +303,22 @@ export default function StrengthReflections({
     }
   };
 
+  // Handle expandable section toggles
+  const toggleSuggestions = () => {
+    setShowSuggestions(!showSuggestions);
+    setUserHasInteractedWithSuggestions(true);
+  };
+
+  const toggleExamples = () => {
+    setShowExamples(!showExamples);
+    setUserHasInteractedWithExamples(true);
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto text-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading your reflections...</p>
+        <p className="text-base text-gray-600">Loading your reflections...</p>
         <p className="text-sm text-gray-400 mt-2">Check console for loading details</p>
       </div>
     );
@@ -316,7 +349,7 @@ export default function StrengthReflections({
           Take time to reflect deeply on how your strengths show up in your life and work. 
           Understanding how your unique strengths work together helps you maximize your potential.
         </p>
-        <div className="text-sm text-gray-500">
+        <div className="text-base text-gray-500">
           {completedIndices.size} of {reflectionConfigs.length} completed
         </div>
       </div>
@@ -369,59 +402,105 @@ export default function StrengthReflections({
         <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
           {/* Header */}
           <div className={`px-6 py-4 border-b border-gray-200 ${currentReflection.strengthColor?.bg || 'bg-gray-50'}`}>
-            <h3 className={`text-xl font-bold ${currentReflection.strengthColor?.text || 'text-gray-900'}`}>
+            <h3 className={`text-2xl font-bold ${currentReflection.strengthColor?.text || 'text-gray-900'}`}>
               {currentReflection.question}
             </h3>
           </div>
 
           <div className="p-6">
-            {/* Instruction and guidance */}
+            {/* Main Instruction - larger font */}
             <div className="mb-6">
-              <h4 className="font-semibold text-gray-900 mb-3">{currentReflection.instruction}</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">{currentReflection.instruction}</h4>
               
+              {/* Expandable Suggestions Section */}
               {currentReflection.bullets.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Consider reflecting on:</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                    {currentReflection.bullets.map((bullet, index) => (
-                      <li key={index}>{bullet}</li>
-                    ))}
-                  </ul>
+                  <button
+                    onClick={toggleSuggestions}
+                    className="flex items-center w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-all duration-200"
+                  >
+                    <ListChecks className="w-5 h-5 text-indigo-600 mr-3" />
+                    <span className="text-base font-medium text-gray-800 flex-1">
+                      Reflection Suggestions
+                    </span>
+                    {showSuggestions ? (
+                      <ChevronUp className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                    )}
+                  </button>
+                  
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    showSuggestions ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}>
+                    <div className="pt-4 pl-11">
+                      <p className="text-base text-gray-600 mb-3">Consider reflecting on:</p>
+                      <ul className="list-disc list-inside space-y-2 text-base text-gray-700">
+                        {currentReflection.bullets.map((bullet, index) => (
+                          <li key={index} className="leading-relaxed">{bullet}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               )}
 
+              {/* Expandable Examples Section */}
               {currentReflection.examples.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Examples:</p>
-                  {currentReflection.examples.map((example, index) => (
-                    <div key={index} className="bg-gray-50 p-3 rounded text-sm text-gray-700 mb-2 italic">
-                      "{example}"
+                  <button
+                    onClick={toggleExamples}
+                    className="flex items-center w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-all duration-200"
+                  >
+                    <Lightbulb className="w-5 h-5 text-blue-600 mr-3" />
+                    <span className="text-base font-medium text-gray-800 flex-1">
+                      Example Responses
+                    </span>
+                    {showExamples ? (
+                      <ChevronUp className="w-5 h-5 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                    )}
+                  </button>
+                  
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    showExamples ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}>
+                    <div className="pt-4 pl-11">
+                      {currentReflection.examples.map((example, index) => (
+                        <div key={index} className="bg-blue-50 p-4 rounded-lg text-base text-gray-700 mb-3 italic leading-relaxed border-l-4 border-blue-300">
+                          "{example}"
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Textarea */}
+            {/* Response Textarea - Enhanced */}
             <div className="mb-6">
+              <label className="block text-lg font-medium text-gray-900 mb-3">
+                Your Response
+              </label>
               <textarea
                 ref={textareaRef}
                 value={currentResponse}
                 onChange={(e) => handleResponseChange(e.target.value)}
                 placeholder="Share your thoughts here..."
-                className="w-full min-h-[150px] p-4 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 disabled={isSaving}
               />
-              <div className="flex justify-between mt-2">
-                <div className="text-sm text-gray-500">
+              <div className="flex justify-between mt-3">
+                <div className="text-base text-gray-500">
                   {currentResponse.trim().length} characters
                   {currentReflection.minLength && (
                     <span className="ml-2">(minimum {currentReflection.minLength})</span>
                   )}
                 </div>
                 {isCurrentComplete && (
-                  <div className="text-sm text-green-600 flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-1" />
+                  <div className="text-base text-green-600 flex items-center">
+                    <CheckCircle className="w-5 h-5 mr-2" />
                     Complete
                   </div>
                 )}
@@ -430,7 +509,7 @@ export default function StrengthReflections({
 
             {/* Action Buttons */}
             <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
+              <div className="text-base text-gray-500">
                 Reflection {currentIndex + 1} of {reflectionConfigs.length}
                 {allReflectionsCompleted && isEditing && (
                   <span className="ml-2 text-blue-600">• Editing</span>
@@ -441,7 +520,7 @@ export default function StrengthReflections({
                 {allReflectionsCompleted && isEditing ? (
                   <Button
                     onClick={() => setIsEditing(false)}
-                    className="bg-gray-600 hover:bg-gray-700"
+                    className="bg-gray-600 hover:bg-gray-700 text-base px-6 py-3"
                   >
                     Done Editing
                   </Button>
@@ -449,23 +528,23 @@ export default function StrengthReflections({
                   <Button
                     onClick={handleNext}
                     disabled={!isCurrentComplete || isSaving}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
+                    className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-base px-6 py-3"
                   >
-                    Next <ChevronRight className="ml-1 w-4 h-4" />
+                    Next <ChevronRight className="ml-2 w-5 h-5" />
                   </Button>
                 ) : !completedIndices.has(currentIndex) && isCurrentComplete ? (
                   <Button
                     onClick={handleNext}
                     disabled={isSaving}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
+                    className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-base px-6 py-3"
                   >
-                    Mark Complete <ChevronRight className="ml-1 w-4 h-4" />
+                    Mark Complete <ChevronRight className="ml-2 w-5 h-5" />
                   </Button>
                 ) : allCompleted ? (
                   <Button
                     onClick={handleComplete}
                     disabled={isSaving}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-green-400"
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-base px-6 py-3"
                   >
                     {isSaving ? (
                       <>
@@ -477,7 +556,7 @@ export default function StrengthReflections({
                     )}
                   </Button>
                 ) : (
-                  <Button disabled className="bg-gray-300 cursor-not-allowed">
+                  <Button disabled className="bg-gray-300 cursor-not-allowed text-base px-6 py-3">
                     Complete all reflections to continue
                   </Button>
                 )}
@@ -490,8 +569,8 @@ export default function StrengthReflections({
       {/* Completed Reflections Summary */}
       {completedIndices.size > 0 && (
         <div className="mt-8">
-          <h4 className="text-lg font-semibold text-gray-900 mb-2">Your Completed Reflections:</h4>
-          <p className="text-sm text-gray-600 mb-4">Click on any completed reflection below to review and edit your response.</p>
+          <h4 className="text-xl font-semibold text-gray-900 mb-4">Your Completed Reflections:</h4>
+          <p className="text-base text-gray-600 mb-4">Click on any completed reflection below to review and edit your response.</p>
           <div className="space-y-3">
             {Array.from(completedIndices)
               .sort((a, b) => a - b)
@@ -511,7 +590,7 @@ export default function StrengthReflections({
                     }}
                     className="w-full bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border text-left transition-colors"
                   >
-                    <h5 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <h5 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
                       <div className={`w-16 h-16 rounded flex items-center justify-center text-xs font-bold text-white mr-3 ${reflection.strengthColor?.bg}`}>
                         {index < 4 ? (
                           reflection.strengthColor?.name || `STR${index + 1}`
@@ -523,7 +602,7 @@ export default function StrengthReflections({
                       </div>
                       {reflection.question}
                     </h5>
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-base text-gray-600 line-clamp-2 leading-relaxed">
                       {response?.substring(0, 150)}
                       {response && response.length > 150 ? '...' : ''}
                     </p>
@@ -536,7 +615,9 @@ export default function StrengthReflections({
 
       {/* Continue Button when all completed and not editing */}
       {allReflectionsCompleted && !isEditingMode && (
-        <div className="mt-8 text-center">
+        <div className="mt-12 text-center border-t border-gray-200 pt-8">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Ready to Continue?</h4>
+          <p className="text-gray-600 mb-6">You've completed all your strength reflections. Continue to explore Flow Patterns.</p>
           <Button
             onClick={handleComplete}
             disabled={isSaving}
