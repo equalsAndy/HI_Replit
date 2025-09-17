@@ -2950,24 +2950,36 @@ workshopDataRouter.get('/completion-status', authenticateUser, async (req: Reque
 workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { appType } = req.body; // 'ast' or 'ia'
-    const userId = (req.session as any).userId;
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!appType || !['ast', 'ia'].includes(appType)) {
       return res.status(400).json({ error: 'Invalid app type. Must be "ast" or "ia"' });
     }
     
-    // Get user's navigation progress to verify completion
-    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user[0]) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    // FIXED: Read from navigationProgress table instead of users.navigationProgress column
+    const navigationData = await db
+      .select()
+      .from(schema.navigationProgress)
+      .where(
+        and(
+          eq(schema.navigationProgress.userId, userId),
+          eq(schema.navigationProgress.appType, appType)
+        )
+      );
     
-    // Parse navigation progress
-    let progress;
+    if (navigationData.length === 0) {
+      return res.status(400).json({
+        error: 'No navigation progress found',
+        missingSteps: []
+      });
+    }
+
+    // FIXED: Parse completed steps from correct table structure
+    let completedSteps: string[] = [];
     try {
-      progress = JSON.parse(user[0].navigationProgress || '{}');
+      completedSteps = JSON.parse(navigationData[0].completedSteps);
     } catch (e) {
-      progress = {};
+      completedSteps = [];
     }
     
     // Define required steps for each workshop type (only core modules 1-3 for AST)
@@ -2975,7 +2987,6 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
       ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4']
       : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
     
-    const completedSteps = progress[appType]?.completedSteps || [];
     const allCompleted = requiredSteps.every(step => completedSteps.includes(step));
 
     console.log(`🔍 Workshop completion check for user ${userId} (${appType.toUpperCase()}):`);
@@ -2993,6 +3004,11 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
     }
     
     // Check if already completed
+    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user[0]) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
     const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
     if (user[0][completionField]) {
       return res.status(400).json({ error: 'Workshop already completed' });
@@ -3009,32 +3025,12 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
       })
       .where(eq(users.id, userId));
 
-    // For AST workshop completion, auto-generate StarCard and unlock holistic reports
+    // For AST workshop completion, auto-generate StarCard
     if (appType === 'ast') {
       try {
-        console.log(`🎯 AST workshop completed for user ${userId}, generating StarCard and unlocking reports...`);
-        
-        // Auto-generate StarCard PNG and store in photo service
+        console.log(`🎯 AST workshop completed for user ${userId}, generating StarCard...`);
         await generateAndStoreStarCard(userId);
-        
-        // Update navigation progress to unlock holistic reports (step 5-2)
-        const updatedProgress = {
-          ...progress,
-          ast: {
-            ...progress.ast,
-            holisticReportsUnlocked: true,
-            completedSteps: [...(progress.ast?.completedSteps || []), '5-2'].filter((step, index, arr) => arr.indexOf(step) === index)
-          }
-        };
-        
-        await db.update(users)
-          .set({ 
-            navigationProgress: JSON.stringify(updatedProgress)
-          })
-          .where(eq(users.id, userId));
-          
-        console.log(`✅ StarCard generated and holistic reports unlocked for user ${userId}`);
-        
+        console.log(`✅ StarCard generated for user ${userId}`);
       } catch (starCardError) {
         console.error(`⚠️ Failed to generate StarCard for user ${userId}:`, starCardError);
         // Don't fail the workshop completion, just log the error
@@ -3044,8 +3040,7 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
     res.json({ 
       success: true, 
       message: `${appType.toUpperCase()} workshop completed successfully`,
-      completedAt: completedAt.toISOString(),
-      holisticReportsUnlocked: appType === 'ast' ? true : false
+      completedAt: completedAt.toISOString()
     });
   } catch (error) {
     console.error('Error completing workshop:', error);
