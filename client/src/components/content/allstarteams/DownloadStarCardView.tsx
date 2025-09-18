@@ -106,7 +106,7 @@ export default function DownloadStarCardView({
       await downloadElementAsImage(starCardRef.current, filename);
       
       console.log('Download completed successfully');
-      markStepCompleted('5-1');
+      // Removed markStepCompleted call - star card download should not advance menu
     } catch (error) {
       console.error('Error generating star card image:', error);
       alert('Download failed. Please try right-clicking on your star card and selecting "Save as Image"');
@@ -114,7 +114,7 @@ export default function DownloadStarCardView({
   };
 
   const handleNext = () => {
-    markStepCompleted('5-1');
+    // Removed markStepCompleted call - navigation should not advance menu
     setCurrentContent('holistic-report');
   };
 

@@ -141,11 +141,11 @@ export default function HolisticReportView({
     }
   };
 
-  // Mark step as completed when user has generated at least one report
+  // Track report completion for user experience
   useEffect(() => {
     const hasCompletedReport = standardStatus?.status === 'completed' || personalStatus?.status === 'completed';
     if (hasCompletedReport) {
-      markStepCompleted('5-2');
+      // Removed markStepCompleted call - report generation should not advance menu
       
       // For beta testers, automatically mark as having viewed reports when they're completed and displayed
       if ((user?.isBetaTester || user?.role === 'admin') && !hasViewedReport) {

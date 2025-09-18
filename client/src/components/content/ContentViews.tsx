@@ -89,17 +89,34 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       return (
         <ImaginalAgilityContent 
           stepId={currentContent}
-          onNext={(nextStepId) => {
+          onNext={async (nextStepId) => {
             if (nextStepId && markStepCompleted && setCurrentContent) {
               console.log(`🧭 IA Navigation: ${currentContent} → ${nextStepId}`);
-              markStepCompleted(currentContent);
-              setCurrentContent(nextStepId);
-              scrollToContentTop();
               
-              // Dispatch event to notify navigation system about the progression
-              window.dispatchEvent(new CustomEvent('iaStepProgression', {
-                detail: { fromStep: currentContent, toStep: nextStepId }
-              }));
+              try {
+                // Mark current step completed and get actual next step from navigation
+                const result = await markStepCompleted(currentContent);
+                const targetStep = result || nextStepId;
+                
+                console.log(`🧭 IA Navigation Result: targeting ${targetStep}`);
+                
+                // Add small delay to ensure state updates propagate
+                setTimeout(() => {
+                  setCurrentContent(targetStep);
+                  scrollToContentTop();
+                  
+                  // Dispatch event to notify navigation system about the progression
+                  window.dispatchEvent(new CustomEvent('iaStepProgression', {
+                    detail: { fromStep: currentContent, toStep: targetStep }
+                  }));
+                }, 100);
+              } catch (error) {
+                console.error(`❌ IA Navigation Error:`, error);
+                // Fallback to original behavior
+                markStepCompleted(currentContent);
+                setCurrentContent(nextStepId);
+                scrollToContentTop();
+              }
             }
           }}
           onOpenAssessment={() => {

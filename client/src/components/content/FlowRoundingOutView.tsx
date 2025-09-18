@@ -82,10 +82,6 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         </div>
       )}
 
-      {/* Video Player */}
-      <div className="mb-8">
-        <AstLessonContent stepId="2-3" />
-      </div>
 
       {/* Flow Principles Cards */}
       <div className="flex flex-col md:flex-row gap-6 mb-8">

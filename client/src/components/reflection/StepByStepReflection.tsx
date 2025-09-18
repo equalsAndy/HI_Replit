@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { StrengthData } from '@/types/coaching';
 import ReflectionCoachingButton from '@/components/coaching/ReflectionCoachingButton';
 import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
+import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
 
 // Simple debounce utility
 const debounce = (func: Function, wait: number) => {
@@ -873,23 +874,19 @@ export default function StepByStepReflection({
                   <label className="block text-lg font-medium text-gray-900 mb-3">
                     Your Response
                   </label>
-                  <textarea 
-                    id={`strength-${currentStep}-reflection`}
-                    value={getCurrentReflectionText()}
-                    onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
-                    disabled={workshopLocked}
-                    readOnly={workshopLocked}
-                    placeholder={currentStep <= 4 
-                      ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
-                      : currentStep === 5 
-                      ? "Describe the team environment where you perform at your best..."
-                      : "Describe your unique contribution to the team..."}
-                    className={`w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-vertical focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      workshopLocked
-                        ? 'opacity-60 cursor-not-allowed bg-gray-100'
-                        : 'bg-white'
-                    }`}
-                  />
+                  <LockedInputWrapper stepId="2-4">
+                    <textarea
+                      id={`strength-${currentStep}-reflection`}
+                      value={getCurrentReflectionText()}
+                      onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
+                      placeholder={currentStep <= 4
+                        ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
+                        : currentStep === 5
+                        ? "Describe the team environment where you perform at your best..."
+                        : "Describe your unique contribution to the team..."}
+                      className="w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-vertical focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
+                    />
+                  </LockedInputWrapper>
                   <div className="flex justify-between mt-3">
                     <div className="text-base text-gray-500">
                       {getCurrentReflectionText().length} characters (minimum 10)

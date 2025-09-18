@@ -118,7 +118,7 @@ export default function GrowthPlanView({
     if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
     } else {
-      markStepCompleted('5-3');
+      // Removed markStepCompleted call - growth plan completion should not advance menu
       
       // Beta users should go to team workshop prep instead of final report
       if (user?.isBetaTester && user?.role !== 'admin') {

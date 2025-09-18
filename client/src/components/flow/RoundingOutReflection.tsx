@@ -174,16 +174,16 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
           className="min-h-[120px] mb-4 border border-gray-300"
         />
         
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={prevQuestion}
-            disabled={currentQuestion === 0}
-          >
-            Previous
-          </Button>
-          
+        <div className="flex justify-center">
           <div className="flex items-center gap-3">
+            {currentQuestion > 0 && (
+              <Button
+                variant="outline"
+                onClick={prevQuestion}
+              >
+                Previous
+              </Button>
+            )}
             {shouldShowDemoButtons && (
               <Button 
                 variant="ghost" 
@@ -197,7 +197,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
             )}
             <Button
               onClick={nextQuestion}
-              className="bg-indigo-700 hover:bg-indigo-800 ml-2"
+              className="bg-green-600 hover:bg-green-700"
               disabled={currentAnswer.trim().length === 0}
               data-continue-button={currentQuestion === roundingOutQuestions.length - 1 ? "true" : undefined}
             >

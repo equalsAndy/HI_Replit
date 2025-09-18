@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
+import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
 import { 
   Tooltip,
   TooltipContent,
@@ -731,8 +732,9 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
             <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
           </p>
           
-          <div className="mb-8 relative">
-            <div className="h-16 relative">
+          <LockedInputWrapper stepId="2-3">
+            <div className="mb-8 relative">
+              <div className="h-16 relative">
               {/* Main track background */}
               <div className="absolute h-3 rounded-full bg-gray-200 w-full top-6 z-0 shadow-inner overflow-hidden">
                 {/* Gradient fill - animated for smoother transitions */}
@@ -828,7 +830,8 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
                 <span className="text-indigo-600">Always</span>
               </div>
             </div>
-          </div>
+            </div>
+          </LockedInputWrapper>
           
           {currentValue > 0 ? (
             <p className="text-center font-semibold mt-4">
@@ -850,12 +853,14 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
         
         <div className="flex flex-col items-center justify-center mb-4 space-y-2">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="auto-advance" 
-              checked={autoAdvance}
-              onCheckedChange={toggleAutoAdvance}
-              className="data-[state=checked]:bg-indigo-600"
-            />
+            <LockedInputWrapper stepId="2-3">
+              <Checkbox
+                id="auto-advance"
+                checked={autoAdvance}
+                onCheckedChange={toggleAutoAdvance}
+                className="data-[state=checked]:bg-indigo-600"
+              />
+            </LockedInputWrapper>
             <label
               htmlFor="auto-advance"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

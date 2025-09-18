@@ -11,6 +11,7 @@ import { youthAssessmentQuestions, optionCategoryMapping as youthOptionCategoryM
 import { QuadrantData } from '@shared/schema';
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 import { useTestUser } from '@/hooks/useTestUser';
+import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
 
 type Option = AssessmentOption;
 
@@ -810,7 +811,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
         <h3 className="text-lg font-medium text-indigo-700 mb-4">{currentQuestion.text}</h3>
 
         {/* Options to rank - displayed as draggable items */}
-        <div className="mb-4">
+        <LockedInputWrapper stepId="2-2">
+          <div className="mb-4">
           <div className="bg-amber-50 p-4 rounded-lg mb-4 min-h-[140px] flex flex-col justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto min-h-[100px]">
               {availableOptions.length > 0 ? (
@@ -935,7 +937,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Least like me</p>
             </div>
           </div>
-        </div>
+          </div>
+        </LockedInputWrapper>
 
         <div className="flex justify-between items-center pb-2">
           <div className="space-x-2">

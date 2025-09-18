@@ -222,10 +222,38 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 
 ## 🔐 Security & Standards
 
-**Environment Protection**: Development (open) → Staging (protected) → Production (restricted)  
-**Data Security**: Workshop-specific data, no cross-workshop sharing, secure API key management  
-**Code Documentation**: Use TypeScript JSDoc for complex functions  
+**Environment Protection**: Development (open) → Staging (protected) → Production (restricted)
+**Data Security**: Workshop-specific data, no cross-workshop sharing, secure API key management
+**Code Documentation**: Use TypeScript JSDoc for complex functions
 **API Documentation**: See `docs/API-ROUTES.md` for endpoint documentation
+
+## ☁️ AWS Parameter Store Access
+
+**Production Secrets**: All production API keys and configuration stored in AWS Parameter Store
+**Access Pattern**: `/prod/hi-replit/{PARAMETER_NAME}`
+
+**Common Parameters:**
+```bash
+# API Keys
+aws ssm get-parameter --name "/prod/hi-replit/OPENAI_API_KEY" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+aws ssm get-parameter --name "/prod/hi-replit/OPENAI_KEY_IA" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+
+# Database Configuration
+aws ssm get-parameter --name "/prod/hi-replit/DATABASE_URL" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+aws ssm get-parameter --name "/prod/hi-replit/SESSION_SECRET" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+
+# Feature Flags
+aws ssm get-parameter --name "/prod/hi-replit/FEATURE_HOLISTIC_REPORTS" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+aws ssm get-parameter --name "/prod/hi-replit/FEATURE_DEBUG_PANEL" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+
+# Auth0 Configuration
+aws ssm get-parameter --name "/prod/hi-replit/AUTH0_DOMAIN" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_CLIENT_ID" --with-decryption --query "Parameter.Value" --output text --region us-west-2
+```
+
+**Prerequisites**: AWS CLI configured with `HeliotropeAppDeployment` user credentials
+**Permissions**: Read access to `/prod/hi-replit/*` parameters only
+**Deployment**: See `deploy-to-production.sh` for full parameter list and usage
 
 ## 🎯 Development Priorities
 

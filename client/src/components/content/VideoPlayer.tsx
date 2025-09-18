@@ -167,16 +167,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const videoTitle = video?.title || title || 'Workshop Video';
 
-  // Debug logging for troubleshooting
-  console.log(`🎬 VideoPlayer Debug:`, {
-    stepId,
-    workshopType,
-    isLoading,
-    video: video ? { id: video.id, title: video.title, url: video.url, editableId: video.editableId } : null,
-    processedUrl,
-    noVideoAvailable,
-    hideWhenUnavailable
-  });
+  // Debug logging for troubleshooting - only in dev mode with flag
+  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
+    console.log(`🎬 VideoPlayer Debug:`, {
+      stepId,
+      workshopType,
+      isLoading,
+      video: video ? { id: video.id, title: video.title, url: video.url, editableId: video.editableId } : null,
+      processedUrl,
+      noVideoAvailable,
+      hideWhenUnavailable
+    });
+  }
 
   if (!processedUrl) {
     if (hideWhenUnavailable) {

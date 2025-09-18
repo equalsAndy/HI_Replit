@@ -9,8 +9,21 @@ const PROGRESSION_MODE = {
 
 const CURRENT_PROGRESSION_MODE = 'simplified' as const;
 
+// Define step categories for proper handling
+const RESOURCE_STEPS = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
+const PROGRESSIVE_STEPS = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
+
+const isResourceStep = (stepId: string): boolean => {
+  return RESOURCE_STEPS.includes(stepId);
+};
+
+const isProgressiveStep = (stepId: string): boolean => {
+  return PROGRESSIVE_STEPS.includes(stepId);
+};
+
 interface NavigationProgress {
-  completedSteps: string[];
+  completedSteps: string[];        // Only progressive steps (1-1 through 3-4)
+  visitedSteps: string[];          // Resource steps that user has viewed (4-1, 4-2, etc.)
   currentStepId: string;
   appType: 'ast' | 'ia';
   lastVisitedAt: string;
@@ -61,7 +74,10 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
 
   // IA Assessment steps - require completion
   if (stepId === 'ia-2-2') {
-    const isValid = !!userAssessments?.iaI4CAssessment;
+    // Check for multiple possible assessment data structures
+    const isValid = !!(userAssessments?.iaI4CAssessment || 
+                      userAssessments?.imaginalAgilityAssessment ||
+                      userAssessments?.iaAssessment);
     console.log(`📋 IA I4C assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
     return isValid;
   }
@@ -77,6 +93,12 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
     const isValid = !!userAssessments?.iaCoreCapabilities;
     console.log(`📋 IA Core Capabilities assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
     return isValid;
+  }
+
+  // For all other IA steps, allow next button to be active
+  if (stepId.startsWith('ia-')) {
+    console.log(`✅ SIMPLIFIED MODE: IA step ${stepId} - next button always active`);
+    return true;
   }
 
   // AST Assessment steps - still require completion
@@ -432,19 +454,20 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
 
 // Get next step prioritizing main sequence over resources (RENUMBERED)
 // SPECIAL CASE: After completing 3-4 (workshop completion), user stays on 3-4
+// POST-WORKSHOP: In modules 4 & 5, no automatic progression between steps
 const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
 
-  // Priority 1: Continue main sequence
+  // Priority 1: Continue main sequence (1-1 through 3-4)
   for (const step of mainSequence) {
     if (!completedSteps.includes(step)) {
       return step;
     }
   }
 
-  // SPECIAL CASE: If main sequence is complete (including 3-4), user stays on 3-4
-  // This is the workshop completion step - modules 4 & 5 unlock but user doesn't auto-advance
-  console.log(`🏆 WORKSHOP COMPLETED: All main steps finished, staying on 3-4 (workshop completion step)`);
+  // WORKSHOP COMPLETED: If main sequence is complete (including 3-4), user stays on 3-4
+  // Modules 4 & 5 are unlocked as resources but don't have automatic progression
+  console.log(`🏆 WORKSHOP COMPLETED: All main steps finished, staying on 3-4 (resource modules unlocked but no auto-progression)`);
   return '3-4';
 };
 
@@ -474,6 +497,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
+    visitedSteps: [],  // Initialize visited steps tracking
     currentStepId: appType === 'ia' ? 'ia-1-1' : '1-1',
     appType,
     lastVisitedAt: new Date().toISOString(),
@@ -682,7 +706,32 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
       completedSteps: progress.completedSteps.length
     });
 
-    // Check if already completed
+    // RESOURCE STEPS: Don't mark as completed, only track as visited
+    if (isResourceStep(stepId)) {
+      console.log(`📖 RESOURCE STEP: ${stepId} visited (not marked as completed)`);
+      
+      // Track as visited if not already
+      if (!progress.visitedSteps.includes(stepId)) {
+        const newVisitedSteps = [...progress.visitedSteps, stepId];
+        setProgress(prev => ({
+          ...prev,
+          visitedSteps: newVisitedSteps,
+          lastVisitedAt: new Date().toISOString()
+        }));
+        
+        // Sync visited steps to database
+        const updatedProgress = {
+          ...progress,
+          visitedSteps: newVisitedSteps,
+          lastVisitedAt: new Date().toISOString()
+        };
+        scheduleSync(updatedProgress);
+      }
+      
+      return progress.currentStepId; // Stay on current step, no advancement
+    }
+
+    // Check if already completed (for progressive steps only)
     if (progress.completedSteps.includes(stepId)) {
       console.log(`⚠️ Step ${stepId} already completed`);
       return progress.currentStepId;
@@ -722,18 +771,27 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     const newCompletedSteps = [...progress.completedSteps, stepId];
     const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps, appType);
     
-    // SPECIAL CASE: For step 3-4 (workshop completion), user stays on 3-4
+    // Check if workshop is already completed
+    const workshopCompleted = newCompletedSteps.includes('3-4') || progress.completedSteps.includes('3-4');
+    const isPostWorkshopStep = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'].includes(stepId);
+    
+    // ENHANCED NAVIGATION LOGIC: Handle post-workshop vs main workshop progression
     let nextStepId;
-    if (stepId === '3-4') {
-      nextStepId = '3-4'; // Stay on workshop completion step
+    if (workshopCompleted && isPostWorkshopStep) {
+      // POST-WORKSHOP: Stay on current step, no auto-advancement in resource modules
+      nextStepId = progress.currentStepId;
+      console.log(`🔒 POST-WORKSHOP: Step ${stepId} completed, staying on ${progress.currentStepId} (no auto-advancement in resource modules)`);
+    } else if (stepId === '3-4') {
+      // Workshop completion: stay on 3-4
+      nextStepId = '3-4';
       console.log(`🏆 WORKSHOP COMPLETION: Step 3-4 completed, staying on 3-4 and unlocking modules 4 & 5`);
     } else {
+      // Normal progression for main workshop steps 1-1 through 3-4
       nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
       console.log(`➡️ NORMAL PROGRESSION: Step ${stepId} completed, advancing to ${nextStepId}`);
     }
 
-    // Calculate workshop completion status
-    const workshopCompleted = isWorkshopCompleted(newCompletedSteps, appType);
+    // Calculate workshop completion status (already declared above)
 
     // Recalculate section expansion state
     const sectionExpansion = calculateSectionExpansion(
@@ -778,10 +836,13 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
       syncToDatabase(newProgress);
     }, 50); // Minimal delay to ensure React state update
 
+    // Force React Query to refetch navigation data to trigger UI updates
+    queryClient.invalidateQueries({ queryKey: [`/api/workshop-data/navigation-progress/${appType}`] });
+
     return nextStepId; // Return the next step ID for navigation
   };
 
-  // Set current step (for navigation)
+  // Set current step (for navigation) and mark resource steps as visited
   const setCurrentStep = (stepId: string) => {
     console.log(`🔄 SIMPLIFIED MODE: Navigating to step ${stepId}`);
 
@@ -791,6 +852,12 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         currentStepId: stepId,
         lastVisitedAt: new Date().toISOString()
       };
+
+      // If navigating to a resource step, mark it as visited
+      if (isResourceStep(stepId) && !prev.visitedSteps.includes(stepId)) {
+        newProgress.visitedSteps = [...prev.visitedSteps, stepId];
+        console.log(`📖 RESOURCE STEP: Marked ${stepId} as visited`);
+      }
 
       scheduleSync(newProgress);
       return newProgress;
@@ -914,17 +981,23 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   const getStepDisplayState = (stepId: string) => {
     const isCompleted = progress.completedSteps.includes(stepId);
+    const isVisited = progress.visitedSteps.includes(stepId);
     const isCurrent = progress.currentStepId === stepId;
     const isUnlocked = progress.unlockedSteps.includes(stepId);
     const canNavigate = canNavigateToStep(stepId);
+    const isResource = isResourceStep(stepId);
 
     return {
-      isCompleted,
+      isCompleted: isResource ? false : isCompleted,     // Resource steps never show as "completed"
+      isVisited: isResource ? isVisited : false,         // Only resource steps can be "visited"
       isCurrent,
       isUnlocked,
       canNavigate,
-      showGreenCheckmark: isCompleted,
-      displayState: isCompleted ? 'completed' : isCurrent ? 'current' : isUnlocked ? 'unlocked' : 'locked'
+      showGreenCheckmark: !isResource && isCompleted,    // No green checkmarks for resource steps
+      showVisitedBadge: isResource && isVisited,         // Visited badge for resource steps only
+      displayState: isResource 
+        ? (isVisited ? 'visited' : (isUnlocked ? 'unlocked' : 'locked'))
+        : (isCompleted ? 'completed' : (isCurrent ? 'current' : (isUnlocked ? 'unlocked' : 'locked')))
     };
   };
 
@@ -988,7 +1061,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   const getLastPosition = () => {
     // Return last video position data for resume functionality
-    const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
+    const videoSteps = ['1-1', '2-1', '3-1', '3-3', '4-1', '4-4'];
     for (const stepId of videoSteps.reverse()) {
       const videoData = progress.videoProgress[stepId];
       if (videoData && videoData.current > 0) {
@@ -1009,10 +1082,13 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     setCurrentStep,
     isStepAccessible,
     canProceedToNext,
-    shouldShowGreenCheckmark,
+    shouldShowGreenCheckmark: (stepId: string) => !isResourceStep(stepId) && progress.completedSteps.includes(stepId),
+    shouldShowVisitedBadge: (stepId: string) => isResourceStep(stepId) && progress.visitedSteps.includes(stepId),
     getVideoProgress,
     validateStepCompletion,
-    isVideoStep: (stepId: string) => ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId),
+    isVideoStep: (stepId: string) => ['1-1', '2-1', '3-1', '3-3', '4-1', '4-4'].includes(stepId),
+    isResourceStep,
+    isProgressiveStep,
     CURRENT_PROGRESSION_MODE,
 
     // Enhanced Next Button Functionality

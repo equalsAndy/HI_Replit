@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { ChevronRight, Search, Upload, Save, Image, X, Plus, FileText } from 'lucide-react';
@@ -13,6 +13,7 @@ import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { safeConsoleLog, filterPhotoDataFromObject } from '@shared/photo-data-filter';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -24,10 +25,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [imageMeaning, setImageMeaning] = useState('');
+  const [localImageMeaning, setLocalImageMeaning] = useState(''); // Local state to prevent console spam
   const [isSaving, setIsSaving] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState<{images: any[], meaning: string} | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const { toast } = useToast();
@@ -38,20 +41,32 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [validationError, setValidationError] = useState<string>('');
 
   // Check if current state differs from last saved state
-  const checkForUnsavedChanges = () => {
+  const checkForUnsavedChanges = useCallback(() => {
     if (!lastSavedState) {
-      // If we have any data but no saved state, we have unsaved changes
-      const hasData = selectedImages.length > 0 || imageMeaning.trim().length > 0;
-      setHasUnsavedChanges(hasData);
+      // If we haven't loaded yet, don't mark as having unsaved changes
+      setHasUnsavedChanges(false);
       return;
     }
     
     // Compare current state with last saved state
     const imagesDiffer = JSON.stringify(selectedImages) !== JSON.stringify(lastSavedState.images);
-    const meaningDiffer = imageMeaning.trim() !== lastSavedState.meaning.trim();
+    const meaningDiffer = localImageMeaning.trim() !== lastSavedState.meaning.trim(); // FIXED: Use local state
     
-    setHasUnsavedChanges(imagesDiffer || meaningDiffer);
-  };
+    const hasChanges = imagesDiffer || meaningDiffer;
+    setHasUnsavedChanges(hasChanges);
+
+    // Only log when there's an actual change, not on every keystroke
+    if (hasChanges !== hasUnsavedChanges) {
+      console.log('📊 VisualizingYouView: Unsaved changes check', {
+        hasLastSavedState: !!lastSavedState,
+        imagesDiffer,
+        meaningDiffer,
+        hasChanges,
+        currentImagesCount: selectedImages.length,
+        savedImagesCount: lastSavedState.images.length
+      });
+    }
+  }, [selectedImages, localImageMeaning, lastSavedState]); // FIXED: Use local state in dependencies
 
   // Handle navigation with unsaved changes check
   const handleNavigationAttempt = (navigationFn: () => void) => {
@@ -93,6 +108,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   // Load existing image data when component mounts
   useEffect(() => {
     const loadExistingData = async () => {
+      setIsLoading(true);
       try {
         safeConsoleLog('VisualizingYouView: Loading existing image data...');
         const response = await fetch('/api/workshop-data/visualizing-potential', {
@@ -103,9 +119,11 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         
         if (result.success && result.data) {
           safeConsoleLog('VisualizingYouView: Setting existing data:', filterPhotoDataFromObject(result.data));
-          if (result.data.selectedImages) {
-            // Process images to ensure database-stored images have proper URLs
-            const processedImages = result.data.selectedImages.map((image: any) => {
+          
+          // Process images to ensure database-stored images have proper URLs
+          let processedImages = [];
+          if (result.data.selectedImages && Array.isArray(result.data.selectedImages)) {
+            processedImages = result.data.selectedImages.map((image: any) => {
               if (image.source === 'upload' && image.photoId && !image.url.startsWith('http')) {
                 // Ensure database-stored images use the correct URL format
                 return {
@@ -115,41 +133,51 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
               }
               return image;
             });
-            setSelectedImages(processedImages);
-            
-            // Set last saved state
-            setLastSavedState({
-              images: processedImages,
-              meaning: result.data.imageMeaning || ''
-            });
-          }
-          if (result.data.imageMeaning) {
-            setImageMeaning(result.data.imageMeaning);
           }
           
-          // Set initial saved state
-          if (!lastSavedState) {
-            setLastSavedState({
-              images: processedImages || [],
-              meaning: result.data.imageMeaning || ''
-            });
-          }
+          const imageMeaningText = result.data.imageMeaning || '';
+          
+          // Set state with loaded data
+          setSelectedImages(processedImages);
+          setImageMeaning(imageMeaningText);
+          setLocalImageMeaning(imageMeaningText); // Sync local state
+          
+          // CRITICAL FIX: Set last saved state AFTER setting the actual state
+          // This prevents the component from thinking there are unsaved changes
+          setLastSavedState({
+            images: processedImages,
+            meaning: imageMeaningText
+          });
+          
+          console.log('✅ VisualizingYouView: Data loaded successfully', {
+            imagesCount: processedImages.length,
+            meaningLength: imageMeaningText.length,
+            hasLastSavedState: true
+          });
         } else {
           console.log('VisualizingYouView: No existing data found');
+          // Set empty saved state so component knows we've checked
           setLastSavedState({ images: [], meaning: '' });
         }
       } catch (error) {
-        console.log('VisualizingYouView: Error loading data:', error);
+        console.error('VisualizingYouView: Error loading data:', error);
+        // Even on error, set empty saved state to prevent loading loops
+        setLastSavedState({ images: [], meaning: '' });
+      } finally {
+        setIsLoading(false);
       }
     };
     
     loadExistingData();
   }, []);
 
-  // Track changes to selectedImages and imageMeaning
+  // Track changes to selectedImages and localImageMeaning
   useEffect(() => {
-    checkForUnsavedChanges();
-  }, [selectedImages, imageMeaning, lastSavedState]);
+    // Only check for changes after we've loaded initial data
+    if (lastSavedState !== null) {
+      checkForUnsavedChanges();
+    }
+  }, [selectedImages, localImageMeaning, checkForUnsavedChanges]); // FIXED: Use local state
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -313,12 +341,14 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
       return;
     }
 
+    // No need to sync here - we'll use localImageMeaning directly
+
     setIsSaving(true);
     try {
-      safeConsoleLog('VisualizingYouView: Saving images and meaning...', filterPhotoDataFromObject({
-        selectedImages,
-        imageMeaning
-      }));
+      console.log('💾 VisualizingYouView: Saving images and meaning...', {
+        selectedImagesCount: selectedImages.length,
+        imageMeaningLength: localImageMeaning.length
+      });
 
       const response = await fetch('/api/workshop-data/visualizing-potential', {
         method: 'POST',
@@ -326,19 +356,25 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         credentials: 'include',
         body: JSON.stringify({
           selectedImages,
-          imageMeaning
+          imageMeaning: localImageMeaning // FIXED: Use local state to prevent console spam
         })
       });
 
       const result = await response.json();
-      console.log('VisualizingYouView: Save response:', result);
+      console.log('💾 VisualizingYouView: Save response:', result);
 
       if (result.success) {
-        // Update last saved state
+        // CRITICAL FIX: Update last saved state immediately after successful save
         setLastSavedState({
-          images: selectedImages,
-          meaning: imageMeaning
+          images: [...selectedImages], // Create new array to avoid reference issues
+          meaning: localImageMeaning // FIXED: Use local state value
         });
+
+        // Sync main state with local state after successful save
+        setImageMeaning(localImageMeaning);
+
+        // Clear unsaved changes flag
+        setHasUnsavedChanges(false);
         
         toast({
           title: "Images saved!",
@@ -349,7 +385,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         throw new Error(result.error || 'Save failed');
       }
     } catch (error) {
-      console.error('VisualizingYouView: Save error:', error);
+      console.error('❌ VisualizingYouView: Save error:', error);
       toast({
         title: "Save failed",
         description: "There was an error saving your images. Please try again.",
@@ -468,6 +504,21 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     }
   };
 
+  // Show loading state while data is being loaded
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+            <span className="text-gray-600">Loading your images...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>      
       {/* Workshop Completion Banner */}
@@ -556,6 +607,18 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                   src={image.url} 
                   alt="Selected visualization" 
                   className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                  onLoad={() => console.log('✅ Image loaded successfully:', image.url)}
+                  onError={(e) => {
+                    console.error('❌ Image failed to load:', image.url);
+                    // For database images, try alternative URL format
+                    if (image.source === 'upload' && image.photoId) {
+                      const altUrl = `/api/photos/${image.photoId}`;
+                      if (e.currentTarget.src !== altUrl) {
+                        console.log('🔄 Retrying with alternative URL:', altUrl);
+                        e.currentTarget.src = altUrl;
+                      }
+                    }
+                  }}
                 />
                 <button
                   onClick={() => removeImage(image.id)}
@@ -598,11 +661,14 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             ))}
           </div>
         ) : (
-          <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-            <Image className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-            <p className="text-gray-500">No images selected yet</p>
-            <p className="text-sm text-gray-400 mt-1">Upload your own images or search for images below</p>
-          </div>
+          // Only show empty state if we're not loading and have confirmed no images
+          !isLoading && lastSavedState && (
+            <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+              <Image className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+              <p className="text-gray-500">No images selected yet</p>
+              <p className="text-sm text-gray-400 mt-1">Upload your own images or search for images below</p>
+            </div>
+          )
         )}
       </div>
 
@@ -664,15 +730,14 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           {searchResults.length > 0 && (
             <div>
               <h4 className="text-sm font-medium mb-2">Search results for "{searchQuery}":</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                {searchResults.map(image => (
-                  <div 
-                    key={image.id} 
-                    className={`relative group rounded-md overflow-hidden border border-gray-200 ${
-                      workshopCompleted ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-                    }`}
-                    onClick={() => workshopCompleted ? null : addImage(image)}
-                  >
+              <LockedInputWrapper stepId="3-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                  {searchResults.map(image => (
+                    <div
+                      key={image.id}
+                      className="relative group rounded-md overflow-hidden border border-gray-200 cursor-pointer"
+                      onClick={() => addImage(image)}
+                    >
                     <img 
                       src={image.urls.regular} 
                       alt={`Search result for ${searchQuery}`}
@@ -688,8 +753,9 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </LockedInputWrapper>
             </div>
           )}
 
@@ -722,8 +788,8 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           Explain what these images represent about your future vision. How do they connect to your strengths and flow state?
         </p>
         <textarea
-          value={imageMeaning}
-          onChange={(e) => setImageMeaning(e.target.value)}
+          value={localImageMeaning}
+          onChange={(e) => setLocalImageMeaning(e.target.value)}
           placeholder={workshopCompleted ? "This workshop is completed and locked for editing" : "These images represent my vision because..."}
           className={`w-full p-2 min-h-[120px] border border-gray-300 rounded-md ${
             workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
@@ -768,7 +834,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                 }
                 
                 // Validate that user has selected at least one image OR provided image meaning
-                if (selectedImages.length === 0 && imageMeaning.trim().length < 10) {
+                if (selectedImages.length === 0 && localImageMeaning.trim().length < 10) {
                   setValidationError('Please select at least one image or provide a description of what your future vision means to you');
                   return;
                 }

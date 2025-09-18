@@ -12,6 +12,7 @@ import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useApplication } from '@/hooks/use-application';
 import { BetaFinalReflectionModal } from '@/components/beta-testing/BetaFinalReflectionModal';
+import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -287,22 +288,6 @@ export default function FinalReflectionView({
     <>
 
 
-      {/* Workshop Completion Banner */}
-      {completed && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto mt-4">
-          <div className="flex items-center gap-3">
-            <FileText className="text-green-600" size={20} />
-            <div className="flex-1">
-              <h3 className="font-medium text-green-800">
-                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
-              </h3>
-            </div>
-            <div className="text-green-600">
-              🔒
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="final-reflection-container">
         <div className="content-layout">
@@ -316,32 +301,6 @@ export default function FinalReflectionView({
               />
             </div>
             
-            <div className="explanation-content">
-              <h3 className="explanation-title">What This Ladder Represents</h3>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">A Natural Progression</h4>
-                <p className="item-text">
-                  Each step builds on the one before — not in leaps, but in deepening awareness.
-                </p>
-              </div>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">Reflective Mirror</h4>
-                <p className="item-text">
-                  This journey wasn't about adding something new. It was about surfacing 
-                  what's already strong within you.
-                </p>
-              </div>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">Team Flow Starts Here</h4>
-                <p className="item-text">
-                  Your self-awareness is your starting point. Now you're ready to contribute 
-                  with clarity and imagination.
-                </p>
-              </div>
-            </div>
           </div>
           
           {/* Bottom Section: Reflection */}
@@ -358,16 +317,16 @@ export default function FinalReflectionView({
             
             <div className="input-section">
               <div className="textarea-wrapper">
-                <textarea
-                  className={`insight-input ${isStepCompleted || completed ? 'readonly' : ''} ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
-                  value={insight}
-                  onChange={isStepCompleted || completed ? undefined : (e) => handleInsightChange(e.target.value)}
-                  disabled={isStepCompleted || completed}
-                  readOnly={isStepCompleted || completed}
-                  placeholder={isStepCompleted || completed ? (completed ? "This workshop is completed and locked for editing" : "") : "What I want to carry forward is..."}
-                  rows={4}
-                />
-                
+                <LockedInputWrapper stepId="3-4">
+                  <textarea
+                    className={`insight-input ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
+                    value={insight}
+                    onChange={(e) => handleInsightChange(e.target.value)}
+                    placeholder="What I want to carry forward is..."
+                    rows={4}
+                  />
+                </LockedInputWrapper>
+
                 {/* Validation feedback */}
                 {!isStepCompleted && !completed && (
                   <ValidationMessage 
@@ -390,17 +349,6 @@ export default function FinalReflectionView({
                   // Original completion flow for first-time users
                   <>
                     <div className="flex items-center justify-center gap-3">
-                      {shouldShowDemoButtons && (
-                        <button
-                          onClick={fillWithDemoData}
-                          className="demo-button-inline"
-                          type="button"
-                        >
-                          <FileText className="demo-icon" />
-                          Add Demo Data
-                        </button>
-                      )}
-                      
                       {/* Gentle completion notice */}
                       <div className="completion-notice mb-3">
                         <p className="text-sm text-gray-600 flex items-center gap-2">
@@ -425,31 +373,20 @@ export default function FinalReflectionView({
                       </p>
                     )}
                   </>
-                ) : completed ? (
-                  // Workshop completed via locking system
-                  <div className="completed-section">
-                    <div className="completion-indicator">
-                      <span className="checkmark">✅</span>
-                      <p className="completed-text">Workshop complete. Your responses are locked, but you can watch videos and read your answers.</p>
-                    </div>
-                    
-                    <div className="flex justify-center mt-4">
-                      <button
-                        onClick={() => setShowModal(true)}
-                        className="continue-button enabled"
-                        data-continue-button="true"
-                      >
-                        View Options
-                      </button>
-                    </div>
-                  </div>
                 ) : (
-                  // Completed state via natural completion flow - show completion message and lock the input
+                  // Workshop already completed - show view options
                   <div className="completed-section">
                     <div className="completion-indicator">
                       <span className="checkmark">✅</span>
-                      <p className="completed-text">Workshop complete. Your responses are locked, but you can watch videos and read your answers.</p>
+                      <p className="completed-text">Workshop Complete</p>
                     </div>
+
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="continue-button enabled"
+                    >
+                      View Options
+                    </button>
                   </div>
                 )}
               </div>

@@ -15,6 +15,7 @@ export interface IANavigationStep {
 export interface IANavigationSection {
   id: string;
   title: string;
+  moduleNumber?: number; // Added for module badges
   expanded: boolean;
   steps: IANavigationStep[];
 }
@@ -24,6 +25,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '1',
     title: 'WELCOME',
+    moduleNumber: 1, // Added module badge
     expanded: true, // Default expanded
     steps: [
       { 
@@ -43,6 +45,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '2',
     title: 'THE I4C MODEL',
+    moduleNumber: 2, // Added module badge
     expanded: true, // Default expanded
     steps: [
       { 
@@ -62,6 +65,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '3',
     title: 'LADDER OF IMAGINATION',
+    moduleNumber: 3, // Added module badge
     expanded: true, // Default expanded
     steps: [
       { 
@@ -105,6 +109,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '4',
     title: 'ADVANCED LADDER OF IMAGINATION',
+    moduleNumber: 4, // Added module badge
     expanded: false, // Default collapsed
     steps: [
       { 
@@ -280,7 +285,7 @@ export const allStarTeamsNavigationSections = [
     steps: [
       { id: '3-1', title: 'Well-Being Ladder', type: 'interactive' }, // Content: OLD 4-1 "Well-Being Ladder"
       { id: '3-2', title: 'Your Future Self', type: 'reflection' }, // Content: OLD 4-4 "Your Future Self"
-      { id: '3-3', title: 'Final Reflections', type: 'reflection' }, // Content: OLD 4-5 "Final Reflections"
+      { id: '3-3', title: 'One Insight', type: 'reflection' }, // Content: OLD 4-5 "Final Reflections"
       { id: '3-4', title: 'Workshop Recap', type: 'completion' } // Content: NEW completion component
     ]
   },

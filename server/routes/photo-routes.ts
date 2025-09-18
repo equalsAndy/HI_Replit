@@ -279,7 +279,7 @@ photoRouter.delete('/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/photos/starcard - Save StarCard as user's profile picture
+ * POST /api/photos/starcard - Save StarCard (WITHOUT changing profile picture)
  * Expects { imageData: "data:image/...;base64,...", filename: "..." }
  */
 photoRouter.post('/starcard', requireAuth, async (req: Request, res: Response) => {
@@ -295,25 +295,20 @@ photoRouter.post('/starcard', requireAuth, async (req: Request, res: Response) =
       return res.status(400).json({ error: 'Image data is required' });
     }
 
-    console.log(`🖼️ Saving StarCard for user ${userId} as profile picture...`);
+    console.log(`🖼️ Saving StarCard for user ${userId} (NOT changing profile picture)...`);
 
     // Store the StarCard image with StarCard-specific filename
     const starCardFilename = filename || `Star_Card-user-${userId}-${Date.now()}.png`;
     const photoId = await photoStorageService.storePhoto(imageData, userId, true, starCardFilename);
     
-    // Update user's profile_picture_id to point to this StarCard
-    await db.update(users)
-      .set({ 
-        profilePictureId: photoId,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId));
-
-    console.log(`✅ StarCard saved as photo ID ${photoId} and set as profile picture for user ${userId}`);
+    // DO NOT update user's profile picture - this was the bug!
+    // The star card should just be saved, not set as profile picture
+    
+    console.log(`✅ StarCard saved as photo ID ${photoId} (profile picture unchanged)`);
 
     res.json({
       success: true,
-      message: 'StarCard saved as profile picture',
+      message: 'StarCard saved successfully',
       photoId: photoId
     });
 

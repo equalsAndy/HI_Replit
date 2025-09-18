@@ -208,9 +208,30 @@ export default function ImaginalAgilityWorkshop() {
   }, [navProgress, currentStep]);
 
   // Mark a step as completed (using navigation progress)
-  const markStepCompleted = (stepId: string) => {
-    markNavStepCompleted(stepId);
-    setCurrentStep(stepId);
+  const markStepCompleted = async (stepId: string) => {
+    console.log(`🎯 IA markStepCompleted: ${stepId}`);
+    
+    try {
+      const result = await markNavStepCompleted(stepId);
+      console.log(`🎯 IA markNavStepCompleted result: ${result}`);
+      
+      // For IA, immediately sync the navigation state
+      if (result && result !== stepId) {
+        console.log(`🧭 IA advancing from ${stepId} to ${result}`);
+        // Force update the current step state immediately
+        setCurrentStep(result);
+        setCurrentStepState(result);
+        setCurrentContent(result);
+      }
+      
+      // Force re-render by invalidating navigation progress query
+      queryClient.invalidateQueries({ queryKey: ['user-assessments'] });
+      
+      return result;
+    } catch (error) {
+      console.error(`❌ IA markStepCompleted error:`, error);
+      return null;
+    }
   };
 
   // Function to determine if a step is accessible for IA workshop
@@ -273,7 +294,12 @@ export default function ImaginalAgilityWorkshop() {
   const handleStepClick = (sectionId: string, stepId: string) => {
     // For IA workshop, navigate directly to step IDs
     if (isStepAccessible(sectionId, stepId)) {
+      console.log(`🧭 IA Menu Click: ${stepId}`);
+      
+      // Set both content and navigation step atomically to prevent desync
       setCurrentContent(stepId);
+      setCurrentStep(stepId); // This should update the navigation highlight
+      
       // Scroll to content top anchor
       document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
       // Note: Don't auto-complete steps on navigation - only when user explicitly progresses
@@ -290,6 +316,12 @@ export default function ImaginalAgilityWorkshop() {
       if (setCurrentStep) {
         setCurrentStep(toStep);
       }
+      
+      // Force component re-render to update navigation UI
+      setCurrentStepState(toStep);
+      
+      // Invalidate navigation queries to force fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/navigation-progress/ia'] });
     };
 
     window.addEventListener('iaStepProgression', handleStepProgression as EventListener);
@@ -297,12 +329,23 @@ export default function ImaginalAgilityWorkshop() {
     return () => {
       window.removeEventListener('iaStepProgression', handleStepProgression as EventListener);
     };
-  }, [setCurrentStep]);
+  }, [setCurrentStep, queryClient]);
 
   // Scroll to top when currentContent changes (including programmatic navigation)
   useEffect(() => {
     document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
   }, [currentContent]);
+
+  // Sync navigation with content changes to prevent desync
+  useEffect(() => {
+    if (currentContent && currentContent.startsWith('ia-')) {
+      // Ensure navigation step matches content
+      if (navProgress?.currentStepId !== currentContent) {
+        console.log(`🔄 IA Sync: Content is ${currentContent}, navigation is ${navProgress?.currentStepId}`);
+        setCurrentStep(currentContent);
+      }
+    }
+  }, [currentContent, navProgress?.currentStepId]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -313,6 +356,7 @@ export default function ImaginalAgilityWorkshop() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
         <UserHomeNavigation
+          key={`ia-nav-${navProgress?.currentStepId}-${completedSteps.length}`}
           drawerOpen={true}
           toggleDrawer={() => {}}
           navigationSections={imaginalAgilityNavigationSections}
@@ -346,16 +390,21 @@ export default function ImaginalAgilityWorkshop() {
             onComplete={async (results) => {
               try {
                 // Save assessment results to database
-                await apiRequest('/api/assessments', {
+                const response = await fetch('/api/assessments', {
                   method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  credentials: 'include',
                   body: JSON.stringify({
                     assessmentType: 'imaginal_agility',
                     results: results
-                  }),
-                  headers: {
-                    'Content-Type': 'application/json'
-                  }
+                  })
                 });
+
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/ia-assessment'] });
                 setIsAssessmentModalOpen(false);

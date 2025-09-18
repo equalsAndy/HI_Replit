@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
-import { Gauge, ChevronRight, X, GripVertical, Zap, Check, Lock } from 'lucide-react';
+import { Gauge, ChevronRight, X, GripVertical, Zap, Check, Lock, ChevronDown, ChevronUp } from 'lucide-react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import FlowAssessmentModal from '@/components/flow/FlowAssessmentModal';
@@ -251,6 +251,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
   const [assessmentResults, setAssessmentResults] = useState<any>(null);
   const [showAttributesActivity, setShowAttributesActivity] = useState(false);
+  const [isResponseSummaryExpanded, setIsResponseSummaryExpanded] = useState(false);
   
   // Workshop status for locking functionality with module-specific locking
   const { completed: workshopCompleted, isWorkshopLocked } = useWorkshopStatus();
@@ -767,10 +768,60 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                 <div className="mb-6 p-4 bg-blue-50 rounded-lg text-left max-w-2xl mx-auto">
                 <p className="text-gray-700">{getInterpretation(assessmentResults.flowScore).description}</p>
                 </div>
-                
-                {/* Show attributes activity button if not already visible */}
-                {!showAttributesActivity && (
-                  <div className="text-center mb-6">
+              </div>
+
+              {/* Questions Summary - Expandable */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <button
+                  onClick={() => setIsResponseSummaryExpanded(!isResponseSummaryExpanded)}
+                  className="w-full flex justify-between items-center text-left hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
+                >
+                  <h4 className="text-lg font-semibold text-gray-900">Your Responses Summary</h4>
+                  {isResponseSummaryExpanded ? (
+                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                  )}
+                </button>
+
+                {isResponseSummaryExpanded && (
+                  <div className="mt-4">
+                    <div className="space-y-2">
+                      {flowQuestions.map((q) => (
+                        <div key={q.id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-1 pr-4">
+                            <span className="text-sm font-medium text-gray-900">Q{q.id}:</span>
+                            <span className="text-sm text-gray-700 ml-2">{q.text}</span>
+                          </div>
+                          <div className={`
+                            px-3 py-1 rounded-full text-xs font-medium text-white
+                            ${assessmentResults.answers[q.id] === 1 ? 'bg-red-500' :
+                              assessmentResults.answers[q.id] === 2 ? 'bg-orange-500' :
+                              assessmentResults.answers[q.id] === 3 ? 'bg-yellow-600' :
+                              assessmentResults.answers[q.id] === 4 ? 'bg-green-500' :
+                              assessmentResults.answers[q.id] === 5 ? 'bg-blue-600' : 'bg-gray-400'}
+                          `}>
+                            {assessmentResults.answers[q.id] ? valueToLabel(assessmentResults.answers[q.id]) : 'Not answered'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Show attributes activity button at the bottom */}
+              {!showAttributesActivity && (
+                <div className="mt-6">
+                  <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">What's Next?</h3>
+                    <p className="text-gray-700">
+                      After completing your flow assessment, you'll explore your results in more detail and learn how to create more
+                      opportunities for flow in your work and life. This understanding will be added to your Star Card to create
+                      a complete picture of your strengths and optimal performance conditions.
+                    </p>
+                  </div>
+                  <div className="text-center">
                     <Button
                       onClick={() => setShowAttributesActivity(true)}
                       className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg"
@@ -778,48 +829,13 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                       Let's put your flow on your Star Card
                     </Button>
                   </div>
-                )}
-              </div>
-
-              {/* Questions Summary */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Your Responses Summary</h4>
-                <div className="max-h-60 overflow-y-auto">
-                  <div className="space-y-2">
-                    {flowQuestions.map((q) => (
-                      <div key={q.id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-1 pr-4">
-                          <span className="text-sm font-medium text-gray-900">Q{q.id}:</span>
-                          <span className="text-sm text-gray-700 ml-2">{q.text}</span>
-                        </div>
-                        <div className={`
-                          px-3 py-1 rounded-full text-xs font-medium text-white
-                          ${assessmentResults.answers[q.id] === 1 ? 'bg-red-500' :
-                            assessmentResults.answers[q.id] === 2 ? 'bg-orange-500' :
-                            assessmentResults.answers[q.id] === 3 ? 'bg-yellow-600' :
-                            assessmentResults.answers[q.id] === 4 ? 'bg-green-500' :
-                            assessmentResults.answers[q.id] === 5 ? 'bg-blue-600' : 'bg-gray-400'}
-                        `}>
-                          {assessmentResults.answers[q.id] ? valueToLabel(assessmentResults.answers[q.id]) : 'Not answered'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
-              </div>
+              )}
 
             </div>
           </div>
         )}
 
-        <div className="bg-gray-50 rounded-lg p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">What's Next?</h3>
-          <p className="text-gray-700">
-            After completing your flow assessment, you'll explore your results in more detail and learn how to create more 
-            opportunities for flow in your work and life. This understanding will be added to your Star Card to create 
-            a complete picture of your strengths and optimal performance conditions.
-          </p>
-        </div>
       </div>
 
       {/* Add Flow to Star Card Content - Only show after assessment completion and button click */}
@@ -1087,7 +1103,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   markStepCompleted('2-2');
                   setCurrentContent("rounding-out");
                 }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
               >
                 Next: Rounding Out <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
