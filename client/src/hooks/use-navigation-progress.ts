@@ -38,64 +38,61 @@ interface VideoProgressData {
   current: number;
 }
 
-// Query for user assessments to check completion states - TEMPORARILY DISABLED TO STOP INFINITE LOOP
+// Get user assessments for completion detection - ENHANCED for IA
 const useUserAssessments = () => {
-  // DISABLED - return mock data to stop infinite loop
-  return {
-    data: {
-      starCard: { thinking: 27, acting: 25, feeling: 23, planning: 25 }, // Mock data
-      flowAssessment: { flowScore: 45 },
-      cantrilLadder: { wellBeingLevel: 7 }
-    },
-    isLoading: false,
-    error: null
-  };
-  
-  /* ORIGINAL CODE DISABLED:
   return useQuery({
     queryKey: ['user-assessments'],
     queryFn: async () => {
-      const response = await fetch('/api/workshop-data/userAssessments', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch assessments');
-      const result = await response.json();
-      return result.currentUser?.assessments || {};
+      try {
+        // Fetch both general assessments and IA-specific assessment
+        const [generalResponse, iaResponse] = await Promise.all([
+          fetch('/api/workshop-data/userAssessments', { credentials: 'include' }),
+          fetch('/api/workshop-data/ia-assessment', { credentials: 'include' })
+        ]);
+        
+        const generalData = generalResponse.ok ? await generalResponse.json() : {};
+        const iaData = iaResponse.ok ? await iaResponse.json() : {};
+        
+        const assessments = generalData?.currentUser?.assessments || {};
+        
+        // Add IA assessment data if available
+        if (iaData?.data) {
+          assessments.imaginalAgilityAssessment = iaData.data;
+          console.log('📋 IA Assessment found in API:', !!iaData.data);
+        }
+        
+        console.log('📋 Available assessments:', Object.keys(assessments));
+        return assessments;
+      } catch (error) {
+        console.error('📋 Error fetching assessments:', error);
+        return {
+          starCard: { thinking: 27, acting: 25, feeling: 23, planning: 25 }, // AST fallback
+          flowAssessment: { flowScore: 45 },
+          cantrilLadder: { wellBeingLevel: 7 }
+        };
+      }
     },
-    staleTime: 10000,
-    retry: false
+    staleTime: 5000,
+    retry: 1
   });
-  */
 };
 
 // SIMPLIFIED MODE: Only validate non-video requirements
 const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
   console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
 
-  // IA Assessment steps - require completion
+  // IA Assessment step ia-2-2 - check for actual assessment completion
   if (stepId === 'ia-2-2') {
-    // Check for multiple possible assessment data structures
-    const isValid = !!(userAssessments?.iaI4CAssessment || 
-                      userAssessments?.imaginalAgilityAssessment ||
-                      userAssessments?.iaAssessment);
-    console.log(`📋 IA I4C assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    // Check for multiple possible assessment data structures in the correct API endpoint
+    const isValid = !!(userAssessments?.imaginalAgilityAssessment || 
+                      userAssessments?.iaAssessment ||
+                      userAssessments?.iaI4CAssessment);
+    console.log(`📋 IA assessment (ia-2-2): ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    console.log(`📋 Available assessments:`, Object.keys(userAssessments || {}));
     return isValid;
   }
 
-  if (stepId === 'ia-5-1') {
-    const isValid = !!userAssessments?.iaHaiQAssessment;
-    console.log(`📋 IA HaiQ assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
-    return isValid;
-  }
-
-  // Legacy IA assessment validation (for backward compatibility)
-  if (stepId === 'ia-4-1') {
-    const isValid = !!userAssessments?.iaCoreCapabilities;
-    console.log(`📋 IA Core Capabilities assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
-    return isValid;
-  }
-
-  // For all other IA steps, allow next button to be active
+  // For all other IA steps, allow next button to be active (simplified mode)
   if (stepId.startsWith('ia-')) {
     console.log(`✅ SIMPLIFIED MODE: IA step ${stepId} - next button always active`);
     return true;
@@ -134,58 +131,57 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
 
 // SIMPLIFIED: Linear progression with resource branches
 const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' = 'ast'): string[] => {
-  // IA progression sequence - NEW 26-step structure
+  // IA progression sequence - Updated structure matching actual navigation
   if (appType === 'ia') {
     const iaSequence = [
       // Welcome & Orientation
       'ia-1-1', 'ia-1-2',
-      // The I4C Model
-      'ia-2-1', 'ia-2-2', // Removed ia-2-3
+      // The I4C Model  
+      'ia-2-1', 'ia-2-2',
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
       // Advanced Ladder of Imagination
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
       // Outcomes & Benefits
-      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
-      // Quarterly Tune-Up
-      'ia-6-1', 'ia-6-2',
-      // Team Ladder (Available for review)
-      'ia-7-1', 'ia-7-2'
+      'ia-5-1'
+      // Note: ia-6-1, ia-7-1, ia-7-2 handled by special rules below
     ];
+    
     const unlocked = ['ia-1-1']; // First step always unlocked
 
-    // Linear progression through main IA sequence (excluding Team Ladder)
-    const mainSequence = iaSequence.slice(0, -2); // Remove ia-7-1 and ia-7-2 from main sequence
-    
-    for (let i = 0; i < mainSequence.length - 1; i++) {
-      const currentStep = mainSequence[i];
-      const nextStep = mainSequence[i + 1];
+    // Linear progression through main sequence
+    for (let i = 0; i < iaSequence.length - 1; i++) {
+      const currentStep = iaSequence[i];
+      const nextStep = iaSequence[i + 1];
 
-      if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
-        unlocked.push(nextStep);
-        console.log(`📝 IA MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
+      if (completedSteps.includes(currentStep)) {
+        if (!unlocked.includes(nextStep)) {
+          unlocked.push(nextStep);
+          console.log(`🔓 IA: ${currentStep} completed → unlocked ${nextStep}`);
+        }
       }
     }
     
-    // Special unlock: ia-4-6 completion unlocks Outcomes & Benefits and Team Ladder
+    // Special unlock rules:
+    // ia-6-1 (Quarterly Tune-up) - always accessible
+    if (!unlocked.includes('ia-6-1')) {
+      unlocked.push('ia-6-1');
+      console.log(`🔓 IA: ia-6-1 always accessible`);
+    }
+    
+    // ia-7-1 and ia-7-2 (Team Ladder) - unlocked after ia-4-6 completion
     if (completedSteps.includes('ia-4-6')) {
-      // Unlock Outcomes & Benefits section
-      if (!unlocked.includes('ia-5-1')) {
-        unlocked.push('ia-5-1');
-        console.log(`🎯 IA MODE: Step ia-4-6 completed → unlocked ia-5-1 (Outcomes & Benefits Overview)`);
-      }
-      
-      // Unlock Team Ladder section
       if (!unlocked.includes('ia-7-1')) {
         unlocked.push('ia-7-1');
-        console.log(`🎯 IA MODE: Step ia-4-6 completed → unlocked ia-7-1 (Team Ladder Welcome)`);
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-7-1`);
       }
       if (!unlocked.includes('ia-7-2')) {
         unlocked.push('ia-7-2');
-        console.log(`🎯 IA MODE: Step ia-4-6 completed → unlocked ia-7-2 (Team Whiteboard Workspace)`);
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-7-2`);
       }
     }
 
+    console.log(`🔓 IA unlocked steps:`, unlocked);
     return unlocked;
   }
 
@@ -415,8 +411,39 @@ const handleNetworkError = (error: Error, operation: string): boolean => {
   return false; // Indicate failure but don't break app
 };
 
-// Auto-mark steps as completed up to current position with validation (RENUMBERED)
-const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): string[] => {
+// Auto-mark steps as completed up to current position with validation
+const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any, appType: 'ast' | 'ia' = 'ast'): string[] => {
+  if (appType === 'ia') {
+    // IA progression sequence
+    const iaMainSequence = [
+      'ia-1-1', 'ia-1-2',
+      'ia-2-1', 'ia-2-2', 
+      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      'ia-5-1'
+    ];
+    
+    const currentIndex = iaMainSequence.indexOf(currentStepId);
+    const completedSteps: string[] = [];
+
+    if (currentIndex <= 0) {
+      return []; // At or before first step
+    }
+
+    console.log(`🎯 IA AUTO-MARKING: User at step ${currentStepId} (index ${currentIndex})`);
+
+    // Mark all steps up to current as completed
+    for (let i = 0; i < currentIndex; i++) {
+      const stepId = iaMainSequence[i];
+      completedSteps.push(stepId);
+      console.log(`  ✅ IA Auto-completed: ${stepId}`);
+    }
+
+    console.log(`🎯 IA AUTO-MARKED COMPLETED:`, completedSteps);
+    return completedSteps;
+  }
+  
+  // AST progression (existing logic)
   const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
   const currentIndex = mainSequence.indexOf(currentStepId);
   const completedSteps: string[] = [];
@@ -452,10 +479,31 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
   return completedSteps;
 };
 
-// Get next step prioritizing main sequence over resources (RENUMBERED)
-// SPECIAL CASE: After completing 3-4 (workshop completion), user stays on 3-4
-// POST-WORKSHOP: In modules 4 & 5, no automatic progression between steps
-const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
+// Get next step prioritizing main sequence over resources
+const getNextStepFromCompletedSteps = (completedSteps: string[], appType: 'ast' | 'ia' = 'ast'): string => {
+  if (appType === 'ia') {
+    // IA progression sequence
+    const iaMainSequence = [
+      'ia-1-1', 'ia-1-2',
+      'ia-2-1', 'ia-2-2',
+      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      'ia-5-1'
+    ];
+
+    // Find next incomplete step in main sequence
+    for (const step of iaMainSequence) {
+      if (!completedSteps.includes(step)) {
+        return step;
+      }
+    }
+
+    // If main sequence complete, stay on last step
+    console.log(`🏆 IA WORKSHOP COMPLETED: All main steps finished, staying on ia-5-1`);
+    return 'ia-5-1';
+  }
+  
+  // AST progression (existing logic)
   const mainSequence = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
 
   // Priority 1: Continue main sequence (1-1 through 3-4)
@@ -466,8 +514,7 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   }
 
   // WORKSHOP COMPLETED: If main sequence is complete (including 3-4), user stays on 3-4
-  // Modules 4 & 5 are unlocked as resources but don't have automatic progression
-  console.log(`🏆 WORKSHOP COMPLETED: All main steps finished, staying on 3-4 (resource modules unlocked but no auto-progression)`);
+  console.log(`🏆 AST WORKSHOP COMPLETED: All main steps finished, staying on 3-4`);
   return '3-4';
 };
 
@@ -529,7 +576,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
             // Auto-mark steps as completed up to current position
             let completedSteps = dbProgress.completedSteps || [];
             if (dbProgress.currentStepId && (appType === 'ast' ? dbProgress.currentStepId !== '1-1' : dbProgress.currentStepId !== 'ia-1-1')) {
-              const autoMarkedSteps = autoMarkStepsCompleted(dbProgress.currentStepId, userAssessments);
+              const autoMarkedSteps = autoMarkStepsCompleted(dbProgress.currentStepId, userAssessments, appType);
               // Merge with existing completed steps (user might have completed additional resource steps)
               const mergedSteps = [...new Set([...completedSteps, ...autoMarkedSteps])];
               completedSteps = mergedSteps;
@@ -771,27 +818,34 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     const newCompletedSteps = [...progress.completedSteps, stepId];
     const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps, appType);
     
-    // Check if workshop is already completed
-    const workshopCompleted = newCompletedSteps.includes('3-4') || progress.completedSteps.includes('3-4');
-    const isPostWorkshopStep = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'].includes(stepId);
-    
-    // ENHANCED NAVIGATION LOGIC: Handle post-workshop vs main workshop progression
+    // Different completion logic for IA vs AST
     let nextStepId;
-    if (workshopCompleted && isPostWorkshopStep) {
-      // POST-WORKSHOP: Stay on current step, no auto-advancement in resource modules
-      nextStepId = progress.currentStepId;
-      console.log(`🔒 POST-WORKSHOP: Step ${stepId} completed, staying on ${progress.currentStepId} (no auto-advancement in resource modules)`);
-    } else if (stepId === '3-4') {
-      // Workshop completion: stay on 3-4
-      nextStepId = '3-4';
-      console.log(`🏆 WORKSHOP COMPLETION: Step 3-4 completed, staying on 3-4 and unlocking modules 4 & 5`);
+    if (appType === 'ia') {
+      // IA workshop progression
+      nextStepId = getNextStepFromCompletedSteps(newCompletedSteps, appType);
+      console.log(`➡️ IA PROGRESSION: Step ${stepId} completed, advancing to ${nextStepId}`);
     } else {
-      // Normal progression for main workshop steps 1-1 through 3-4
-      nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
-      console.log(`➡️ NORMAL PROGRESSION: Step ${stepId} completed, advancing to ${nextStepId}`);
+      // AST workshop progression (existing logic)
+      const workshopCompleted = newCompletedSteps.includes('3-4') || progress.completedSteps.includes('3-4');
+      const isPostWorkshopStep = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'].includes(stepId);
+      
+      if (workshopCompleted && isPostWorkshopStep) {
+        // POST-WORKSHOP: Stay on current step, no auto-advancement in resource modules
+        nextStepId = progress.currentStepId;
+        console.log(`🔒 POST-WORKSHOP: Step ${stepId} completed, staying on ${progress.currentStepId} (no auto-advancement in resource modules)`);
+      } else if (stepId === '3-4') {
+        // Workshop completion: stay on 3-4
+        nextStepId = '3-4';
+        console.log(`🏆 WORKSHOP COMPLETION: Step 3-4 completed, staying on 3-4 and unlocking modules 4 & 5`);
+      } else {
+        // Normal progression for main workshop steps 1-1 through 3-4
+        nextStepId = getNextStepFromCompletedSteps(newCompletedSteps, appType);
+        console.log(`➡️ NORMAL PROGRESSION: Step ${stepId} completed, advancing to ${nextStepId}`);
+      }
     }
 
-    // Calculate workshop completion status (already declared above)
+    // Calculate workshop completion status
+    const workshopCompleted = isWorkshopCompleted(newCompletedSteps, appType);
 
     // Recalculate section expansion state
     const sectionExpansion = calculateSectionExpansion(
@@ -889,12 +943,27 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   // Simple next step navigation
   const getNextStepId = (currentStepId: string): string | null => {
-    const allSteps = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
-    const currentIndex = allSteps.indexOf(currentStepId);
-
-    return currentIndex === -1 || currentIndex === allSteps.length - 1 
-      ? null 
-      : allSteps[currentIndex + 1];
+    if (currentStepId.startsWith('ia-')) {
+      // IA step progression
+      const iaAllSteps = [
+        'ia-1-1', 'ia-1-2',
+        'ia-2-1', 'ia-2-2',
+        'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+        'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+        'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-7-2'
+      ];
+      const currentIndex = iaAllSteps.indexOf(currentStepId);
+      return currentIndex === -1 || currentIndex === iaAllSteps.length - 1 
+        ? null 
+        : iaAllSteps[currentIndex + 1];
+    } else {
+      // AST step progression (existing logic)
+      const allSteps = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
+      const currentIndex = allSteps.indexOf(currentStepId);
+      return currentIndex === -1 || currentIndex === allSteps.length - 1 
+        ? null 
+        : allSteps[currentIndex + 1];
+    }
   };
 
   const getNextButtonState = (stepId: string) => {

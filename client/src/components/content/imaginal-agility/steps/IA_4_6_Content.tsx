@@ -48,10 +48,6 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
     }
   };
 
-  const handleDownloadJourney = () => {
-    // This would trigger a download of the user's complete ladder journey
-    console.log('Downloading ladder journey...');
-  };
 
   // Demo data function for test users
   const fillWithDemoData = () => {
@@ -191,19 +187,12 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
           
           {/* Action Buttons */}
           <div className="flex gap-4 justify-center">
-            <Button 
+            <Button
               onClick={handleSaveVision}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
               disabled={!vision.trim() || isOverLimit}
             >
               Save Vision
-            </Button>
-            <Button 
-              onClick={handleDownloadJourney}
-              variant="outline"
-              className="border-purple-300 text-purple-700 hover:bg-purple-50 px-6 py-2"
-            >
-              Download My Ladder Journey
             </Button>
           </div>
         </div>

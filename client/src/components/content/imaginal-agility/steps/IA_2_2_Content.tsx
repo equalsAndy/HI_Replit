@@ -12,12 +12,30 @@ interface IA_2_2_ContentProps {
 
 function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
   // Check if assessment is completed
-  const { data: assessmentData } = useQuery({
+  const { data: assessmentData, refetch } = useQuery({
     queryKey: ['/api/workshop-data/ia-assessment'],
-    retry: false
+    queryFn: async () => {
+      console.log('🔎 Fetching IA assessment data...');
+      const response = await fetch('/api/workshop-data/ia-assessment', {
+        credentials: 'include'
+      });
+      
+      console.log('🔎 Fetch response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('🔎 Fetch error:', response.status, response.statusText);
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('🔎 Fetched IA assessment data:', JSON.stringify(data, null, 2));
+      return data;
+    },
+    retry: false,
+    refetchOnWindowFocus: true, // Force refetch when returning to tab
+    staleTime: 0 // Always fetch fresh data
   });
 
-  console.log('🎯 IA_2_2_Content: Assessment data debug:', assessmentData);
   
   const isAssessmentCompleted = assessmentData && (assessmentData as any).data !== null;
   console.log('🎯 IA_2_2_Content: isAssessmentCompleted:', isAssessmentCompleted);
@@ -282,13 +300,27 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
           Ready to discover your current I4C profile? The assessment takes about 10-15 minutes to complete.
         </p>
         
-        <Button 
-          onClick={handleStartAssessment}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg"
-          size="lg"
-        >
-          Start Assessment
-        </Button>
+        <div className="flex justify-center gap-4">
+          <Button 
+            onClick={handleStartAssessment}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg"
+            size="lg"
+          >
+            Start Assessment
+          </Button>
+          
+          {/* Debug button to manually check for results */}
+          <Button 
+            onClick={() => {
+              console.log('🔄 Manual refresh triggered');
+              refetch();
+            }}
+            variant="outline"
+            className="px-4 py-2 text-sm"
+          >
+            🔄 Check for Results
+          </Button>
+        </div>
       </div>
     </div>
   );

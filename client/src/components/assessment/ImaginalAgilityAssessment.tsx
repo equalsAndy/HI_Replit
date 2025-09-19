@@ -199,7 +199,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
     try {
       const results = calculateResults();
       onComplete(results);
-      onClose();
+      onClose(); // Close modal immediately - results will show on page
     } catch (error) {
       console.error('Error completing assessment:', error);
     } finally {

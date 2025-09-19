@@ -4,6 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 // import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { VideoPlayer } from '@/components/content/VideoPlayer';
+import { trpc } from "@/utils/trpc";
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
+import { useVideoByStepId } from '../../../hooks/use-videos';
 import IA_1_2_Content from './steps/IA_1_2_Content';
 import IA_2_1_Content from './steps/IA_2_1_Content';
 import IA_2_2_Content from './steps/IA_2_2_Content';
@@ -272,25 +275,64 @@ const AssessmentResultsContent: React.FC<{ onNext?: (stepId: string) => void }> 
 };
 
 const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId, onNext, onOpenAssessment }) => {
+  // Get video data for ia-1-1 using the existing video hook - only when on ia-1-1
+  const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
+    'ia',
+    stepId === 'ia-1-1' ? 'ia-1-1' : ''
+  );
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
+
   const renderStepContent = () => {
     switch (stepId) {
       case 'ia-1-1':
+        if (videoLoading) {
+          return (
+            <div className="max-w-4xl mx-auto p-6">
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <span className="text-gray-600">Loading video...</span>
+              </div>
+            </div>
+          );
+        }
+
+        // Extract YouTube ID from video URL, fallback to known video ID from migration
+        let youtubeId = videoData?.url ? extractYouTubeId(videoData.url) : null;
+
+        // Fallback to the known YouTube ID from the migration if video data isn't loading
+        if (!youtubeId && !videoLoading) {
+          youtubeId = 'CZ89trlNaK8'; // From migration: https://www.youtube.com/embed/CZ89trlNaK8
+        }
+
+        // Debug logging
+        console.log('🎬 IA-1-1 Debug:', {
+          stepId,
+          videoData: videoData ? { title: videoData.title, url: videoData.url, stepId: videoData.stepId } : null,
+          youtubeId,
+          videoLoading,
+          fallbackUsed: !videoData?.url && !videoLoading
+        });
+
         return (
           <div className="max-w-4xl mx-auto p-6">
             <h1 className="text-3xl font-bold text-purple-700 mb-8">
               Welcome to Imaginal Agility
             </h1>
-            {/* Video Section using VideoPlayer component */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <VideoPlayer
-                workshopType="ia"
-                stepId="ia-1-1"
-                title="Welcome to Imaginal Agility"
-                aspectRatio="16:9"
-                autoplay={true}
-                className="w-full max-w-2xl mx-auto"
-              />
-            </div>
+
+            {/* Video Section using VideoTranscriptGlossary component like AST */}
+            <VideoTranscriptGlossary
+              youtubeId={youtubeId}
+              title={videoData?.title || "Welcome to Imaginal Agility"}
+              transcriptMd={null} // No transcript data available yet
+              glossary={null} // No glossary data available yet
+            />
+
             {/* Content Card */}
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
               <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
@@ -318,7 +360,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
               </div>
             </div>
             <div className="flex justify-end mt-8">
-              <Button 
+              <Button
                 onClick={() => onNext && onNext('ia-1-2')}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
               >

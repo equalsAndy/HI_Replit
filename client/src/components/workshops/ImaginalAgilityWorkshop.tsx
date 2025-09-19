@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, X, Menu } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import LogoutButton from '@/components/auth/LogoutButton';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgilityAssessment';
 import ProfileEditor from '@/components/profile/ProfileEditor';
@@ -158,74 +157,48 @@ export default function ImaginalAgilityWorkshop() {
     }
   }, []);
 
-  // Auto-navigate to current step based on progress
+  // FIXED: Auto-navigate to current step based on navigation progress
   useEffect(() => {
-    if (!navProgress) return;
+    if (!navProgress?.currentStepId) return;
 
-    const completedSteps = navProgress.completedSteps || [];
-    const iaStepOrder = [
-      // Welcome & Orientation
-      'ia-1-1', 'ia-1-2',
-      // The I4C Model
-      'ia-2-1', 'ia-2-2', 
-      // Ladder of Imagination (Basics)
-      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
-      // Advanced Ladder of Imagination
-      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
-      // Outcomes & Benefits
-      'ia-5-1'
-      // Note: ia-6-1 is always accessible, ia-7-1 unlocks after ia-4-6, others locked
-    ];
-
-    // Find the next step after the last completed step
-    let nextStepId = 'ia-1-1'; // Default to first step
+    const navigationCurrentStep = navProgress.currentStepId;
+    console.log(`🧭IA Auto-nav: Navigation says current step is ${navigationCurrentStep}, component state is ${currentStep}`);
     
-    if (completedSteps.length > 0) {
-      // Find the last completed step in the order
-      let lastCompletedIndex = -1;
-      for (let i = iaStepOrder.length - 1; i >= 0; i--) {
-        if (completedSteps.includes(iaStepOrder[i])) {
-          lastCompletedIndex = i;
-          break;
-        }
-      }
-      
-      // Set next step (or stay on last step if all completed)
-      if (lastCompletedIndex >= 0 && lastCompletedIndex < iaStepOrder.length - 1) {
-        nextStepId = iaStepOrder[lastCompletedIndex + 1];
-      } else if (lastCompletedIndex >= 0) {
-        nextStepId = iaStepOrder[lastCompletedIndex]; // Stay on last completed step
-      }
+    // Only update if navigation state differs from component state
+    if (navigationCurrentStep !== currentStep && navigationCurrentStep.startsWith('ia-')) {
+      console.log(`🔄 IA Auto-navigating: ${currentStep} → ${navigationCurrentStep}`);
+      setCurrentStep(navigationCurrentStep);
+      setCurrentStepState(navigationCurrentStep);
+      setCurrentContent(navigationCurrentStep);
     }
+  }, [navProgress?.currentStepId, currentStep]);
 
-    // Only navigate if current step is different from calculated next step
-    if (currentStep !== nextStepId) {
-      console.log(`Auto-navigating from ${currentStep} to ${nextStepId} based on progress`);
-      setCurrentStep(nextStepId);
-      setCurrentStepState(nextStepId);
-      setCurrentContent(nextStepId);
-    }
-  }, [navProgress, currentStep]);
-
-  // Mark a step as completed (using navigation progress)
+  // FIXED: Mark a step as completed with proper IA navigation
   const markStepCompleted = async (stepId: string) => {
     console.log(`🎯 IA markStepCompleted: ${stepId}`);
     
     try {
+      // Call navigation hook's markStepCompleted which returns next step
       const result = await markNavStepCompleted(stepId);
-      console.log(`🎯 IA markNavStepCompleted result: ${result}`);
+      console.log(`🎯 IA markNavStepCompleted result:`, result);
       
-      // For IA, immediately sync the navigation state
+      // Force immediate UI update to prevent desync
       if (result && result !== stepId) {
-        console.log(`🧭 IA advancing from ${stepId} to ${result}`);
-        // Force update the current step state immediately
+        console.log(`🧭 IA Navigation: ${stepId} → ${result}`);
+        
+        // Update all state atomically
         setCurrentStep(result);
-        setCurrentStepState(result);
+        setCurrentStepState(result); 
         setCurrentContent(result);
+        
+        // Scroll to top of content after navigation
+        setTimeout(() => {
+          document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       }
       
-      // Force re-render by invalidating navigation progress query
-      queryClient.invalidateQueries({ queryKey: ['user-assessments'] });
+      // Invalidate relevant queries to force fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/navigation-progress/ia'] });
       
       return result;
     } catch (error) {
@@ -290,59 +263,40 @@ export default function ImaginalAgilityWorkshop() {
     return '';
   };
 
-  // Handle step click
+  // FIXED: Handle step click with proper navigation sync
   const handleStepClick = (sectionId: string, stepId: string) => {
-    // For IA workshop, navigate directly to step IDs
     if (isStepAccessible(sectionId, stepId)) {
       console.log(`🧭 IA Menu Click: ${stepId}`);
       
-      // Set both content and navigation step atomically to prevent desync
-      setCurrentContent(stepId);
-      setCurrentStep(stepId); // This should update the navigation highlight
+      // Update both navigation hook and local state atomically
+      setCurrentStep(stepId); // This updates navigation progress
+      setCurrentStepState(stepId); // This updates local state
+      setCurrentContent(stepId); // This updates content
       
-      // Scroll to content top anchor
-      document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
-      // Note: Don't auto-complete steps on navigation - only when user explicitly progresses
+      // Scroll to content after state update
+      setTimeout(() => {
+        document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    } else {
+      console.log(`⚠️ IA Menu Click: ${stepId} is not accessible`);
     }
   };
 
-  // Listen for step progression events to ensure proper navigation
-  useEffect(() => {
-    const handleStepProgression = (event: CustomEvent) => {
-      const { fromStep, toStep } = event.detail;
-      console.log(`🔄 IA Step Progression Event: ${fromStep} → ${toStep}`);
-      
-      // Ensure the next step is properly set as current for navigation unlocking
-      if (setCurrentStep) {
-        setCurrentStep(toStep);
-      }
-      
-      // Force component re-render to update navigation UI
-      setCurrentStepState(toStep);
-      
-      // Invalidate navigation queries to force fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/navigation-progress/ia'] });
-    };
-
-    window.addEventListener('iaStepProgression', handleStepProgression as EventListener);
-    
-    return () => {
-      window.removeEventListener('iaStepProgression', handleStepProgression as EventListener);
-    };
-  }, [setCurrentStep, queryClient]);
+  // REMOVED: Step progression event listener (replaced with direct state management)
+  // The navigation hook now handles progression internally
 
   // Scroll to top when currentContent changes (including programmatic navigation)
   useEffect(() => {
     document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
   }, [currentContent]);
 
-  // Sync navigation with content changes to prevent desync
+  // ENHANCED: Prevent navigation-content desync
   useEffect(() => {
-    if (currentContent && currentContent.startsWith('ia-')) {
-      // Ensure navigation step matches content
-      if (navProgress?.currentStepId !== currentContent) {
-        console.log(`🔄 IA Sync: Content is ${currentContent}, navigation is ${navProgress?.currentStepId}`);
-        setCurrentStep(currentContent);
+    if (currentContent && currentContent.startsWith('ia-') && navProgress?.currentStepId) {
+      // Only log significant desyncs (not one-frame differences)
+      if (navProgress.currentStepId !== currentContent) {
+        console.log(`🔄 IA Desync detected: Content=${currentContent}, Navigation=${navProgress.currentStepId}`);
+        // Don't auto-correct here to prevent loops - let navigation hook be the source of truth
       }
     }
   }, [currentContent, navProgress?.currentStepId]);
@@ -365,6 +319,46 @@ export default function ImaginalAgilityWorkshop() {
           handleStepClick={(sectionId, stepId) => handleStepClick(sectionId, stepId)}
           currentContent={currentContent}
           isImaginalAgility={true}
+          navigation={{
+            progress: navProgress,
+            currentStepId: navProgress?.currentStepId || 'ia-1-1',
+            completedSteps: completedSteps,
+            isStepCurrent: (stepId: string) => navProgress?.currentStepId === stepId,
+            getStepVisualState: (stepId: string) => {
+              const isCurrent = navProgress?.currentStepId === stepId;
+              const isCompleted = completedSteps.includes(stepId);
+              const isAccessible = isStepAccessible('', stepId);
+              
+              // Find next unfinished step for pulsating dot logic
+              const iaStepOrder = [
+                'ia-1-1', 'ia-1-2', 'ia-2-1', 'ia-2-2', 
+                'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+                'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+                'ia-5-1'
+              ];
+              const nextUnfinishedStep = iaStepOrder.find(step => 
+                !completedSteps.includes(step) && isStepAccessible('', step)
+              );
+              const isNextUnfinished = stepId === nextUnfinishedStep;
+              const currentStepIsCompleted = completedSteps.includes(navProgress?.currentStepId || '');
+              const userNavigatedBack = currentStepIsCompleted && nextUnfinishedStep !== navProgress?.currentStepId;
+              
+              // IA Workshop Visual Logic (matching AST):
+              // - Purple highlight: Current step being viewed
+              // - Green checkmark: Completed steps
+              // - Purple dot: Current step if not completed
+              // - Pulsating dot: Next unfinished step when user went back
+              
+              return {
+                showRoundedHighlight: isCurrent, // Purple background on current step
+                showGreenCheckmark: isCompleted, // Green checkmark for completed
+                showLightBlueShading: false, // Not used in IA
+                showDarkDot: isCurrent && !isCompleted && isAccessible, // Purple dot for current unfinished
+                showPulsatingDot: !isCurrent && isNextUnfinished && userNavigatedBack, // Pulsating dot when user went back
+                isLocked: !isAccessible // Lock icon if not accessible
+              };
+            }
+          }}
         />
 
         {/* Content Area */}
@@ -389,31 +383,82 @@ export default function ImaginalAgilityWorkshop() {
             onClose={() => setIsAssessmentModalOpen(false)}
             onComplete={async (results) => {
               try {
-                // Save assessment results to database
-                const response = await fetch('/api/assessments', {
+                console.log('🔎 Pre-save: Assessment results to save:', results);
+                
+                // FIXED: Save assessment results to the SAME endpoint the page reads from
+                const response = await fetch('/api/workshop-data/ia-assessment', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
                   },
                   credentials: 'include',
                   body: JSON.stringify({
+                    results: results,
                     assessmentType: 'imaginal_agility',
-                    results: results
+                    completedAt: new Date().toISOString()
                   })
                 });
 
+                console.log('🔎 Save response status:', response.status);
+                
                 if (!response.ok) {
+                  const errorText = await response.text();
+                  console.error('🔎 Save error response:', errorText);
                   throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
+                const saveResult = await response.json();
+                console.log('🔎 Save result:', saveResult);
 
-                queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/ia-assessment'] });
+                // Close modal immediately - assessment results will show inline on page
                 setIsAssessmentModalOpen(false);
-                markStepCompleted('ia-4-1'); // Mark assessment step as completed
-                setCurrentContent("ia-5-1"); // Navigate to Assessment Results
+                
+                // CRITICAL FIX: Mark step as completed WITHOUT advancing to next step
+                // We want to stay on ia-2-2 and let IA_2_2_Content show results inline
+                if (currentContent === 'ia-2-2') {
+                  console.log('🎯 IA Assessment Complete: Marking ia-2-2 as completed but STAYING on ia-2-2');
+                  
+                  // Update completed steps in background without navigation
+                  // This is a special case - we bypass the normal markStepCompleted flow
+                  const updatedCompletedSteps = [...(navProgress?.completedSteps || []), 'ia-2-2'];
+                  
+                  // Update the progress state manually to mark as completed but stay on current step
+                  try {
+                    await fetch('/api/workshop-data/navigation-progress', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        completedSteps: updatedCompletedSteps,
+                        currentStepId: 'ia-2-2', // STAY on ia-2-2
+                        appType: 'ia',
+                        unlockedSteps: navProgress?.unlockedSteps || []
+                      })
+                    });
+                    
+                    console.log('💾 Direct database update: ia-2-2 marked completed, staying on ia-2-2');
+                  } catch (dbError) {
+                    console.error('Error updating progress directly:', dbError);
+                  }
+                } else {
+                  console.log('🎯 IA Assessment Complete: Staying on current step', currentContent);
+                }
+                
+                // Invalidate assessment queries to trigger UI updates (show results inline)
+                queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/ia-assessment'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/navigation-progress/ia'] });
+                
+                // FORCE IMMEDIATE REFETCH to ensure UI updates
+                setTimeout(() => {
+                  queryClient.refetchQueries({ queryKey: ['/api/workshop-data/ia-assessment'] });
+                  console.log('🔄 Forced refetch of IA assessment data');
+                }, 500);
                 
                 toast({
                   title: "Assessment Complete!",
-                  description: "Your Imaginal Agility profile has been saved.",
+                  description: "Your results are now displayed below.",
                 });
               } catch (error) {
                 console.error('Error saving assessment:', error);
@@ -421,10 +466,9 @@ export default function ImaginalAgilityWorkshop() {
                   title: "Assessment Saved Locally",
                   description: "Your results are saved but couldn't sync to the server.",
                 });
+                // Handle error case
                 queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/ia-assessment'] });
                 setIsAssessmentModalOpen(false);
-                markStepCompleted('ia-4-1');
-                setCurrentContent("ia-5-1");
               }
             }}
           />
@@ -436,7 +480,6 @@ export default function ImaginalAgilityWorkshop() {
         isOpen={showDiscernmentModal}
         onClose={() => setShowDiscernmentModal(false)}
       />
-      <LogoutButton />
     </div>
   );
 }

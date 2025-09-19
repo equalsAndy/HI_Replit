@@ -90,30 +90,25 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         <ImaginalAgilityContent 
           stepId={currentContent}
           onNext={async (nextStepId) => {
-            if (nextStepId && markStepCompleted && setCurrentContent) {
-              console.log(`🧭 IA Navigation: ${currentContent} → ${nextStepId}`);
+            if (nextStepId && setCurrentContent) {
+              console.log(`🧭 IA ContentViews Navigation: ${currentContent} → ${nextStepId}`);
               
               try {
-                // Mark current step completed and get actual next step from navigation
-                const result = await markStepCompleted(currentContent);
-                const targetStep = result || nextStepId;
+                // For IA navigation, directly set the next step content
+                // The navigation system will handle step completion tracking
+                setCurrentContent(nextStepId);
+                scrollToContentTop();
                 
-                console.log(`🧭 IA Navigation Result: targeting ${targetStep}`);
-                
-                // Add small delay to ensure state updates propagate
-                setTimeout(() => {
-                  setCurrentContent(targetStep);
-                  scrollToContentTop();
-                  
-                  // Dispatch event to notify navigation system about the progression
-                  window.dispatchEvent(new CustomEvent('iaStepProgression', {
-                    detail: { fromStep: currentContent, toStep: targetStep }
-                  }));
-                }, 100);
+                // Optionally mark current step as completed in background
+                // but don't wait for it or depend on its return value
+                if (markStepCompleted) {
+                  markStepCompleted(currentContent).catch(error => {
+                    console.warn(`Background step completion failed for ${currentContent}:`, error);
+                  });
+                }
               } catch (error) {
-                console.error(`❌ IA Navigation Error:`, error);
-                // Fallback to original behavior
-                markStepCompleted(currentContent);
+                console.error(`❌ IA ContentViews Navigation Error:`, error);
+                // Fallback: still navigate even if other operations fail
                 setCurrentContent(nextStepId);
                 scrollToContentTop();
               }
@@ -121,10 +116,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           }}
           onOpenAssessment={() => {
             if (setIsAssessmentModalOpen) {
-              // Mark ia-3-1 as completed when assessment is opened
-              if (currentContent === 'ia-3-1' && markStepCompleted) {
-                markStepCompleted('ia-3-1');
-              }
+              console.log(`🧬 IA Opening assessment from step ${currentContent}`);
               setIsAssessmentModalOpen(true);
             }
           }}
@@ -146,92 +138,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             isImaginalAgility={true}
           />
         );
-      // Other IA content that's not step-based
-      case 'ia-3-1':
-        return (
-          <div className="prose max-w-none">
-            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
-            
-            {/* YouTube Video Player */}
-            <div className="mb-8 max-w-4xl mx-auto">
-              <VideoPlayer
-                workshopType="imaginal-agility"
-                stepId="ia-3-1"
-                fallbackUrl="https://youtu.be/l3XVwPGE6UY"
-                title="Imaginal Agility Solution"
-                aspectRatio="16:9"
-                autoplay={true}
-              />
-            </div>
-
-            <div className="mb-8">
-              <p className="text-lg text-gray-700 mb-6">
-                Imaginal Agility offers a systematic approach to developing the human capabilities that complement and enhance AI collaboration. Rather than competing with artificial intelligence, this framework helps individuals and teams thrive alongside it.
-              </p>
-            </div>
-
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Core Philosophy</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Imaginal Agility recognizes that our greatest competitive advantage lies not in what we can automate, but in what we can imagine. It's a framework designed to cultivate the uniquely human capacity for creative thinking, emotional intelligence, and innovative problem-solving.
-            </p>
-
-            <div className="bg-purple-50 p-4 rounded-lg mb-6">
-              <h3 className="text-lg font-semibold text-purple-800 mb-3">Five Core Capabilities</h3>
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
-                  <span className="text-sm font-medium text-purple-700">Imagination</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
-                  <span className="text-sm font-medium text-purple-700">Curiosity</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
-                  <span className="text-sm font-medium text-purple-700">Creativity</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
-                  <span className="text-sm font-medium text-purple-700">Courage</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
-                  <span className="text-sm font-medium text-purple-700">Empathy</span>
-                </div>
-              </div>
-            </div>
-
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Traditional Training</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Unlike conventional skill development programs, Imaginal Agility focuses on developing meta-capabilities—the thinking patterns and mindsets that enable continuous adaptation and innovation in an AI-enhanced world.
-            </p>
-
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Practical Application</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              This framework provides concrete tools and practices for individuals, teams, and organizations to develop their imaginative capacity while maintaining psychological well-being and professional effectiveness.
-            </p>
-
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg mb-6">
-              <p className="text-center text-sm font-medium text-purple-800">
-                "The future belongs to those who can imagine what AI cannot—and then bring those visions to life."
-              </p>
-            </div>
-
-            <div className="flex justify-end">
-              <Button 
-                onClick={() => {
-                  markStepCompleted('ia-3-1');
-                  setCurrentContent('ia-4-1');
-                  scrollToContentTop();
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                size="lg"
-              >
-                Next: Self-Assessment
-              </Button>
-            </div>
-          </div>
-        );
+      // Other IA content that's not step-based (ia-3-1 now handled by ImaginalAgilityContent)
       case 'ia-4-1':
         return (
           <div className="prose max-w-none">
