@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
+import { useVideoByStepId } from '@/hooks/use-videos';
 import { FileText, RefreshCw, Loader2 } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
@@ -57,6 +58,19 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMountedRef = useRef(true);
   const { shouldShowDemoButtons } = useTestUser();
+
+  // Get video data for ia-3-3 using the existing video hook
+  const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
+    'ia',
+    'ia-3-3'
+  );
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
   
   // Use workshop step data persistence hook
   const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-3-3', INITIAL_DATA);
@@ -248,17 +262,13 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         Visualizing Your Potential
       </h1>
       
-      {/* Video Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="ia"
-          stepId="ia-3-3"
-          title="Visualizing Your Potential"
-          aspectRatio="16:9"
-          autoplay={false}
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
+      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <VideoTranscriptGlossary
+        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : null} // No fallback for ia-3-3 (not in migration)
+        title={videoData?.title || "Visualizing Your Potential"}
+        transcriptMd={null} // No transcript data available yet
+        glossary={null} // No glossary data available yet
+      />
 
       {/* Rung 2 Graphic and Purpose Side by Side */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

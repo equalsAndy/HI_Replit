@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 
@@ -22,6 +22,13 @@ const getStepTitle = (stepId: string): string => {
 const IA_4_1_Content: React.FC<IA_4_1_ContentProps> = ({ onNext }) => {
   // Get video data for debugging
   const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-4-1');
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
   
   // Simple debug logging for video data
   React.useEffect(() => {
@@ -38,17 +45,13 @@ const IA_4_1_Content: React.FC<IA_4_1_ContentProps> = ({ onNext }) => {
         Advanced Ladder Overview
       </h1>
       
-      {/* Video Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="ia"
-          stepId="ia-4-1"
-          title="Advanced Ladder Overview"
-          aspectRatio="16:9"
-          autoplay={false}
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
+      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <VideoTranscriptGlossary
+        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'MUbEbYEiimk'} // Fallback to known ID from migration
+        title={videoData?.title || "Advanced Ladder Overview"}
+        transcriptMd={null} // No transcript data available yet
+        glossary={null} // No glossary data available yet
+      />
 
       {/* Advanced Ladder Graphic */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">

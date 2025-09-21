@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
+import { useVideoByStepId } from '@/hooks/use-videos';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface IA35ContentProps {
@@ -66,6 +67,19 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
   const [selectedInterludes, setSelectedInterludes] = useState<InterludeData[]>([]);
   const [responses, setResponses] = useState<{ [key: string]: string }>({});
   const [completed, setCompleted] = useState<string[]>([]);
+
+  // Get video data for ia-3-5 using the existing video hook
+  const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
+    'ia',
+    'ia-3-5'
+  );
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
   const [savedSnapshot, setSavedSnapshot] = useState<{ selected: string[]; responses: { [k: string]: string }; completed: string[] }>({ selected: [], responses: {}, completed: [] });
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
@@ -423,17 +437,13 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
         RUNG 4: INSPIRATION
       </h1>
       
-      {/* Video Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="ia"
-          stepId="ia-3-5"
-          title="IA Solo Inspiration"
-          aspectRatio="16:9"
-          autoplay={false}
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
+      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <VideoTranscriptGlossary
+        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'vGIYaL7jTJo'} // Fallback to known ID from migration
+        title={videoData?.title || "IA Solo Inspiration"}
+        transcriptMd={null} // No transcript data available yet
+        glossary={null} // No glossary data available yet
+      />
 
       {/* Rung 4 Graphic and Purpose Side by Side */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -26,6 +26,13 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
   
   // Get video data to check autoplay setting
   const { data: videoData } = useVideoByStepId('ia', 'ia-3-6');
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
   
   // Debug logging for autoplay setting
   React.useEffect(() => {
@@ -105,17 +112,13 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
         The Mystery Exercise - Imagining the Unimaginable
       </h1>
       
-      {/* Video Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="ia"
-          stepId="ia-3-6"
-          title="The Unimaginable"
-          aspectRatio="16:9"
-          autoplay={videoData?.autoplay ?? false}
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
+      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <VideoTranscriptGlossary
+        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'F1qGAW4OofQ'} // Fallback to known ID from migration
+        title={videoData?.title || "The Unimaginable"}
+        transcriptMd={null} // No transcript data available yet
+        glossary={null} // No glossary data available yet
+      />
 
       {/* Rung 5 Graphic and Purpose Side by Side */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

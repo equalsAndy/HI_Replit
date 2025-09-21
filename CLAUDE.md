@@ -52,8 +52,31 @@ npm test                      # Run tests
 | **AST** (AllStarTeams) | Blue | `/workshop/ast/*` | `/api/ast/*` | `1-1`, `1-2`, `2-1`, `2-2`, `3-1`, `3-2` |
 | **IA** (Imaginal Agility) | Purple | `/workshop/ia/*` | `/api/ia/*` | `ia-1-1`, `ia-1-2`, `ia-2-1`, `ia-2-2` |
 
-**RULE**: Never mix workshops - no cross-workshop data sharing or UI contamination  
+**RULE**: Never mix workshops - no cross-workshop data sharing or UI contamination
 **REQUIREMENT**: Always specify workshop type when working on features
+
+### AST Step Mapping
+
+| Step ID | Content Key | Component Name |
+|---------|-------------|----------------|
+| 1-1 | welcome | WelcomeView |
+| 1-2 | self-awareness_opp | SelfAwarenessOpportunityView |
+| 1-3 | about-course | AboutCourseView |
+| 2-1 | strengths | StrengthsView |
+| 2-2 | flow-patterns | ProtectedFlowPatternsView |
+| 2-3 | future-self | ProtectedFutureSelfView |
+| 2-4 | module-2-recap | Mod2RecapView |
+| 3-1 | wellbeing-ladder | WellBeingView |
+| 3-2 | rounding-out | FlowRoundingOutView |
+| 3-3 | final-reflection | FinalReflectionView |
+| 3-4 | finish-workshop | FinishWorkshopView |
+| 4-1 | download-star-card | DownloadStarCardView |
+| 4-2 | holistic-report | GeneralHolisticReportView |
+| 4-3 | growth-plan | GrowthPlanView |
+| 4-4 | team-workshop-prep | TeamWorkshopPrepView |
+| 5-1 | extra-stuff | PlaceholderView |
+| 5-2 | extra-stuff | ExtraStuffView |
+| 5-3 | more-imaginal-agility | IntroIAView |
 
 ## 🔄 Git Workflow
 

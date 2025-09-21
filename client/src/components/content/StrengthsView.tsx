@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import AstLessonContent from '@/components/ast/AstLessonContentPilot';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
+import { trpc } from "@/utils/trpc";
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
@@ -41,6 +42,15 @@ const StrengthsView: React.FC<ContentViewProps> = ({
   const stepId = "2-1";
   const { updateVideoProgress } = useNavigationProgress();
   const { updateContext, setCurrentStep } = useFloatingAI();
+
+  // Fetch video from database using tRPC
+  const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
+    workshop: 'allstarteams',
+    stepId: stepId,
+  }, {
+    staleTime: 0, // Force fresh fetch
+    cacheTime: 0, // Don't cache results
+  });
   
   // Use the shared StarCard data hook
   const { data: starCardData, isLoading: isLoadingAssessment, refetch } = useStarCardData();
@@ -65,6 +75,40 @@ const StrengthsView: React.FC<ContentViewProps> = ({
         setShowStarCardSection(true);
       }
       setHasLoadedSavedState(true);
+    }
+  }, [isAssessmentComplete, hasLoadedSavedState]);
+
+  // Check if step 2-1 is already completed and auto-show reflections
+  useEffect(() => {
+    if (isAssessmentComplete && hasLoadedSavedState) {
+      // Get current navigation progress to check if step 2-1 is completed
+      const checkStepCompletion = async () => {
+        try {
+          const response = await fetch('/api/workshop-data/navigation-progress/ast', {
+            credentials: 'include'
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+              const { completedSteps } = result.data;
+
+              // If step 2-1 is already completed, show all sections including reflections
+              if (completedSteps && completedSteps.includes('2-1')) {
+                console.log('🎯 Step 2-1 already completed - auto-showing reflections');
+                setShowStarCardSection(true);
+                setShowStrengthsButton(true);
+                setShowReflections(true);
+                setPreloadReflections(true);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error checking step completion:', error);
+        }
+      };
+
+      checkStepCompletion();
     }
   }, [isAssessmentComplete, hasLoadedSavedState]);
 
@@ -137,8 +181,38 @@ const StrengthsView: React.FC<ContentViewProps> = ({
 
       <div className="prose max-w-none">
         {/* 1. Video at the top */}
-        <div className="mb-8">
-          <AstLessonContent stepId={stepId} />
+        <div className="mb-8 max-w-4xl mx-auto">
+          {videoLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading video...</span>
+            </div>
+          ) : error ? (
+            <div className="rounded-md border border-red-300 bg-red-50 p-4 text-red-900">
+              <strong>Error loading video from database:</strong> {error.message}
+              <br />
+              <small>Workshop: allstarteams, Step: {stepId}</small>
+            </div>
+          ) : videoData ? (
+            <VideoTranscriptGlossary
+              youtubeId={videoData.youtubeId}
+              title={videoData.title}
+              transcriptMd={videoData.transcriptMd}
+              glossary={videoData.glossary ?? []}
+            />
+          ) : (
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              No video data found in database for workshop 'allstarteams' step '{stepId}'
+              <br />
+              <small>Falling back to default video</small>
+              <VideoTranscriptGlossary
+                youtubeId="placeholder-fallback-id"
+                title="Strengths Video"
+                transcriptMd=""
+                glossary={[]}
+              />
+            </div>
+          )}
         </div>
 
         {isLoadingAssessment ? (

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
+import { useVideoByStepId } from '@/hooks/use-videos';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -23,6 +24,19 @@ interface IA32StepData {
 const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const { shouldShowDemoButtons } = useTestUser();
+
+  // Get video data for ia-3-2 using the existing video hook
+  const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
+    'ia',
+    'ia-3-2'
+  );
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
   
   // Initialize with empty data structure
   const initialData: IA32StepData = {
@@ -97,17 +111,13 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
         Autoflow Practice
       </h1>
       
-      {/* Video Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="ia"
-          stepId="ia-3-2"
-          title="Autoflow Practice"
-          aspectRatio="16:9"
-          autoplay={false}
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
+      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <VideoTranscriptGlossary
+        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'Kjy3lBW06Gs'} // Fallback to known ID from migration
+        title={videoData?.title || "Autoflow Practice"}
+        transcriptMd={null} // No transcript data available yet
+        glossary={null} // No glossary data available yet
+      />
 
       {/* Rung 1 Graphic and Purpose Side by Side */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

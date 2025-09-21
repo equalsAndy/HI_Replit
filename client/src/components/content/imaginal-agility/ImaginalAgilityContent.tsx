@@ -3,10 +3,9 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 // import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
 import { trpc } from "@/utils/trpc";
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
-import { useVideoByStepId } from '../../../hooks/use-videos';
+import { useVideoByStepId } from '@/hooks/use-videos';
 import IA_1_2_Content from './steps/IA_1_2_Content';
 import IA_2_1_Content from './steps/IA_2_1_Content';
 import IA_2_2_Content from './steps/IA_2_2_Content';
@@ -27,6 +26,25 @@ import IA_5_1_Content from './steps/IA_5_1_Content';
 
 // Component for ia-4-1 Assessment step
 const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void; onNext?: (stepId: string) => void }> = ({ onOpenAssessment, onNext }) => {
+  // Get video data for debugging
+  const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-4-1');
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
+
+  // Simple debug logging for video data
+  React.useEffect(() => {
+    if (videoData) {
+      console.log('🎬 IA-4-1 Assessment Video found:', videoData.title);
+    } else if (!isLoading) {
+      console.log('🎬 IA-4-1 Assessment No video data found for step ia-4-1');
+    }
+  }, [videoData, isLoading]);
+
   // Check if assessment is completed
   const { data: assessmentData } = useQuery({
     queryKey: ['/api/workshop-data/ia-assessment'],
@@ -42,17 +60,13 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
       </h1>
       
       <div className="mb-8">
-        {/* Video Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-          <VideoPlayer
-            workshopType="ia"
-            stepId="ia-4-1"
-            title="Self-Assessment"
-            aspectRatio="16:9"
-            autoplay={false}
-            className="w-full max-w-2xl mx-auto"
-          />
-        </div>
+        {/* Video Section using VideoTranscriptGlossary component like AST */}
+        <VideoTranscriptGlossary
+          youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'MUbEbYEiimk'} // Fallback to known ID from migration
+          title={videoData?.title || "Self-Assessment"}
+          transcriptMd={null} // No transcript data available yet
+          glossary={null} // No glossary data available yet
+        />
       </div>
       
       <div className="text-lg text-gray-700 space-y-4">
@@ -275,10 +289,10 @@ const AssessmentResultsContent: React.FC<{ onNext?: (stepId: string) => void }> 
 };
 
 const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId, onNext, onOpenAssessment }) => {
-  // Get video data for ia-1-1 using the existing video hook - only when on ia-1-1
+  // Get video data using the existing video hook - for ia-1-1 and ia-7-1
   const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
     'ia',
-    stepId === 'ia-1-1' ? 'ia-1-1' : ''
+    (stepId === 'ia-1-1' || stepId === 'ia-7-1') ? stepId : ''
   );
 
   // Helper function to extract YouTube ID from video URL
@@ -422,17 +436,13 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
             <h1 className="text-3xl font-bold text-purple-700 mb-8">
               Welcome
             </h1>
-            {/* Video Section using VideoPlayer component */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <VideoPlayer
-                workshopType="ia"
-                stepId="ia-7-1"
-                title="Welcome"
-                aspectRatio="16:9"
-                autoplay={false}
-                className="w-full max-w-2xl mx-auto"
-              />
-            </div>
+            {/* Video Section using VideoTranscriptGlossary component like AST */}
+            <VideoTranscriptGlossary
+              youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'ScQ7JqLOOVY'} // Fallback to known ID from migration
+              title={videoData?.title || "Welcome"}
+              transcriptMd={null} // No transcript data available yet
+              glossary={null} // No glossary data available yet
+            />
             {/* Content Card */}
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
               <div className="prose prose-lg max-w-none text-gray-800 space-y-6">

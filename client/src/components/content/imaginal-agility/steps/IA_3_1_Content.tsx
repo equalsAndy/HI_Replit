@@ -1,29 +1,60 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
+import { useVideoByStepId } from '@/hooks/use-videos';
 
 interface IA31ContentProps {
   onNext?: (stepId: string) => void;
 }
 
 const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
+  // Get video data for ia-3-1 using the existing video hook
+  const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
+    'ia',
+    'ia-3-1'
+  );
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
+
+  if (videoLoading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <span className="text-gray-600">Loading video...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract YouTube ID from video URL, no fallback for ia-3-1 (not in migration)
+  const youtubeId = videoData?.url ? extractYouTubeId(videoData.url) : null;
+
+  // Debug logging
+  console.log('🎬 IA-3-1 Debug:', {
+    videoData: videoData ? { title: videoData.title, url: videoData.url, stepId: videoData.stepId } : null,
+    youtubeId,
+    videoLoading
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         The Ladder of Imagination
       </h1>
       
-      {/* Video Section using VideoPlayer component */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="ia"
-          stepId="ia-3-1"
-          title="The Ladder of Imagination"
-          aspectRatio="16:9"
-          autoplay={false}
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
+      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <VideoTranscriptGlossary
+        youtubeId={youtubeId}
+        title={videoData?.title || "The Ladder of Imagination"}
+        transcriptMd={null} // No transcript data available yet
+        glossary={null} // No glossary data available yet
+      />
       
       {/* Content Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">

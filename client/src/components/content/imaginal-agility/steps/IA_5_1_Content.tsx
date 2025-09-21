@@ -1,5 +1,6 @@
 import React from 'react';
-import { VideoPlayer } from '@/components/content/VideoPlayer';
+import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
+import { useVideoByStepId } from '@/hooks/use-videos';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,25 @@ interface IA51ContentProps {
 }
 
 const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
+  // Get video data for debugging
+  const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-5-1');
+
+  // Helper function to extract YouTube ID from video URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
+
+  // Simple debug logging for video data
+  React.useEffect(() => {
+    if (videoData) {
+      console.log('🎬 IA-5-1 Video found:', videoData.title);
+    } else if (!isLoading) {
+      console.log('🎬 IA-5-1 No video data found for step ia-5-1');
+    }
+  }, [videoData, isLoading]);
+
   const RungPreview: React.FC<{ n: 1 | 2 | 3 | 4 | 5 }> = ({ n }) => (
     <div className="flex items-center gap-2 md:gap-3">
       <img
@@ -31,17 +51,13 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
         Outcomes and Benefits
       </h1>
       
-      {/* Video Section using VideoPlayer component */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="ia"
-          stepId="ia-5-1"
-          title="Outcomes and Benefits Overview"
-          aspectRatio="16:9"
-          autoplay={false}
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
+      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <VideoTranscriptGlossary
+        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
+        title={videoData?.title || "Outcomes and Benefits Overview"}
+        transcriptMd={null} // No transcript data available yet
+        glossary={null} // No glossary data available yet
+      />
 
       {/* Interactive Outcomes & Benefits */}
       <div className="space-y-6">
