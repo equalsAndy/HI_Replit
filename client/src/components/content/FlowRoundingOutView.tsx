@@ -46,8 +46,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           Rounding Out: Flow State Mastery
         </h2>
         <p className="text-gray-600 leading-relaxed">
-          Now that you've completed the flow assessment, take some time to round out your understanding 
-          of flow and how you can create more opportunities for it in your work and life.
+          You've completed the flow assessment. Now use these insights to strengthen how you create flow in work and life.
         </p>
       </div>
 
@@ -89,28 +88,28 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-100 h-full">
             <h3 className="font-medium text-indigo-800 mb-3 flex items-center">
               <Edit className="h-4 w-4 mr-2 text-indigo-600" />
-              Flow State Key Principles
+              Flow State Principles
             </h3>
             <ul className="space-y-2 text-indigo-700 text-sm">
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Clear goals</strong> - Know exactly what you need to accomplish</span>
+                <span><strong>Clear Goals</strong> – Know what you're aiming to achieve</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Balance of challenge & skill</strong> - Not too easy, not too hard</span>
+                <span><strong>Balance</strong> – Tasks are challenging but not overwhelming</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Immediate feedback</strong> - Know how you're performing as you go</span>
+                <span><strong>Feedback</strong> – Get signals to adjust in real time</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Deep concentration</strong> - Full attention on the task at hand</span>
+                <span><strong>Focus</strong> – Deep, distraction-free attention</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Intrinsic motivation</strong> - Driven by personal satisfaction and growth</span>
+                <span><strong>Intrinsic Motivation</strong> – Driven by personal meaning and growth</span>
               </li>
             </ul>
           </div>
@@ -125,23 +124,23 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             <ul className="space-y-2 text-green-700 text-sm">
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Time blocking</strong> - Schedule uninterrupted focus periods</span>
+                <span><strong>Time Blocking</strong> – Reserve focused periods</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Environment design</strong> - Minimize distractions and interruptions</span>
+                <span><strong>Design Environment</strong> – Minimize interruptions</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Right-sized challenges</strong> - Match tasks to your current skill level</span>
+                <span><strong>Right-Sized Challenges</strong> – Match tasks to skills</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Progress tracking</strong> - Build in regular feedback loops</span>
+                <span><strong>Track Progress</strong> – Build in feedback loops</span>
               </li>
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Energy management</strong> - Work during your peak performance hours</span>
+                <span><strong>Manage Energy</strong> – Work at peak times</span>
               </li>
             </ul>
           </div>

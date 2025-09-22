@@ -653,63 +653,73 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Understanding Flow State</h2>
+          <h2 className="text-xl font-semibold text-blue-700 mb-4">Understanding Flow</h2>
 
-          <p className="text-gray-700 mb-4">
-            Flow is a state of complete immersion in an activity, characterized by energized focus, full involvement, and enjoyment in
-            the process. It's often described as being "in the zone" - when time seems to disappear and you're completely absorbed
-            in what you're doing.
+          <p className="text-gray-700 mb-6">
+            Flow is when you're fully absorbed in an activity—energized, focused, and enjoying the moment. Time seems to disappear.
           </p>
 
+          <h3 className="text-lg font-semibold text-blue-700 mb-4">Key Conditions</h3>
+
           <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-700 mb-3">Clear Goals</h3>
-              <p className="text-gray-700">
-                You know exactly what you need to accomplish and can measure your progress.
-              </p>
+            <div className="bg-blue-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img src="/assets/clear_goals.png" alt="Clear Goals" className="w-full h-full object-contain opacity-20" />
+              </div>
+              <div className="relative z-10">
+                <h4 className="text-2xl font-bold text-blue-700 mb-4">Clear Goals</h4>
+                <p className="text-lg text-gray-700 font-medium">
+                  You know exactly what to do next
+                </p>
+              </div>
             </div>
 
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-purple-700 mb-3">Balance of Challenge & Skill</h3>
-              <p className="text-gray-700">
-                The task is challenging enough to engage you but not so difficult that it causes anxiety.
-              </p>
+            <div className="bg-purple-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img src="/assets/balance_skill.png" alt="Balanced Challenge & Skill" className="w-full h-full object-contain opacity-20" />
+              </div>
+              <div className="relative z-10">
+                <h4 className="text-2xl font-bold text-purple-700 mb-4">Balanced Challenge & Skill</h4>
+                <p className="text-lg text-gray-700 font-medium">
+                  Hard enough to engage, not so hard it creates anxiety
+                </p>
+              </div>
             </div>
 
-            <div className="bg-indigo-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-700 mb-3">Immediate Feedback</h3>
-              <p className="text-gray-700">
-                You can quickly tell how well you're doing, allowing for adjustment in real-time.
-              </p>
+            <div className="bg-indigo-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img src="/assets/immediate_feedback.png" alt="Immediate Feedback" className="w-full h-full object-contain opacity-20" />
+              </div>
+              <div className="relative z-10">
+                <h4 className="text-2xl font-bold text-blue-700 mb-4">Immediate Feedback</h4>
+                <p className="text-lg text-gray-700 font-medium">
+                  You can adjust in real time
+                </p>
+              </div>
             </div>
 
-            <div className="bg-green-50 p-6 rounded-lg">
-              <h3 className="text-lg font-semibold text-green-700 mb-3">Deep Concentration</h3>
-              <p className="text-gray-700">
-                Your attention is completely focused on the task at hand, with no distractions.
-              </p>
+            <div className="bg-green-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img src="/assets/deep_concentration.png" alt="Deep Concentration" className="w-full h-full object-contain opacity-20" />
+              </div>
+              <div className="relative z-10">
+                <h4 className="text-2xl font-bold text-green-700 mb-4">Deep Concentration</h4>
+                <p className="text-lg text-gray-700 font-medium">
+                  Distraction-free attention on the task
+                </p>
+              </div>
             </div>
           </div>
 
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Benefits of Flow State</h2>
-
-          <p className="text-gray-700 mb-4">
-            Regularly experiencing flow is associated with:
-          </p>
+          <h3 className="text-lg font-semibold text-blue-700 mb-4">Benefits of Flow</h3>
 
           <ul className="list-disc pl-5 text-gray-700 space-y-2 mb-6">
-            <li>Higher productivity and performance</li>
-            <li>Increased creativity and innovation</li>
-            <li>Greater enjoyment and satisfaction</li>
-            <li>Reduced stress and anxiety</li>
-            <li>Enhanced learning and skill development</li>
+            <li>Higher productivity & performance</li>
+            <li>More creativity & innovation</li>
+            <li>Greater satisfaction & motivation</li>
+            <li>Reduced stress & anxiety</li>
+            <li>Stronger learning & skill growth</li>
           </ul>
-
-          <p className="text-gray-700 mb-4">
-            Your strongest strengths naturally create opportunities for flow experiences.
-            When you understand your flow patterns, you can design your work and life to
-            create more of these deeply satisfying moments.
-          </p>
         </div>
 
         {/* Flow Assessment Section - New Modal Launch Area */}
@@ -721,8 +731,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             
             <h3 className="text-xl font-semibold text-blue-900 mb-3">Your Flow Self-Assessment</h3>
             <p className="text-blue-800 mb-6 max-w-2xl mx-auto">
-              Discover your personal flow patterns and identify what conditions help you achieve peak performance. 
-              This assessment will help you understand when and how you experience flow most naturally.
+              Discover your personal flow patterns and what conditions help you perform at your best.
             </p>
 
             {hasCompletedAssessment ? (

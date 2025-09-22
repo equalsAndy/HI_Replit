@@ -17,7 +17,7 @@ performance.mark('app-start');
 // Auth0 Configuration
 const domain = import.meta.env.VITE_AUTH0_DOMAIN!;
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID!;
-const redirectUri = import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin;
+const redirectUri = import.meta.env.VITE_AUTH0_REDIRECT_URI || `${window.location.origin}/auth/callback`;
 const audience = import.meta.env.VITE_AUTH0_AUDIENCE; // optional
 
 console.log("Starting React app with Auth0...");

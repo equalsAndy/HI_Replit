@@ -101,13 +101,13 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     ? "Welcome to Imaginal Agility Workshop" 
     : isStudentOrFacilitator 
       ? "Welcome to AllStarTeams 5-Week Program"
-      : "Welcome to AllStarTeams Workshop";
+      : "The Self-Awareness Gap";
 
   const description = isImaginalAgility
     ? null // IA content will be rendered separately in the main content area
     : isStudentOrFacilitator
       ? "Welcome to AllStarTeams - a new kind of workshop designed just for you! This is where your personal strengths meet your future goals."
-      : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
+      : "Self-awareness is a core human asset and the foundation for trust, collaboration, and growth. This Microcourse Workshop offers a practical way to enhance individual and team self-awareness.";
 
   const fallbackUrl = isImaginalAgility 
     ? "https://youtu.be/JxdhWd8agmE" 
@@ -327,7 +327,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             <div className="section-content-card-60__strip" aria-hidden="true" />
             <div className="section-content-card-60__box h-full">
               <div className="flex flex-col items-center justify-center h-[420px] py-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Here's What Happens Without Self-Awareness</h3>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Here's What Happens Without Self-Awareness</h3>
                 <div className="w-full max-w-lg flex justify-center flex-grow items-center">
                   <img 
                     src="/assets/organizational-challenges-diagram.png" 

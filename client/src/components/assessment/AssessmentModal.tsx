@@ -728,51 +728,54 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
   // Render the intro screen
   const renderIntro = () => (
     <div className="py-4 space-y-6">
-      <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-100">
-        <h3 className="font-medium text-blue-800 mb-3 text-lg">About this assessment</h3>
-        <p className="text-blue-700 mb-3 text-sm">
-          The AllStarTeams Strengths Assessment helps you discover your unique strengths profile across five key dimensions:
-          Thinking, Acting, Feeling, Planning, and Imagining.
-        </p>
-        <ul className="space-y-2">
+      <div className="bg-blue-50 rounded-lg p-6 mb-6 border border-blue-100">
+        <h3 className="font-semibold text-blue-800 mb-4 text-xl">About this assessment</h3>
+        <ul className="space-y-3">
           <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span className="text-sm">22 short questions about how you approach work and collaboration</span>
+            <span className="w-3 h-3 bg-blue-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span className="text-base">The AST Star Self-Assessment reveals your unique core strengths profile: Thinking, Acting, Feeling, Planning, and Imagining.</span>
           </li>
           <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span className="text-sm">Takes approximately 10–15 minutes to complete</span>
+            <span className="w-3 h-3 bg-blue-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span className="text-base">There are 22 short scenarios on how you approach work and collaboration.</span>
           </li>
           <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span className="text-sm">You'll order your responses from most like you (1) to least like you (4)</span>
-          </li>
-          <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span className="text-sm">Generates your personal Star Card—a visual snapshot of your strengths</span>
+            <span className="w-3 h-3 bg-blue-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span className="text-base">This takes 10–15 minutes</span>
           </li>
         </ul>
       </div>
 
-      <div className="bg-amber-50 rounded-lg p-4 mb-6 border border-amber-100">
-        <h3 className="font-medium text-amber-800 mb-3 text-lg">Instructions</h3>
-        <p className="text-amber-700 text-sm mb-3">
-          For each scenario, drag and drop the four options to rank them from most like you (1) to least like you (4).
-        </p>
-        <div className="space-y-1 text-amber-700 text-sm">
-          <div className="flex items-start">
-            <span className="w-2 h-2 bg-amber-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span>There are no right or wrong answers—just be honest about what feels true to you.</span>
-          </div>
-          <div className="flex items-start">
-            <span className="w-2 h-2 bg-amber-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span>The four core strengths are quantified, color-coded, and placed on your Star Card based on your responses.</span>
-          </div>
-          <div className="flex items-start">
-            <span className="w-2 h-2 bg-amber-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span>Your fifth strength, Imagination, is not ranked or measured here. It appears at the top of your Star Card—blank like a canvas, symbolizing your unique potential.</span>
-          </div>
-        </div>
+      <div className="bg-amber-50 rounded-lg p-6 mb-6 border border-amber-100">
+        <h3 className="font-semibold text-amber-800 mb-4 text-xl">Instructions</h3>
+        <ul className="space-y-3 text-amber-700 text-base">
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-amber-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>For each scenario, drag and drop the four options</span>
+          </li>
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-amber-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>Rank them from most like you (1) to least like you (4).</span>
+          </li>
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-amber-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>There are no right or wrong answers—just what feels true for you.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div className="bg-green-50 rounded-lg p-6 mb-6 border border-green-100">
+        <h3 className="font-semibold text-green-800 mb-4 text-xl">Results</h3>
+        <ul className="space-y-3 text-green-700 text-base">
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-green-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>Your four core strengths are quantified, color-coded, and shown on your Star Card.</span>
+          </li>
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-green-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>Imagination is not ranked but appears at the top—blank like a canvas, symbolizing your unique potential.</span>
+          </li>
+        </ul>
       </div>
 
 

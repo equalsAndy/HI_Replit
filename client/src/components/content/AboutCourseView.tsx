@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
+import '@/styles/section-headers.css';
 
 interface AboutCourseViewProps {
   navigate?: any;
@@ -223,6 +224,35 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
               <span className="text-base text-gray-700">AI-generated holistic report of your profile</span>
             </li>
           </ul>
+        </div>
+
+        {/* A little about assessments section */}
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--reflection">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">📊 A little about assessments</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-blue-200 shadow-sm mb-8">
+          <p className="text-base text-gray-700 mb-4">
+            Assessments are tools designed to help you understand yourself better. They're not tests with right or wrong answers, but ways to explore your natural preferences, strengths, and tendencies.
+          </p>
+          <p className="text-base text-gray-700 mb-4">
+            <strong>Think of them as mirrors</strong> - they reflect back what's already there, helping you see patterns you might not have noticed before.
+          </p>
+          <p className="text-base text-gray-700 mb-4">
+            The AllStarTeams assessment focuses on four core dimensions that influence how you approach work and life:
+          </p>
+          <ul className="space-y-2 ml-4 mb-4">
+            <li className="text-base text-gray-700">• <strong>Thinking</strong> - How you process information and solve problems</li>
+            <li className="text-base text-gray-700">• <strong>Acting</strong> - How you take action and make decisions</li>
+            <li className="text-base text-gray-700">• <strong>Feeling</strong> - How you connect with others and understand emotions</li>
+            <li className="text-base text-gray-700">• <strong>Planning</strong> - How you organize and structure your approach</li>
+          </ul>
+          <p className="text-base text-gray-700">
+            Remember: there are no "better" or "worse" profiles. Each combination of strengths brings unique value to teams and organizations. The goal is understanding, not judgment.
+          </p>
         </div>
 
         {/* Second Video */}

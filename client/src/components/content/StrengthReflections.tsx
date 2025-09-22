@@ -140,7 +140,7 @@ export default function StrengthReflections({
         'I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change.',
         'I value team environments where open communication is prioritized and every member\'s contributions are recognized. I work best when there\'s a culture of constructive feedback.'
       ],
-      strengthColor: { bg: 'bg-orange-500', text: 'text-white', name: 'TEAM' },
+      strengthColor: { bg: 'bg-gray-400', text: 'text-white', name: 'TEAM' },
       minLength: 25,
     };
 
@@ -158,7 +158,7 @@ export default function StrengthReflections({
         'I bring value through my combination of planning and empathy. I create structured processes while ensuring everyone feels heard and supported throughout implementation.',
         'My unique contribution comes from balancing analytical thinking with relationship building. This helps me develop solutions that are both technically sound and people-focused.'
       ],
-      strengthColor: { bg: 'bg-purple-500', text: 'text-white', name: 'YOU' },
+      strengthColor: { bg: 'bg-gray-500', text: 'text-white', name: 'YOU' },
       minLength: 25,
     };
 
@@ -380,7 +380,7 @@ export default function StrengthReflections({
                 onClick={() => handleReflectionClick(index)}
                 disabled={!canAccess}
                 className={`
-                  w-16 h-16 rounded flex items-center justify-center text-xs font-bold transition-all border-2
+                  w-16 h-16 ${index >= 4 ? 'rounded-full' : 'rounded'} flex items-center justify-center text-xs font-bold transition-all border-2
                   ${isCompleted
                     ? `${reflection.strengthColor?.bg} text-white border-white shadow-md`
                     : isCurrent
@@ -603,7 +603,7 @@ export default function StrengthReflections({
                     className="w-full bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border text-left transition-colors"
                   >
                     <h5 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                      <div className={`w-16 h-16 rounded flex items-center justify-center text-xs font-bold text-white mr-3 ${reflection.strengthColor?.bg}`}>
+                      <div className={`w-16 h-16 ${index >= 4 ? 'rounded-full' : 'rounded'} flex items-center justify-center text-xs font-bold text-white mr-3 ${reflection.strengthColor?.bg}`}>
                         {index < 4 ? (
                           reflection.strengthColor?.name || `STR${index + 1}`
                         ) : index === 4 ? (
