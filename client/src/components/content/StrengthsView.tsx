@@ -286,7 +286,7 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                   {/* Star Card */}
                   <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full">
                     <div className="p-4 border-b border-gray-200 bg-gray-50">
-                      <h3 className="text-xl font-bold text-center">Your Star Card</h3>
+                      <h3 className="text-xl font-bold text-center">Your Star Card So Far</h3>
                     </div>
                     <div className="flex justify-center" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
                       <StarCardWithFetch

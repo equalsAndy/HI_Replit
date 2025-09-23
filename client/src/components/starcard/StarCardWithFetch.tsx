@@ -153,7 +153,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   
   const profile = {
     name: user?.name || user?.username || '',
-    title: user?.title || '',
+    title: user?.title || user?.jobTitle || '',
     organization: user?.organization || '',
     avatarUrl: processImageUrl(user?.profilePicture) || null,
     profilePictureUrl: user?.profilePictureUrl || null
