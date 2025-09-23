@@ -151,7 +151,7 @@ function generateReportHTML(data: any) {
   const flowAttributes = data.assessments?.flowAttributes || {};
   const stepByStep = data.assessments?.stepByStepReflection || {};
   const roundingOut = data.assessments?.roundingOutReflection || {};
-  const futureSelf = data.assessments?.futureSelfReflection || {};
+  // futureSelfReflection fields deprecated; intentionally omitted
   const finalReflection = data.assessments?.finalReflection || {};
   
   // Ensure user data integrity

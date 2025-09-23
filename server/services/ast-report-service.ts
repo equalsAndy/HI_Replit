@@ -450,7 +450,7 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
       const futureResult = await pool.query(`
         SELECT results 
         FROM user_assessments 
-        WHERE user_id = $1 AND assessment_type = 'futureSelfReflection'
+        WHERE user_id = $1 AND assessment_type = 'futureSelfReflection' -- deprecated fields remain stored but are not used
         ORDER BY created_at DESC 
         LIMIT 1
       `, [userId]);
@@ -497,9 +497,7 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
       if (reflectionsData.reflections?.uniqueContribution) stepReflections['unique-contribution'] = reflectionsData.reflections.uniqueContribution;
       
       // Future vision and flow optimization
-      if (futureData.twentyYearVision) stepReflections['4-4'] = futureData.twentyYearVision;
-      if (futureData.tenYearMilestone) stepReflections['4-4-10yr'] = futureData.tenYearMilestone;
-      if (futureData.fiveYearFoundation) stepReflections['4-4-5yr'] = futureData.fiveYearFoundation;
+      // Deprecated: omit future self 20/10/5-year reflections from step mapping
       if (futureData.flowOptimizedLife) stepReflections['4-5'] = futureData.flowOptimizedLife;
       
       // Flow insights and optimization
@@ -529,7 +527,7 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
           quarterlyProgress: cantrilReflectionData.quarterlyProgress || '',
           quarterlyActions: cantrilReflectionData.quarterlyActions || ''
         },
-        futureVision: futureData.twentyYearVision || '',
+        futureVision: '',
         // Use actual user's quarterly actions instead of generic text
         quarterlyGoals: cantrilReflectionData.quarterlyActions || 'Focus on leadership development and skill building',
         // Additional rich data for Talia
@@ -541,9 +539,9 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
           improvements: roundingOutData.growthAreas || ''
         },
         visionProgression: {
-          twentyYear: futureData.twentyYearVision || '',
-          tenYear: futureData.tenYearMilestone || '',
-          fiveYear: futureData.fiveYearFoundation || '',
+          twentyYear: '',
+          tenYear: '',
+          fiveYear: '',
           flowOptimized: futureData.flowOptimizedLife || ''
         }
       };

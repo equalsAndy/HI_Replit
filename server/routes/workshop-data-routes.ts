@@ -937,10 +937,6 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
     
     // Handle both new timeline structure and legacy format for backward compatibility
     const {
-      direction,
-      twentyYearVision,
-      tenYearMilestone,
-      fiveYearFoundation,
       flowOptimizedLife,
       // Legacy fields for backward compatibility
       futureSelfDescription,
@@ -952,9 +948,6 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
 
     // Validate that at least one field has meaningful content
     const hasTextContent = (
-      (twentyYearVision && twentyYearVision.trim().length >= 10) ||
-      (tenYearMilestone && tenYearMilestone.trim().length >= 10) ||
-      (fiveYearFoundation && fiveYearFoundation.trim().length >= 10) ||
       (flowOptimizedLife && flowOptimizedLife.trim().length >= 10) ||
       (futureSelfDescription && futureSelfDescription.trim().length >= 10) ||
       (visualizationNotes && visualizationNotes.trim().length >= 10)
@@ -1008,9 +1001,6 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
     };
 
     try {
-      validateField('twentyYearVision', twentyYearVision);
-      validateField('tenYearMilestone', tenYearMilestone); 
-      validateField('fiveYearFoundation', fiveYearFoundation);
       validateField('flowOptimizedLife', flowOptimizedLife);
       validateField('futureSelfDescription', futureSelfDescription, 1000);
       validateField('visualizationNotes', visualizationNotes, 1000);
@@ -1025,11 +1015,7 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
 
     // Build assessment data structure (supports both new and legacy formats)
     const assessmentData = {
-      // New timeline structure
-      direction: direction || 'backward',
-      twentyYearVision: twentyYearVision ? twentyYearVision.trim() : '',
-      tenYearMilestone: tenYearMilestone ? tenYearMilestone.trim() : '',
-      fiveYearFoundation: fiveYearFoundation ? fiveYearFoundation.trim() : '',
+      // Deprecated fields removed from payload
       flowOptimizedLife: flowOptimizedLife ? flowOptimizedLife.trim() : '',
 
       // Legacy fields for backward compatibility
@@ -1087,7 +1073,7 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
       data: assessmentData,
       meta: { 
         saved_at: new Date().toISOString(),
-        assessmentType: 'futureSelfReflection' 
+        assessmentType: 'futureSelfReflection'
       }
     });
   } catch (error) {

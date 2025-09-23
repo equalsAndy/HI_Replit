@@ -111,7 +111,7 @@ function generateComprehensiveReportHTML(data: any): string {
   const flowAttributes = data.assessments?.flowAttributes || {};
   const stepByStep = data.assessments?.stepByStepReflection || {};
   const roundingOut = data.assessments?.roundingOutReflection || {};
-  const futureSelf = data.assessments?.futureSelfReflection || {};
+  // futureSelfReflection fields deprecated; intentionally omitted
   const finalReflection = data.assessments?.finalReflection || {};
   
   const userName = data.user?.name || 'Participant';
@@ -356,7 +356,7 @@ function generateFutureVisionContent(futureSelf: any, cantril: any): string {
       <h4>Future Self Questionnaire</h4>
       <ul>
         <li><strong>5 Years:</strong> ${futureSelf.futureSelfDescription?.split('.')[0] || 'Advanced leadership role with expanded influence'}</li>
-        <li><strong>10 Years:</strong> ${futureSelf.futureSelfDescription?.split('.')[1] || 'Strategic leadership position shaping organizational direction'}</li>
+        
         <li><strong>20 Years:</strong> ${futureSelf.futureSelfDescription?.split('.')[2] || 'Industry thought leader making lasting impact'}</li>
       </ul>
       

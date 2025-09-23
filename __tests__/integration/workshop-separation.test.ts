@@ -60,7 +60,7 @@ describe('Workshop Separation Integration Tests', () => {
     })
 
     // Import and setup mocked database
-    const { db } = require('@server/db')
+    const { db } = await import('@server/db')
     mockDb = vi.mocked(db)
     
     vi.clearAllMocks()

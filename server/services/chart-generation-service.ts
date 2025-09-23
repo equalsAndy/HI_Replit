@@ -479,15 +479,7 @@ export class ChartGenerationService {
         });
       }
 
-      // Generate timeline chart if future vision available
-      if (userData.assessments?.futureSelfReflection) {
-        charts.timelineChart = await this.generateTimelineChart({
-          fiveYear: userData.assessments.futureSelfReflection.fiveYearFoundation || '',
-          tenYear: userData.assessments.futureSelfReflection.tenYearMilestone || '',
-          twentyYear: userData.assessments.futureSelfReflection.twentyYearVision || '',
-          milestones: []
-        });
-      }
+      // Skip generating timeline chart from futureSelfReflection (fields deprecated)
 
       console.log(`✅ Generated ${Object.keys(charts).length} charts successfully`);
       return charts;

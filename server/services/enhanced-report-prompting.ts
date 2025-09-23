@@ -255,20 +255,9 @@ This creates a unique operating pattern where ${analysis.dominant.name.toLowerCa
   /**
    * Format future vision data
    */
-  private formatFutureVision(futureVision: any): string {
-    let formatted = '';
-    
-    if (futureVision.twentyYearVision) {
-      formatted += `**20-Year Vision:** "${futureVision.twentyYearVision}"\n`;
-    }
-    if (futureVision.tenYearMilestone) {
-      formatted += `**10-Year Milestone:** "${futureVision.tenYearMilestone}"\n`;
-    }
-    if (futureVision.fiveYearFoundation) {
-      formatted += `**5-Year Foundation:** "${futureVision.fiveYearFoundation}"\n`;
-    }
-
-    return formatted;
+  private formatFutureVision(_futureVision: any): string {
+    // Deprecated fields removed from report content
+    return '';
   }
 
   /**

@@ -173,7 +173,7 @@ function generateComprehensiveReportHTML(data: any): string {
   const flowAttributes = data.assessments?.flowAttributes || {};
   const stepByStep = data.assessments?.stepByStepReflection || {};
   const roundingOut = data.assessments?.roundingOutReflection || {};
-  const futureSelf = data.assessments?.futureSelfReflection || {};
+  // futureSelfReflection fields deprecated; intentionally omitted
   const finalReflection = data.assessments?.finalReflection || {};
   
   const userName = data.user?.name || 'Participant';

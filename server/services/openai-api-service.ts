@@ -784,24 +784,7 @@ function buildUserDataContext(userData: any, userName: string): string {
 `;
   }
 
-  // Add Future Self Reflection
-  if (assessments.futureSelfReflection) {
-    const future = assessments.futureSelfReflection;
-    context += `## STEP 4-4: Your Future Self (Future Visioning)
-
-**Future Self Vision**:
-
-**5 Years**: "${future.fiveYearFoundation || 'Not provided'}"
-
-**10 Years**: "${future.tenYearMilestone || 'Not provided'}"
-
-**20 Years**: "${future.twentyYearVision || 'Not provided'}"
-
-**Flow-Optimized Life**: "${future.flowOptimizedLife || 'Not provided'}"
-
----
-`;
-  }
+  // Future Self Reflection fields (direction, 5/10/20-year) deprecated; omit from context
 
   // Add Final Reflection
   if (assessments.finalReflection) {

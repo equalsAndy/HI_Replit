@@ -20,6 +20,7 @@
     "preview": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "test": "vitest",
+    "test:ci": "tsx scripts/run-tests.ts",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",

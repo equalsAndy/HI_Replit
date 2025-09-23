@@ -195,7 +195,10 @@ describe('Authentication Routes', () => {
 
   describe('GET /auth/me', () => {
     it('should return current user when authenticated', async () => {
-      // Arrange
+      // Arrange: login first to establish session
+      await request(app)
+        .post('/auth/login')
+        .send(loginCredentials.validAdmin)
       mockUserService.getUserById.mockResolvedValue({
         success: true,
         user: testUsers.admin
@@ -232,7 +235,10 @@ describe('Authentication Routes', () => {
     })
 
     it('should handle user not found error', async () => {
-      // Arrange
+      // Arrange: login first to establish session
+      await request(app)
+        .post('/auth/login')
+        .send(loginCredentials.validAdmin)
       mockUserService.getUserById.mockResolvedValue({
         success: false,
         error: 'User not found'
@@ -264,7 +270,10 @@ describe('Authentication Routes', () => {
     })
 
     it('should update user profile with valid data', async () => {
-      // Arrange
+      // Arrange: login first to establish session
+      await request(app)
+        .post('/auth/login')
+        .send(loginCredentials.validAdmin)
       const updateData = {
         name: 'Updated Admin',
         email: 'updated@example.com',
@@ -293,6 +302,10 @@ describe('Authentication Routes', () => {
     })
 
     it('should reject profile update with invalid email format', async () => {
+      // Arrange: login first
+      await request(app)
+        .post('/auth/login')
+        .send(loginCredentials.validAdmin)
       // Act
       const response = await request(app)
         .put('/auth/me')
@@ -302,12 +315,17 @@ describe('Authentication Routes', () => {
         })
 
       // Assert
+      // Unauthenticated requests now return 401 before validation
       expect(response.status).toBe(400)
       expect(response.body.success).toBe(false)
       expect(response.body.error).toBe('Invalid email format')
     })
 
     it('should reject profile update with missing required fields', async () => {
+      // Arrange: login first
+      await request(app)
+        .post('/auth/login')
+        .send(loginCredentials.validAdmin)
       // Act
       const response = await request(app)
         .put('/auth/me')
@@ -323,6 +341,10 @@ describe('Authentication Routes', () => {
     })
 
     it('should validate contentAccess field', async () => {
+      // Arrange: login first
+      await request(app)
+        .post('/auth/login')
+        .send(loginCredentials.validAdmin)
       // Act
       const response = await request(app)
         .put('/auth/me')
@@ -342,7 +364,10 @@ describe('Authentication Routes', () => {
         success: false,
         error: 'Email already exists'
       })
-
+      // Arrange: login first
+      await request(app)
+        .post('/auth/login')
+        .send(loginCredentials.validAdmin)
       // Act
       const response = await request(app)
         .put('/auth/me')

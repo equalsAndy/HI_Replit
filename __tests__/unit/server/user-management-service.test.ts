@@ -33,9 +33,9 @@ describe('UserManagementService', () => {
   let mockDb: any
   let mockBcrypt: any
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Import mocked dependencies
-    const { db } = require('@server/db')
+    const { db } = await import('@server/db')
     mockDb = vi.mocked(db)
     mockBcrypt = vi.mocked(bcrypt)
     
