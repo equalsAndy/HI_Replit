@@ -56,18 +56,13 @@ async function generateAndStoreStarCard(userId: number): Promise<void> {
     // In future: Use actual StarCard component rendering to PNG
     const starCardImageBuffer = await createStarCardImagePlaceholder(userId, starCardData);
     
-    // Convert buffer to base64 data URL for photo storage service
+    // Convert buffer to base64 data URL for StarCard storage
     const base64Data = `data:image/png;base64,${starCardImageBuffer.toString('base64')}`;
 
-    // Store in photo service database using the correct method
-    const photoId = await photoStorageService.storePhoto(
-      base64Data,
-      userId, // uploadedBy
-      true,   // generateThumbnail
-      `starcard-user-${userId}-completion.png` // originalFilename
-    );
-    
-    console.log(`✅ StarCard PNG generated and stored for user ${userId} with photo ID: ${photoId}`);
+    // Store using the dedicated StarCard method (keeps it separate from profile picture)
+    const photoId = await photoStorageService.storeStarCard(userId, base64Data, starCardData);
+
+    console.log(`✅ StarCard PNG generated and stored separately for user ${userId} with photo ID: ${photoId}`);
     
   } catch (error) {
     console.error(`❌ Failed to generate StarCard for user ${userId}:`, error);
@@ -3030,6 +3025,49 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
   } catch (error) {
     console.error('Error completing workshop:', error);
     res.status(500).json({ error: 'Failed to complete workshop' });
+  }
+});
+
+/**
+ * Store visualization image from workshop (with attribution)
+ * POST /api/workshop-data/store-visualization-image
+ */
+workshopDataRouter.post('/store-visualization-image', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const { imageUrl, attribution, context = 'workshop_visualization' } = req.body;
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (!imageUrl || !attribution) {
+      return res.status(400).json({ error: 'Image URL and attribution are required' });
+    }
+
+    console.log(`🖼️ Storing visualization image for user ${userId}: ${imageUrl}`);
+
+    // Import the photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
+
+    // Download and store the image with attribution
+    const photoId = await photoStorageService.storeVisualizationImage(
+      userId,
+      imageUrl,
+      attribution,
+      context
+    );
+
+    res.json({
+      success: true,
+      photoId,
+      message: 'Visualization image stored successfully',
+      imageUrl: `/api/photos/${photoId}`
+    });
+
+  } catch (error) {
+    console.error('Error storing visualization image:', error);
+    res.status(500).json({ error: 'Failed to store visualization image' });
   }
 });
 

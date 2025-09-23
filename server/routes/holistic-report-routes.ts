@@ -98,7 +98,7 @@ router.post('/test-generate', async (req, res) => {
     if (!reportData.starCardImageBase64) {
       try {
         const { photoStorageService } = await import('../services/photo-storage-service.js');
-        const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+        const starCardImage = await photoStorageService.getUserStarCardImage(userId);
         if (starCardImage && starCardImage.photoData) {
           // Validate that this looks like a StarCard (not a random image)
           console.log(`🔍 StarCard validation for user ${userId}:`);
@@ -228,7 +228,7 @@ router.post('/generate', async (req, res) => {
     if (!reportData.starCardImageBase64) {
       try {
         const { photoStorageService } = await import('../services/photo-storage-service.js');
-        const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+        const starCardImage = await photoStorageService.getUserStarCardImage(userId);
         if (starCardImage && starCardImage.photoData) {
           // Validate that this looks like a StarCard (not a random image)
           console.log(`🔍 StarCard validation for user ${userId}:`);
@@ -782,7 +782,7 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
     try {
       console.log(`🖼️ Getting StarCard image for user ${userId}...`);
       const { photoStorageService } = await import('../services/photo-storage-service.js');
-      const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+      const starCardImage = await photoStorageService.getUserStarCardImage(userId);
       
       if (starCardImage && starCardImage.photoData) {
         starCardImageBase64 = starCardImage.photoData;

@@ -21,6 +21,17 @@ export interface PhotoMetadata {
   uploadedBy?: number;
   isThumbnail: boolean;
   originalPhotoId?: number;
+  imageType?: ImageType;
+  attribution?: string;
+  sourceUrl?: string;
+}
+
+export enum ImageType {
+  PROFILE_PICTURE = 'profile_picture',
+  STARCARD_GENERATED = 'starcard_generated',
+  WORKSHOP_VISUALIZATION = 'workshop_visualization',
+  WORKSHOP_UPLOAD = 'workshop_upload',
+  GENERAL_UPLOAD = 'general_upload'
 }
 
 export interface StoredPhoto extends PhotoMetadata {
@@ -34,10 +45,13 @@ export class PhotoStorageService {
    * Automatically handles deduplication and thumbnail generation
    */
   async storePhoto(
-    base64Data: string, 
+    base64Data: string,
     uploadedBy?: number,
     generateThumbnail: boolean = true,
-    originalFilename?: string
+    originalFilename?: string,
+    imageType: ImageType = ImageType.GENERAL_UPLOAD,
+    attribution?: string,
+    sourceUrl?: string
   ): Promise<number> {
     try {
       // Parse the base64 data
@@ -76,24 +90,44 @@ export class PhotoStorageService {
         console.warn('Could not get image dimensions:', error);
       }
       
-      // Store the original photo (originalFilename not supported in production schema)
-      const result = await query(`
-        INSERT INTO photo_storage (
-          photo_hash, photo_data, mime_type, file_size, 
-          width, height, uploaded_by, is_thumbnail, reference_count
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id
-      `, [
-        photoHash,
-        base64Data,
-        mimeType,
-        imageBuffer.length,
-        width,
-        height,
-        uploadedBy,
-        false,
-        1 // Initialize with 1 since it's being referenced
-      ]);
+      // Check if we have the enhanced schema with image_type and attribution fields
+      let hasEnhancedSchema = false;
+      try {
+        await query(`SELECT image_type FROM photo_storage LIMIT 1`);
+        hasEnhancedSchema = true;
+      } catch (error) {
+        // Enhanced fields don't exist, use basic schema
+        hasEnhancedSchema = false;
+      }
+
+      let result;
+      if (hasEnhancedSchema) {
+        // Store with enhanced fields
+        result = await query(`
+          INSERT INTO photo_storage (
+            photo_hash, photo_data, mime_type, file_size,
+            width, height, uploaded_by, is_thumbnail, reference_count,
+            image_type, attribution, source_url
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          RETURNING id
+        `, [
+          photoHash, base64Data, mimeType, imageBuffer.length,
+          width, height, uploadedBy, false, 1,
+          imageType, attribution, sourceUrl
+        ]);
+      } else {
+        // Store with basic schema (backward compatibility)
+        result = await query(`
+          INSERT INTO photo_storage (
+            photo_hash, photo_data, mime_type, file_size,
+            width, height, uploaded_by, is_thumbnail, reference_count
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          RETURNING id
+        `, [
+          photoHash, base64Data, mimeType, imageBuffer.length,
+          width, height, uploadedBy, false, 1
+        ]);
+      }
       
       const photoId = result.rows[0].id;
       
@@ -452,6 +486,226 @@ export class PhotoStorageService {
         message: error.message,
         stack: error.stack?.substring(0, 500)
       });
+      return null;
+    }
+  }
+
+  /**
+   * Store a StarCard image generated from user's assessment data
+   */
+  async storeStarCard(userId: number, base64Data: string, starCardData: any): Promise<number> {
+    console.log(`📊 Storing StarCard for user ${userId}`);
+
+    const photoId = await this.storePhoto(
+      base64Data,
+      userId,
+      true, // generateThumbnail
+      `starcard-user-${userId}-${Date.now()}.png`,
+      ImageType.STARCARD_GENERATED,
+      `Generated StarCard for user ${userId}`,
+      undefined // no source URL for generated images
+    );
+
+    // Also update the star_cards table with the image reference
+    try {
+      await query(`
+        INSERT INTO star_cards (user_id, thinking, acting, feeling, planning, image_url, state)
+        VALUES ($1, $2, $3, $4, $5, $6, 'generated')
+        ON CONFLICT (user_id)
+        DO UPDATE SET
+          thinking = EXCLUDED.thinking,
+          acting = EXCLUDED.acting,
+          feeling = EXCLUDED.feeling,
+          planning = EXCLUDED.planning,
+          image_url = EXCLUDED.image_url,
+          state = EXCLUDED.state,
+          updated_at = NOW()
+      `, [
+        userId,
+        starCardData.thinking || 25,
+        starCardData.acting || 25,
+        starCardData.feeling || 25,
+        starCardData.planning || 25,
+        `/api/photos/${photoId}` // Reference to the stored photo
+      ]);
+
+      console.log(`✅ StarCard data saved to star_cards table for user ${userId}`);
+    } catch (error) {
+      console.warn(`⚠️ Failed to update star_cards table for user ${userId}:`, error);
+      // Don't fail the photo storage if star_cards table update fails
+    }
+
+    return photoId;
+  }
+
+  /**
+   * Store a profile picture for a user
+   */
+  async storeProfilePicture(userId: number, base64Data: string): Promise<number> {
+    console.log(`👤 Storing profile picture for user ${userId}`);
+
+    const photoId = await this.storePhoto(
+      base64Data,
+      userId,
+      true, // generateThumbnail
+      `profile-picture-user-${userId}-${Date.now()}.jpg`,
+      ImageType.PROFILE_PICTURE,
+      `Profile picture for user ${userId}`,
+      undefined
+    );
+
+    // Update the user's profile_picture_id (if the field exists)
+    try {
+      await query(`UPDATE users SET profile_picture_id = $1 WHERE id = $2`, [photoId, userId]);
+      console.log(`✅ Profile picture ID updated for user ${userId}`);
+    } catch (error) {
+      // If profile_picture_id field doesn't exist, try the legacy profile_picture field
+      try {
+        await query(`UPDATE users SET profile_picture = $1 WHERE id = $2`, [base64Data, userId]);
+        console.log(`✅ Legacy profile picture updated for user ${userId}`);
+      } catch (legacyError) {
+        console.warn(`⚠️ Could not update profile picture for user ${userId}:`, legacyError);
+      }
+    }
+
+    return photoId;
+  }
+
+  /**
+   * Store visualization images from workshop exercises with attribution
+   */
+  async storeVisualizationImage(
+    userId: number,
+    imageUrl: string,
+    attribution: string,
+    context: string = 'workshop_visualization'
+  ): Promise<number> {
+    console.log(`🖼️ Downloading and storing visualization image for user ${userId}: ${imageUrl}`);
+
+    try {
+      // Download the image from the URL
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download image: ${response.status} ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Determine MIME type from response or URL
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const base64Data = `data:${contentType};base64,${buffer.toString('base64')}`;
+
+      const photoId = await this.storePhoto(
+        base64Data,
+        userId,
+        true, // generateThumbnail
+        `visualization-${userId}-${Date.now()}.jpg`,
+        ImageType.WORKSHOP_VISUALIZATION,
+        attribution,
+        imageUrl // Original source URL
+      );
+
+      console.log(`✅ Visualization image stored with ID ${photoId} for user ${userId}`);
+      return photoId;
+
+    } catch (error) {
+      console.error(`❌ Failed to download and store visualization image for user ${userId}:`, error);
+      throw new Error(`Failed to store visualization image: ${error.message}`);
+    }
+  }
+
+  /**
+   * Store workshop uploaded images
+   */
+  async storeWorkshopUpload(userId: number, base64Data: string, filename?: string): Promise<number> {
+    console.log(`📤 Storing workshop upload for user ${userId}`);
+
+    return await this.storePhoto(
+      base64Data,
+      userId,
+      true, // generateThumbnail
+      filename || `workshop-upload-${userId}-${Date.now()}.jpg`,
+      ImageType.WORKSHOP_UPLOAD,
+      `Workshop upload by user ${userId}`,
+      undefined
+    );
+  }
+
+  /**
+   * Get StarCard image for a user (for reports)
+   */
+  async getUserStarCardImage(userId: number): Promise<StoredPhoto | null> {
+    try {
+      // First try to get from star_cards table
+      const starCardResult = await query(`
+        SELECT sc.image_url, sc.created_at
+        FROM star_cards sc
+        WHERE sc.user_id = $1
+        ORDER BY sc.updated_at DESC
+        LIMIT 1
+      `, [userId]);
+
+      if (starCardResult.rows.length > 0) {
+        const imageUrl = starCardResult.rows[0].image_url;
+        // Extract photo ID from URL path like /api/photos/123
+        const photoIdMatch = imageUrl.match(/\/api\/photos\/(\d+)/);
+        if (photoIdMatch) {
+          const photoId = parseInt(photoIdMatch[1]);
+          return await this.getPhoto(photoId);
+        }
+      }
+
+      // Fallback: Try to find StarCard images by type
+      try {
+        const result = await query(`
+          SELECT * FROM photo_storage
+          WHERE uploaded_by = $1 AND image_type = $2
+          ORDER BY created_at DESC
+          LIMIT 1
+        `, [userId, ImageType.STARCARD_GENERATED]);
+
+        if (result.rows.length > 0) {
+          const row = result.rows[0];
+          return {
+            id: row.id,
+            photoHash: row.photo_hash,
+            photoData: row.photo_data,
+            mimeType: row.mime_type,
+            fileSize: row.file_size,
+            width: row.width,
+            height: row.height,
+            uploadedBy: row.uploaded_by,
+            isThumbnail: row.is_thumbnail,
+            originalPhotoId: row.original_photo_id,
+            imageType: row.image_type,
+            attribution: row.attribution,
+            sourceUrl: row.source_url
+          };
+        }
+      } catch (error) {
+        console.log(`📝 Enhanced schema not available, using fallback method`);
+      }
+
+      // Final fallback: Use the existing getUserStarCard method
+      const fallbackResult = await this.getUserStarCard(userId.toString());
+      if (fallbackResult) {
+        return {
+          id: 0, // Not from photo_storage table
+          photoHash: '',
+          photoData: fallbackResult.photoData,
+          mimeType: 'image/png',
+          fileSize: 0,
+          uploadedBy: userId,
+          isThumbnail: false,
+          imageType: ImageType.STARCARD_GENERATED,
+          attribution: 'Legacy StarCard'
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`❌ Error getting StarCard image for user ${userId}:`, error);
       return null;
     }
   }
