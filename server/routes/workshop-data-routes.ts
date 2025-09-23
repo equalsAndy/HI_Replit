@@ -56,19 +56,18 @@ async function generateAndStoreStarCard(userId: number): Promise<void> {
     // In future: Use actual StarCard component rendering to PNG
     const starCardImageBuffer = await createStarCardImagePlaceholder(userId, starCardData);
     
-    // Store in photo service database
-    await photoStorageService.storeStarCard({
-      userId: userId.toString(),
-      imageBuffer: starCardImageBuffer,
-      workshopStep: 'completion',
-      imageType: 'star_card_final',
-      metadata: {
-        generated: 'auto_workshop_completion',
-        starCardData: starCardData
-      }
-    });
+    // Convert buffer to base64 data URL for photo storage service
+    const base64Data = `data:image/png;base64,${starCardImageBuffer.toString('base64')}`;
+
+    // Store in photo service database using the correct method
+    const photoId = await photoStorageService.storePhoto(
+      base64Data,
+      userId, // uploadedBy
+      true,   // generateThumbnail
+      `starcard-user-${userId}-completion.png` // originalFilename
+    );
     
-    console.log(`✅ StarCard PNG generated and stored for user ${userId}`);
+    console.log(`✅ StarCard PNG generated and stored for user ${userId} with photo ID: ${photoId}`);
     
   } catch (error) {
     console.error(`❌ Failed to generate StarCard for user ${userId}:`, error);
