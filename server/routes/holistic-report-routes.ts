@@ -871,26 +871,24 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       console.log('✅ Clean AST report generation successful');
     } catch (openaiError) {
       console.log('⚠️ OpenAI failed, falling back to Claude:', openaiError.message);
-      
-      // Fallback to Claude API directly
+
+      // Fallback to Claude API directly with clean approach
       console.log('🤖 Using Claude API for report generation...');
       const { generateClaudeCoachingResponse } = await import('../services/claude-api-service.js');
-      
+
+      // Create simple fallback message for Claude
+      const fallbackMessage = `Generate a comprehensive ${isPersonalReport ? 'Personal Development Report' : 'Professional Profile Report'} for ${user.name} using their assessment data.`;
+
       reportContent = await generateClaudeCoachingResponse({
-        userMessage: reportPrompt,
-        personaType: 'star_report', 
+        userMessage: fallbackMessage,
+        personaType: 'star_report',
         userName: user.name,
         contextData: {
           reportContext: 'holistic_generation',
           selectedUserId: userId,
           selectedUserName: user.name,
           adminMode: false,
-          userData: {
-            user: user,
-            assessments: assessmentResult.rows,
-            stepData: stepDataResult.rows,
-            completedAt: user.ast_completed_at
-          },
+          userData: rawExportData,
           starCardImageBase64: starCardImageBase64,
           enhancedPrompting: true
         },
