@@ -814,12 +814,9 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       essentialReflections: stepDataResult.rows
     };
     
-    console.log('🚀 Using pgvector semantic search for optimal training content');
-    
-    // Import pgvector search service
-    const { pgvectorSearchService } = await import('../services/pgvector-search-service.js');
-    
-    // Build user context for semantic search
+    console.log('🚀 Using clean AST transformer for report generation');
+
+    // Build user context for clean report generation
     const userContextData = {
       name: user.name,
       strengths: assessmentResult.rows.find(a => a.assessment_type === 'starCard')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'starCard').results as string) : {"thinking":0,"feeling":0,"acting":0,"planning":0},
@@ -837,43 +834,41 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       stepDataCount: Array.isArray(userContextData.stepData) ? userContextData.stepData.length : 0
     });
     
-    // Get optimal training prompt using pgvector search
-    const reportPrompt = await pgvectorSearchService.getOptimalTrainingPrompt(
-      isPersonalReport ? 'personal' : 'professional',
-      userContextData
-    );
-    
-    console.log('✨ Generated sophisticated report prompt with user-specific analysis');
-
-    
-    // Use OpenAI for high-quality personalized reports (fallback to Claude if needed)
-    console.log('🤖 Attempting OpenAI report generation first...');
+    // Use clean AST report generation (no legacy TALIA prompt injection)
+    console.log('[AST] Using clean report generation with compact input only');
     let reportContent;
     let usingOpenAI = false;
-    
+
     try {
-      reportContent = await generateOpenAICoachingResponse({
-        userMessage: reportPrompt,
-        personaType: 'star_report',
-        userName: user.name,
-        contextData: {
-          reportContext: 'holistic_generation',
-          selectedUserId: userId,
-          selectedUserName: user.name,
-          userData: {
-            user: user,
-            assessments: assessmentResult.rows,
-            stepData: stepDataResult.rows,
-            completedAt: user.ast_completed_at
-          },
-          starCardImageBase64: starCardImageBase64
-        },
-        userId: userId,
-        sessionId: `holistic-${reportType}-${userId}-${Date.now()}`,
-        maxTokens: 4000
-      });
+      // Import clean report generation functions
+      const { createAstReportFromExport, getAssistantByPurpose } = await import('../services/openai-api-service.js');
+
+      // Get assistant configuration
+      let assistantConfig = getAssistantByPurpose('report');
+      if (!assistantConfig) {
+        assistantConfig = getAssistantByPurpose('ia');
+      }
+      if (!assistantConfig) {
+        throw new Error('No suitable assistant available for report generation');
+      }
+
+      // Construct raw export data for transformer
+      const rawExportData = {
+        user: user,
+        assessments: assessmentResult.rows,
+        stepData: stepDataResult.rows,
+        completedAt: user.ast_completed_at
+      };
+
+      // Generate report using clean AST approach
+      reportContent = await createAstReportFromExport(
+        rawExportData,
+        assistantConfig.id,
+        isPersonalReport ? 'personal' : 'sharable'
+      );
+
       usingOpenAI = true;
-      console.log('✅ OpenAI report generation successful');
+      console.log('✅ Clean AST report generation successful');
     } catch (openaiError) {
       console.log('⚠️ OpenAI failed, falling back to Claude:', openaiError.message);
       
