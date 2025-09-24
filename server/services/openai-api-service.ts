@@ -14,8 +14,25 @@ import { aiDevConfig } from '../utils/aiDevConfig.js';
 import { aiUsageLogger } from './ai-usage-logger.js';
 import { taliaPersonaService, TALIA_PERSONAS } from './talia-personas.js';
 import { CURRENT_PERSONAS } from '../routes/persona-management-routes.js';
+import { transformExportToAssistantInput } from '../utils/transformExportToAssistantInput.js';
 import fs from 'fs/promises';
 import path from 'path';
+
+// Hard guard to prevent env-based legacy prompt leaks
+try {
+  const envLeak = [
+    process.env.TALIA_PRIMARY_PROMPT,
+    process.env.TALIA_PROMPT_FILE,
+    process.env.AST_LOCAL_SYSTEM_PROMPT
+  ].filter(Boolean).join(" ");
+
+  if (envLeak && /TALIA|PRIMARY_Prompt|MBTI|DISC|Clifton/i.test(envLeak)) {
+    throw new Error("Legacy prompt env leak detected. Unset TALIA_* or AST_LOCAL_SYSTEM_PROMPT.");
+  }
+} catch (e) {
+  console.error("[AST] Legacy prompt env leak:", e);
+  throw e;
+}
 
 // Assistant configuration interface
 interface AssistantConfig {
@@ -605,40 +622,10 @@ async function callOpenAIAPI(
 }
 
 /**
- * Load primary training prompt from file
+ * REMOVED: loadPrimaryPrompt() deprecated for AST. Use Assistant Instructions in UI.
  */
 async function loadPrimaryPrompt(): Promise<string> {
-  try {
-    const promptPath = path.join(process.cwd(), 'keys', 'TALIA_Report_Generation_PRIMARY_Prompt.txt');
-    console.log(`🔍 Attempting to load prompt from: ${promptPath}`);
-    const content = await fs.readFile(promptPath, 'utf-8');
-    console.log(`✅ Primary prompt loaded successfully (${content.length} characters)`);
-    return content;
-  } catch (error) {
-    console.error('❌ Failed to load primary prompt:', error);
-    console.error('Working directory:', process.cwd());
-    
-    // Fallback to embedded prompt
-    console.log('🔄 Using embedded fallback prompt');
-    return `# Star Report Talia: Specialized Training for AST Report Generation
-
-## Core Identity and Mission
-
-You are **Star Report Talia**, a specialized AI report writer focused exclusively on generating high-quality Personal Development Reports and Professional Profile Reports from AllStarTeams (AST) workshop data. Your single purpose is to transform assessment data into comprehensive, personalized reports immediately upon request.
-
-**CRITICAL BEHAVIORAL RULE**: When given assessment data and asked to generate a report, you IMMEDIATELY begin writing the complete report. You do NOT:
-- Analyze your approach
-- Discuss methodology 
-- Ask clarifying questions
-- Provide introductory statements
-- Explain what you're about to do
-
-## Report Generation Instructions
-
-Generate comprehensive, personalized reports using the user's actual workshop data. Include their exact strengths percentages, quote their reflections, and create actionable insights based on their specific responses.
-
-Use 2nd person voice ("You possess...") and reference their actual assessment data and percentages throughout the report.`;
-  }
+  throw new Error("loadPrimaryPrompt() deprecated for AST. Use Assistant Instructions configured in the OpenAI UI.");
 }
 
 /**
@@ -800,155 +787,72 @@ function buildUserDataContext(userData: any, userName: string): string {
 }
 
 /**
- * Generate report using OpenAI Assistants API with vector database integration
+ * Generate report using OpenAI Assistants API - NEW: clean, no legacy TALIA injection
  */
-async function generateOpenAIReport(
-  userData: any,
-  userName: string,
-  reportType: 'personal' | 'professional' = 'personal',
-  userId?: number,
-  sessionId?: string,
-  vectorDbPrompt?: string
-): Promise<string> {
-  console.log('📊 Building user data context...');
-  const userDataContext = buildUserDataContext(userData, userName);
-  
-  // Create a prompt for the assistant that can access vector store documents
-  const assistantPrompt = `Generate a comprehensive ${reportType === 'personal' ? 'Personal Development Report' : 'Professional Profile Report'} for this user.
+export async function generateOpenAIReport(args: {
+  assistantId: string;
+  compactInput: any;
+  model?: string; // unused (Assistant's Instructions + files are source of truth)
+}): Promise<string> {
+  const { assistantId, compactInput } = args;
 
-Use the training documents in your vector store for guidance, examples, and structure. The documents contain the primary prompt, examples, and templates you should follow.
-
-## User Assessment Data:
-${userDataContext}
-
-## Instructions:
-- Use the TALIA_Report_Generation_PRIMARY_Prompt document in your vector store for complete instructions
-- Reference supporting documents and examples from your vector store
-- Use 2nd person voice ("You possess...")
-- Reference the user's exact assessment data and percentages
-- Quote their actual reflections and responses
-- Create a signature name that captures their unique pattern
-
-Generate the complete ${reportType} report now.`;
-  
-  try {
-    console.log('🎯 Using OpenAI Assistants API with vector database access');
-
-    console.log(`📏 Assistant prompt length: ${assistantPrompt.length} characters`);
-    console.log('🔍 DEBUG: Prompt being sent to OpenAI Assistant:');
-    console.log('='.repeat(80));
-    console.log(assistantPrompt);
-    console.log('='.repeat(80));
-    
-    // Use the Assistants API with report-specific client
-    const client = assistantManager.getReportClient();
-    let assistantConfig = getAssistantByPurpose('report');
-    
-    // If no report assistant is available, try to use IA assistant as fallback
-    if (!assistantConfig) {
-      console.log('⚠️ No report assistant found, trying IA assistant as fallback');
-      assistantConfig = getAssistantByPurpose('ia');
-    }
-    
-    if (!assistantConfig) {
-      throw new Error('No suitable assistant available for report generation');
-    }
-    
-    const assistantId = assistantConfig.id;
-    console.log(`🤖 Using assistant: ${assistantConfig.name} (${assistantId}) for report generation`);
-    
-    console.log('🚀 Creating thread and running assistant...');
-    
-    // Create a thread
-    const thread = await client.beta.threads.create();
-    
-    // Add the message to the thread
-    await client.beta.threads.messages.create(thread.id, {
-      role: 'user',
-      content: assistantPrompt
-    });
-    
-    // Run the assistant
-    const run = await client.beta.threads.runs.create(thread.id, {
-      assistant_id: assistantId
-    });
-    
-    // Wait for completion
-    let runStatus = await client.beta.threads.runs.retrieve(thread.id, run.id);
-    console.log(`🔄 Assistant run status: ${runStatus.status}`);
-    
-    // Poll for completion (with timeout)
-    const maxWaitTime = 120000; // 2 minutes
-    const startTime = Date.now();
-    
-    while (runStatus.status === 'in_progress' || runStatus.status === 'queued') {
-      if (Date.now() - startTime > maxWaitTime) {
-        throw new Error('Assistant run timed out');
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-      runStatus = await client.beta.threads.runs.retrieve(thread.id, run.id);
-      console.log(`🔄 Assistant run status: ${runStatus.status}`);
-    }
-    
-    if (runStatus.status === 'completed') {
-      // Get the assistant's response
-      const messages = await client.beta.threads.messages.list(thread.id);
-      const assistantMessage = messages.data.find(msg => msg.role === 'assistant');
-      
-      if (assistantMessage && assistantMessage.content[0]?.type === 'text') {
-        const response = assistantMessage.content[0].text.value;
-        console.log(`✅ OpenAI Assistant generated report successfully (${response.length} characters)`);
-        return response;
-      } else {
-        throw new Error('No valid response from assistant');
-      }
-    } else {
-      throw new Error(`Assistant run failed with status: ${runStatus.status}`);
-    }
-
-  } catch (error) {
-    console.error('❌ Error generating OpenAI report with assistant:', error);
-    console.log('🔄 Falling back to regular OpenAI chat completions...');
-    
-    try {
-      // Fallback to regular chat completions without assistant
-      const messages: OpenAIMessage[] = [
-        {
-          role: 'system',
-          content: `You are an expert report writer specializing in AllStarTeams workshop analysis. Generate comprehensive, personalized reports based on user assessment data.
-
-Guidelines:
-- Use 2nd person voice ("You possess...")
-- Reference exact assessment data and percentages
-- Quote user's actual reflections
-- Create personalized insights
-- Be specific and data-driven
-- Generate a complete ${reportType === 'personal' ? 'Personal Development Report' : 'Professional Profile Report'}`
-        },
-        {
-          role: 'user', 
-          content: assistantPrompt
-        }
-      ];
-
-      const response = await callOpenAIAPI(
-        messages,
-        4000,
-        userId,
-        'holistic_reports',
-        sessionId,
-        'gpt-4o-mini'
-      );
-
-      console.log('✅ OpenAI chat completions fallback successful');
-      return response;
-
-    } catch (fallbackError) {
-      console.error('❌ OpenAI chat completions fallback also failed:', fallbackError);
-      throw new Error(`Report generation failed: ${error.message}. Fallback also failed: ${fallbackError.message}`);
-    }
+  // Hard guard: input should not contain legacy markers
+  const inputStr = JSON.stringify(compactInput);
+  const legacy = /TALIA|PRIMARY_Prompt|MBTI|DISC|Clifton/i;
+  if (legacy.test(inputStr)) {
+    throw new Error("Legacy/TALIA markers detected in input. Remove all legacy references.");
   }
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  // Create thread
+  const thread = await openai.beta.threads.create();
+
+  console.info("[AST] Using Assistant instructions only; sending compact input:",
+    JSON.stringify({ keys: Object.keys(compactInput) })
+  );
+
+  // Only send compact JSON (no prompt overrides)
+  await openai.beta.threads.messages.create(thread.id, {
+    role: "user",
+    content: JSON.stringify({ type: "ast_input_v2", payload: compactInput })
+  });
+
+  // Run Assistant configured in UI (instructions + files)
+  const run = await openai.beta.threads.runs.create(thread.id, {
+    assistant_id: assistantId
+  });
+
+  // Poll
+  let state = run;
+  while (state.status === "queued" || state.status === "in_progress") {
+    await new Promise(r => setTimeout(r, 800));
+    state = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+  }
+
+  if (state.status !== "completed") {
+    throw new Error(`Assistant run failed: ${state.status} - ${state.last_error?.message ?? ""}`);
+  }
+
+  const messages = await openai.beta.threads.messages.list(thread.id);
+  const last = messages.data.find(m => m.role === "assistant");
+  return last?.content?.[0]?.text?.value ?? "";
+}
+
+/**
+ * Create AST report from raw export data using transformer
+ */
+export async function createAstReportFromExport(
+  rawExport: any,
+  assistantId: string,
+  reportType: "personal" | "sharable" = "personal"
+): Promise<string> {
+  const compact = transformExportToAssistantInput(rawExport, {
+    report_type: reportType,
+    imagination_mode: "default"
+  });
+
+  return generateOpenAIReport({ assistantId, compactInput: compact });
 }
 
 /**
@@ -970,18 +874,25 @@ export async function generateOpenAICoachingResponse(requestData: CoachingReques
         const reportType = userMessage.includes('Professional Profile Report') ? 'professional' : 'personal';
         
         try {
-          const report = await generateOpenAIReport(
+          // Get assistant configuration
+          let assistantConfig = getAssistantByPurpose('report');
+          if (!assistantConfig) {
+            assistantConfig = getAssistantByPurpose('ia');
+          }
+          if (!assistantConfig) {
+            throw new Error('No suitable assistant available for report generation');
+          }
+
+          // Use new clean AST report generation
+          const report = await createAstReportFromExport(
             contextData.userData,
-            contextData.selectedUserName || userName,
-            reportType,
-            userId,
-            sessionId,
-            userMessage // Pass the vector DB prompt
+            assistantConfig.id,
+            reportType
           );
-          
+
           return report;
         } catch (error) {
-          console.error('❌ Error in OpenAI report generation:', error);
+          console.error('❌ Error in clean AST report generation:', error);
           throw error;
         }
       }
