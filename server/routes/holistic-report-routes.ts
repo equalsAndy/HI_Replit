@@ -870,34 +870,19 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       usingOpenAI = true;
       console.log('✅ Clean AST report generation successful');
     } catch (openaiError) {
-      console.log('⚠️ OpenAI failed, falling back to Claude:', openaiError.message);
+      console.log('❌ OpenAI report generation failed:', openaiError.message);
+      console.log('🔴 Report generation service is currently offline');
 
-      // Fallback to Claude API directly with clean approach
-      console.log('🤖 Using Claude API for report generation...');
-      const { generateClaudeCoachingResponse } = await import('../services/claude-api-service.js');
-
-      // Create simple fallback message for Claude
-      const fallbackMessage = `Generate a comprehensive ${isPersonalReport ? 'Personal Development Report' : 'Professional Profile Report'} for ${user.name} using their assessment data.`;
-
-      reportContent = await generateClaudeCoachingResponse({
-        userMessage: fallbackMessage,
-        personaType: 'star_report',
-        userName: user.name,
-        contextData: {
-          reportContext: 'holistic_generation',
-          selectedUserId: userId,
-          selectedUserName: user.name,
-          adminMode: false,
-          userData: rawExportData,
-          starCardImageBase64: starCardImageBase64,
-          enhancedPrompting: true
-        },
-        userId: userId,
-        sessionId: `holistic-claude-${reportType}-${userId}-${Date.now()}`,
-        maxTokens: 4000
-      });
+      // Simple offline message instead of complex fallback
+      reportContent = `
+        <div style="padding: 40px; text-align: center; font-family: Arial, sans-serif;">
+          <h2 style="color: #e74c3c;">Report Generation Temporarily Offline</h2>
+          <p style="color: #666;">We're experiencing technical difficulties with the report generation service.</p>
+          <p style="color: #666;">Please try again later or contact support if the issue persists.</p>
+          <p style="margin-top: 30px; font-size: 12px; color: #999;">Error: ${openaiError.message}</p>
+        </div>
+      `;
       usingOpenAI = false;
-      console.log('✅ Claude fallback report generation successful');
     }
 
     // Quality monitoring temporarily disabled to focus on foundation
