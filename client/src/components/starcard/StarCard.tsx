@@ -426,7 +426,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
             <div className="absolute w-full" style={{ top: '32px', zIndex: 2 }}>
               <p className="text-[1.125rem] font-bold text-gray-500" style={{ marginTop: '15px' }}>Imagination</p>
-              <p className="text-[0.785rem] text-gray-500 italic" style={{ marginTop: '1px' }}>Your Apex Strength</p>
+              <p className="text-[0.785rem] text-gray-500 italic" style={{ marginTop: '-4px' }}>Your Apex Strength</p>
             </div>
           </div>
         </div>
@@ -571,7 +571,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
         </div>
 
         {/* Logo - AllStarTeams logo */}
-        <div className="flex justify-end mt-[0px] pr-4">
+        <div className="flex justify-end mt-[-5px] pr-4">
           <img 
             src={allStarTeamsLogo} 
             alt="allstarteams" 

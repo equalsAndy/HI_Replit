@@ -1,0 +1,230 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "report_type",
+    "imagination_mode",
+    "participant_name",
+    "strengths",
+    "flow",
+    "reflections",
+    "cantrilLadder",
+    "futureSelf",
+    "finalReflection"
+  ],
+  "properties": {
+    "report_type": {
+      "type": "string",
+      "enum": ["personal", "sharable"]
+    },
+    "imagination_mode": {
+      "type": "string",
+      "enum": ["default", "low"]
+    },
+    "participant_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "strengths": {
+      "type": "object",
+      "required": ["leading", "supporting", "quieter"],
+      "properties": {
+        "leading": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supporting": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "quieter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "flow": {
+      "type": "object",
+      "required": ["flowScore", "flowAttributes", "flowEnablers", "flowBlockers"],
+      "properties": {
+        "flowScore": {
+          "type": "number",
+          "minimum": 0
+        },
+        "flowAttributes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flowEnablers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flowBlockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "reflections": {
+      "type": "object",
+      "required": [
+        "strength1",
+        "strength2",
+        "strength3",
+        "strength4",
+        "teamValues",
+        "uniqueContribution",
+        "flowNatural",
+        "flowBlockers",
+        "flowConditions",
+        "flowOpportunities"
+      ],
+      "properties": {
+        "strength1": {
+          "type": "string"
+        },
+        "strength2": {
+          "type": "string"
+        },
+        "strength3": {
+          "type": "string"
+        },
+        "strength4": {
+          "type": "string"
+        },
+        "teamValues": {
+          "type": "string"
+        },
+        "uniqueContribution": {
+          "type": "string"
+        },
+        "flowNatural": {
+          "type": "string"
+        },
+        "flowBlockers": {
+          "type": "string"
+        },
+        "flowConditions": {
+          "type": "string"
+        },
+        "flowOpportunities": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cantrilLadder": {
+      "type": "object",
+      "required": [
+        "wellBeingLevel",
+        "futureWellBeingLevel",
+        "currentFactors",
+        "futureImprovements",
+        "specificChanges",
+        "quarterlyProgress",
+        "quarterlyActions"
+      ],
+      "properties": {
+        "wellBeingLevel": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "futureWellBeingLevel": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "currentFactors": {
+          "type": "string"
+        },
+        "futureImprovements": {
+          "type": "string"
+        },
+        "specificChanges": {
+          "type": "string"
+        },
+        "quarterlyProgress": {
+          "type": "string"
+        },
+        "quarterlyActions": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "futureSelf": {
+      "type": "object",
+      "required": [
+        "flowOptimizedLife",
+        "futureSelfDescription",
+        "visualizationNotes",
+        "additionalNotes",
+        "selectedImages",
+        "imageMeaning"
+      ],
+      "properties": {
+        "flowOptimizedLife": {
+          "type": "string"
+        },
+        "futureSelfDescription": {
+          "type": "string"
+        },
+        "visualizationNotes": {
+          "type": "string"
+        },
+        "additionalNotes": {
+          "type": "string"
+        },
+        "selectedImages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["url", "credit"],
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "credit": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "imageMeaning": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "finalReflection": {
+      "type": "object",
+      "required": ["keyInsight"],
+      "properties": {
+        "keyInsight": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "reflections_invalid": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

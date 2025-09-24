@@ -642,6 +642,69 @@ router.delete('/users/:id/data', requireAuth, isAdmin, async (req: Request, res:
 });
 
 /**
+ * Reset user holistic report generation (admin only)
+ */
+router.delete('/users/:id/reports', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    // Reset holistic reports using user management service
+    const result = await userManagementService.resetUserHolisticReports(id);
+
+    if (!result.success) {
+      return res.status(400).json({ message: result.error || 'Failed to reset user holistic reports' });
+    }
+
+    res.json({
+      message: 'User holistic reports reset successfully',
+      deletedReports: result.deletedCount || 0
+    });
+  } catch (error) {
+    console.error('Error resetting user holistic reports:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Generate holistic report for a user (admin only)
+ */
+router.post('/users/:id/reports/generate', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    const { reportType } = req.body;
+    if (!reportType || !['standard', 'personal'].includes(reportType)) {
+      return res.status(400).json({
+        message: 'Valid report type (standard or personal) is required'
+      });
+    }
+
+    // Generate report using the holistic report service
+    const result = await userManagementService.generateHolisticReportForUser(id, reportType);
+
+    if (!result.success) {
+      return res.status(400).json({ message: result.error || 'Failed to generate holistic report' });
+    }
+
+    res.json({
+      message: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report generated successfully`,
+      reportId: result.reportId,
+      reportUrl: `/api/reports/holistic/${reportType}/html?userId=${id}`,
+      downloadUrl: `/api/reports/holistic/${reportType}/download?userId=${id}&download=true`
+    });
+  } catch (error) {
+    console.error('Error generating holistic report:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * Export user data (admin only, or user accessing their own data)
  */
 router.get('/users/:userId/export', requireAuth, async (req: Request, res: Response) => {

@@ -288,7 +288,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   // Fetch flow attributes data
   const { data: flowAttributesData, isLoading: flowAttributesLoading } = useQuery<{
     success: boolean;
-    attributes: Array<{ name: string; score: number }>;
+    attributes: Array<{ name: string; order?: number; score?: number }>;
     flowScore: number;
   }>({
     queryKey: ['/api/workshop-data/flow-attributes'],
@@ -331,17 +331,21 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
       const mappedAttributes = flowAttributesData.attributes.map((attr: any, index: number) => {
         // Some attributes might have 'text' property, others might have 'name'
         const attrText = attr.text || attr.name || (typeof attr === 'string' ? attr : '');
+        // Use order field if available (new format), otherwise use index (old format compatibility)
+        const rank = attr.order ? attr.order - 1 : index; // Convert order (1-4) to rank (0-3)
         return {
           text: attrText,
-          rank: index
+          rank: rank
         };
       });
 
-      console.log("Mapped existing attributes:", mappedAttributes);
-      setSelectedAttributes(mappedAttributes);
+      // Sort by rank to ensure correct order
+      const sortedAttributes = mappedAttributes.sort((a, b) => a.rank - b.rank);
+      console.log("Mapped existing attributes:", sortedAttributes);
+      setSelectedAttributes(sortedAttributes);
 
       // Also set the starcard attributes
-      const coloredAttributes = mappedAttributes.map(attr => ({
+      const coloredAttributes = sortedAttributes.map(attr => ({
         text: attr.text,
         color: getAttributeColor(attr.text)
       }));
@@ -410,7 +414,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
   // Flow attributes save mutation
   const flowAttributesMutation = useMutation({
-    mutationFn: async (data: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
+    mutationFn: async (data: { flowScore: number; attributes: Array<{ name: string; order: number }> }) => {
       const response = await fetch('/api/workshop-data/flow-attributes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -583,18 +587,15 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
       // Update the StarCard flow attributes (local state)
       setStarCardFlowAttributes(coloredAttributes);
 
-      // Convert to server format and save to server with scores
+      // Convert to server format and save to server with selection order
       const serverAttributes = rankedAttributes.map((attr, index) => ({
         name: attr.text,
-        score: 100 - (index * 5) // Score from 100 to 85 in decrements of 5
+        order: index + 1 // Order from 1 to 4 based on selection order
       }));
 
-      // Random flow score between 45 and 60 (max possible score)
-      const randomFlowScore = Math.floor(Math.random() * 16) + 45;
-
-      // Save flow attributes to server with proper data structure
+      // Save flow attributes to server with selection order
       flowAttributesMutation.mutate({
-        flowScore: randomFlowScore,
+        flowScore: 0, // Not used anymore, keeping for API compatibility
         attributes: serverAttributes
       });
     }
@@ -1095,8 +1096,8 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
           {/* Only show Next button after flow attributes are added */}
           {isCardComplete && (
-            <div className="flex justify-center mt-8">
-              <Button 
+            <div className="mt-12 text-center border-t border-gray-200 pt-8">
+              <Button
                 onClick={async () => {
                   // Auto-capture StarCard before proceeding
                   if (user?.id) {
@@ -1108,11 +1109,11 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                       // Don't block user flow if capture fails
                     }
                   }
-                  
+
                   markStepCompleted('2-2');
                   setCurrentContent("rounding-out");
                 }}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+                className="bg-green-600 hover:bg-green-700 text-lg px-8 py-3"
               >
                 Next: Rounding Out <ChevronRight className="ml-2 h-4 w-4" />
               </Button>

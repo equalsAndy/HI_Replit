@@ -1048,6 +1048,175 @@ class UserManagementService {
     }
   }
 
+  /**
+   * Reset user holistic reports only (allows regeneration)
+   */
+  async resetUserHolisticReports(userId: number) {
+    try {
+      console.log(`Starting holistic report reset for user ${userId}`);
+
+      const { sql } = await import('drizzle-orm');
+
+      let deletedCount = 0;
+
+      // Delete holistic report DB records
+      try {
+        const holisticResult = await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+        deletedCount = holisticResult.length || 0;
+        console.log(`Deleted ${deletedCount} holistic report DB records for user ${userId}`);
+      } catch (error) {
+        console.log(`No holistic reports found for user ${userId}`);
+      }
+
+      // Delete holistic report PDF files from /uploads
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const uploadsDir = path.resolve(process.cwd(), 'uploads');
+        const files = fs.readdirSync(uploadsDir);
+        const userPattern = new RegExp(`HI-Report-.*${userId}.*\\.pdf$`);
+        let deletedFiles = 0;
+        for (const file of files) {
+          if (userPattern.test(file)) {
+            try {
+              fs.unlinkSync(path.join(uploadsDir, file));
+              deletedFiles++;
+              console.log(`Deleted holistic report file: ${file}`);
+            } catch (err) {
+              console.error(`Error deleting file ${file}:`, err);
+            }
+          }
+        }
+        console.log(`Deleted ${deletedFiles} holistic report PDF files for user ${userId}`);
+      } catch (error) {
+        console.error(`Error deleting holistic report files for user ${userId}:`, error);
+      }
+
+      console.log(`Completed holistic report reset for user ${userId}: ${deletedCount} DB records deleted`);
+
+      return {
+        success: true,
+        message: 'User holistic reports reset successfully',
+        deletedCount
+      };
+    } catch (error) {
+      console.error('Error resetting user holistic reports:', error);
+      return {
+        success: false,
+        error: 'Failed to reset user holistic reports: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
+      };
+    }
+  }
+
+  /**
+   * Generate holistic report for a user (admin functionality)
+   */
+  async generateHolisticReportForUser(userId: number, reportType: 'personal' | 'standard') {
+    try {
+      console.log(`Generating ${reportType} holistic report for user ${userId} via admin interface`);
+
+      // Import the holistic report generation function
+      const { Pool } = await import('pg');
+
+      // Create a database pool for the holistic report generation
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      });
+
+      // Check if user has already generated this type of report
+      const existingReport = await pool.query(
+        'SELECT id, generation_status FROM holistic_reports WHERE user_id = $1 AND report_type = $2 ORDER BY generated_at DESC LIMIT 1',
+        [userId, reportType]
+      );
+
+      if (existingReport.rows.length > 0) {
+        const existing = existingReport.rows[0];
+        if (existing.generation_status === 'generating') {
+          return {
+            success: false,
+            error: `A ${reportType} report is currently being generated for this user. Please wait.`
+          };
+        }
+      }
+
+      // Get user data to validate
+      const userResult = await pool.query(
+        'SELECT id, username, name, email FROM users WHERE id = $1',
+        [userId]
+      );
+
+      if (userResult.rows.length === 0) {
+        await pool.end();
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      const user = userResult.rows[0];
+
+      // Create new report record
+      const newReport = await pool.query(
+        `INSERT INTO holistic_reports (user_id, report_type, report_data, generation_status, generated_by_user_id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [userId, reportType, JSON.stringify({}), 'generating', userId]
+      );
+      const reportId = newReport.rows[0].id;
+
+      // Generate the report by making an internal API call to the holistic report service
+      try {
+        // Import the request module to make internal API call
+        const response = await fetch(`http://localhost:${process.env.PORT || 8080}/api/reports/holistic/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `userId=${userId}; userRole=admin` // Simulate session
+          },
+          body: JSON.stringify({ reportType })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Report generation failed');
+        }
+
+        const result = await response.json();
+
+        await pool.end();
+        return {
+          success: true,
+          reportId: result.reportId,
+          message: result.message,
+          reportUrl: `/api/reports/holistic/${reportType}/html`,
+          downloadUrl: `/api/reports/holistic/${reportType}/download?download=true`
+        };
+
+      } catch (generationError) {
+        console.error('Report generation failed:', generationError);
+
+        // Update report status to failed
+        await pool.query(
+          'UPDATE holistic_reports SET generation_status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
+          ['failed', generationError.message, reportId]
+        );
+
+        await pool.end();
+        return {
+          success: false,
+          error: 'Report generation failed: ' + generationError.message
+        };
+      }
+
+    } catch (error) {
+      console.error('Error generating holistic report for user:', error);
+      return {
+        success: false,
+        error: 'Failed to generate holistic report: ' + (error instanceof Error ? error.message : 'Unknown error')
+      };
+    }
+  }
+
   async deleteUser(userId: number) {
     try {
       console.log(`Starting complete user deletion for user ${userId}`);

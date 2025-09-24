@@ -1,6 +1,6 @@
 {
-  "version": "2.6.0",
-  "buildNumber": "240",
-  "lastUpdated": "2025-09-22T22:36:17.222Z",
-  "description": "Major version update with workshop completion fixes and UX improvements"
+  "version": "2.6.1",
+  "buildNumber": "250",
+  "lastUpdated": "2025-09-24T16:20:17.882Z",
+  "description": "StarCard component layout and positioning improvements"
 }

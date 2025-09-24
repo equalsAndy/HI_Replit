@@ -1,0 +1,63 @@
+{
+  "userInfo": {
+    "userName": "Gibberish Test",
+    "firstName": "Gibberish",
+    "lastName": "Test"
+  },
+  "assessments": {
+    "starCard": {
+      "thinking": 25,
+      "feeling": 25,
+      "acting": 25,
+      "planning": 25
+    },
+    "flowAssessment": {
+      "flowScore": 32
+    },
+    "flowAttributes": {
+      "flowScore": 0,
+      "attributes": [
+        { "name": "industrious", "order": 1 },
+        { "name": "receptive", "order": 2 },
+        { "name": "immersed", "order": 3 },
+        { "name": "thoughtful", "order": 4 }
+      ]
+    },
+    "stepByStepReflection": {
+      "strength1": "xyzabc123!@#$%^&*()",
+      "strength2": "qqqqqqqqqqqqqqqqqqqqq",
+      "strength3": "abc",
+      "strength4": "normalresponsehere",
+      "teamValues": "!!!!!!!!!!!!!!!!!!!!",
+      "uniqueContribution": "anothernormalresponse"
+    },
+    "roundingOutReflection": {
+      "strengths": "########",
+      "values": "asdfasdfasdfasdfasdfasdfasdfasdf",
+      "passions": "b",
+      "growthAreas": "validgrowtharea"
+    },
+    "cantrilLadder": {
+      "wellBeingLevel": 5,
+      "futureWellBeingLevel": 8,
+      "currentFactors": "Some normal text here",
+      "futureImprovements": "More normal text",
+      "specificChanges": "Specific changes text",
+      "quarterlyProgress": "Progress description",
+      "quarterlyActions": "Action items"
+    },
+    "futureSelfReflection": {
+      "flowOptimizedLife": "",
+      "futureSelfDescription": "",
+      "visualizationNotes": "",
+      "additionalNotes": "",
+      "imageData": {
+        "selectedImages": [],
+        "imageMeaning": ""
+      }
+    },
+    "finalReflection": {
+      "futureLetterText": ""
+    }
+  }
+}

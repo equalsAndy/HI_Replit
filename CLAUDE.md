@@ -36,12 +36,12 @@ npm test                      # Run tests
 
 | Environment | Database | URL | Purpose | Commands |
 |-------------|----------|-----|---------|----------|
-| Development | Local/RDS | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
+| Development | RDS | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
 | Staging | RDS | app2.heliotropeimaginal.com | Pre-production testing | See `DEPLOYMENT-QUICK-REFERENCE.md` |
 | Production | RDS | app.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
 
-**Deployment Flow**: Local development → Staging validation → Production release  
-**Database Strategy**: Local DB (destructive ops) / RDS (safe development) → RDS Staging → RDS Production  
+**Deployment Flow**: Local development → Staging validation → Production release
+**Database Strategy**: RDS Development → RDS Staging → RDS Production  
 **Version Flow**: DEV builds → STAGING semantic → PRODUCTION release  
 **Testing Rule**: Always validate in staging before production deployment
 
@@ -103,15 +103,13 @@ git merge --no-ff branch-name -m "Merge message"
 - `NODE_ENV` - Environment (development/staging/production)
 - `ENVIRONMENT` - Deployment environment
 
-**Database Selection:**
-- **Local DB** (`postgresql://localhost:5432/heliotrope_dev`): Schema changes, AI training, destructive operations
-- **RDS DB**: UI development, read-only testing, staging/production
+**Database Configuration:**
+All environments use AWS RDS PostgreSQL databases. Database connections configured via `DATABASE_URL` environment variable.
 
 **Commands:**
 ```bash
 npm run db:migrate      # Run migrations
 npm run db:seed        # Seed test data
-psql heliotrope_dev    # Connect to local DB
 ```
 
 **Admin Access**: `/admin` (credentials in `.env` files)

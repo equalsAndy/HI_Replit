@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage } from 'lucide-react';
+import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage, RotateCcw, FileText } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -645,6 +645,89 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
+  // Reset holistic reports mutation
+  const resetReportsMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await apiRequest(`/api/admin/users/${userId}/reports`, {
+        method: 'DELETE',
+      });
+
+      return { userId, response };
+    },
+    onSuccess: (data) => {
+      const { userId, response } = data;
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'Reports reset successfully',
+        description: `Holistic reports for ${users.find(user => user.id === userId)?.username} have been reset. They can now regenerate their report.`,
+      });
+    },
+    onError: (error: any, userId: number) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'Reset failed',
+        description: error.message || 'Failed to reset holistic reports. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Generate holistic report mutation
+  const generateReportMutation = useMutation({
+    mutationFn: async ({ userId, reportType }: { userId: number; reportType: 'personal' | 'standard' }) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await apiRequest(`/api/admin/users/${userId}/reports/generate`, {
+        method: 'POST',
+        body: { reportType },
+      });
+
+      return { userId, response };
+    },
+    onSuccess: (data) => {
+      const { userId, response } = data;
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+
+      const user = users.find(user => user.id === userId);
+      toast({
+        title: 'Report generated successfully',
+        description: `Personal holistic report for ${user?.username} has been generated and is ready to view.`,
+      });
+
+      // Open the report in a new tab
+      if (response.reportUrl) {
+        const reportUrl = `${response.reportUrl}`;
+        window.open(reportUrl, '_blank');
+      }
+    },
+    onError: (error: any, { userId }: { userId: number; reportType: 'personal' | 'standard' }) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'Report generation failed',
+        description: error.message || 'Failed to generate holistic report. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // StarCard download mutation
   const downloadStarCardMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -1196,6 +1279,48 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Download user's StarCard PNG (if available)</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border-indigo-200"
+                                          onClick={() => resetReportsMutation.mutate(user.id)}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && resetReportsMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <RotateCcw className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Reset holistic report generation (allows user to regenerate)</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200"
+                                          onClick={() => generateReportMutation.mutate({ userId: user.id, reportType: 'personal' })}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && generateReportMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <FileText className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Generate personal (2nd person) holistic report and open in new tab</p>
                                       </TooltipContent>
                                     </Tooltip>
 
