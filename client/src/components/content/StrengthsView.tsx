@@ -301,22 +301,29 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                     </div>
                   </div>
 
-                  {/* What This Means */}
+                  {/* A Little About Assessments */}
                   <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">What This Means</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">A Little About Assessments</h3>
                     <div className="space-y-4 text-gray-700">
                       <p>
-                        Your Star Card is a visual representation of your unique strengths profile. Each color and position on the card represents how you naturally approach different aspects of work and life.
+                        Assessments are tools designed to help you understand yourself better. They're not tests with right or wrong answers, but ways to explore your natural preferences, strengths, and tendencies.
                       </p>
-                      <p><strong>The Four Core Dimensions:</strong></p>
+                      <p className="font-semibold italic text-gray-800">
+                        Think of them as mirrors – they reflect back what's already there, helping you see patterns you might not have noticed before.
+                      </p>
+                      <p>The AllStarTeams assessment focuses on <strong>five core strengths</strong> that influence how you approach work and life:</p>
                       <ul className="space-y-2 ml-4">
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(1,162,82)' }}>Thinking</span> - Your analytical and logical approach</li>
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(241,64,64)' }}>Acting</span> - Your decisive and action-oriented nature</li>
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(22,126,253)' }}>Feeling</span> - Your empathetic and relationship-focused tendencies</li>
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(255,203,47)' }}>Planning</span> - Your organized and methodical qualities</li>
+                        <li>• <span className="font-semibold" style={{ color: 'rgb(138,43,226)' }}>Imagine</span> – Your limitless potential to envision possibilities and create new connections</li>
+                        <li>• <span className="font-semibold" style={{ color: 'rgb(241,64,64)' }}>Act</span> – How you take initiative and make decisions</li>
+                        <li>• <span className="font-semibold" style={{ color: 'rgb(1,162,82)' }}>Think</span> – How you process information and solve problems</li>
+                        <li>• <span className="font-semibold" style={{ color: 'rgb(255,203,47)' }}>Plan</span> – How you organize and structure your approach</li>
+                        <li>• <span className="font-semibold" style={{ color: 'rgb(22,126,253)' }}>Feel</span> – How you connect with others and understand emotions</li>
                       </ul>
-                      <p>
-                        The size and position of each section show your relative strength in that dimension. This profile helps you understand your natural preferences and how you can leverage these strengths in your personal and professional development.
+                      <p className="bg-purple-50 border-l-4 border-purple-400 pl-4 py-2">
+                        Imagination sits at the <strong>apex of the star</strong>, symbolizing the capacity that fuels and integrates all the others. While the assessment measures choices across Acting, Thinking, Planning, and Feeling, <strong>your imaginative strength represents a deeper horizon of possibility</strong>—the space where potential expands beyond present patterns.
+                      </p>
+                      <p className="text-gray-600 font-medium">
+                        Remember: there are no "better" or "worse" profiles. Each combination of strengths brings unique value to teams and organizations. The goal is understanding, not judgment.
                       </p>
                     </div>
                   </div>

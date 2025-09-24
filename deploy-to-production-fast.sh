@@ -2,7 +2,15 @@
 # AWS Lightsail Production Deployment Script - FIXED VERSION
 # Deploy to hi-replit-v2 service
 
-set -e  # Exit on any error
+# Exit on any error
+set -e
+
+# Parse auto-confirm flag
+AUTO_CONFIRM=false
+if [[ "$1" == "-y" || "$1" == "--yes" ]]; then
+  AUTO_CONFIRM=true
+  shift
+fi
 
 # Configuration for PRODUCTION
 ECR_REGISTRY="962000089613.dkr.ecr.us-west-2.amazonaws.com"
@@ -22,10 +30,15 @@ echo "🎯 Target service: $SERVICE_NAME"
 echo "⚠️  WARNING: This deploys to PRODUCTION!"
 
 # Confirmation prompt
-read -p "Are you sure you want to deploy to PRODUCTION? (yes/no): " confirm
+if ! $AUTO_CONFIRM && tty -s; then
+  read -p "Are you sure you want to deploy to PRODUCTION? (yes/no): " confirm
+else
+  confirm="yes"
+  echo "Auto-confirmed deployment"
+fi
 if [[ $confirm != "yes" ]]; then
-    echo "❌ Deployment cancelled"
-    exit 1
+  echo "❌ Deployment cancelled"
+  exit 1
 fi
 
 # Fetch production parameters from AWS Parameter Store
@@ -75,6 +88,7 @@ VITE_AUTH0_REDIRECT_URI=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUT
 : "${VITE_AUTH0_CLIENT_ID:?VITE_AUTH0_CLIENT_ID must be set}"
 : "${VITE_AUTH0_DOMAIN:?VITE_AUTH0_DOMAIN must be set}"
 : "${VITE_AUTH0_AUDIENCE:?VITE_AUTH0_AUDIENCE must be set}"
+: "${VITE_AUTH0_REDIRECT_URI:?VITE_AUTH0_REDIRECT_URI must be set}"
 
 # Step 1: Build and push the Docker image
 echo "🔨 Building & pushing Docker image for linux/amd64..."
@@ -84,7 +98,14 @@ aws ecr get-login-password --region $REGION | docker login --username AWS --pass
 
 # Build Docker image (fast - using pre-built files)
 echo "🏗️ Building Docker image with pre-built production files..."
-docker buildx build --platform linux/amd64 \
+# Limit concurrent uploads if supported to avoid EOF/broken pipe errors
+if docker buildx build --help | grep -q max-concurrent-uploads; then
+  CONCURRENCY_FLAG="--max-concurrent-uploads=1"
+else
+  CONCURRENCY_FLAG=""
+  echo "⚠️  Docker Buildx does not support --max-concurrent-uploads; proceeding without limit"
+fi
+docker buildx build --platform linux/amd64 $CONCURRENCY_FLAG \
   --build-arg VITE_AUTH0_CLIENT_ID="${VITE_AUTH0_CLIENT_ID}" \
   --build-arg VITE_AUTH0_DOMAIN="${VITE_AUTH0_DOMAIN}" \
   --build-arg VITE_AUTH0_AUDIENCE="${VITE_AUTH0_AUDIENCE}" \
@@ -125,8 +146,11 @@ aws lightsail create-container-service-deployment \
         \"MGMT_AUDIENCE\": \"${MGMT_AUDIENCE}\",
         \"MGMT_CLIENT_ID\": \"${MGMT_CLIENT_ID}\",
         \"MGMT_CLIENT_SECRET\": \"${MGMT_CLIENT_SECRET}\",
-        \"VITE_AUTH0_CLIENT_ID\": \"${VITE_AUTH0_CLIENT_ID}\",
-        \"NODE_ENV\": \"production\",
+        \"VITE_AUTH0_CLIENT_ID\": \"${VITE_AUTH0_CLIENT_ID}\", 
+        \"VITE_AUTH0_DOMAIN\": \"${VITE_AUTH0_DOMAIN}\", 
+        \"VITE_AUTH0_AUDIENCE\": \"${VITE_AUTH0_AUDIENCE}\", 
+        \"VITE_AUTH0_REDIRECT_URI\": \"${VITE_AUTH0_REDIRECT_URI}\", 
+        \"NODE_ENV\": \"production\", 
         \"PORT\": \"8080\"
       }
     }
@@ -147,4 +171,7 @@ echo "   ✅ Added TENANT_DOMAIN environment variable"
 echo "   ✅ Added MGMT_AUDIENCE environment variable" 
 echo "   ✅ Added MGMT_CLIENT_ID environment variable"
 echo "   ✅ Added MGMT_CLIENT_SECRET environment variable"
+echo "   ✅ Added VITE_AUTH0_DOMAIN environment variable"
+echo "   ✅ Added VITE_AUTH0_AUDIENCE environment variable"
+echo "   ✅ Added VITE_AUTH0_REDIRECT_URI environment variable"
 echo "   ✅ Removed NODE_TLS_REJECT_UNAUTHORIZED=0 (security improvement)"

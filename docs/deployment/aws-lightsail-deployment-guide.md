@@ -375,15 +375,33 @@ aws ecr list-images --repository-name hi-replit-app --region us-west-2
 - Review application logs for startup errors
 - Verify environment variables are loaded
 
+#### **5. ECR Push Broken Pipe Errors**
+**Symptoms**: Errors like `broken pipe` or `EOF` when pushing Docker image to ECR.
+**Solutions**:
+- Limit concurrent uploads to avoid network timeouts (requires Docker Buildx 0.10+):
+  ```bash
+  # If unsupported, upgrade Buildx or omit the flag
+  if docker buildx build --help | grep -q max-concurrent-uploads; then
+    docker buildx build --platform linux/amd64 \
+      --max-concurrent-uploads=1 \
+      --tag <registry>/<repo>:<tag> --push .
+  else
+    docker buildx build --platform linux/amd64 \
+      --tag <registry>/<repo>:<tag> --push .
+  fi
+  ```
+
 ## 🔄 **Update & Maintenance Procedures**
 
 ### **Quick Deployment (Recommended)**
+# Scripts auto-fetch required production variables from AWS SSM Parameter Store (Auth0, DB URL, etc.).
+# Ensure your AWS CLI is authenticated and has permission.
 ```bash
 # Deploy to STAGING
 ./deploy-to-staging.sh
 
-# Deploy to PRODUCTION
-./deploy-to-production.sh
+# Deploy to PRODUCTION (add -y to skip confirmation)
+./deploy-to-production.sh [-y|--yes]
 ```
 
 ### **Manual Deployment Steps**
