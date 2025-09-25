@@ -1,0 +1,5 @@
+Error occurred during debug package creation
+
+Error: Failed to fetch report debug data: 500 - {"error":"Failed to retrieve debug data","message":"\"[object Object]\" is not valid JSON"}
+    at createDebugPackage (file:///Users/bradtopliff/Desktop/HI_Replit/create-debug-package.js:78:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

@@ -378,18 +378,19 @@ aws ecr list-images --repository-name hi-replit-app --region us-west-2
 #### **5. ECR Push Broken Pipe Errors**
 **Symptoms**: Errors like `broken pipe` or `EOF` when pushing Docker image to ECR.
 **Solutions**:
-- Limit concurrent uploads to avoid network timeouts (requires Docker Buildx 0.10+):
-  ```bash
-  # If unsupported, upgrade Buildx or omit the flag
-  if docker buildx build --help | grep -q max-concurrent-uploads; then
-    docker buildx build --platform linux/amd64 \
-      --max-concurrent-uploads=1 \
-      --tag <registry>/<repo>:<tag> --push .
-  else
-    docker buildx build --platform linux/amd64 \
-      --tag <registry>/<repo>:<tag> --push .
-  fi
-  ```
+Limit concurrent uploads to avoid network timeouts (requires Buildx ≥0.10.0):
+```bash
+BX_VER=$(docker buildx version 2>&1 | head -n1 | grep -oE 'v[0-9]+\.[0-9]+' | sed 's/^v//')
+IFS=. read bx_maj bx_min <<< "$BX_VER"
+if (( bx_maj > 0 || bx_min >= 10 )); then
+  docker buildx build --platform linux/amd64 \
+    --max-concurrent-uploads=1 \
+    --tag <registry>/<repo>:<tag> --push .
+else
+  docker buildx build --platform linux/amd64 \
+    --tag <registry>/<repo>:<tag> --push .
+fi
+```
 
 ## 🔄 **Update & Maintenance Procedures**
 

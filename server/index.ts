@@ -22,6 +22,7 @@ import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
 import { router } from './routes.ts';
 import holisticReportRoutes from './routes/holistic-report-routes.ts';
+import holisticReportDebugRoutes from './routes/holistic-report-debug-routes.ts';
 import adminUploadRoutes from './routes/admin-upload-routes.ts';
 import discernmentRoutes from './routes/discernment-routes.ts';
 import coachingRoutes from './routes/coaching-routes.ts';
@@ -460,6 +461,7 @@ async function initializeApp() {
       // Use cookie-session based auth for app API (JWT disabled here)
       app.use('/api', router);
       app.use('/api/reports/holistic', holisticReportRoutes);
+      app.use('/api/reports/holistic', holisticReportDebugRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);

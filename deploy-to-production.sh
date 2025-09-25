@@ -100,7 +100,8 @@ echo "🏗️ Building locally with production configuration..."
 # Build Docker image (using pre-built files)
 echo "🐳 Building Docker image with pre-built files..."
 # Limit concurrent uploads if supported to avoid EOF/broken pipe errors
-if docker buildx build --help | grep -q max-concurrent-uploads; then
+## Determine if Docker Buildx supports --max-concurrent-uploads flag
+if docker buildx build --help 2>&1 | grep -q -- '--max-concurrent-uploads'; then
   CONCURRENCY_FLAG="--max-concurrent-uploads=1"
 else
   CONCURRENCY_FLAG=""

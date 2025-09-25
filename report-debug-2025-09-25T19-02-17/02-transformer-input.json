@@ -1,0 +1,105 @@
+{
+  "userInfo": {
+    "userName": "Millie Millie",
+    "firstName": "Millie",
+    "lastName": "Millie"
+  },
+  "assessments": {
+    "finalReflection": {
+      "futureLetterText": "Imagination helps me connect the dots between empathy and organization. It allows me to picture how different parts of my strengths can come together in practice. Without imagination, I would only see tasks—imagination makes them meaningful."
+    },
+    "futureSelfReflection": {
+      "flowOptimizedLife": "My future self balances leadership responsibilities with personal well-being. I’m guiding projects in a way that respects both results and relationships. Each day feels aligned with my strengths and values.",
+      "futureSelfDescription": "",
+      "visualizationNotes": "",
+      "additionalNotes": "",
+      "imageData": {
+        "selectedImages": [
+          {
+            "id": "KMB7vtgPjfU",
+            "url": "https://images.unsplash.com/photo-1754927513632-3ef478c27325?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3ODUxNTZ8MHwxfHNlYXJjaHwyfHxvcGVuJTIwcGF0aCUyMG5hdHVyZXxlbnwwfHx8fDE3NTg3MjIyNjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+            "source": "unsplash",
+            "searchTerm": "open path nature",
+            "credit": {
+              "photographer": "The Shadow Of Adam",
+              "photographerUrl": "https://unsplash.com/@theshadowofadam",
+              "sourceUrl": "https://unsplash.com/photos/path-through-dry-grass-with-a-bench-KMB7vtgPjfU"
+            }
+          }
+        ],
+        "imageMeaning": "The image of an open path in nature represents balance and forward motion. It reminds me that progress can feel calm and intentional, not rushed.\n"
+      },
+      "completedAt": "2025-09-24T13:58:32.996Z"
+    },
+    "cantrilLadderReflection": {
+      "currentFactors": "I feel supported by my team and excited by projects, but long hours sometimes drain me. Work-life balance is inconsistent, and I’m still figuring out how to maintain energy. There’s a sense of progress, but also pressure.\n",
+      "futureImprovements": "I’d like to build stronger boundaries between work and personal life. More consistent exercise and relaxation would help sustain my energy. Leadership opportunities would give me more confidence and purpose.\n",
+      "specificChanges": "I imagine a day where I end work on time, go for a run, and still have energy for family conversations. Projects would feel meaningful but not overwhelming. I’d see small wins stack up week by week.\n",
+      "quarterlyProgress": "In three months, I’d like to be leading at least one project where my planning and feeling strengths are both in use. I’d measure success by how confident and connected my team feels. Feedback from peers will show if I’m improving.\n",
+      "quarterlyActions": "This quarter I will schedule weekly reflection time to track energy levels. I’ll also propose one structured brainstorming format to test with my team. These actions are simple but aligned with my goals.\n"
+    },
+    "cantrilLadder": {
+      "wellBeingLevel": 6,
+      "futureWellBeingLevel": 8
+    },
+    "roundingOutReflection": {
+      "strengths": "Flow happens when I’m brainstorming with others and then immediately capturing the ideas into a concrete plan. Those moments feel creative and purposeful at the same time. I walk away from those sessions energized and focused.",
+      "values": "My flow breaks down when roles aren’t clear, and everyone is talking past each other. I also find it hard to focus when meetings drag on without decisions. In those cases, I feel restless and disconnected.",
+      "passions": "I work best when I know the end goal but have freedom in how to get there. A clear structure with flexible execution creates balance for me. Having regular touchpoints helps me stay aligned without feeling micromanaged.",
+      "growthAreas": "I could create more opportunities for flow by setting up short idea-sharing sessions followed by planning sprints. This would combine creativity and structure in a way that plays to my strengths. Blocking time for both brainstorming and organization could help me sustain energy."
+    },
+    "flowAttributes": {
+      "attributes": [
+        {
+          "name": "Spontaneous",
+          "order": 1
+        },
+        {
+          "name": "Adventuresome",
+          "order": 2
+        },
+        {
+          "name": "Supportive",
+          "order": 3
+        },
+        {
+          "name": "Focused",
+          "order": 4
+        }
+      ]
+    },
+    "flowAssessment": {
+      "answers": {
+        "1": 3,
+        "2": 3,
+        "3": 5,
+        "4": 3,
+        "5": 5,
+        "6": 5,
+        "7": 4,
+        "8": 4,
+        "9": 5,
+        "10": 4,
+        "11": 4,
+        "12": 5
+      },
+      "flowScore": 50,
+      "completed": true,
+      "completedAt": "2025-09-24T13:55:05.738Z"
+    },
+    "stepByStepReflection": {
+      "strength1": "Acting helps me step into situations where quick movement is needed. I’ve learned that even small steps forward, like drafting a first version, can give momentum to the whole group. Action keeps us from getting stuck in overthinking.\n",
+      "strength2": "Planning shows up when I map out steps to turn an idea into action. I enjoy creating checklists and timelines because it reduces stress for me and others. When the team knows the plan, it builds confidence and accountability.\n",
+      "strength3": "Thinking doesn’t come as naturally, but I still rely on it when weighing trade-offs. Sometimes I ask a teammate to review my logic so I can feel more confident in my decisions. I’ve found that pairing my ideas with others’ analysis leads to stronger results.\n",
+      "strength4": "I often use my Feeling strength to sense the mood of the group and check in when energy drops. This helps me bring issues to the surface before they escalate. I’ve noticed that a quick personal check-in can shift the direction of a whole meeting.\n",
+      "teamValues": "I value honesty in communication even when feedback is difficult. A culture where people feel safe to share openly makes collaboration productive and rewarding. I also appreciate when commitments are honored, as it builds mutual respect.\n",
+      "uniqueContribution": "I bring warmth and structure together. People know I will listen carefully, but also ensure the work is organized and moving forward. My contribution is often described as balancing empathy with reliability.\n"
+    },
+    "starCard": {
+      "thinking": 23,
+      "feeling": 19,
+      "acting": 29,
+      "planning": 29
+    }
+  }
+}

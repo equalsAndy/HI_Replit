@@ -234,6 +234,25 @@ export function transformExportToAssistantInput(
   exportJson: ExportData,
   options: TransformOptions = {}
 ): AssistantInput {
+  console.log('🔍 [TRANSFORMER] ========== ENTRY POINT ==========');
+  console.log('🔍 [TRANSFORMER] exportJson type:', typeof exportJson);
+  console.log('🔍 [TRANSFORMER] exportJson keys:', Object.keys(exportJson || {}));
+
+  if (exportJson?.userInfo) {
+    console.log('🔍 [TRANSFORMER] userInfo:', exportJson.userInfo);
+  }
+
+  if (exportJson?.assessments) {
+    console.log('🔍 [TRANSFORMER] assessments type:', Array.isArray(exportJson.assessments) ? 'ARRAY ❌' : 'OBJECT ✅');
+    console.log('🔍 [TRANSFORMER] assessments keys:', Object.keys(exportJson.assessments));
+
+    if (Array.isArray(exportJson.assessments)) {
+      console.error('🔍 [TRANSFORMER] ERROR: Received array format! Expected object format.');
+      console.error('🔍 [TRANSFORMER] First item:', exportJson.assessments[0]);
+    }
+  }
+
+  console.log('🔍 [TRANSFORMER] =====================================');
   console.log('Starting transformation of export data to assistant input');
 
   // Set defaults
@@ -246,8 +265,11 @@ export function transformExportToAssistantInput(
     `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() ||
     'Participant';
 
+  console.log('🔍 [TRANSFORMER] Participant name:', participant_name);
+
   // Transform strengths
   const strengths = transformStrengths(exportJson.assessments?.starCard || {});
+  console.log('🔍 [TRANSFORMER] Leading strengths:', strengths.leading);
 
   // Get flow score from correct source
   const flowScore = exportJson.assessments?.flowAssessment?.flowScore ||

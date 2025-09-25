@@ -1,0 +1,38 @@
+{
+  "description": "What SHOULD come back from OpenAI if the call succeeded",
+  "timestamp": "Expected format",
+  "user_id": 65,
+  "expected": {
+    "length": "5000-15000 characters",
+    "format": "Structured markdown report",
+    "content_example": "# Professional Development Report for Millie Millie\n\n## Executive Summary\n[Personalized analysis based on workshop data]\n\n## Strengths Assessment\n### Leading Strengths: Acting & Planning\n[Deep analysis of how these strengths manifest]\n\n## Flow State Analysis\n[Analysis of flow score and conditions]\n\n## Well-being & Growth Pathway\n[Analysis of Cantril Ladder responses]\n\n## Development Recommendations\n[AI-generated insights and suggestions]\n\n## Action Plan\n[Specific next steps based on reflections]",
+    "features": [
+      "Personalized insights based on all reflection data",
+      "Cross-references between different assessments",
+      "Specific development recommendations",
+      "Action-oriented next steps",
+      "Professional formatting with headers and sections"
+    ]
+  },
+  "assistant_configuration": {
+    "id": "asst_CZ9XUvnWRx3RIWFc7pLeH8U2",
+    "name": "Star Report Talia",
+    "model": "gpt-4o-mini",
+    "vector_store": "vs_688e2bf0d94c81918b50080064684bde",
+    "instructions_source": "Configured in OpenAI UI",
+    "temperature": "Default",
+    "response_format": "text/markdown"
+  },
+  "current_blocker": {
+    "issue": "Legacy marker validation prevents OpenAI call",
+    "location": "generateOpenAIReport() line 821",
+    "fix_needed": "Properly disable legacy check for report generation",
+    "code_issue": "skipLegacyCheck flag not properly applied or set to false"
+  },
+  "notes": [
+    "This response would be the full AI-generated report",
+    "Contains sophisticated analysis of user's workshop responses",
+    "Tailored to user's specific strengths profile and reflections",
+    "Currently blocked by legacy marker validation"
+  ]
+}

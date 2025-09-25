@@ -852,13 +852,54 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
         throw new Error('No suitable assistant available for report generation');
       }
 
-      // Construct raw export data for transformer
+      // ===================================================================
+      // CRITICAL FIX: Transform database rows into expected structure
+      // ===================================================================
+      console.log('🔧 [DATA FIX] Transforming database structure for transformer...');
+      console.log('🔧 [DATA FIX] Raw assessment count:', assessmentResult.rows.length);
+      
+      // Parse all assessment results from database rows into an object
+      const parsedAssessments: any = {};
+      for (const row of assessmentResult.rows) {
+        try {
+          if (row.assessment_type && row.results) {
+            parsedAssessments[row.assessment_type] = JSON.parse(row.results as string);
+            console.log(`🔧 [DATA FIX] Parsed ${row.assessment_type}:`, Object.keys(parsedAssessments[row.assessment_type]));
+          }
+        } catch (parseError) {
+          console.error(`❌ [DATA FIX] Failed to parse ${row.assessment_type}:`, parseError);
+        }
+      }
+      
+      console.log('🔧 [DATA FIX] Parsed assessment types:', Object.keys(parsedAssessments));
+      
+      // Construct raw export data in the format expected by transformer
       const rawExportData = {
-        user: user,
-        assessments: assessmentResult.rows,
-        stepData: stepDataResult.rows,
-        completedAt: user.ast_completed_at
+        userInfo: {
+          userName: user.name,
+          firstName: user.name?.split(' ')[0] || user.name,
+          lastName: user.name?.split(' ').slice(1).join(' ') || ''
+        },
+        assessments: {
+          starCard: parsedAssessments.starCard || {},
+          flowAssessment: parsedAssessments.flowAssessment || {},
+          flowAttributes: parsedAssessments.flowAttributes || {},
+          stepByStepReflection: parsedAssessments.stepByStepReflection || {},
+          roundingOutReflection: parsedAssessments.roundingOutReflection || {},
+          cantrilLadder: parsedAssessments.cantrilLadder || {},
+          futureSelfReflection: parsedAssessments.futureSelfReflection || {},
+          finalReflection: parsedAssessments.finalReflection || {}
+        }
       };
+      
+      // Log what we're sending to transformer
+      console.log('🔧 [DATA FIX] Structured export data:');
+      console.log('  - userName:', rawExportData.userInfo.userName);
+      console.log('  - starCard keys:', Object.keys(rawExportData.assessments.starCard));
+      console.log('  - flowAssessment keys:', Object.keys(rawExportData.assessments.flowAssessment));
+      console.log('  - stepByStepReflection keys:', Object.keys(rawExportData.assessments.stepByStepReflection));
+      console.log('  - cantrilLadder keys:', Object.keys(rawExportData.assessments.cantrilLadder));
+      console.log('🔧 [DATA FIX] Export data ready for transformer');
 
       // Generate report using clean AST approach
       reportContent = await createAstReportFromExport(

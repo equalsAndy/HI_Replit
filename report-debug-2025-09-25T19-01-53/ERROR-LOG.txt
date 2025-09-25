@@ -1,0 +1,11 @@
+Error occurred during debug package creation
+
+FetchError: request to http://localhost:8080/api/reports/holistic/test-generate failed, reason: 
+    at ClientRequest.<anonymous> (file:///Users/bradtopliff/Desktop/HI_Replit/node_modules/node-fetch/src/index.js:108:11)
+    at ClientRequest.emit (node:events:519:35)
+    at emitErrorEvent (node:_http_client:104:11)
+    at Socket.socketErrorListener (node:_http_client:518:5)
+    at Socket.emit (node:events:507:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)

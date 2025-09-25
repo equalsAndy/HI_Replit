@@ -1,0 +1,19 @@
+{
+  "description": "What the system returned instead of OpenAI response (fallback)",
+  "timestamp": "2025-09-25T18:24:08.696Z",
+  "user_id": 65,
+  "status": "OpenAI call failed, fallback activated",
+  "fallback_type": "Admin-style report",
+  "response": {
+    "length": 561,
+    "content": "# Personal Development Report for Millie Millie\n\n## Strengths Profile\n**Leading Strengths:** Acting (29%), Planning (29%)\n**Supporting Strength:** Thinking (23%)\n**Quieter Strength:** Feeling (19%)\n\n## Flow Assessment\n**Flow Score:** 50/60 (Flow Aware Category)\n\n## Well-being Level\n**Current:** 6/10\n**Future Goal:** 8/10\n\n## Key Insights\nYou demonstrate strong execution and organization capabilities with your Acting and Planning strengths. Your reflections show thoughtful self-awareness and practical approach to development.\n\n*Report generated in foundation testing mode - full AI analysis temporarily unavailable.*",
+    "type": "HTML template with basic data substitution",
+    "ai_generated": false
+  },
+  "notes": [
+    "This is NOT from OpenAI - it's a local fallback template",
+    "Contains actual user data but no AI analysis",
+    "Generated when OpenAI call fails due to legacy marker validation",
+    "Much shorter than expected full report (should be 5000+ characters)"
+  ]
+}

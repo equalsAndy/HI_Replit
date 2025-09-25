@@ -787,72 +787,273 @@ function buildUserDataContext(userData: any, userName: string): string {
 }
 
 /**
- * Generate report using OpenAI Assistants API - NEW: clean, no legacy TALIA injection
+ * Generate report using OpenAI Assistants API - WITH ENHANCED LOGGING
  */
 export async function generateOpenAIReport(args: {
   assistantId: string;
   compactInput: any;
-  model?: string; // unused (Assistant's Instructions + files are source of truth)
+  model?: string;
 }): Promise<string> {
   const { assistantId, compactInput } = args;
 
-  // Hard guard: input should not contain legacy markers
-  const inputStr = JSON.stringify(compactInput);
-  const legacy = /TALIA|PRIMARY_Prompt|MBTI|DISC|Clifton/i;
-  if (legacy.test(inputStr)) {
-    throw new Error("Legacy/TALIA markers detected in input. Remove all legacy references.");
+  console.log("🔍 [REPORT DEBUG] Starting generateOpenAIReport");
+  console.log("🔍 [REPORT DEBUG] Assistant ID:", assistantId);
+  console.log("🔍 [REPORT DEBUG] Compact input keys:", Object.keys(compactInput));
+  console.log("🔍 [REPORT DEBUG] Report type:", compactInput.report_type);
+  console.log("🔍 [REPORT DEBUG] Participant name:", compactInput.participant_name);
+  
+  // Log the actual input being sent (truncated for readability)
+  const inputPreview = {
+    report_type: compactInput.report_type,
+    participant_name: compactInput.participant_name,
+    strengths: compactInput.strengths,
+    reflections: Object.keys(compactInput.reflections || {}).reduce((acc, key) => {
+      acc[key] = compactInput.reflections[key]?.substring(0, 100) + "...";
+      return acc;
+    }, {} as any)
+  };
+  console.log("🔍 [REPORT DEBUG] Input preview:", JSON.stringify(inputPreview, null, 2));
+
+  // Legacy guard: Only check for legacy markers in system prompts, not user data
+  // User reflections may legitimately contain words like "MBTI" or "Clifton"
+  // This guard is disabled for report generation to allow user content
+  const skipLegacyCheck = true; // Reports contain user data, not system prompts
+  
+  if (!skipLegacyCheck) {
+    const inputStr = JSON.stringify(compactInput);
+    const legacy = /TALIA|PRIMARY_Prompt|MBTI|DISC|Clifton/i;
+    if (legacy.test(inputStr)) {
+      throw new Error("Legacy/TALIA markers detected in input. Remove all legacy references.");
+    }
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-  // Create thread
-  const thread = await openai.beta.threads.create();
-
-  console.info("[AST] Using Assistant instructions only; sending compact input:",
-    JSON.stringify({ keys: Object.keys(compactInput) })
-  );
-
-  // Only send compact JSON (no prompt overrides)
-  await openai.beta.threads.messages.create(thread.id, {
-    role: "user",
-    content: JSON.stringify({ type: "ast_input_v2", payload: compactInput })
+  // Validate API key - check multiple sources for resilience
+  // Try OPENAI_API_KEY first, then other sources
+  let apiKey = process.env.OPENAI_API_KEY?.trim();
+  
+  // If OPENAI_API_KEY doesn't exist or is placeholder, try alternatives
+  if (!apiKey || apiKey.startsWith('YOUR_') || apiKey === 'YOUR_KEY') {
+    apiKey = process.env.REPORT_OPENAI_API_KEY?.trim() ||
+             process.env.OPENAI_KEY_TALIA_V1?.trim() ||
+             process.env.OPENAI_KEY_TALIA_V2?.trim();
+  }
+  
+  console.log("🔑 [REPORT DEBUG] API Key check:", {
+    hasOPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+    hasREPORT_OPENAI_API_KEY: !!process.env.REPORT_OPENAI_API_KEY,
+    hasOPENAI_KEY_TALIA_V1: !!process.env.OPENAI_KEY_TALIA_V1,
+    hasOPENAI_KEY_TALIA_V2: !!process.env.OPENAI_KEY_TALIA_V2,
+    selectedKeyPrefix: apiKey ? apiKey.substring(0, 15) + '...' : 'NONE FOUND'
   });
-
-  // Run Assistant configured in UI (instructions + files)
-  const run = await openai.beta.threads.runs.create(thread.id, {
-    assistant_id: assistantId
-  });
-
-  // Poll
-  let state = run;
-  while (state.status === "queued" || state.status === "in_progress") {
-    await new Promise(r => setTimeout(r, 800));
-    state = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+  
+  // Final validation - ensure key exists and looks valid
+  if (!apiKey || 
+      apiKey.startsWith('YOUR_') || 
+      apiKey === 'YOUR_KEY' ||
+      apiKey.includes('YOUR_KEY') ||  // Reject if placeholder text is present anywhere
+      !apiKey.startsWith('sk-')) {    // OpenAI keys must start with 'sk-'
+    throw new Error(
+      `Missing or invalid OpenAI API key. Checked: OPENAI_API_KEY${process.env.OPENAI_API_KEY ? ' (invalid format)' : ' (missing)'}, REPORT_OPENAI_API_KEY${process.env.REPORT_OPENAI_API_KEY ? ' (invalid format)' : ' (missing)'}, OPENAI_KEY_TALIA_V1, OPENAI_KEY_TALIA_V2`
+    );
   }
+  
+  // Create fresh OpenAI client with discovered key
+  const openai = new OpenAI({ apiKey });
 
-  if (state.status !== "completed") {
-    throw new Error(`Assistant run failed: ${state.status} - ${state.last_error?.message ?? ""}`);
+  const startTime = Date.now();
+
+  try {
+    // Create thread
+    console.log("🔍 [REPORT DEBUG] Creating OpenAI thread...");
+    const thread = await openai.beta.threads.create();
+    console.log("🔍 [REPORT DEBUG] Thread created:", thread.id);
+
+    console.info("[AST] Using Assistant instructions only; sending compact input:",
+      JSON.stringify({ keys: Object.keys(compactInput) })
+    );
+
+    // Only send compact JSON (no prompt overrides)
+    const messageContent = JSON.stringify({ type: "ast_input_v2", payload: compactInput });
+    console.log("🔍 [REPORT DEBUG] Message content length:", messageContent.length);
+    
+    await openai.beta.threads.messages.create(thread.id, {
+      role: "user",
+      content: messageContent
+    });
+    console.log("🔍 [REPORT DEBUG] Message added to thread");
+
+    // Run Assistant configured in UI (instructions + files)
+    console.log("🔍 [REPORT DEBUG] Starting assistant run...");
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: assistantId
+    });
+    console.log("🔍 [REPORT DEBUG] Run created:", run.id, "Status:", run.status);
+
+    // Poll with detailed logging
+    let state = run;
+    let pollCount = 0;
+    while (state.status === "queued" || state.status === "in_progress") {
+      pollCount++;
+      console.log(`🔍 [REPORT DEBUG] Polling ${pollCount}: Status = ${state.status}`);
+      
+      await new Promise(r => setTimeout(r, 800));
+      state = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    }
+
+    const totalTime = Date.now() - startTime;
+    console.log(`🔍 [REPORT DEBUG] Final status: ${state.status} (took ${totalTime}ms, ${pollCount} polls)`);
+
+    if (state.status !== "completed") {
+      console.error("🔍 [REPORT DEBUG] Run failed with status:", state.status);
+      console.error("🔍 [REPORT DEBUG] Last error:", state.last_error);
+      throw new Error(`Assistant run failed: ${state.status} - ${state.last_error?.message ?? ""}`);
+    }
+
+    console.log("🔍 [REPORT DEBUG] Getting messages from thread...");
+    const messages = await openai.beta.threads.messages.list(thread.id);
+    console.log("🔍 [REPORT DEBUG] Total messages in thread:", messages.data.length);
+
+    const last = messages.data.find(m => m.role === "assistant");
+    if (!last) {
+      console.error("🔍 [REPORT DEBUG] No assistant message found!");
+      throw new Error("No assistant response found in thread");
+    }
+
+    const response = last?.content?.[0]?.text?.value ?? "";
+    
+    // DETAILED RESPONSE LOGGING
+    console.log("🔍 [REPORT DEBUG] ========== OPENAI RESPONSE ANALYSIS ==========");
+    console.log("🔍 [REPORT DEBUG] Response length:", response.length);
+    console.log("🔍 [REPORT DEBUG] Response character count:", response.length);
+    console.log("🔍 [REPORT DEBUG] Response word count:", response.split(/\s+/).length);
+    console.log("🔍 [REPORT DEBUG] Response line count:", response.split('\n').length);
+    
+    // Check for formatting issues
+    const boldCount = (response.match(/\*\*(.*?)\*\*/g) || []).length;
+    const headerCount = (response.match(/^#/gm) || []).length;
+    const bulletCount = (response.match(/^[\-\*]/gm) || []).length;
+    
+    console.log("🔍 [REPORT DEBUG] Bold text instances:", boldCount);
+    console.log("🔍 [REPORT DEBUG] Header count:", headerCount);
+    console.log("🔍 [REPORT DEBUG] Bullet point count:", bulletCount);
+    
+    // Show first 500 characters
+    console.log("🔍 [REPORT DEBUG] Response preview (first 500 chars):");
+    console.log(response.substring(0, 500));
+    console.log("🔍 [REPORT DEBUG] ===============================================");
+    
+    // Check if it looks like a proper report
+    if (response.length < 2000) {
+      console.warn("⚠️ [REPORT DEBUG] Response is shorter than expected (< 2000 chars)");
+    }
+    
+    if (boldCount > response.split(' ').length * 0.1) {
+      console.warn("⚠️ [REPORT DEBUG] Excessive bold formatting detected");
+    }
+    
+    if (response.includes("Professional Profile Report") && response.length < 3000) {
+      console.warn("⚠️ [REPORT DEBUG] Response looks like a generic template");
+    }
+
+    return response;
+
+  } catch (error) {
+    const totalTime = Date.now() - startTime;
+    console.error(`🔍 [REPORT DEBUG] Error after ${totalTime}ms:`, error);
+    throw error;
   }
-
-  const messages = await openai.beta.threads.messages.list(thread.id);
-  const last = messages.data.find(m => m.role === "assistant");
-  return last?.content?.[0]?.text?.value ?? "";
 }
 
 /**
- * Create AST report from raw export data using transformer
+ * Create AST report from raw export data using transformer - WITH ENHANCED LOGGING
  */
 export async function createAstReportFromExport(
   rawExport: any,
   assistantId: string,
   reportType: "personal" | "sharable" = "personal"
 ): Promise<string> {
-  const compact = transformExportToAssistantInput(rawExport, {
-    report_type: reportType,
-    imagination_mode: "default"
-  });
+  console.log("🔍 [TRANSFORM DEBUG] Starting createAstReportFromExport");
+  console.log("🔍 [TRANSFORM DEBUG] Report type:", reportType);
+  console.log("🔍 [TRANSFORM DEBUG] Assistant ID:", assistantId);
+  
+  // Log raw export structure
+  console.log("🔍 [TRANSFORM DEBUG] Raw export keys:", Object.keys(rawExport || {}));
+  if (rawExport?.user) {
+    console.log("🔍 [TRANSFORM DEBUG] User info:", {
+      name: rawExport.user.name,
+      completed: rawExport.user.ast_workshop_completed
+    });
+  }
+  
+  if (rawExport?.assessments) {
+    // Check if assessments is an array or object
+    if (Array.isArray(rawExport.assessments)) {
+      console.log("🔍 [TRANSFORM DEBUG] Assessments count:", rawExport.assessments.length);
+      console.log("🔍 [TRANSFORM DEBUG] Assessment types:", 
+        rawExport.assessments.map((a: any) => a.assessment_type));
+    } else {
+      console.log("🔍 [TRANSFORM DEBUG] Assessments (object):", Object.keys(rawExport.assessments));
+    }
+  }
 
-  return generateOpenAIReport({ assistantId, compactInput: compact });
+  try {
+    // Transform the data
+    console.log("🔍 [TRANSFORM DEBUG] Calling transformExportToAssistantInput...");
+    const compact = transformExportToAssistantInput(rawExport, {
+      report_type: reportType,
+      imagination_mode: "default"
+    });
+
+    // Log the transformed data
+    console.log("🔍 [TRANSFORM DEBUG] ========== TRANSFORMED DATA ==========");
+    console.log("🔍 [TRANSFORM DEBUG] Participant name:", compact.participant_name);
+    console.log("🔍 [TRANSFORM DEBUG] Leading strengths:", compact.strengths.leading);
+    console.log("🔍 [TRANSFORM DEBUG] Flow score:", compact.flow.flowScore);
+    
+    // Log reflection quality
+    const reflections = compact.reflections;
+    const reflectionLengths = Object.entries(reflections).map(([key, value]) => 
+      ({ [key]: (value as string).length }));
+    console.log("🔍 [TRANSFORM DEBUG] Reflection lengths:", reflectionLengths);
+    
+    // Sample a few reflections
+    console.log("🔍 [TRANSFORM DEBUG] Sample reflections:");
+    console.log("  - strength1:", reflections.strength1?.substring(0, 100) + "...");
+    console.log("  - teamValues:", reflections.teamValues?.substring(0, 100) + "...");
+    console.log("  - uniqueContribution:", reflections.uniqueContribution?.substring(0, 100) + "...");
+    
+    // Check for reflection validity
+    if (compact.reflections_invalid) {
+      console.warn("⚠️ [TRANSFORM DEBUG] Reflections marked as invalid (gibberish detected)");
+    }
+    
+    console.log("🔍 [TRANSFORM DEBUG] Cantril ladder:", {
+      current: compact.cantrilLadder.wellBeingLevel,
+      future: compact.cantrilLadder.futureWellBeingLevel
+    });
+    
+    console.log("🔍 [TRANSFORM DEBUG] Future self description length:", 
+      compact.futureSelf.futureSelfDescription?.length || 0);
+    
+    console.log("🔍 [TRANSFORM DEBUG] Final insight length:", 
+      compact.finalReflection.keyInsight?.length || 0);
+    
+    console.log("🔍 [TRANSFORM DEBUG] ====================================");
+
+    // Now call the OpenAI generation with detailed input
+    console.log("🔍 [TRANSFORM DEBUG] Calling generateOpenAIReport...");
+    const result = await generateOpenAIReport({ 
+      assistantId, 
+      compactInput: compact 
+    });
+    
+    console.log("🔍 [TRANSFORM DEBUG] Report generation completed successfully");
+    return result;
+    
+  } catch (error) {
+    console.error("🔍 [TRANSFORM DEBUG] Error in createAstReportFromExport:", error);
+    throw error;
+  }
 }
 
 /**

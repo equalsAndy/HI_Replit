@@ -83,6 +83,11 @@ The Talia report generation system has been unified to ensure consistent behavio
 - **Verify**: No hardcoded prompts in service layer
 - **Solution**: Restart application to clear any cached prompts
 
+**Symptom**: Invalid OpenAI API key error when generating holistic reports
+- **Check**: Confirm `OPENAI_API_KEY` in AWS SSM Parameter Store is set to a valid key (sk-...)
+- **Verify**: No placeholder (`YOUR_KEY`) remains in SSM or environment
+- **Solution**: Update `/prod/hi-replit/OPENAI_API_KEY` in AWS SSM to your actual OpenAI secret key
+
 ### Document Access Problems
 
 **Symptom**: Document not found in enabled documents
