@@ -717,6 +717,8 @@ function buildUserDataContext(userData: any, userName: string): string {
 
 **Strength 4**: "${reflections.strength4 || 'Not provided'}"
 
+**Imagination Reflection (Apex Strength)**: "${reflections.imaginationReflection || 'Not provided'}"
+
 **Team Values**: "${reflections.teamValues || 'Not provided'}"
 
 **Unique Contribution**: "${reflections.uniqueContribution || 'Not provided'}"

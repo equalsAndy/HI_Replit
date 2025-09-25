@@ -144,6 +144,45 @@ export default function StrengthReflections({
       minLength: 25,
     };
 
+    const imaginationConfig = {
+      id: 'imagination',
+      question: 'Your Apex Strength is Imagination',
+      instruction: 'No matter what your strengths, your imagination is always on and always influencing your thoughts and actions. How do you think about your imagination and when do you use it?',
+      bullets: [
+        'I use my imagination to envision possibilities that don\'t yet exist...',
+        'My imagination helps me see beyond current constraints and limitations...',
+        'I engage my imagination when solving complex problems or planning for the future...',
+        'Imagination allows me to connect seemingly unrelated ideas and create new solutions...',
+        'I tap into my imagination during creative work, strategic planning, and innovation...',
+        'My imagination is most active when I\'m exploring "what if" scenarios...'
+      ],
+      examples: [
+        'I see imagination as my ability to envision different futures and possibilities. I use it most when I\'m facing complex challenges that don\'t have obvious solutions, or when I\'m trying to inspire my team with a compelling vision of where we could go together.',
+        'Imagination is always working in the background for me - it\'s how I connect dots that others don\'t see. I consciously tap into it during strategic planning sessions and when I need to reframe a problem from a completely different angle.',
+        'I think of my imagination as a bridge between what is and what could be. I use it most actively when designing new approaches, mentoring others to see their potential, or when I need to inspire change.'
+      ],
+      strengthColor: { bg: 'bg-purple-600', text: 'text-white', name: 'IMAGINATION' },
+      minLength: 25,
+    };
+
+    const teamValuesConfig = {
+      id: 'team-values',
+      question: 'What You Value Most in Team Environments',
+      instruction: 'Based on your strengths profile, certain team environments will help you perform at your best. Consider what team qualities or behaviors would complement your unique strengths distribution.',
+      bullets: [
+        'Team communication styles that work best for you',
+        'The type of structure or flexibility you prefer',
+        'How you like feedback to be given and received',
+        'What makes you feel most supported and effective'
+      ],
+      examples: [
+        'I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change.',
+        'I value team environments where open communication is prioritized and every member\'s contributions are recognized. I work best when there\'s a culture of constructive feedback.'
+      ],
+      strengthColor: { bg: 'bg-gray-400', text: 'text-white', name: 'TEAM' },
+      minLength: 25,
+    };
+
     const uniqueContributionConfig = {
       id: 'unique-contribution',
       question: 'Your Unique Contribution',
@@ -162,7 +201,7 @@ export default function StrengthReflections({
       minLength: 25,
     };
 
-    return [...strengthConfigs, teamValuesConfig, uniqueContributionConfig];
+    return [...strengthConfigs, imaginationConfig, teamValuesConfig, uniqueContributionConfig];
   }, [strengths]);
 
   // Smart defaults: Auto-expand suggestions for first reflection if user hasn't interacted
@@ -396,6 +435,9 @@ export default function StrengthReflections({
                     // StarCard-style strength squares
                     reflection.strengthColor?.name || `STR${index + 1}`
                   ) : index === 4 ? (
+                    // Imagination - apex strength
+                    'IMAGINATION'
+                  ) : index === 5 ? (
                     // Team Values square
                     'TEAM'
                   ) : (
@@ -607,6 +649,8 @@ export default function StrengthReflections({
                         {index < 4 ? (
                           reflection.strengthColor?.name || `STR${index + 1}`
                         ) : index === 4 ? (
+                          'IMAGINATION'
+                        ) : index === 5 ? (
                           'TEAM'
                         ) : (
                           'YOU'

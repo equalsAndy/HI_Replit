@@ -9,6 +9,7 @@ export async function saveStrengthReflections(reflections: Record<string, string
       strength2: reflections['strength-2'] || '',
       strength3: reflections['strength-3'] || '',
       strength4: reflections['strength-4'] || '',
+      imaginationReflection: reflections['imagination'] || '',
       teamValues: reflections['team-values'] || '',
       uniqueContribution: reflections['unique-contribution'] || ''
     };
@@ -62,11 +63,12 @@ export async function loadStrengthReflections(): Promise<Record<string, string>>
 
     // Transform database schema back to component format
     const reflections: Record<string, string> = {};
-    
+
     if (data.strength1) reflections['strength-1'] = data.strength1;
     if (data.strength2) reflections['strength-2'] = data.strength2;
     if (data.strength3) reflections['strength-3'] = data.strength3;
     if (data.strength4) reflections['strength-4'] = data.strength4;
+    if (data.imaginationReflection) reflections['imagination'] = data.imaginationReflection;
     if (data.teamValues) reflections['team-values'] = data.teamValues;
     if (data.uniqueContribution) reflections['unique-contribution'] = data.uniqueContribution;
 

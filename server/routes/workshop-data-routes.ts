@@ -1591,14 +1591,15 @@ workshopDataRouter.post('/step-by-step-reflection', authenticateUser, checkWorks
       });
     }
     
-    const { strength1, strength2, strength3, strength4, teamValues, uniqueContribution } = req.body;
-    
+    const { strength1, strength2, strength3, strength4, imaginationReflection, teamValues, uniqueContribution } = req.body;
+
     // Create the reflections data object
     const reflectionData = {
       strength1: strength1 || '',
       strength2: strength2 || '',
       strength3: strength3 || '',
       strength4: strength4 || '',
+      imaginationReflection: imaginationReflection || '',
       teamValues: teamValues || '',
       uniqueContribution: uniqueContribution || ''
     };
