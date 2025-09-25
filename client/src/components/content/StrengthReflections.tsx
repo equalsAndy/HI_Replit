@@ -126,24 +126,6 @@ export default function StrengthReflections({
       };
     });
 
-    const teamValuesConfig = {
-      id: 'team-values',
-      question: 'What You Value Most in Team Environments',
-      instruction: 'Based on your strengths profile, certain team environments will help you perform at your best. Consider what team qualities or behaviors would complement your unique strengths distribution.',
-      bullets: [
-        'Team communication styles that work best for you',
-        'The type of structure or flexibility you prefer',
-        'How you like feedback to be given and received',
-        'What makes you feel most supported and effective'
-      ],
-      examples: [
-        'I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change.',
-        'I value team environments where open communication is prioritized and every member\'s contributions are recognized. I work best when there\'s a culture of constructive feedback.'
-      ],
-      strengthColor: { bg: 'bg-gray-400', text: 'text-white', name: 'TEAM' },
-      minLength: 25,
-    };
-
     const imaginationConfig = {
       id: 'imagination',
       question: 'Your Apex Strength is Imagination',
