@@ -1,0 +1,153 @@
+/* Shared section header styles for AST workshop steps */
+:root {
+  --section-headers-muted: #f1f5f9;
+  --section-headers-strip: #3b82f6;
+}
+
+/* Content zone blocks (Purpose, Activity, Reflection) */
+.section-subsections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.section-block {
+  border-left-width: 4px;
+  border-left-style: solid;
+  padding: 16px;
+  border-radius: 4px;
+  background: #fff;
+}
+.section-block h3 {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+}
+
+.section-block--purpose {
+  border-color: #22c55e;
+}
+.section-block--activity {
+  border-color: #8b5cf6;
+}
+.section-block--reflection {
+  border-color: #3b82f6;
+}
+
+/* What's Next section */
+.section-whats-next {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+.section-whats-next h3 {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+}
+
+.section-headers-tabs-60 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.section-headers-pill-60 {
+  position: relative;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+}
+
+.section-headers-pill-60__box {
+  background: var(--section-headers-muted);
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 20px;
+  position: relative;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.section-headers-pill-60__strip {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 20px;
+  height: 60px;
+  background: var(--section-headers-strip);
+  border-radius: 12px 0 0 12px;
+  z-index: 1;
+  opacity: 1;
+}
+
+/* Custom pill-60 colors for AST 1-1 sections */
+.section-headers-pill-60--purpose .section-headers-pill-60__strip {
+  background: #14B8A6; /* teal */
+}
+
+.section-headers-pill-60--activities .section-headers-pill-60__strip {
+  background: #F59E0B; /* amber */
+}
+
+.section-headers-pill-60--reflection .section-headers-pill-60__strip {
+  background: #E11D48; /* rose */
+}
+.section-block__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.section-card {
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: inherit;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+/* Variable-height content cards matching 60px pills */
+/* Front content box for cards */
+/* Content container: establish positioning and hide overflow of absolute labels */
+.section-content-card-60 {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.section-content-card-60__box {
+  position: relative;
+  z-index: 10;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+}
+.section-content-card-60__strip {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 20px;
+  height: 100%;
+  background: var(--section-headers-strip);
+  border-radius: 12px 0 0 12px;
+  z-index: 1;
+}
+
+/* Color variants for content cards */
+.section-content-card-60--purpose {
+  --section-headers-strip: #14B8A6;
+}
+.section-content-card-60--activities {
+  --section-headers-strip: #F59E0B;
+}
+.section-content-card-60--reflection {
+  --section-headers-strip: #E11D48;
+}
