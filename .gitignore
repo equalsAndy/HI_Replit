@@ -34,8 +34,8 @@ update-existing-ast-videos.js
 pages_cleanup_*/
 pages_cleanup_*.txt
 codex_auth0_migration_kit_*/
-src/
-client/src/styles/
+/src/
+# client/src/styles/ # Commented out - we want to track client/src/
 
 # Version and build artifacts (these are managed by versioning system)
 public/version.json
@@ -128,7 +128,7 @@ staging-deploy-beta-*/
 setup-local-dev-database.sh
 
 # Test directories at root level
-src/test/
+/src/test/
 
 # Development variations and archive files
 *.minimal.tsx
