@@ -349,11 +349,10 @@ export default function FinalReflectionView({
                   // Original completion flow for first-time users
                   <>
                     <div className="flex items-center justify-center gap-3">
-                      {/* Gentle completion notice */}
+                      {/* Navigation instructions */}
                       <div className="completion-notice mb-3">
-                        <p className="text-sm text-gray-600 flex items-center gap-2">
-                          <span className="text-blue-500">ℹ️</span>
-                          Finishing your workshop will prevent any further editing.
+                        <p className="text-sm text-gray-600 text-center">
+                          Head to the recap and click Finish Workshop to access your Starcard and reports
                         </p>
                       </div>
                       
@@ -363,7 +362,7 @@ export default function FinalReflectionView({
                         disabled={insight.length < 10}
                         data-continue-button="true"
                       >
-                        Complete Your Journey
+                        Continue to Workshop Recap
                       </button>
                     </div>
                     
