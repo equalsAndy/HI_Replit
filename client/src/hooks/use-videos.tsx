@@ -69,7 +69,7 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
   // Reduced debug logging - only in dev mode
   if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
     console.log(`🎥 useVideoByStepId: Looking for stepId "${stepId}" in workshop "${workshopType}" for access mode "${userAccess}"`);
-    console.log(`🎥 Available videos:`, videos?.map(v => ({ stepId: v.stepId, title: v.title, editableId: v.editableId, contentMode: v.contentMode })));
+    console.log(`🎥 Available videos:`, videosQuery.data?.map(v => ({ stepId: v.stepId, title: v.title, editableId: v.editableId, contentMode: v.contentMode })));
   }
   
   // Filter videos by stepId and user's content access mode

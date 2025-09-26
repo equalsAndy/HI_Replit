@@ -189,7 +189,7 @@ export class PDFReportService implements PDFGenerationService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${isPersonalReport ? 'Personal' : 'Professional'} Development Report - ${data.participant.name}</title>
+    <title>AllStarTeams Report - ${data.participant.name}</title>
     <style>
         ${this.getCSSStyles()}
     </style>
@@ -198,7 +198,7 @@ export class PDFReportService implements PDFGenerationService {
     <!-- Header Section -->
     <div class="header">
         <div class="header-content">
-            <h1>${isPersonalReport ? 'Personal Development Report' : 'Professional Development Report'}</h1>
+            <h1>AllStarTeams Report</h1>
             <div class="participant-info">
                 <h2>${data.participant.name}</h2>
                 ${data.participant.title ? `<p class="title">${data.participant.title}</p>` : ''}
@@ -311,15 +311,6 @@ export class PDFReportService implements PDFGenerationService {
     </div>
     ` : ''}
 
-    <!-- AI-Generated Personal Report (Personal Reports Only) -->
-    ${isPersonalReport && data.personalReport ? `
-    <div class="section personal-section">
-        <h2 class="section-title">Personal Reflection & Development Guidance</h2>
-        <div class="ai-generated-content">
-            ${this.formatAIContent(data.personalReport)}
-        </div>
-    </div>
-    ` : ''}
 
     ${isPersonalReport && data.personalReflections ? this.generatePersonalReflectionsSection(data.personalReflections) : ''}
 

@@ -60,28 +60,6 @@ export default function AllStarTeamsWorkshop() {
 
   // Set app type for navigation and listen for auto-navigation events
   useEffect(() => {
-    // Detect current route and set app accordingly - be more specific about IA routes
-    const isIARoute = location.includes('/imaginal-agility') || 
-                      location.includes('/ia-') || 
-                      location.includes('imaginal') ||
-                      currentContent?.includes('imaginal');
-
-    const currentAppType = isIARoute ? 'imaginal-agility' : 'allstarteams';
-    // Route Detection Debug (disabled to reduce console spam)
-    // console.log('🔍 Route Detection Debug:');
-    // console.log('  - Current location:', location);
-    // console.log('  - Current content:', currentContent);
-    // console.log('  - location.includes("/imaginal-agility"):', location.includes('/imaginal-agility'));
-    // console.log('  - isIARoute check result:', isIARoute);
-    // console.log('  - Setting currentAppType to:', currentAppType);
-    // console.log('  - Previous currentApp was:', currentApp);
-
-    // Only update if the app type actually changed
-    if (currentApp !== currentAppType) {
-      console.log('🔄 App type changed from', currentApp, 'to', currentAppType);
-      setCurrentApp(currentAppType);
-    }
-
     // Listen for auto-navigation events from the navigation hook
     const handleAutoNavigation = (event: CustomEvent) => {
       const { content, stepId } = event.detail;
@@ -97,7 +75,24 @@ export default function AllStarTeamsWorkshop() {
     return () => {
       window.removeEventListener('autoNavigateToContent', handleAutoNavigation as EventListener);
     };
-  }, [setCurrentApp, setCurrentContent, setCurrentStep, currentContent, location, currentApp]);
+  }, [setCurrentContent, setCurrentStep]);
+
+  // Separate effect for app type detection to prevent setState during render
+  useEffect(() => {
+    // Detect current route and set app accordingly - be more specific about IA routes
+    const isIARoute = location.includes('/imaginal-agility') ||
+                      location.includes('/ia-') ||
+                      location.includes('imaginal') ||
+                      currentContent?.includes('imaginal');
+
+    const currentAppType = isIARoute ? 'imaginal-agility' : 'allstarteams';
+
+    // Only update if the app type actually changed
+    if (currentApp !== currentAppType) {
+      console.log('🔄 App type changed from', currentApp, 'to', currentAppType);
+      setCurrentApp(currentAppType);
+    }
+  }, [location, currentContent, currentApp, setCurrentApp]);
 
   // Determine which navigation sections to use based on the selected app AND user role/content access
   // Get user role for navigation customization (using existing user query below)

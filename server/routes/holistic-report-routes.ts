@@ -26,145 +26,7 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-/**
- * Test endpoint for report generation (development only)
- * POST /api/reports/holistic/test-generate
- */
-router.post('/test-generate', async (req, res) => {
-  if (process.env.NODE_ENV !== 'development') {
-    return res.status(404).json({ error: 'Endpoint not available in production' });
-  }
-
-  const { reportType = 'standard', userId = 1 } = req.body;
-
-  try {
-    console.log(`🧪 TEST: Starting ${reportType} report generation for user ${userId}`);
-
-    // Check if user has already generated this type of report
-    const existingReport = await pool.query(
-      'SELECT id, generation_status FROM holistic_reports WHERE user_id = $1 AND report_type = $2',
-      [userId, reportType]
-    );
-
-    if (existingReport.rows.length > 0) {
-      const existing = existingReport.rows[0];
-      // TESTING: Allow regeneration even if completed (for testing purposes)
-      // if (existing.generation_status === 'completed') {
-      //   return res.status(409).json({
-      //     success: false,
-      //     message: `Test user has already generated a ${reportType} report. Only one report per type is allowed.`,
-      //     reportId: existing.id,
-      //     status: 'completed'
-      //   });
-      // }
-      
-      if (existing.generation_status === 'generating') {
-        return res.status(409).json({
-          success: false,
-          message: `A ${reportType} report is currently being generated for test user.`,
-          reportId: existing.id,
-          status: 'generating'
-        });
-      }
-    }
-
-    // Create or update report record
-    let reportId: string;
-    if (existingReport.rows.length > 0) {
-      // Update existing failed record
-      reportId = existingReport.rows[0].id;
-      await pool.query(
-        'UPDATE holistic_reports SET generation_status = $1, updated_at = NOW() WHERE id = $2',
-        ['generating', reportId]
-      );
-    } else {
-      // Create new report record
-      const newReport = await pool.query(
-        `INSERT INTO holistic_reports (user_id, report_type, report_data, generation_status, generated_by_user_id) 
-         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [userId, reportType, JSON.stringify({}), 'generating', userId]
-      );
-      reportId = newReport.rows[0].id;
-    }
-
-    // Generate report data using Star Report Talia AI persona
-    console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
-    const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
-
-    // StarCard image will be retrieved via getUserStarCard method during report generation
-    // No need to get separate path here
-    
-    // Also store the base64 data directly for HTML reports with validation
-    if (!reportData.starCardImageBase64) {
-      try {
-        const { photoStorageService } = await import('../services/photo-storage-service.js');
-        const starCardImage = await photoStorageService.getUserStarCardImage(userId);
-        if (starCardImage && starCardImage.photoData) {
-          // Validate that this looks like a StarCard (not a random image)
-          console.log(`🔍 StarCard validation for user ${userId}:`);
-          console.log(`   - Source: ${starCardImage.source || 'unknown'}`);
-          console.log(`   - Data length: ${starCardImage.photoData.length} chars`);
-          
-          // Additional validation for fallback images
-          if (starCardImage.source === 'fallback_png') {
-            console.warn(`⚠️ Using fallback PNG for user ${userId} - report may show wrong image`);
-          }
-          
-          reportData.starCardImageBase64 = starCardImage.photoData;
-          console.log(`✅ StarCard image added to report for user ${userId}`);
-        } else {
-          console.warn(`⚠️ No StarCard image found for user ${userId} - report will have no StarCard`);
-        }
-      } catch (error) {
-        console.warn('Could not get StarCard base64 data:', error);
-      }
-    }
-
-    // Generate HTML report content (no file system operations for container compatibility)
-    console.log('🎯 Generating HTML report content');
-    const htmlContent = generateHtmlReport(reportData, reportType);
-    
-    // Store report data and HTML content directly in database (no file system)
-    const pdfFileName = `${reportData.participant.name}-${reportType}-report.pdf`;
-    
-    // Update database with complete report (store HTML content instead of file paths)
-    await pool.query(
-      `UPDATE holistic_reports SET 
-        report_data = $1, 
-        html_content = $2,
-        pdf_file_name = $3, 
-        generation_status = $4,
-        updated_at = NOW()
-       WHERE id = $5`,
-      [
-        JSON.stringify(reportData),
-        htmlContent,
-        pdfFileName,
-        'completed',
-        reportId
-      ]
-    );
-
-    console.log(`✅ TEST: ${reportType} report generated successfully for user ${userId}`);
-
-    res.json({
-      success: true,
-      reportId,
-      message: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} test report generated successfully`,
-      status: 'completed'
-    });
-
-  } catch (error) {
-    console.error(`❌ TEST: Report generation failed for user ${userId}:`, error);
-    
-    res.status(500).json({
-      success: false,
-      message: 'Test report generation failed. Please try again.',
-      status: 'failed',
-      error: error.message
-    });
-  }
-});
+// Test endpoint /test-generate has been removed. Use /generate with proper authentication instead.
 
 /**
  * Generate a holistic report (Standard or Personal)
@@ -217,6 +79,39 @@ router.post('/generate', async (req, res) => {
     );
     const reportId = newReport.rows[0].id;
 
+    // Start background generation (don't await - return immediately)
+    generateReportInBackground(reportId, userId, reportType as ReportType).catch(err => {
+      console.error(`❌ Background report generation failed for report ${reportId}:`, err);
+    });
+
+    // Return immediately with generating status
+    console.log(`✅ Report generation started in background for user ${userId}, reportId: ${reportId}`);
+    
+    res.json({
+      success: true,
+      reportId,
+      message: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report generation started`,
+      status: 'generating'
+    } as GenerateReportResponse);
+
+  } catch (error) {
+    console.error(`❌ Report generation failed for user ${userId}:`, error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Uh oh, something went wrong',
+      status: 'failed'
+    } as GenerateReportResponse);
+  }
+});
+
+/**
+ * Generate report in background (async, no timeout)
+ */
+async function generateReportInBackground(reportId: string, userId: number, reportType: ReportType) {
+  try {
+    console.log(`🔄 Background generation starting for report ${reportId}`);
+    
     // Generate report data using Star Report Talia AI persona
     console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
     const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
@@ -252,7 +147,17 @@ router.post('/generate', async (req, res) => {
 
     // Generate HTML report content (no file system operations for container compatibility)
     console.log('🎯 Generating HTML report content');
-    const htmlContent = generateHtmlReport(reportData, reportType);
+    let htmlContent: string;
+    try {
+      htmlContent = generateHtmlReport(reportData, reportType);
+    } catch (htmlError) {
+      console.error('❌ Error generating HTML content:', htmlError);
+      await pool.query(
+        'UPDATE holistic_reports SET generation_status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
+        ['failed', 'HTML generation failed', reportId]
+      );
+      throw htmlError; // Re-throw to be caught by outer try-catch
+    }
     
     // Store report data and HTML content directly in database (no file system)
     const pdfFileName = `${reportData.participant.name}-${reportType}-report.pdf`;
@@ -282,81 +187,20 @@ router.post('/generate', async (req, res) => {
       [userId]
     );
 
-    console.log(`✅ ${reportType} report generated successfully for user ${userId}`);
-
-    res.json({
-      success: true,
-      reportId,
-      message: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report generated successfully`,
-      status: 'completed'
-    } as GenerateReportResponse);
+    console.log(`✅ ${reportType} report generated successfully in background for user ${userId}`);
 
   } catch (error) {
-    console.error(`❌ Report generation failed for user ${userId}:`, error);
+    console.error(`❌ Background report generation failed for report ${reportId}:`, error);
     
     // Update report status to failed
     await pool.query(
-      'UPDATE holistic_reports SET generation_status = $1, error_message = $2, updated_at = NOW() WHERE user_id = $3 AND report_type = $4',
-      ['failed', error.message, userId, reportType]
+      'UPDATE holistic_reports SET generation_status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
+      ['failed', 'Report generation failed', reportId]
     );
-
-    res.status(500).json({
-      success: false,
-      message: 'Report generation failed. Please try again.',
-      status: 'failed'
-    } as GenerateReportResponse);
   }
-});
+}
 
-/**
- * Test endpoint for report status (development only)
- * GET /api/reports/holistic/test-status/:reportType/:userId
- */
-router.get('/test-status/:reportType/:userId', async (req, res) => {
-  if (process.env.NODE_ENV !== 'development') {
-    return res.status(404).json({ error: 'Endpoint not available in production' });
-  }
-
-  const { reportType, userId } = req.params;
-
-  if (!['standard', 'personal'].includes(reportType)) {
-    return res.status(400).json({ error: 'Invalid report type' });
-  }
-
-  try {
-    const result = await pool.query(
-      'SELECT id, generation_status, generated_at, error_message FROM holistic_reports WHERE user_id = $1 AND report_type = $2',
-      [parseInt(userId), reportType]
-    );
-
-    if (result.rows.length === 0) {
-      return res.json({
-        reportId: null,
-        status: 'not_generated'
-      });
-    }
-
-    const report = result.rows[0];
-    const response = {
-      reportId: report.id,
-      status: report.generation_status,
-      generatedAt: report.generated_at,
-      errorMessage: report.error_message
-    };
-
-    if (report.generation_status === 'completed') {
-      response.pdfUrl = `/api/reports/holistic/test-download/${reportType}/${userId}`; // PDF for viewing in iframe
-      response.reportUrl = `/api/reports/holistic/test-view/${reportType}/${userId}`; // HTML version
-      response.downloadUrl = `/api/reports/holistic/test-download/${reportType}/${userId}`; // PDF for download
-    }
-
-    res.json(response);
-
-  } catch (error) {
-    console.error('Error fetching test report status:', error);
-    res.status(500).json({ error: 'Failed to fetch report status' });
-  }
-});
+// Test endpoint /test-status has been removed. Use /:reportType/status with proper authentication instead.
 
 /**
  * Debug status endpoint (NO AUTH REQUIRED - DEVELOPMENT ONLY)
@@ -489,7 +333,12 @@ router.get('/:reportType/view', requireAuth, async (req, res) => {
     // Use stored HTML content, or generate if not available
     let htmlContent = html_content;
     if (!htmlContent && report_data) {
-      htmlContent = generateHtmlReport(report_data, reportType);
+      try {
+        htmlContent = generateHtmlReport(report_data, reportType);
+      } catch (htmlError) {
+        console.error('❌ Error generating HTML content for view:', htmlError);
+        return res.status(500).json({ error: 'Failed to render HTML report.' });
+      }
     }
     
     if (!htmlContent) {
@@ -536,7 +385,12 @@ router.get('/:reportType/download', requireAuth, async (req, res) => {
     // Use stored HTML content, or generate if not available
     let htmlContent = html_content;
     if (!htmlContent && report_data) {
-      htmlContent = generateHtmlReport(report_data, reportType);
+      try {
+        htmlContent = generateHtmlReport(report_data, reportType);
+      } catch (htmlError) {
+        console.error('❌ Error generating HTML content:', htmlError);
+        return res.status(500).json({ error: 'Failed to render HTML report.' });
+      }
     }
     
     if (!htmlContent) {
@@ -670,7 +524,12 @@ router.get('/:reportType/html', requireAuth, async (req, res) => {
     // Use stored HTML content, or generate if not available
     let htmlContent = html_content;
     if (!htmlContent && report_data) {
-      htmlContent = generateHtmlReport(report_data, reportType);
+      try {
+        htmlContent = generateHtmlReport(report_data, reportType);
+      } catch (htmlError) {
+        console.error('❌ Error generating HTML content:', htmlError);
+        return res.status(500).json({ error: 'Failed to render HTML report.' });
+      }
     }
     
     if (!htmlContent) {
@@ -1028,7 +887,7 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
  * Generate HTML version of the report
  */
 function generateHtmlReport(reportData: any, reportType: string): string {
-  const title = reportType === 'standard' ? 'Professional Development Report' : 'Personal Development Report';
+  const title = reportType === 'standard' ? 'AllStarTeams Report' : 'AllStarTeams Report';
   const isPersonalReport = reportType === 'personal';
   
   // Order strengths from highest to lowest percentage
@@ -1438,7 +1297,7 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 ` : ''}
             </div>
 
-            ${reportData.professionalProfile ? `
+            ${(reportData.professionalProfile || reportData.personalReport) ? `
             <div class="content-section ${!isPersonalReport ? 'professional-conclusion' : ''}">
                 <h2 class="section-title">${isPersonalReport ? 'Personal Development Insights' : 'Professional Development Analysis'}</h2>
                 
@@ -1451,7 +1310,7 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 </div>
                 ` : ''}
                 
-                <div class="ai-content">${formatAIContentForHTML(reportData.professionalProfile)}</div>
+                <div class="ai-content">${formatAIContentForHTML(isPersonalReport ? reportData.personalReport : reportData.professionalProfile)}</div>
                 
                 ${!isPersonalReport ? `
                 <div class="professional-action-items">
@@ -1490,12 +1349,6 @@ function generateHtmlReport(reportData: any, reportType: string): string {
             </div>
             ` : ''}
 
-            ${isPersonalReport && reportData.personalReport ? `
-            <div class="content-section personal-section">
-                <h2 class="section-title">Personal Reflection & Development Guidance</h2>
-                <div class="ai-content">${formatAIContentForHTML(reportData.personalReport)}</div>
-            </div>
-            ` : ''}
             
             ${!isPersonalReport ? `
             <div class="professional-signature">
@@ -1523,101 +1376,9 @@ function generateHtmlReport(reportData: any, reportType: string): string {
   `;
 }
 
-/**
- * Test endpoint: View PDF report in browser (development only)
- * GET /api/reports/holistic/test-view/:reportType/:userId
- */
-router.get('/test-view/:reportType/:userId', async (req, res) => {
-  if (process.env.NODE_ENV !== 'development') {
-    return res.status(404).json({ error: 'Endpoint not available in production' });
-  }
+// Test endpoint /test-view has been removed. Use /:reportType/view with proper authentication instead.
 
-  const { reportType, userId } = req.params;
-
-  if (!['standard', 'personal'].includes(reportType)) {
-    return res.status(400).json({ error: 'Invalid report type' });
-  }
-
-  try {
-    const result = await pool.query(
-      'SELECT pdf_file_path, pdf_file_name FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3',
-      [parseInt(userId), reportType, 'completed']
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Report not found or not completed' });
-    }
-
-    const { pdf_file_path, pdf_file_name } = result.rows[0];
-    
-    // Check if file exists
-    try {
-      await fs.access(pdf_file_path);
-    } catch {
-      return res.status(404).json({ error: 'Report file not found' });
-    }
-
-    // Set headers for PDF viewing
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${pdf_file_name}"`);
-    
-    // Stream the PDF file
-    const fileBuffer = await fs.readFile(pdf_file_path);
-    res.send(fileBuffer);
-
-  } catch (error) {
-    console.error('Error serving test PDF:', error);
-    res.status(500).json({ error: 'Failed to load report' });
-  }
-});
-
-/**
- * Test endpoint: Download PDF report (development only)
- * GET /api/reports/holistic/test-download/:reportType/:userId
- */
-router.get('/test-download/:reportType/:userId', async (req, res) => {
-  if (process.env.NODE_ENV !== 'development') {
-    return res.status(404).json({ error: 'Endpoint not available in production' });
-  }
-
-  const { reportType, userId } = req.params;
-
-  if (!['standard', 'personal'].includes(reportType)) {
-    return res.status(400).json({ error: 'Invalid report type' });
-  }
-
-  try {
-    const result = await pool.query(
-      'SELECT pdf_file_path, pdf_file_name FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3',
-      [parseInt(userId), reportType, 'completed']
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Report not found or not completed' });
-    }
-
-    const { pdf_file_path, pdf_file_name } = result.rows[0];
-    
-    // Check if file exists
-    try {
-      await fs.access(pdf_file_path);
-    } catch {
-      return res.status(404).json({ error: 'Report file not found' });
-    }
-
-    // Set headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${pdf_file_name}"`);
-    
-    // Stream the PDF file
-    const fileBuffer = await fs.readFile(pdf_file_path);
-    res.send(fileBuffer);
-
-  } catch (error) {
-    console.error('Error downloading test PDF:', error);
-    res.status(500).json({ error: 'Failed to download report' });
-  }
-});
+// Test endpoint /test-download has been removed. Use /:reportType/download with proper authentication instead.
 
 /**
  * Debug endpoint: Export complete admin data (development only)

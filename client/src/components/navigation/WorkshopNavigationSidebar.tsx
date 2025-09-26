@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/tooltip";
 
 import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
-import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { useTestUser } from '@/hooks/useTestUser';
 import { getSectionProgress, SECTION_STEPS } from '@/utils/progressionLogic';
 
@@ -72,9 +71,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   // Test user check for restricted features
   const { shouldShowDemoButtons } = useTestUser();
   
-  // Navigation hook - Use passed navigation prop for IA, unified system for AST
-  const internalNavigation = useUnifiedWorkshopNavigation(isImaginalAgility ? 'ia' : 'ast');
-  const navigation = navigationProp || internalNavigation;
+  // Always use the navigation prop passed from parent component
+  // This prevents duplicate hook instances that cause React setState warnings
+  if (!navigationProp) {
+    console.error('WorkshopNavigationSidebar: navigation prop is required but not provided');
+    return null;
+  }
+  const navigation = navigationProp;
   const { progress: navigationProgress } = navigation; // Extract for backward compatibility
   
   // Use section expansion state from navigation progress for IA with manual override capability

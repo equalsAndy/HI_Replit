@@ -24,8 +24,6 @@ import IntroIAView from './IntroIAView';
 import PlaceholderView from '../PlaceholderView';
 import Mod2RecapView from '../Mod2RecapView';
 import DownloadStarCardView from './DownloadStarCardView';
-import HolisticReportView from './HolisticReportView';
-import HolisticReportGenerationView from './HolisticReportGenerationView';
 import GeneralHolisticReportView from '../HolisticReportView';
 import GrowthPlanView from './GrowthPlanView';
 import QuarterlyReportView from './QuarterlyReportView';

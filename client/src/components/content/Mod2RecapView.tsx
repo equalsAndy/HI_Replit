@@ -102,14 +102,13 @@ export default function Mod2RecapView({
           </div>
         </div>
 
-        <div className="navigation-section">
+        <div className="text-center">
           <Button
             onClick={handleNext}
-            className="next-button"
-            size="lg"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
             data-continue-button="true"
           >
-            Continue to Module 3: Visualize Your Potential
+            Continue to Well-Being Ladder
           </Button>
         </div>
       </div>

@@ -237,18 +237,33 @@ export function transformExportToAssistantInput(
   console.log('🔍 [TRANSFORMER] ========== ENTRY POINT ==========');
   console.log('🔍 [TRANSFORMER] exportJson type:', typeof exportJson);
   console.log('🔍 [TRANSFORMER] exportJson keys:', Object.keys(exportJson || {}));
+  console.log('🔍 [TRANSFORMER] Full exportJson structure:', JSON.stringify(exportJson, null, 2));
 
   if (exportJson?.userInfo) {
-    console.log('🔍 [TRANSFORMER] userInfo:', exportJson.userInfo);
+    console.log('🔍 [TRANSFORMER] userInfo:', JSON.stringify(exportJson.userInfo, null, 2));
   }
 
   if (exportJson?.assessments) {
     console.log('🔍 [TRANSFORMER] assessments type:', Array.isArray(exportJson.assessments) ? 'ARRAY ❌' : 'OBJECT ✅');
     console.log('🔍 [TRANSFORMER] assessments keys:', Object.keys(exportJson.assessments));
+    console.log('🔍 [TRANSFORMER] assessments full structure:', JSON.stringify(exportJson.assessments, null, 2));
 
     if (Array.isArray(exportJson.assessments)) {
       console.error('🔍 [TRANSFORMER] ERROR: Received array format! Expected object format.');
       console.error('🔍 [TRANSFORMER] First item:', exportJson.assessments[0]);
+    }
+
+    // Log each assessment type individually
+    if (exportJson.assessments.starCard) {
+      console.log('🔍 [TRANSFORMER] starCard data:', JSON.stringify(exportJson.assessments.starCard, null, 2));
+    } else {
+      console.log('🔍 [TRANSFORMER] ⚠️ starCard is missing or empty!');
+    }
+
+    if (exportJson.assessments.stepByStepReflection) {
+      console.log('🔍 [TRANSFORMER] stepByStepReflection data:', JSON.stringify(exportJson.assessments.stepByStepReflection, null, 2));
+    } else {
+      console.log('🔍 [TRANSFORMER] ⚠️ stepByStepReflection is missing or empty!');
     }
   }
 

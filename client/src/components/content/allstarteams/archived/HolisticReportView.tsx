@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, ChevronRight, FileText, Loader2, CheckCircle, AlertCircle, ExternalLink, MessageSquareText } from 'lucide-react';
+import { Download, ChevronRight, FileText, Loader2, CheckCircle, AlertCircle, ExternalLink, MessageSquareText, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { BetaFeedbackSurveyModal } from '../../beta-testing/BetaFeedbackSurveyModal';
 import { useCurrentUser } from '../../../hooks/use-current-user';
@@ -23,7 +23,34 @@ export default function HolisticReportView({
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [hasViewedReport, setHasViewedReport] = useState(false);
+  const [countdown, setCountdown] = useState<number>(0);
   const { data: user } = useCurrentUser();
+
+  // Countdown timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [countdown]);
+
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Query to check if user has completed all required assessments
   const { data: userAssessments, isLoading } = useQuery({
@@ -60,7 +87,8 @@ export default function HolisticReportView({
 
     try {
       setGenerating(true);
-      
+      setCountdown(60); // Start 60-second countdown
+
       // Generate and download report
       const response = await fetch('/api/report/generate/me', {
         credentials: 'include'
@@ -76,7 +104,7 @@ export default function HolisticReportView({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `HI-Holistic-Development-Report-${Date.now()}.pdf`;
+      link.download = `HI-Holistic-Report-${Date.now()}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -96,6 +124,7 @@ export default function HolisticReportView({
       alert(`Report generation failed: ${error.message}`);
     } finally {
       setGenerating(false);
+      setCountdown(0);
     }
   };
 
@@ -211,13 +240,13 @@ export default function HolisticReportView({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-6 w-6 text-green-600" />
-            Your Holistic Development Report
+            Your Holistic Report
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             <p className="text-lg text-gray-700">
-              Generate your comprehensive holistic development report that combines all your assessment results and insights.
+              Generate your comprehensive holistic report that combines all your assessment results and insights.
             </p>
             
             <div className="bg-green-50 p-6 rounded-lg">
@@ -262,6 +291,18 @@ export default function HolisticReportView({
               )}
             </div>
 
+            {/* Countdown Timer Display */}
+            {generating && countdown > 0 && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  <p className="text-sm text-blue-800">
+                    Generating your report... Estimated time: <span className="font-mono font-bold">{formatCountdown(countdown)}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-4">
               <Button 
                 onClick={handleDownload} 
@@ -275,7 +316,7 @@ export default function HolisticReportView({
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
-                {generating ? 'Generating Report...' : reportGenerated ? 'Report Generated' : 'Download PDF Report'}
+                {generating ? (countdown > 0 ? `Generating... ${formatCountdown(countdown)}` : 'Generating Report...') : reportGenerated ? 'Report Generated' : 'Download PDF Report'}
               </Button>
 
               <Button 
@@ -294,7 +335,7 @@ export default function HolisticReportView({
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <span className="text-green-800 font-medium">
-                    Your holistic development report has been successfully generated and downloaded!
+                    Your holistic report has been successfully generated and downloaded!
                   </span>
                 </div>
               </div>

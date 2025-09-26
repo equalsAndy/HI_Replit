@@ -311,14 +311,6 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                       <p className="font-semibold italic text-gray-800">
                         Think of them as mirrors – they reflect back what's already there, helping you see patterns you might not have noticed before.
                       </p>
-                      <p>The AllStarTeams assessment focuses on <strong>five core strengths</strong> that influence how you approach work and life:</p>
-                      <ul className="space-y-2 ml-4">
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(138,43,226)' }}>Imagine</span> – Your limitless potential to envision possibilities and create new connections</li>
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(241,64,64)' }}>Act</span> – How you take initiative and make decisions</li>
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(1,162,82)' }}>Think</span> – How you process information and solve problems</li>
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(255,203,47)' }}>Plan</span> – How you organize and structure your approach</li>
-                        <li>• <span className="font-semibold" style={{ color: 'rgb(22,126,253)' }}>Feel</span> – How you connect with others and understand emotions</li>
-                      </ul>
                       <p className="bg-purple-50 border-l-4 border-purple-400 pl-4 py-2">
                         Imagination sits at the <strong>apex of the star</strong>, symbolizing the capacity that fuels and integrates all the others. While the assessment measures choices across Acting, Thinking, Planning, and Feeling, <strong>your imaginative strength represents a deeper horizon of possibility</strong>—the space where potential expands beyond present patterns.
                       </p>
@@ -327,6 +319,45 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* Five Core Strengths Section - moved from Assessment description */}
+                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md">
+                  <p className="text-lg text-gray-700 mb-3">The AllStarTeams assessment focuses on <strong>five core strengths</strong> that influence how you approach work and life:</p>
+                  <table className="w-full text-base border-separate" style={{ borderSpacing: 0 }}>
+                    <tbody>
+                      <tr>
+                        <td className="py-2 pr-4 align-top w-20">
+                          <span className="font-semibold" style={{ color: 'rgb(138,43,226)' }}>Imagine</span>
+                        </td>
+                        <td className="py-2 text-gray-700">Your limitless potential to envision possibilities and create new connections</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 pr-4 align-top">
+                          <span className="font-semibold" style={{ color: 'rgb(241,64,64)' }}>Act</span>
+                        </td>
+                        <td className="py-2 text-gray-700">How you take initiative and make decisions</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 pr-4 align-top">
+                          <span className="font-semibold" style={{ color: 'rgb(1,162,82)' }}>Think</span>
+                        </td>
+                        <td className="py-2 text-gray-700">How you process information and solve problems</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 pr-4 align-top">
+                          <span className="font-semibold" style={{ color: 'rgb(255,203,47)' }}>Plan</span>
+                        </td>
+                        <td className="py-2 text-gray-700">How you organize and structure your approach</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 pr-4 align-top">
+                          <span className="font-semibold" style={{ color: 'rgb(22,126,253)' }}>Feel</span>
+                        </td>
+                        <td className="py-2 text-gray-700">How you connect with others and understand emotions</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 {/* NEW: Progressive Button: "Let's talk about your strengths" */}

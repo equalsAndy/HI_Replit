@@ -95,23 +95,89 @@ export class ResetService {
         console.error(`Error deleting workshop step data for user ${userId}:`, error);
       }
 
-      // STEP 4: Reset holistic reports (AST generated reports)
+      // STEP 4: Reset holistic reports (AST generated reports) - COMPLETE CLEANUP
       try {
-        // Clear all holistic reports for this user
+        // First, get all report data to clean up files before deleting records
+        const existingReports = await db.execute(sql`
+          SELECT pdf_file_path, star_card_image_path, report_type
+          FROM holistic_reports
+          WHERE user_id = ${userId}
+        `);
+
+        if (existingReports.length > 0) {
+          console.log(`Found ${existingReports.length} holistic reports for user ${userId} - cleaning up files and data`);
+
+          // Clean up file system artifacts
+          const fs = await import('fs/promises');
+          const path = await import('path');
+
+          for (const report of existingReports) {
+            try {
+              // Delete PDF file if it exists
+              if (report.pdf_file_path) {
+                try {
+                  await fs.access(report.pdf_file_path);
+                  await fs.unlink(report.pdf_file_path);
+                  console.log(`  ✓ Deleted PDF file: ${report.pdf_file_path}`);
+                } catch (err) {
+                  // File doesn't exist or can't be accessed - that's fine
+                  console.log(`  - PDF file not found or already deleted: ${report.pdf_file_path}`);
+                }
+              }
+
+              // Delete star card image file if it exists (and it's specific to this report)
+              if (report.star_card_image_path) {
+                try {
+                  await fs.access(report.star_card_image_path);
+                  await fs.unlink(report.star_card_image_path);
+                  console.log(`  ✓ Deleted star card image: ${report.star_card_image_path}`);
+                } catch (err) {
+                  // File doesn't exist or can't be accessed - that's fine
+                  console.log(`  - Star card image not found or already deleted: ${report.star_card_image_path}`);
+                }
+              }
+
+              console.log(`  ✓ Cleaned up ${report.report_type} report files for user ${userId}`);
+            } catch (fileError) {
+              console.error(`  ❌ Error cleaning up files for ${report.report_type} report:`, fileError);
+              // Continue with other files even if one fails
+            }
+          }
+        }
+
+        // Clear all holistic reports from database (includes PDF paths, HTML content, and all metadata)
         await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
-        console.log(`Deleted all holistic reports for user ${userId}`);
-        
-        // Also reset the navigation progress flags for report generation
+        console.log(`✓ Deleted all holistic reports database records for user ${userId}`);
+
+        // Reset the navigation progress flags for report generation
         await db.execute(sql`
-          UPDATE navigation_progress 
-          SET standard_report_generated = false, 
+          UPDATE navigation_progress
+          SET standard_report_generated = false,
               personal_report_generated = false,
               holistic_reports_unlocked = false
           WHERE user_id = ${userId}
         `);
-        console.log(`Reset holistic report flags in navigation progress for user ${userId}`);
+        console.log(`✓ Reset holistic report flags in navigation_progress for user ${userId}`);
+
+        // Reset user_workshop_progress holistic report flags if they exist
+        try {
+          await db.execute(sql`
+            UPDATE user_workshop_progress
+            SET holistic_reports_unlocked = false,
+                standard_report_generated = false,
+                personal_report_generated = false,
+                reports_unlocked_at = null
+            WHERE user_id = ${userId}
+          `);
+          console.log(`✓ Reset holistic report flags in user_workshop_progress for user ${userId}`);
+        } catch (progressError) {
+          // This table might not exist in all environments
+          console.log(`- user_workshop_progress table not found or no records for user ${userId}`);
+        }
+
+        console.log(`🧹 COMPLETE HOLISTIC REPORT CLEANUP: All report data, files, and flags cleared for user ${userId}`);
       } catch (error) {
-        console.error(`Error deleting holistic reports for user ${userId}:`, error);
+        console.error(`❌ Error during complete holistic report cleanup for user ${userId}:`, error);
       }
 
       // STEP 5: Reset any reflections or custom user content

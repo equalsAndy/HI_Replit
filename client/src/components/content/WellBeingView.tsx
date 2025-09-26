@@ -320,10 +320,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               Your well-being reflections have been completed and saved. 
               You can review your responses in your holistic report.
             </p>
-            <div className="flex justify-center mt-6">
+            <div className="text-center mt-6">
               <Button
                 onClick={() => setCurrentContent('future-self')}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+                data-continue-button="true"
               >
                 Continue to Future Self <ChevronRight className="ml-2 h-4 w-4" />
               </Button>

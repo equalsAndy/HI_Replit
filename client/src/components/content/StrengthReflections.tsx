@@ -18,10 +18,10 @@ interface StrengthReflectionsProps {
 
 const getStrengthColors = (label: string) => {
   switch (label.toUpperCase()) {
-    case 'THINKING': return { bg: 'bg-green-500', text: 'text-white', name: 'THINKING' };
-    case 'ACTING':   return { bg: 'bg-red-500',   text: 'text-white', name: 'ACTING' };
-    case 'FEELING':  return { bg: 'bg-blue-500',  text: 'text-white', name: 'FEELING' };
-    case 'PLANNING': return { bg: 'bg-yellow-500',text: 'text-white', name: 'PLANNING' };
+    case 'THINKING': return { bg: '', text: 'text-white', name: 'THINKING', style: { backgroundColor: 'rgb(1, 162, 82)' } };
+    case 'ACTING':   return { bg: '', text: 'text-white', name: 'ACTING', style: { backgroundColor: 'rgb(241, 64, 64)' } };
+    case 'FEELING':  return { bg: '', text: 'text-white', name: 'FEELING', style: { backgroundColor: 'rgb(22, 126, 253)' } };
+    case 'PLANNING': return { bg: '', text: 'text-white', name: 'PLANNING', style: { backgroundColor: 'rgb(255, 203, 47)' } };
     default:         return { bg: 'bg-gray-500', text: 'text-white', name: label.toUpperCase() };
   }
 };
@@ -143,7 +143,7 @@ export default function StrengthReflections({
         'Imagination is always working in the background for me - it\'s how I connect dots that others don\'t see. I consciously tap into it during strategic planning sessions and when I need to reframe a problem from a completely different angle.',
         'I think of my imagination as a bridge between what is and what could be. I use it most actively when designing new approaches, mentoring others to see their potential, or when I need to inspire change.'
       ],
-      strengthColor: { bg: 'bg-purple-600', text: 'text-white', name: 'IMAGINATION' },
+      strengthColor: { bg: '', text: 'text-white', name: 'IMAGINATION', style: { backgroundColor: 'rgb(138, 43, 226)' } },
       minLength: 25,
     };
 
@@ -387,57 +387,68 @@ export default function StrengthReflections({
         </div>
       </div>
 
-      {/* Progress Dots */}
-      <div className="mb-8 flex justify-center">
-        <div className="flex space-x-3">
-          {reflectionConfigs.map((reflection, index) => {
-            const isCompleted = completedIndices.has(index);
-            const isCurrent = index === currentIndex;
-            const canAccess = isCompleted || index <= Math.max(...Array.from(completedIndices), -1) + 1;
-            
-            return (
-              <button
-                key={reflection.id}
-                onClick={() => handleReflectionClick(index)}
-                disabled={!canAccess}
-                className={`
-                  w-16 h-16 ${index >= 4 ? 'rounded-full' : 'rounded'} flex items-center justify-center text-xs font-bold transition-all border-2
-                  ${isCompleted
-                    ? `${reflection.strengthColor?.bg} text-white border-white shadow-md`
-                    : isCurrent
-                      ? `${reflection.strengthColor?.bg} text-white border-white shadow-lg`
-                      : canAccess
-                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-300'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                  }
-                `}
-              >
-                <span className="text-center leading-tight">
-                  {index < 4 ? (
-                    // StarCard-style strength squares
-                    reflection.strengthColor?.name || `STR${index + 1}`
-                  ) : index === 4 ? (
-                    // Imagination - apex strength
-                    'IMAGINATION'
-                  ) : index === 5 ? (
-                    // Team Values square
-                    'TEAM'
-                  ) : (
-                    // Unique Contribution square
-                    'YOU'
-                  )}
-                </span>
-              </button>
-            );
-          })}
+      {/* Progress Dots - Only show when not all completed or when editing */}
+      {(!allReflectionsCompleted || isEditingMode) && (
+        <div className="mb-8 flex justify-center">
+          <div className="flex space-x-5">
+            {reflectionConfigs.map((reflection, index) => {
+              const isCompleted = completedIndices.has(index);
+              const isCurrent = index === currentIndex;
+              const canAccess = isCompleted || index <= Math.max(...Array.from(completedIndices), -1) + 1;
+
+              return (
+                <button
+                  key={reflection.id}
+                  onClick={() => handleReflectionClick(index)}
+                  disabled={!canAccess}
+                  className={`
+                    w-24 h-24 ${index >= 4 ? 'rounded-full' : 'rounded'} flex items-center justify-center text-xs font-bold transition-all border-2
+                    ${isCompleted
+                      ? `${reflection.strengthColor?.bg} text-white border-white shadow-md`
+                      : isCurrent
+                        ? `${reflection.strengthColor?.bg} text-white border-white shadow-lg`
+                        : canAccess
+                          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-300'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
+                    }
+                  `}
+                  style={isCompleted || isCurrent ? reflection.strengthColor?.style : {}}
+                >
+                  <div className="relative flex items-center justify-center w-full h-full">
+                    {index === 4 && (
+                      // Star outline behind text
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="absolute w-16 h-16 opacity-30" strokeWidth="1.5">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    )}
+                    <span className="text-center leading-tight relative z-10">
+                      {index < 4 ? (
+                        // StarCard-style strength squares
+                        reflection.strengthColor?.name || `STR${index + 1}`
+                      ) : index === 4 ? (
+                        // Imagination - apex strength
+                        'IMAGINATION'
+                      ) : index === 5 ? (
+                        // Team Values square
+                        'TEAM'
+                      ) : (
+                        // Unique Contribution square
+                        'YOU'
+                      )}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Current Reflection - Only show if not all completed or if editing a specific reflection */}
       {isEditingMode && (
         <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
           {/* Header */}
-          <div className={`px-6 py-4 border-b border-gray-200 ${currentReflection.strengthColor?.bg || 'bg-gray-50'}`}>
+          <div className="px-6 border-b border-gray-200 flex items-center justify-start" style={currentReflection.strengthColor?.style ? { backgroundColor: currentReflection.strengthColor.style.backgroundColor, height: '70px' } : { backgroundColor: '#f9fafb', height: '70px' }}>
             <h3 className={`text-2xl font-bold ${currentReflection.strengthColor?.text || 'text-gray-900'}`}>
               {currentReflection.question}
             </h3>
@@ -580,7 +591,8 @@ export default function StrengthReflections({
                   <Button
                     onClick={handleComplete}
                     disabled={isSaving}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-base px-6 py-3"
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+                    data-continue-button="true"
                   >
                     {isSaving ? (
                       <>
@@ -627,16 +639,26 @@ export default function StrengthReflections({
                     className="w-full bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border text-left transition-colors"
                   >
                     <h5 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                      <div className={`w-16 h-16 ${index >= 4 ? 'rounded-full' : 'rounded'} flex items-center justify-center text-xs font-bold text-white mr-3 ${reflection.strengthColor?.bg}`}>
-                        {index < 4 ? (
-                          reflection.strengthColor?.name || `STR${index + 1}`
-                        ) : index === 4 ? (
-                          'IMAGINATION'
-                        ) : index === 5 ? (
-                          'TEAM'
-                        ) : (
-                          'YOU'
-                        )}
+                      <div className={`w-20 h-20 ${index >= 4 ? 'rounded-full' : 'rounded'} flex items-center justify-center text-xs font-bold text-white mr-3 ${reflection.strengthColor?.bg}`} style={reflection.strengthColor?.style || {}}>
+                        <div className="relative flex items-center justify-center w-full h-full">
+                          {index === 4 && (
+                            // Star outline behind text
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="absolute w-14 h-14 opacity-30" strokeWidth="1.5">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                          )}
+                          <span className="text-center leading-tight relative z-10">
+                            {index < 4 ? (
+                              reflection.strengthColor?.name || `STR${index + 1}`
+                            ) : index === 4 ? (
+                              'IMAGINATION'
+                            ) : index === 5 ? (
+                              'TEAM'
+                            ) : (
+                              'YOU'
+                            )}
+                          </span>
+                        </div>
                       </div>
                       {reflection.question}
                     </h5>
@@ -659,7 +681,7 @@ export default function StrengthReflections({
           <Button
           onClick={handleComplete}
           disabled={isSaving}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
             data-continue-button="true"
           >
           {isSaving ? (

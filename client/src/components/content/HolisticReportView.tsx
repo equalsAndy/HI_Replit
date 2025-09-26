@@ -36,6 +36,7 @@ export default function HolisticReportView({
   markStepCompleted,
   setCurrentContent
 }: HolisticReportViewProps) {
+  // State declarations first
   const [selectedReportType, setSelectedReportType] = useState<'standard' | 'personal' | null>(null);
   const [pdfViewer, setPdfViewer] = useState<{
     isOpen: boolean;
@@ -50,6 +51,78 @@ export default function HolisticReportView({
   });
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [hasViewedReport, setHasViewedReport] = useState(false);
+  const [countdown, setCountdown] = useState<number>(0);
+  const [activeTimer, setActiveTimer] = useState<'standard' | 'personal' | null>(null);
+
+  // Countdown timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            setActiveTimer(null);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [countdown]);
+
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Fun loading messages that cycle every few seconds in random order
+  const loadingMessages = [
+    "Starting generation...",
+    "Checking my watch...",
+    "Tapping foot impatiently...",
+    "Thinking about you...",
+    "Reading my illegible notes...",
+    "Consulting the coffee oracle...",
+    "Adjusting my imaginary tie...",
+    "Pretending to be busy...",
+    "Counting backwards from 100...",
+    "Wondering what's for lunch...",
+    "Organizing my digital desk...",
+    "Channeling productivity vibes...",
+    "Practicing my typing skills...",
+    "Warming up the algorithms...",
+    "Dusting off the neural networks...",
+    "Polishing the insights...",
+    "Making it look effortless...",
+    "Hoping to finish early...",
+    "Phoning a friend...",
+    "Pleading with AI to hurry up..."
+  ];
+
+  const getLoadingMessage = (countdown: number) => {
+    // Special message if we go over time
+    if (countdown < 0) {
+      return "I'm collecting overtime now...";
+    }
+
+    // Create a pseudo-random but consistent message based on elapsed time
+    // Changes every 8 seconds
+    const elapsedTime = 75 - countdown;
+    const changeInterval = 8;
+    const seed = Math.floor(elapsedTime / changeInterval);
+
+    // Simple pseudo-random number generator for consistent randomness
+    const pseudoRandom = (seed * 9301 + 49297) % 233280;
+    const messageIndex = pseudoRandom % loadingMessages.length;
+
+    return loadingMessages[messageIndex];
+  };
   const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
 
@@ -82,12 +155,19 @@ export default function HolisticReportView({
         body: JSON.stringify({ reportType }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate report');
+      // Handle HTML error pages (504 timeouts return HTML instead of JSON)
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error('Uh oh, something went wrong');
       }
 
-      return response.json() as Promise<GenerateReportResponse>;
+      if (!response.ok) {
+        throw new Error(data.message || 'Uh oh, something went wrong');
+      }
+
+      return data as GenerateReportResponse;
     },
     onSuccess: (data, variables) => {
       console.log(`✅ ${variables} report generation started:`, data);
@@ -101,13 +181,16 @@ export default function HolisticReportView({
 
   const handleGenerateReport = (reportType: 'standard' | 'personal') => {
     console.log(`🚀 Generating ${reportType} report`);
+    // Start countdown timer (75 seconds)
+    setCountdown(75);
+    setActiveTimer(reportType);
     generateReportMutation.mutate(reportType);
   };
 
   const handleViewReport = (reportType: 'standard' | 'personal') => {
     const status = reportType === 'standard' ? standardStatus : personalStatus;
     if (status?.pdfUrl) {
-      const title = reportType === 'standard' ? 'Professional Development Report' : 'Personal Development Report';
+      const title = reportType === 'standard' ? 'Professional Report' : 'Personal Report';
       setPdfViewer({
         isOpen: true,
         pdfUrl: status.pdfUrl,
@@ -145,12 +228,16 @@ export default function HolisticReportView({
   useEffect(() => {
     const hasCompletedReport = standardStatus?.status === 'completed' || personalStatus?.status === 'completed';
     if (hasCompletedReport) {
+      // Reset countdown when any report completes
+      setCountdown(0);
+      setActiveTimer(null);
+
       // Removed markStepCompleted call - report generation should not advance menu
-      
+
       // For beta testers, automatically mark as having viewed reports when they're completed and displayed
       if ((user?.isBetaTester || user?.role === 'admin') && !hasViewedReport) {
         setHasViewedReport(true);
-        
+
         // Dispatch event for beta tester feedback system
         window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
           detail: { reportType: 'auto', viewType: 'display' }
@@ -162,6 +249,12 @@ export default function HolisticReportView({
   // Additional check: user can give feedback ONLY after BOTH reports are completed
   const canGiveFeedback = hasViewedReport || 
     (standardStatus?.status === 'completed' && personalStatus?.status === 'completed');
+
+  // Check if holistic reports are working properly
+  const reportsWorking = isFeatureEnabled('holisticReportsWorking');
+
+  // System maintenance warning (but keep the normal interface)
+  const showMaintenanceWarning = !reportsWorking;
 
   // Debug logging for beta tester detection
   console.log('🔍 HolisticReportView - User data:', {
@@ -211,14 +304,29 @@ export default function HolisticReportView({
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Generation Status */}
-              {status?.status === 'generating' && (
+              {/* Generation Status - Only show if no timer active (fallback) */}
+              {status?.status === 'generating' && !(activeTimer === reportType && countdown > 0) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-blue-600 animate-spin" />
                     <span className="text-blue-800 font-medium">Generating report...</span>
                   </div>
-                  <p className="text-blue-700 text-sm mt-1">This may take a few moments. Please wait.</p>
+                  <p className="text-blue-700 text-sm mt-1">
+                    This may take a few moments. Please wait.
+                  </p>
+                </div>
+              )}
+
+              {/* Countdown Timer Display - Show humorous messages during generation */}
+              {activeTimer === reportType && countdown > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    <span className="text-blue-800 font-medium">{getLoadingMessage(countdown)}</span>
+                  </div>
+                  <p className="text-blue-700 text-sm mt-1">
+                    Estimated time: <span className="font-mono font-bold">{formatCountdown(countdown)}</span>
+                  </p>
                 </div>
               )}
 
@@ -231,6 +339,20 @@ export default function HolisticReportView({
                   </div>
                   <p className="text-red-700 text-sm mt-1">
                     {status?.errorMessage || 'An error occurred while generating the report.'}
+                  </p>
+                </div>
+              )}
+
+              {/* Client-side Mutation Error */}
+              {generateReportMutation.isError &&
+                generateReportMutation.variables === reportType && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <span className="text-red-800 font-medium">Error</span>
+                  </div>
+                  <p className="text-red-700 text-sm mt-1">
+                    {(generateReportMutation.error as any)?.message}
                   </p>
                 </div>
               )}
@@ -303,7 +425,8 @@ export default function HolisticReportView({
                   </Button>
                 )}
 
-                {isCompleted && (
+                {/* Show View button when completed OR when reportUrl exists */}
+                {(isCompleted || (status?.htmlUrl && !isDisabledDueToMaintenance)) && (
                   <>
                     <Button
                       onClick={() => handleViewHtmlReport(reportType)}
@@ -332,9 +455,6 @@ export default function HolisticReportView({
     });
   };
 
-  // Check if holistic reports are working properly
-  const reportsWorking = isFeatureEnabled('holisticReportsWorking');
-
   // Auto health check every 30 seconds when reports are disabled
   const { data: healthStatus } = useQuery({
     queryKey: ['report-health-check'],
@@ -362,9 +482,6 @@ export default function HolisticReportView({
     }
   }, [reportsWorking, healthStatus]);
 
-  // System maintenance warning (but keep the normal interface)
-  const showMaintenanceWarning = !reportsWorking;
-
   // Force debug log every render
   console.log('🔍 HolisticReportView RENDERING - Beta button should show:', {
     userExists: !!user,
@@ -382,7 +499,7 @@ export default function HolisticReportView({
     <>
       <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Holistic Development Reports</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Holistic Reports</h1>
         <p className="text-lg text-gray-700">
           Congratulations on completing your AllStarTeams workshop! Your personalized development reports 
           are now available, synthesizing your journey into actionable insights for continued growth.
@@ -426,45 +543,22 @@ export default function HolisticReportView({
         </Card>
       )}
 
-      {/* Report Type Explanation */}
-      <Card className="mb-8 bg-blue-50 border-blue-200">
-        <CardHeader>
-          <CardTitle className="text-blue-900">Understanding Your Report Options</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-blue-800 mb-2">Professional Report</h3>
-              <p className="text-blue-700 text-sm">
-                Perfect for workplace sharing, team discussions, and professional development conversations. 
-                Includes your strengths analysis, flow attributes, and development recommendations.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-blue-800 mb-2">Personal Report</h3>
-              <p className="text-blue-700 text-sm">
-                Your private development companion including personal reflections, challenges, and 
-                well-being insights. This comprehensive version is for your personal growth journey.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Report Generation Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {renderReportCard(
           'standard',
-          'Professional Development Report',
-          'Share-ready insights including your Star Card, strengths analysis, flow attributes, and professional development goals. Perfect for team collaboration and workplace conversations.',
+          'Professional Report',
+          'This report is written for sharing and is scrubbed of direct reflection quotes and your future-looking statements. It is written about you, not to you.',
           standardStatus,
           standardLoading
         )}
 
         {renderReportCard(
           'personal',
-          'Personal Development Report',
-          'A comprehensive private report including everything from the professional version plus your personal reflections, challenges, well-being factors, and private growth insights.',
+          'Comprehensive Report',
+          'This report uses your strengths and flow assessments plus your personal reflections, challenges, well-being factors, and private growth insights.',
           personalStatus,
           personalLoading
         )}
@@ -478,7 +572,7 @@ export default function HolisticReportView({
           </CardHeader>
           <CardContent>
             <p className="text-green-800 mb-4">
-              Your holistic development report is ready! This marks the completion of your AllStarTeams workshop journey. 
+              Your holistic report is ready! This marks the completion of your AllStarTeams workshop journey. 
               Use these insights to guide your continued growth and collaboration.
             </p>
             <div className="space-y-2">

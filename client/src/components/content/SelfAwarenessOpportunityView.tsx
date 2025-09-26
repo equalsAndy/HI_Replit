@@ -44,7 +44,7 @@ const SelfAwarenessOpportunityView: React.FC<SelfAwarenessOpportunityViewProps> 
   // Video will be loaded from database using stepId 1-2
   const fallbackUrl = "https://youtu.be/7__r4FVj-EI";
   const videoTitle = "The Self-Awareness Opportunity";
-  const nextButton = "Next: About this Course";
+  const nextButton = "Continue to About this Course";
   const nextContentId = "about-course";
 
   // Track last logged progress to prevent spam
@@ -203,14 +203,15 @@ const SelfAwarenessOpportunityView: React.FC<SelfAwarenessOpportunityViewProps> 
         </div>
 
 
-        <div className="flex justify-end items-center space-x-4">
+        <div className="text-center">
           <Button
             onClick={handleNext}
             disabled={!isStepComplete()}
             className={`${isStepComplete()
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              ? 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
+            data-continue-button="true"
           >
             {nextButton}
           </Button>

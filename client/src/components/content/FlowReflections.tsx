@@ -508,11 +508,11 @@ export default function FlowReflections({
       {allCompleted && (
         <div className="mt-12 text-center border-t border-gray-200 pt-8">
           <h4 className="text-lg font-semibold text-gray-900 mb-4">Ready to Continue?</h4>
-          <p className="text-gray-600 mb-6">You've completed all your flow reflections. Continue to Module 2 Recap.</p>
+          <p className="text-gray-600 mb-6">You've completed all your flow reflections. Continue to Final Reflection.</p>
           <Button
             onClick={handleComplete}
             disabled={isSaving}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
             data-continue-button="true"
           >
             {isSaving ? (
@@ -521,7 +521,7 @@ export default function FlowReflections({
                 Saving...
               </>
             ) : (
-              'Continue to Module 2 Recap'
+              'Continue to Final Reflection'
             )}
           </Button>
         </div>

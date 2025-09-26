@@ -41,7 +41,30 @@ export default function HolisticReportGenerationView({
   setCurrentContent
 }: HolisticReportGenerationViewProps) {
   const [selectedReportType, setSelectedReportType] = useState<ReportType>('standard');
+  const [countdown, setCountdown] = useState<number>(0);
+  const [activeTimer, setActiveTimer] = useState<ReportType | null>(null);
   const queryClient = useQueryClient();
+
+  // Countdown timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            setActiveTimer(null);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [countdown]);
 
   // Query to check report status for both types
   const { data: standardStatus, isLoading: standardLoading } = useQuery<ReportStatus>({
@@ -80,19 +103,28 @@ export default function HolisticReportGenerationView({
         body: JSON.stringify({ reportType: 'standard' })
       });
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate standard report');
+      // Handle HTML error pages (504 timeouts return HTML instead of JSON)
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error('Uh oh, something went wrong');
       }
       
-      return response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Uh oh, something went wrong');
+      }
+      
+      return data;
     },
     onSuccess: (data) => {
       console.log('✅ Standard report generation started:', data);
+      // Start polling immediately for status updates
       queryClient.invalidateQueries({ queryKey: ['holistic-report-status', 'standard'] });
     },
     onError: (error) => {
       console.error('❌ Standard report generation failed:', error);
+      // Error is already user-friendly from backend
     }
   });
 
@@ -105,19 +137,28 @@ export default function HolisticReportGenerationView({
         body: JSON.stringify({ reportType: 'personal' })
       });
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate personal report');
+      // Handle HTML error pages (504 timeouts return HTML instead of JSON)
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error('Uh oh, something went wrong');
       }
       
-      return response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Uh oh, something went wrong');
+      }
+      
+      return data;
     },
     onSuccess: (data) => {
       console.log('✅ Personal report generation started:', data);
+      // Start polling immediately for status updates
       queryClient.invalidateQueries({ queryKey: ['holistic-report-status', 'personal'] });
     },
     onError: (error) => {
       console.error('❌ Personal report generation failed:', error);
+      // Error is already user-friendly from backend
     }
   });
 
@@ -127,12 +168,71 @@ export default function HolisticReportGenerationView({
   }, [markStepCompleted]);
 
   const handleGenerateReport = (reportType: ReportType) => {
+    // Start countdown timer (75 seconds)
+    setCountdown(75);
+    setActiveTimer(reportType);
+
     if (reportType === 'standard') {
       generateStandardReportMutation.mutate();
     } else {
       generatePersonalReportMutation.mutate();
     }
   };
+
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Fun loading messages that cycle every few seconds in random order
+  const loadingMessages = [
+    "Starting generation...",
+    "Checking my watch...",
+    "Tapping foot impatiently...",
+    "Thinking about you...",
+    "Reading my illegible notes...",
+    "Consulting the coffee oracle...",
+    "Adjusting my imaginary tie...",
+    "Pretending to be busy...",
+    "Counting backwards from 100...",
+    "Wondering what's for lunch...",
+    "Organizing my digital desk...",
+    "Channeling productivity vibes...",
+    "Practicing my typing skills...",
+    "Warming up the algorithms...",
+    "Dusting off the neural networks...",
+    "Polishing the insights...",
+    "Making it look effortless...",
+    "Hoping to finish early...",
+    "Phoning a friend...",
+    "Pleading with AI to hurry up..."
+  ];
+
+  const getLoadingMessage = (countdown: number) => {
+    // Special message if we go over time
+    if (countdown < 0) {
+      return "I'm collecting overtime now...";
+    }
+
+    // Create a pseudo-random but consistent message based on elapsed time
+    // Changes every 8 seconds
+    const elapsedTime = 75 - countdown;
+    const changeInterval = 8;
+    const seed = Math.floor(elapsedTime / changeInterval);
+
+    // Simple pseudo-random number generator for consistent randomness
+    const pseudoRandom = (seed * 9301 + 49297) % 233280;
+    const messageIndex = pseudoRandom % loadingMessages.length;
+
+    return loadingMessages[messageIndex];
+  };
+
+  // Check if holistic reports are working properly
+  const reportsWorking = isFeatureEnabled('holisticReportsWorking');
+
+  // System maintenance warning (but keep the normal interface)
+  const showMaintenanceWarning = !reportsWorking;
 
   const handleViewReport = (reportType: ReportType) => {
     const status = reportType === 'standard' ? standardStatus : personalStatus;
@@ -207,9 +307,18 @@ export default function HolisticReportGenerationView({
       <CardContent>
         <p className="text-gray-700 mb-4">{description}</p>
         
-        {status?.status === 'failed' && status.errorMessage && (
+        {status?.status === 'failed' && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
-            <p className="text-sm text-red-800">{status.errorMessage}</p>
+            <p className="text-sm text-red-800">Uh oh, something went wrong</p>
+          </div>
+        )}
+        
+        {/* Show mutation error if failed during generation */}
+        {(type === 'standard' ? generateStandardReportMutation.isError : generatePersonalReportMutation.isError) && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+            <p className="text-sm text-red-800">
+              {(type === 'standard' ? generateStandardReportMutation.error?.message : generatePersonalReportMutation.error?.message) || 'Uh oh, something went wrong'}
+            </p>
           </div>
         )}
 
@@ -228,6 +337,19 @@ export default function HolisticReportGenerationView({
                 second: '2-digit',
                 timeZoneName: 'short'
               })}
+            </p>
+          </div>
+        )}
+
+        {/* Countdown Timer Display */}
+        {activeTimer === type && countdown > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <span className="text-blue-800 font-medium">{getLoadingMessage(countdown)}</span>
+            </div>
+            <p className="text-blue-700 text-sm mt-1">
+              Estimated time: <span className="font-mono font-bold">{formatCountdown(countdown)}</span>
             </p>
           </div>
         )}
@@ -268,8 +390,8 @@ export default function HolisticReportGenerationView({
               <FileText className="h-4 w-4" />
             )}
             {showMaintenanceWarning ? 'Temporarily Unavailable' :
-             status?.status === 'generating' || 
-             (type === 'standard' ? generateStandardReportMutation.isPending : generatePersonalReportMutation.isPending) 
+             status?.status === 'generating' ||
+             (type === 'standard' ? generateStandardReportMutation.isPending : generatePersonalReportMutation.isPending)
              ? 'Generating...' : 'Generate Report'}
           </Button>
           
@@ -303,19 +425,13 @@ export default function HolisticReportGenerationView({
     </Card>
   );
 
-  // Check if holistic reports are working properly
-  const reportsWorking = isFeatureEnabled('holisticReportsWorking');
-
-  // System maintenance warning (but keep the normal interface)
-  const showMaintenanceWarning = !reportsWorking;
-
   return (
     <div className="max-w-6xl mx-auto p-6">
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-6 w-6 text-blue-600" />
-            Your Holistic Development Reports
+            Your Holistic Reports
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -338,7 +454,7 @@ export default function HolisticReportGenerationView({
 
         <ReportCard
           type="personal"
-          title="Personal Development Report"
+          title="Personal Report"
           description="A comprehensive private report including personal reflections, well-being insights, and detailed coaching guidance. Contains sensitive personal insights for your private use only."
           icon={<Lock className="h-5 w-5 text-purple-600" />}
           status={personalStatus}

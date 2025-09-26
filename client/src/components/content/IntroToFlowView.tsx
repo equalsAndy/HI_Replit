@@ -665,11 +665,11 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             <div className="bg-blue-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center">
-                <img src="/assets/clear_goals.png" alt="Clear Goals" className="w-full h-full object-contain opacity-20" />
+                <img src="/assets/clear_goals.png" alt="Clear Goals" className="w-full h-full object-contain opacity-17" style={{ opacity: 0.12 }} />
               </div>
               <div className="relative z-10">
                 <h4 className="text-2xl font-bold text-blue-700 mb-4">Clear Goals</h4>
-                <p className="text-lg text-gray-700 font-medium">
+                <p className="text-lg text-gray-800 font-semibold">
                   You know exactly what to do next
                 </p>
               </div>
@@ -677,11 +677,11 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
             <div className="bg-purple-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center">
-                <img src="/assets/balance_skill.png" alt="Balanced Challenge & Skill" className="w-full h-full object-contain opacity-20" />
+                <img src="/assets/balance_skill.png" alt="Balanced Challenge & Skill" className="w-full h-full object-contain" style={{ opacity: 0.12 }} />
               </div>
               <div className="relative z-10">
                 <h4 className="text-2xl font-bold text-purple-700 mb-4">Balanced Challenge & Skill</h4>
-                <p className="text-lg text-gray-700 font-medium">
+                <p className="text-lg text-gray-800 font-semibold">
                   Hard enough to engage, not so hard it creates anxiety
                 </p>
               </div>
@@ -689,11 +689,11 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
             <div className="bg-indigo-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center">
-                <img src="/assets/immediate_feedback.png" alt="Immediate Feedback" className="w-full h-full object-contain opacity-20" />
+                <img src="/assets/immediate_feedback.png" alt="Immediate Feedback" className="w-full h-full object-contain" style={{ opacity: 0.12 }} />
               </div>
               <div className="relative z-10">
                 <h4 className="text-2xl font-bold text-blue-700 mb-4">Immediate Feedback</h4>
-                <p className="text-lg text-gray-700 font-medium">
+                <p className="text-lg text-gray-800 font-semibold">
                   You can adjust in real time
                 </p>
               </div>
@@ -701,11 +701,11 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
             <div className="bg-green-50 p-8 rounded-lg text-center aspect-square flex flex-col justify-center relative overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center">
-                <img src="/assets/deep_concentration.png" alt="Deep Concentration" className="w-full h-full object-contain opacity-20" />
+                <img src="/assets/deep_concentration.png" alt="Deep Concentration" className="w-full h-full object-contain" style={{ opacity: 0.12 }} />
               </div>
               <div className="relative z-10">
                 <h4 className="text-2xl font-bold text-green-700 mb-4">Deep Concentration</h4>
-                <p className="text-lg text-gray-700 font-medium">
+                <p className="text-lg text-gray-800 font-semibold">
                   Distraction-free attention on the task
                 </p>
               </div>
@@ -1113,9 +1113,10 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   markStepCompleted('2-2');
                   setCurrentContent("rounding-out");
                 }}
-                className="bg-green-600 hover:bg-green-700 text-lg px-8 py-3"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+                data-continue-button="true"
               >
-                Next: Rounding Out <ChevronRight className="ml-2 h-4 w-4" />
+                Continue to Future Self <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           )}
