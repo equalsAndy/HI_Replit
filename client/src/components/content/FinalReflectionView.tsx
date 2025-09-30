@@ -366,11 +366,6 @@ export default function FinalReflectionView({
                       </button>
                     </div>
                     
-                    {insight.length < 10 && (
-                      <p className="helper-text">
-                        Share your insight to complete the workshop
-                      </p>
-                    )}
                   </>
                 ) : (
                   // Workshop already completed - show view options
@@ -470,33 +465,15 @@ export default function FinalReflectionView({
 
         /* Top Section: Ladder + Explanation Side by Side */
         .ladder-section {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 40px;
-          align-items: start;
-          background: #f8f9fa;
-          border-radius: 16px;
-          padding: 40px;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+          display: none;
         }
 
         .ladder-container {
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
+          display: none;
         }
 
         .ladder-image {
-          width: 100%;
-          max-width: 300px;
-          height: auto;
-          border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          transition: transform 0.2s ease;
-        }
-
-        .ladder-image:hover {
-          transform: translateY(-4px);
+          display: none;
         }
 
         .explanation-content {
