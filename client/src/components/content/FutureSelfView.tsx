@@ -163,7 +163,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     if (updatedImageData.selectedImages.length === 0) {
       setImagesConfirmed(false);
       setReflectionSubmitted(false);
-      setLocalReflectionText('');
     }
 
     toast({
@@ -297,37 +296,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     e.target.value = '';
   };
 
-  // Save reflection
-  const handleSaveReflection = async () => {
-    if (!localReflectionText.trim()) {
-      toast({
-        title: "Reflection required",
-        description: "Please write your reflection before saving.",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    setIsSavingReflection(true);
-    try {
-      const reflections = { 'future-self-1': localReflectionText };
-      await saveFutureSelfComplete(reflections, imageData);
-      setReflectionSubmitted(true);
-
-      toast({
-        title: "Reflection saved",
-        description: "Your future self reflection has been saved.",
-      });
-    } catch (error) {
-      toast({
-        title: "Save failed",
-        description: "Failed to save your reflection. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSavingReflection(false);
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -356,9 +325,36 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         </div>
       )}
 
+      {/* Step 1 Instructions */}
+      <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h2 className="text-2xl font-semibold text-blue-900 mb-4 flex items-center gap-3">
+          <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold">1</span>
+          Choose Your Image(s)
+        </h2>
+        <div className="prose prose-blue max-w-none">
+          <p className="text-blue-800 text-lg leading-relaxed mb-4">
+            Images can evoke possibilities that words alone cannot. Choose one or two that symbolize the future self you're moving toward.
+          </p>
+          <ul className="text-blue-700 space-y-2 mb-4">
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-1">•</span>
+              <span>Select 1–2 images that capture who you imagine becoming.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-1">•</span>
+              <span>They can be <strong>literal</strong> (a role, place, activity) or <strong>symbolic</strong> (a sunrise, a bridge).</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-1">•</span>
+              <span>Trust your instinct — choose what feels right for your vision.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       {/* Selected Images Display */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Your Selected Images</h2>
+        <h3 className="text-xl font-semibold mb-4">Your Selected Images</h3>
         {imageData.selectedImages.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {imageData.selectedImages.map((image) => (

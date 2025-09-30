@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCircle, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCircle, Star, Info, BookOpen, Users, RefreshCw } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -51,7 +51,7 @@ export default function GrowthPlanView({
   markStepCompleted,
   setCurrentContent
 }: GrowthPlanViewProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0); // Start at 0 for intro
   const [quarter, setQuarter] = useState('Q2');
   const [year, setYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState<Partial<GrowthPlanData>>({});
@@ -62,19 +62,19 @@ export default function GrowthPlanView({
   // Fetch user's Star Card data
   const { data: starCardData } = useQuery({
     queryKey: ['/api/workshop-data/starcard'],
-    enabled: currentStep === 1
+    enabled: currentStep >= 1
   });
 
   // Fetch user's Cantril Ladder data
   const { data: cantrilData } = useQuery({
     queryKey: ['/api/workshop-data/cantril-ladder'],
-    enabled: currentStep === 2
+    enabled: currentStep >= 1
   });
 
   // Fetch flow attributes data
   const { data: flowAttributesData } = useQuery({
     queryKey: ['/api/workshop-data/flow-attributes'],
-    enabled: currentStep === 1
+    enabled: currentStep >= 1
   });
 
   // Fetch existing growth plan data
@@ -95,8 +95,12 @@ export default function GrowthPlanView({
           year
         })
       }),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      console.log('Growth plan saved successfully:', response);
       queryClient.invalidateQueries({ queryKey: ['/api/growth-plan'] });
+    },
+    onError: (error) => {
+      console.error('Failed to save growth plan:', error);
     }
   });
 
@@ -112,8 +116,10 @@ export default function GrowthPlanView({
   };
 
   const handleNext = () => {
-    // Save current step data
-    savePlanMutation.mutate(formData);
+    // Save current step data for steps 1-8
+    if (currentStep >= 1) {
+      savePlanMutation.mutate(formData);
+    }
     
     if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
@@ -130,12 +136,13 @@ export default function GrowthPlanView({
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
   const stepTitles = [
+    'What is a Growth Plan?',
     'Quarter Selection',
     'Remember Your Star Power', 
     'Your Ladder',
@@ -145,6 +152,151 @@ export default function GrowthPlanView({
     'Progress Check',
     'Key Actions Summary'
   ];
+
+  const renderIntroduction = () => (
+    <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+          <BookOpen className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900">Your Quarterly Growth Plan</h2>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Module 3: Post-Workshop Individual Development
+        </p>
+      </div>
+
+      {/* What is this? */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Info className="w-5 h-5" />
+            What is a Quarterly Growth Plan?
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-gray-700">
+          <p>
+            This post-workshop module is designed for ongoing individual development that builds on 
+            your initial workshop experiences and lessons learned. The Growth Plan helps you:
+          </p>
+          <ul className="space-y-2 ml-6">
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Connect your internal vision with actual, observable steps forward</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Apply flow insights to long-term development and sustained performance</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Create quarterly reviews with your managers or coaches</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Track progress through measurable, strength-based development</span>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Key Features */}
+      <div className="grid md:grid-cols-3 gap-6">
+        <Card>
+          <CardContent className="p-6 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Star className="w-6 h-6 text-yellow-600" />
+            </div>
+            <h3 className="font-semibold">Strengths-Based</h3>
+            <p className="text-sm text-gray-600">
+              Leverage your Star Card assessment to maximize your natural talents and abilities
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto bg-green-100 rounded-lg flex items-center justify-center">
+              <Target className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="font-semibold">Goal-Oriented</h3>
+            <p className="text-sm text-gray-600">
+              Set clear, measurable targets using your Cantril Ladder well-being framework
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto bg-purple-100 rounded-lg flex items-center justify-center">
+              <RefreshCw className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 className="font-semibold">Quarterly Rhythm</h3>
+            <p className="text-sm text-gray-600">
+              Regular 90-day cycles create sustainable growth momentum and accountability
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Process Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Your Growth Planning Process
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Individual Reflection (Steps 1-7)</h4>
+                <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                  <li>• Review your Star Power and strengths</li>
+                  <li>• Set well-being targets using your ladder</li>
+                  <li>• Plan flow optimization strategies</li>
+                  <li>• Align with your vision and purpose</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Implementation Focus (Step 8)</h4>
+                <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                  <li>• Define top 3 quarterly priorities</li>
+                  <li>• Set success metrics and milestones</li>
+                  <li>• Schedule key dates and check-ins</li>
+                  <li>• Create accountability structure</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+              <p className="text-sm text-amber-800">
+                <strong>💡 Best Practice:</strong> Ideally, participants can tie this quarterly review 
+                with their managers or coaches. The structured approach mirrors those from Module 1 
+                to help you connect insights to long-term development and sustained performance.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Team Tune-In Prompts Preview */}
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="text-green-800">Team Tune-In 360 Prompts</CardTitle>
+        </CardHeader>
+        <CardContent className="text-green-700">
+          <p className="mb-3">This module includes reflective prompts for team development:</p>
+          <ul className="space-y-1 text-sm">
+            <li>• "What helps you find flow?"</li>
+            <li>• "How are you feeling about our team?"</li>
+            <li>• "What do you need to stay engaged?"</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   const renderQuarterSelection = () => (
     <div className="space-y-6">
@@ -184,6 +336,15 @@ export default function GrowthPlanView({
           </Select>
         </div>
       </div>
+
+      {existingPlan?.data && (
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-center">
+          <p className="text-blue-800">
+            <strong>Existing Plan Found:</strong> You have an existing growth plan for {quarter} {year}. 
+            You can review and update it as needed.
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -213,6 +374,17 @@ export default function GrowthPlanView({
                 <li>Think about opportunities to leverage these strengths</li>
                 <li>Identify areas where you can contribute most effectively</li>
               </ol>
+            </div>
+
+            <div>
+              <Label htmlFor="starPowerReflection">Star Power Reflection</Label>
+              <Textarea
+                id="starPowerReflection"
+                placeholder="How can you leverage your unique strength combination this quarter? What opportunities align with your Star Power?"
+                value={formData.starPowerReflection || ''}
+                onChange={(e) => updateFormData('starPowerReflection', e.target.value)}
+                className="h-32"
+              />
             </div>
           </div>
 
@@ -347,7 +519,7 @@ export default function GrowthPlanView({
         <div>
           <Label>Strengths Examples & Applications</Label>
           <Textarea
-            placeholder="How will you apply your top strengths this quarter? Provide specific examples..."
+            placeholder="How will you apply your top strengths this quarter? Provide specific examples of projects, roles, or responsibilities where you can leverage your unique strength combination..."
             value={formData.strengthsExamples ? JSON.stringify(formData.strengthsExamples) : ''}
             onChange={(e) => updateFormData('strengthsExamples', { general: e.target.value })}
             className="h-32"
@@ -396,7 +568,7 @@ export default function GrowthPlanView({
           <Label htmlFor="flowCatalysts">Flow Catalysts</Label>
           <Textarea
             id="flowCatalysts"
-            placeholder="What activities, environments, or conditions help you achieve flow state?"
+            placeholder="What activities, environments, or conditions help you achieve flow state? How can you optimize these for the quarter ahead?"
             value={formData.flowCatalysts || ''}
             onChange={(e) => updateFormData('flowCatalysts', e.target.value)}
             className="h-32"
@@ -532,6 +704,7 @@ export default function GrowthPlanView({
 
   const renderCurrentStep = () => {
     switch (currentStep) {
+      case 0: return renderIntroduction();
       case 1: return renderQuarterSelection();
       case 2: return renderStarPower();
       case 3: return renderLadder();
@@ -540,7 +713,7 @@ export default function GrowthPlanView({
       case 6: return renderVisionVitality();
       case 7: return renderProgressCheck();
       case 8: return renderKeyActions();
-      default: return renderQuarterSelection();
+      default: return renderIntroduction();
     }
   };
 
@@ -550,7 +723,7 @@ export default function GrowthPlanView({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <img src={tuningForkImage} alt="Growth Plan" className="w-8 h-8" />
-            Quarterly Growth Plan - {stepTitles[currentStep - 1]}
+            Quarterly Growth Plan - {stepTitles[currentStep]}
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Step {currentStep} of 8</span>
@@ -570,7 +743,7 @@ export default function GrowthPlanView({
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 1}
+              disabled={currentStep === 0}
               className="flex items-center gap-2"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -582,7 +755,7 @@ export default function GrowthPlanView({
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
               disabled={savePlanMutation.isPending}
             >
-              {currentStep === 8 ? 'Complete Plan' : 'Next'}
+              {currentStep === 0 ? 'Begin Growth Planning' : currentStep === 8 ? 'Complete Plan' : 'Next'}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

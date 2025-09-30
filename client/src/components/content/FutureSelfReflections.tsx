@@ -37,15 +37,12 @@ const getFutureSelfPrompt = (reflectionIndex: number, imageCount: number = 1) =>
       ]
     },
     2: {
-      question: "Your Future Self Reflection",
-      instruction: "Write a thoughtful response that addresses your growth, flow-aligned life, and contribution to others.",
+      question: "Describe Your Future Self",
+      instruction: "Write 3 or 4 sentences about who you imagine becoming. Use these prompts to guide you:",
       bullets: [
-        "In 5 years, what capacities or qualities are you growing into?",
-        "What does your life look like when aligned with flow and well-being?",
-        "How are you contributing to others — team, family, or community?",
-        "What kind of impact are you making in your professional role?",
-        "How do you feel day-to-day when living this future vision?",
-        "What new skills or expertise have you developed?"
+        "In 5 years, what capacities or qualities are you developing?",
+        "What does life look like when aligned with flow and well-being?",
+        "How are you contributing to others — team, family, or community?"
       ],
       examples: [
         "In 5 years, I see myself growing into a confident leader who creates psychological safety for my team. My life aligned with flow involves dedicated time for deep work, meaningful collaboration, and continuous learning. I contribute to others by mentoring junior colleagues and helping my organization become more human-centered.",
@@ -279,6 +276,33 @@ const FutureSelfReflections: React.FC<FutureSelfReflectionsProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Step 2 Instructions */}
+      <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+        <h2 className="text-2xl font-semibold text-green-900 mb-4 flex items-center gap-3">
+          <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold">2</span>
+          Describe Your Future Self
+        </h2>
+        <div className="prose prose-green max-w-none">
+          <p className="text-green-800 text-lg leading-relaxed mb-4">
+            Write 3 or 4 sentences about who you imagine becoming. Use these prompts to guide you:
+          </p>
+          <ul className="text-green-700 space-y-2 mb-4">
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 mt-1">•</span>
+              <span>In 5 years, what capacities or qualities are you developing?</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 mt-1">•</span>
+              <span>What does life look like when aligned with flow and well-being?</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 mt-1">•</span>
+              <span>How are you contributing to others — team, family, or community?</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Future Self Reflections</h2>
@@ -503,26 +527,57 @@ const FutureSelfReflections: React.FC<FutureSelfReflectionsProps> = ({
         </div>
       )}
 
-      {/* Continue Button */}
+      {/* Step 3 - Capture an Intention */}
       {allCompleted && (
-        <div className="mt-12 text-center border-t border-gray-200 pt-8">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">Ready to Continue?</h4>
-          <p className="text-gray-600 mb-6">You've completed both future self reflections. Continue to Your Final Reflection.</p>
-          <Button
-            onClick={handleComplete}
-            disabled={isSaving}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
-            data-continue-button="true"
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              'Continue to Your Final Reflection'
-            )}
-          </Button>
+        <div className="mt-12 border-t border-gray-200 pt-8">
+          {/* Step 3 Instructions */}
+          <div className="mb-8 bg-purple-50 border border-purple-200 rounded-lg p-6">
+            <h2 className="text-2xl font-semibold text-purple-900 mb-4 flex items-center gap-3">
+              <span className="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold">3</span>
+              Capture an Intention
+            </h2>
+            <div className="prose prose-purple max-w-none">
+              <p className="text-purple-800 text-lg leading-relaxed mb-4">
+                End this step by choosing one clear intention to carry forward. This becomes the bridge between your vision and your next steps.
+              </p>
+              <ul className="text-purple-700 space-y-2 mb-4">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 mt-1">•</span>
+                  <span>Write one sentence that captures your most important takeaway</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 mt-1">•</span>
+                  <span>Begin with: <strong>“The intention I want to carry forward is…”</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600 mt-1">•</span>
+                  <span>Keep it short, specific, and meaningful to you</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Ready to Continue?</h4>
+            <p className="text-gray-600 mb-6">
+              You've completed both future self reflections. Your next step will be to create your intention statement in Your Final Reflection.
+            </p>
+            <Button
+              onClick={handleComplete}
+              disabled={isSaving}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+              data-continue-button="true"
+            >
+              {isSaving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Continue to Your Final Reflection'
+              )}
+            </Button>
+          </div>
         </div>
       )}
     </div>

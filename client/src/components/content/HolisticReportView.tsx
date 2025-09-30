@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor, Wrench, MessageSquareText } from 'lucide-react';
+import { FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor, Wrench, MessageSquareText, Users, Lightbulb, TrendingUp, MessageSquare } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { isFeatureEnabled } from '@/utils/featureFlags';
@@ -60,13 +60,7 @@ export default function HolisticReportView({
 
     if (countdown > 0) {
       interval = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            setActiveTimer(null);
-            return 0;
-          }
-          return prev - 1;
-        });
+        setCountdown(prev => prev - 1);
       }, 1000);
     }
 
@@ -107,21 +101,24 @@ export default function HolisticReportView({
 
   const getLoadingMessage = (countdown: number) => {
     // Special message if we go over time
-    if (countdown < 0) {
+    if (countdown <= 0) {
       return "I'm collecting overtime now...";
     }
 
     // Create a pseudo-random but consistent message based on elapsed time
-    // Changes every 8 seconds
+    // Changes every 6 seconds
     const elapsedTime = 75 - countdown;
-    const changeInterval = 8;
+    const changeInterval = 6;
     const seed = Math.floor(elapsedTime / changeInterval);
+
+    // Filter out "Starting generation..." from rotation
+    const rotatingMessages = loadingMessages.filter(msg => msg !== "Starting generation...");
 
     // Simple pseudo-random number generator for consistent randomness
     const pseudoRandom = (seed * 9301 + 49297) % 233280;
-    const messageIndex = pseudoRandom % loadingMessages.length;
+    const messageIndex = pseudoRandom % rotatingMessages.length;
 
-    return loadingMessages[messageIndex];
+    return rotatingMessages[messageIndex];
   };
   const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
@@ -226,25 +223,32 @@ export default function HolisticReportView({
 
   // Track report completion for user experience
   useEffect(() => {
-    const hasCompletedReport = standardStatus?.status === 'completed' || personalStatus?.status === 'completed';
-    if (hasCompletedReport) {
-      // Reset countdown when any report completes
-      setCountdown(0);
-      setActiveTimer(null);
-
-      // Removed markStepCompleted call - report generation should not advance menu
-
-      // For beta testers, automatically mark as having viewed reports when they're completed and displayed
-      if ((user?.isBetaTester || user?.role === 'admin') && !hasViewedReport) {
-        setHasViewedReport(true);
-
-        // Dispatch event for beta tester feedback system
-        window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
-          detail: { reportType: 'auto', viewType: 'display' }
-        }));
+    // Check each report individually to reset timer for specific report type
+    if (standardStatus?.status === 'completed' || standardStatus?.htmlUrl) {
+      if (activeTimer === 'standard') {
+        setCountdown(0);
+        setActiveTimer(null);
       }
     }
-  }, [standardStatus, personalStatus, markStepCompleted, user, hasViewedReport]);
+
+    if (personalStatus?.status === 'completed' || personalStatus?.htmlUrl) {
+      if (activeTimer === 'personal') {
+        setCountdown(0);
+        setActiveTimer(null);
+      }
+    }
+
+    // For beta testers, automatically mark as having viewed reports when they're completed and displayed
+    const hasCompletedReport = standardStatus?.status === 'completed' || personalStatus?.status === 'completed';
+    if ((user?.isBetaTester || user?.role === 'admin') && !hasViewedReport && hasCompletedReport) {
+      setHasViewedReport(true);
+
+      // Dispatch event for beta tester feedback system
+      window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
+        detail: { reportType: 'auto', viewType: 'display' }
+      }));
+    }
+  }, [standardStatus, personalStatus, activeTimer, markStepCompleted, user, hasViewedReport]);
 
   // Additional check: user can give feedback ONLY after BOTH reports are completed
   const canGiveFeedback = hasViewedReport || 
@@ -304,8 +308,29 @@ export default function HolisticReportView({
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Generation Status - Only show if no timer active (fallback) */}
-              {status?.status === 'generating' && !(activeTimer === reportType && countdown > 0) && (
+              {/* Countdown Timer Display - Show humorous messages during generation */}
+              {(activeTimer === reportType || (status?.status === 'generating' && isGenerating)) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 transition-opacity duration-200">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-600 animate-spin" />
+                    <span className="text-blue-800 font-medium">
+                      {activeTimer === reportType ? getLoadingMessage(countdown) : 'Generating report...'}
+                    </span>
+                  </div>
+                  {activeTimer === reportType && (
+                    <p className="text-blue-700 text-sm mt-1">
+                      {countdown > 0 ? (
+                        <>Estimated time: <span className="font-mono font-bold">{formatCountdown(countdown)}</span></>
+                      ) : (
+                        <>Overtime: <span className="font-mono font-bold">{formatCountdown(Math.abs(countdown))}</span></>
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Generation Status - Fallback if timer not active */}
+              {status?.status === 'generating' && !activeTimer && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-blue-600 animate-spin" />
@@ -313,19 +338,6 @@ export default function HolisticReportView({
                   </div>
                   <p className="text-blue-700 text-sm mt-1">
                     This may take a few moments. Please wait.
-                  </p>
-                </div>
-              )}
-
-              {/* Countdown Timer Display - Show humorous messages during generation */}
-              {activeTimer === reportType && countdown > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="text-blue-800 font-medium">{getLoadingMessage(countdown)}</span>
-                  </div>
-                  <p className="text-blue-700 text-sm mt-1">
-                    Estimated time: <span className="font-mono font-bold">{formatCountdown(countdown)}</span>
                   </p>
                 </div>
               )}
@@ -500,10 +512,121 @@ export default function HolisticReportView({
       <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Holistic Reports</h1>
-        <p className="text-lg text-gray-700">
+        <p className="text-lg text-gray-700 mb-8">
           Congratulations on completing your AllStarTeams workshop! Your personalized development reports 
           are now available, synthesizing your journey into actionable insights for continued growth.
         </p>
+
+        {/* About This Report Section */}
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-xl text-blue-900">
+              <FileText className="h-6 w-6 text-blue-600" />
+              About Your Holistic Report
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Introduction */}
+            <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+              <p className="text-gray-800 leading-relaxed">
+                This report is meant as a <strong>mirror</strong>, reflecting the patterns of your strengths, flow, and reflections. 
+                It is not a fixed picture—any more than you are. Strengths show up differently depending on context: work, home, and relationships.
+              </p>
+            </div>
+
+            <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+              <p className="text-gray-800 leading-relaxed mb-3">
+                <strong>No assessment can tell you what you are.</strong> What it can do is surface a snapshot of patterns in your answers, 
+                to spark awareness and conversation—with yourself, and with teammates who may see things differently.
+              </p>
+              
+              <div className="text-sm text-gray-700">
+                <p className="font-medium text-gray-800 mb-2">We describe this as a holistic report because it draws together multiple threads:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>Your Star Strengths assessment results, mapping energy in Acting, Planning, Thinking, and Feeling modes</li>
+                  <li>Your reflections about how and when you use those strengths</li>
+                  <li>Your experiences of flow—moments when you feel deeply engaged, focused, and energized</li>
+                  <li>Your well-being ladder, considering how you feel about your life today and future hopes</li>
+                  <li>Your imagination and vision of a future self, giving shape to what lies ahead</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Key Principles */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <RefreshCw className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Patterns, Not Labels</h3>
+                </div>
+                <p className="text-sm text-gray-700">
+                  This isn't a typing exercise. We look for patterns—how your strengths combine, shift with context, 
+                  and interact with others. Patterns give you language for tendencies, not rules.
+                </p>
+              </div>
+
+              <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Collaboration Lens</h3>
+                </div>
+                <p className="text-sm text-gray-700">
+                  Strengths are about how you fit into a team and complement others. 
+                  Differences aren't deficits—they're invitations to collaborate.
+                </p>
+              </div>
+
+              <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lightbulb className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">The Role of Imagination</h3>
+                </div>
+                <p className="text-sm text-gray-700">
+                  Imagination runs throughout this report—your apex strength that's always on, 
+                  underpinning all others through rehearsal, preparation, and exploration.
+                </p>
+              </div>
+
+              <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">A Living Picture</h3>
+                </div>
+                <p className="text-sm text-gray-700">
+                  This report is a snapshot in time. Your strengths can shift across seasons of life. 
+                  Embrace this fluidity—your adaptability is part of your human design.
+                </p>
+              </div>
+            </div>
+
+            {/* How to Use Section */}
+            <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+              <h3 className="flex items-center gap-2 font-semibold text-blue-900 mb-3">
+                <MessageSquare className="h-5 w-5" />
+                How to Use This Report
+              </h3>
+              <p className="text-sm text-gray-700 mb-3">
+                Think of this report as a <strong>conversation starter</strong>. The most valuable conversations will be:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="font-medium text-gray-800 mb-1">With Yourself:</p>
+                  <ul className="list-disc list-inside text-gray-700 ml-2 space-y-1">
+                    <li>Journaling: Do I recognize myself here?</li>
+                    <li>Reflection: When has this been true recently?</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800 mb-1">With Others:</p>
+                  <ul className="list-disc list-inside text-gray-700 ml-2 space-y-1">
+                    <li>1-on-1 conversations with trusted colleagues</li>
+                    <li>Team workshops on strengths and flow</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
 
