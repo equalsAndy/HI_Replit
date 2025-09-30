@@ -35,8 +35,8 @@ const pool = new Pool({
 router.post('/generate', async (req, res) => {
   const { reportType }: GenerateReportRequest = req.body;
   
-  // Use same authentication as test endpoints - session or cookie
-  let userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+  // SECURITY: Use only session-based authentication (no cookie fallback for security)
+  let userId = req.session?.userId;
 
   if (!userId) {
     return res.status(401).json({ 
@@ -55,19 +55,20 @@ router.post('/generate', async (req, res) => {
   try {
     console.log(`🚀 Starting ${reportType} report generation for user ${userId}`);
 
-    // Check for concurrent generation attempts only
-    const existingReport = await pool.query(
-      'SELECT id, generation_status FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3',
-      [userId, reportType, 'generating']
+    // Enhanced constraint: Check for any concurrent generation attempts for this user
+    const existingGeneratingReports = await pool.query(
+      'SELECT id, report_type, generation_status FROM holistic_reports WHERE user_id = $1 AND generation_status = $2',
+      [userId, 'generating']
     );
 
-    if (existingReport.rows.length > 0) {
-      const existing = existingReport.rows[0];
+    if (existingGeneratingReports.rows.length > 0) {
+      const existing = existingGeneratingReports.rows[0];
       return res.status(409).json({
         success: false,
-        message: `A ${reportType} report is currently being generated. Please wait.`,
+        message: `You already have a ${existing.report_type} report being generated. Only one report can be generated at a time. Please wait for it to complete before requesting another.`,
         reportId: existing.id,
-        status: 'generating'
+        status: 'generating',
+        existingReportType: existing.report_type
       } as GenerateReportResponse);
     }
 

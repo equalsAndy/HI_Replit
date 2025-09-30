@@ -1,4 +1,11 @@
 import sharp from 'sharp';
+import { Pool } from 'pg';
+
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 interface StarCardData {
   thinking: number;
@@ -13,45 +20,105 @@ interface StarCardData {
 export class StarCardGeneratorService {
   
   /**
-   * Download StarCard from UI system and save to photo database
-   * This method fetches the properly formatted StarCard and stores it in the photo database
+   * FIXED: Update or create StarCard with UPSERT logic - ONE StarCard per user
+   * This method implements the "One StarCard Per User" rule by updating existing StarCards
    */
-  async downloadStarCardFromUI(userId: string, userData: StarCardData): Promise<string> {
+  async updateOrCreateStarCard(userId: string, userData: StarCardData): Promise<string> {
     try {
-      console.log(`📥 Downloading StarCard from UI for user ${userId}`);
-      
-      const fs = await import('fs/promises');
-      const path = await import('path');
-      const crypto = await import('crypto');
-      
-      // Use the proper StarCard template from attached_assets
-      const templatePath = path.join(process.cwd(), 'attached_assets', 'star-card.png');
-      
-      // TEMPORARILY DISABLED: Static template has wrong data (Roy Bahat instead of current user)
-      // Always use dynamic generation until we have a proper template system
-      console.log(`🎨 Using dynamic StarCard generation for personalized data`);
+      console.log(`🔄 UPDATING StarCard for user ${userId} (UPSERT mode)`);
       
       // Generate dynamic StarCard with actual user data
       const dynamicStarCardBase64 = await this.generateStarCard(userData);
       
-      // Save to photo database using photo storage service
-      const { photoStorageService } = await import('./photo-storage-service.js');
+      // UPSERT Logic: Update existing StarCard or create new one
+      const existingStarCardResult = await pool.query(`
+        SELECT id FROM photos 
+        WHERE user_id = $1 AND is_starcard = true 
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [parseInt(userId)]);
       
-      // Store in database with StarCard-specific filename for better identification
-      const starCardFilename = `Generated-StarCard-user-${userId}-${Date.now()}.png`;
-      const photoId = await photoStorageService.storePhoto(dynamicStarCardBase64, parseInt(userId), true, starCardFilename);
-      
-      console.log(`✅ Dynamic StarCard generated and saved to photo database for user ${userId} with photo ID: ${photoId}`);
-      return dynamicStarCardBase64;
+      if (existingStarCardResult.rows.length > 0) {
+        // UPDATE existing StarCard
+        const photoId = existingStarCardResult.rows[0].id;
+        console.log(`📝 Updating existing StarCard (Photo ID: ${photoId}) for user ${userId}`);
+        
+        await pool.query(`
+          UPDATE photos 
+          SET base64_data = $1,
+              filename = $2,
+              uploaded_at = NOW(),
+              updated_at = NOW()
+          WHERE id = $3 AND user_id = $4
+        `, [
+          dynamicStarCardBase64,
+          `Updated-StarCard-user-${userId}-${Date.now()}.png`,
+          photoId,
+          parseInt(userId)
+        ]);
+        
+        console.log(`✅ StarCard UPDATED for user ${userId} - Photo ID: ${photoId}`);
+        return dynamicStarCardBase64;
+        
+      } else {
+        // CREATE new StarCard (first time)
+        console.log(`🆕 Creating first StarCard for user ${userId}`);
+        
+        const { photoStorageService } = await import('./photo-storage-service.js');
+        const starCardFilename = `StarCard-user-${userId}-${Date.now()}.png`;
+        const photoId = await photoStorageService.storePhoto(dynamicStarCardBase64, parseInt(userId), true, starCardFilename);
+        
+        console.log(`✅ New StarCard created for user ${userId} with photo ID: ${photoId}`);
+        return dynamicStarCardBase64;
+      }
       
     } catch (error) {
-      console.error('❌ StarCard download failed:', error);
+      console.error('❌ StarCard update/create failed:', error);
       throw error;
     }
   }
   
   /**
-   * Generate a StarCard image with actual user data (fallback method)
+   * DEPRECATED: Old method that creates new StarCards - DO NOT USE
+   * Use updateOrCreateStarCard() instead to maintain "One StarCard Per User" rule
+   */
+  async downloadStarCardFromUI(userId: string, userData: StarCardData): Promise<string> {
+    console.warn(`⚠️ DEPRECATED METHOD CALLED: downloadStarCardFromUI() creates duplicate StarCards`);
+    console.warn(`🔄 Redirecting to updateOrCreateStarCard() to maintain "One StarCard Per User" rule`);
+    
+    return this.updateOrCreateStarCard(userId, userData);
+  }
+  
+  /**
+   * Get existing StarCard for user (for reports and display)
+   */
+  async getExistingStarCard(userId: string): Promise<string | null> {
+    try {
+      console.log(`🔍 Fetching existing StarCard for user ${userId}`);
+      
+      const result = await pool.query(`
+        SELECT base64_data FROM photos 
+        WHERE user_id = $1 AND is_starcard = true 
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [parseInt(userId)]);
+      
+      if (result.rows.length > 0) {
+        console.log(`✅ Found existing StarCard for user ${userId}`);
+        return result.rows[0].base64_data;
+      } else {
+        console.log(`❌ No StarCard found for user ${userId}`);
+        return null;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching existing StarCard:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Generate a StarCard image with actual user data (unchanged - core generation logic)
    */
   async generateStarCard(data: StarCardData): Promise<string> {
     try {

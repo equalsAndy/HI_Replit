@@ -49,7 +49,10 @@ import iaStepRoutes from './routes/ia-step-routes.ts';
 import aiRoutes from './routes/ai.ts';
 import iaContinuityRoutes from './routes/ia.ts';
 import auth0Routes from './routes/auth0-routes.ts';
+import astReportRoutes from './routes/ast-reports-routes.ts';
+import astSectionalReportRoutes from './routes/ast-sectional-reports-routes.ts';
 import { resetRouter } from './routes/reset-routes.ts';
+import starCardRoutes from './routes/starcard-routes.ts';
 import { initializeDatabase } from './db.ts';
 import { db } from './db.ts';
 import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
@@ -489,7 +492,18 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/admin', adminRouter);
       app.use('/api/metalia', metaliaRoutes);
   app.use('/api/growth-plan', growthPlanRoutes);
+      // AST Report Routes
+      app.use('/api/ast-reports', astReportRoutes);
+      app.use('/api/ast-sectional-reports', astSectionalReportRoutes);
       app.use('/api/reset', resetRouter);
+      app.use('/api/starcard', starCardRoutes);
+
+      // PhotoService alias endpoint for StarCard images
+      app.get('/api/photoservice/starcard/:userId', (req, res) => {
+        const { userId } = req.params;
+        // Redirect to the correct StarCard admin download endpoint
+        res.redirect(`/api/starcard/admin/download/${userId}`);
+      });
 
       // Changelog endpoint for test users (markdown)
       app.get('/changelog', async (req, res) => {

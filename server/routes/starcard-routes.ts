@@ -455,6 +455,81 @@ router.get('/admin/download/:userId', async (req, res) => {
 });
 
 /**
+ * Admin: Download specific photo by photo ID
+ */
+router.get('/admin/download-by-id/:photoId', async (req, res) => {
+  try {
+    const { photoId } = req.params;
+
+    if (!photoId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Photo ID is required'
+      });
+    }
+
+    console.log(`🔐 Admin downloading photo ID: ${photoId}`);
+
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    // Get the specific photo by ID
+    const photoResult = await pool.query(`
+      SELECT ps.id, ps.photo_data, ps.photo_hash, ps.mime_type, ps.file_size, ps.width, ps.height, ps.created_at, ps.uploaded_by,
+             u.name, u.username
+      FROM photo_storage ps
+      JOIN users u ON ps.uploaded_by = u.id
+      WHERE ps.id = $1
+      AND ps.is_thumbnail = false
+    `, [photoId]);
+
+    await pool.end();
+
+    if (photoResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `Photo ID ${photoId} not found`
+      });
+    }
+
+    const photo = photoResult.rows[0];
+
+    // Extract base64 data
+    const base64Data = photo.photo_data.includes(',')
+      ? photo.photo_data.split(',')[1]
+      : photo.photo_data;
+
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Create filename for download
+    const extension = photo.mime_type.split('/')[1] || 'png';
+    const username = photo.username || 'user';
+    const filename = `${username}-starcard-photo${photo.id}.${extension}`;
+
+    // Set headers for file download
+    res.setHeader('Content-Type', photo.mime_type);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', buffer.length);
+
+    console.log(`✅ Admin downloading photo ID ${photoId}: ${filename} (${photo.file_size} bytes) for ${photo.name}`);
+
+    // Send the image buffer
+    res.send(buffer);
+
+  } catch (error) {
+    console.error('❌ Admin download by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download photo',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * Admin: List all users with StarCard PNGs in database
  */
 router.get('/admin/list-available', async (req, res) => {
