@@ -24,6 +24,27 @@ interface ReportStatus {
   generatedAt?: string;
 }
 
+interface SectionalProgress {
+  overallStatus: 'pending' | 'in_progress' | 'completed' | 'failed' | 'partial_failure';
+  progressPercentage: number;
+  sectionsCompleted: number;
+  sectionsFailed: number;
+  totalSections: number;
+  sections: Array<{
+    id: number;
+    name: string;
+    title: string;
+    status: 'pending' | 'generating' | 'completed' | 'failed';
+    content?: string;
+    errorMessage?: string;
+    completedAt?: Date;
+    generationAttempts: number;
+  }>;
+  estimatedCompletionTime?: number;
+  startedAt?: Date;
+  completedAt?: Date;
+}
+
 interface GenerateReportResponse {
   success: boolean;
   reportId?: string;
@@ -68,6 +89,14 @@ export default function HolisticReportView({
       if (interval) clearInterval(interval);
     };
   }, [countdown]);
+
+  // Clear timer when generation is complete
+  useEffect(() => {
+    if (personalProgress?.overallStatus === 'completed' && activeTimer === 'personal') {
+      setActiveTimer(null);
+      setCountdown(0);
+    }
+  }, [personalProgress?.overallStatus, activeTimer]);
 
   const formatCountdown = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -123,33 +152,54 @@ export default function HolisticReportView({
   const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
 
-  // Fetch status for both report types
-  const { data: standardStatus, isLoading: standardLoading } = useQuery<ReportStatus>({
-    queryKey: ['/api/reports/holistic/standard/status'],
+  // Fetch progress for personal report using sectional system
+  const { data: personalProgress, isLoading: personalLoading } = useQuery<SectionalProgress>({
+    queryKey: [`/api/ast-sectional-reports/progress/${user?.id}/ast_personal`],
+    queryFn: async () => {
+      if (!user?.id) throw new Error('User ID not available');
+      const response = await fetch(`/api/ast-sectional-reports/progress/${user.id}/ast_personal`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        // If sectional report doesn't exist, return default state
+        if (response.status === 404) {
+          return {
+            overallStatus: 'pending' as const,
+            progressPercentage: 0,
+            sectionsCompleted: 0,
+            sectionsFailed: 0,
+            totalSections: 6,
+            sections: []
+          };
+        }
+        throw new Error('Failed to fetch progress');
+      }
+      const data = await response.json();
+      return data.progress;
+    },
+    enabled: !!user?.id,
     refetchInterval: (data) => {
-      // Poll every 2 seconds if generating
-      return data?.status === 'generating' ? 2000 : false;
+      // Poll every 3 seconds if generating or in progress
+      return (data?.overallStatus === 'in_progress' || data?.overallStatus === 'generating') ? 3000 : false;
     },
   });
 
-  const { data: personalStatus, isLoading: personalLoading } = useQuery<ReportStatus>({
-    queryKey: ['/api/reports/holistic/personal/status'],
-    refetchInterval: (data) => {
-      // Poll every 2 seconds if generating
-      return data?.status === 'generating' ? 2000 : false;
-    },
-  });
-
-  // Generate report mutation
+  // Generate report mutation using sectional system
   const generateReportMutation = useMutation({
     mutationFn: async (reportType: 'standard' | 'personal') => {
-      const response = await fetch('/api/reports/holistic/generate', {
+      if (!user?.id) throw new Error('User ID not available');
+
+      const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
+      const response = await fetch(`/api/ast-sectional-reports/generate/${user.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ reportType }),
+        body: JSON.stringify({
+          reportType: astReportType,
+          regenerate: true
+        }),
       });
 
       // Handle HTML error pages (504 timeouts return HTML instead of JSON)
@@ -161,85 +211,64 @@ export default function HolisticReportView({
       }
 
       if (!response.ok) {
-        throw new Error(data.message || 'Uh oh, something went wrong');
+        throw new Error(data.error || 'Uh oh, something went wrong');
       }
 
-      return data as GenerateReportResponse;
+      return data;
     },
     onSuccess: (data, variables) => {
-      console.log(`✅ ${variables} report generation started:`, data);
-      // Invalidate queries to refetch status
-      queryClient.invalidateQueries({ queryKey: [`/api/reports/holistic/${variables}/status`] });
+      console.log(`✅ ${variables} sectional report generation started:`, data);
+      // Invalidate queries to refetch progress
+      const astReportType = variables === 'standard' ? 'ast_professional' : 'ast_personal';
+      queryClient.invalidateQueries({ queryKey: [`/api/ast-sectional-reports/progress/${user?.id}/${astReportType}`] });
     },
     onError: (error) => {
-      console.error('❌ Report generation failed:', error);
+      console.error('❌ Sectional report generation failed:', error);
     },
   });
 
   const handleGenerateReport = (reportType: 'standard' | 'personal') => {
-    console.log(`🚀 Generating ${reportType} report`);
-    // Start countdown timer (75 seconds)
-    setCountdown(75);
+    console.log(`🚀 Generating ${reportType} sectional report`);
+    // Start countdown timer (180 seconds for sectional generation)
+    setCountdown(180);
     setActiveTimer(reportType);
     generateReportMutation.mutate(reportType);
   };
 
   const handleViewReport = (reportType: 'standard' | 'personal') => {
-    const status = reportType === 'standard' ? standardStatus : personalStatus;
-    if (status?.pdfUrl) {
-      const title = reportType === 'standard' ? 'Professional Report' : 'Personal Report';
-      setPdfViewer({
-        isOpen: true,
-        pdfUrl: status.pdfUrl,
-        title,
-        downloadUrl: status.downloadUrl
-      });
-      
-      // Track that user has viewed a report
-      setHasViewedReport(true);
-      
-      // Dispatch event for beta tester feedback modal trigger
-      window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
-        detail: { reportType, viewType: 'pdf' }
-      }));
-    }
+    // For sectional reports, we'll use HTML view instead of PDF
+    handleViewHtmlReport(reportType);
   };
-
 
   const handleViewHtmlReport = (reportType: 'standard' | 'personal') => {
-    const status = reportType === 'standard' ? standardStatus : personalStatus;
-    if (status?.htmlUrl) {
-      window.open(status.htmlUrl, '_blank');
-      
-      // Track that user has viewed a report
-      setHasViewedReport(true);
-      
-      // Dispatch event for beta tester feedback modal trigger
-      window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
-        detail: { reportType, viewType: 'html' }
-      }));
-    }
+    if (!user?.id) return;
+
+    const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
+    const reportUrl = `/api/ast-sectional-reports/final/${user.id}/${astReportType}?format=html`;
+
+    window.open(reportUrl, '_blank');
+
+    // Track that user has viewed a report
+    setHasViewedReport(true);
+
+    // Dispatch event for beta tester feedback modal trigger
+    window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
+      detail: { reportType, viewType: 'html' }
+    }));
   };
 
-  // Track report completion for user experience
+  // Track sectional report completion for user experience
   useEffect(() => {
-    // Check each report individually to reset timer for specific report type
-    if (standardStatus?.status === 'completed' || standardStatus?.htmlUrl) {
-      if (activeTimer === 'standard') {
-        setCountdown(0);
-        setActiveTimer(null);
-      }
-    }
-
-    if (personalStatus?.status === 'completed' || personalStatus?.htmlUrl) {
+    // Check report completion to reset timer
+    if (personalProgress?.overallStatus === 'completed') {
       if (activeTimer === 'personal') {
         setCountdown(0);
         setActiveTimer(null);
       }
     }
 
-    // For beta testers, automatically mark as having viewed reports when they're completed and displayed
-    const hasCompletedReport = standardStatus?.status === 'completed' || personalStatus?.status === 'completed';
+    // For beta testers, automatically mark as having viewed reports when completed
+    const hasCompletedReport = personalProgress?.overallStatus === 'completed';
     if ((user?.isBetaTester || user?.role === 'admin') && !hasViewedReport && hasCompletedReport) {
       setHasViewedReport(true);
 
@@ -248,11 +277,10 @@ export default function HolisticReportView({
         detail: { reportType: 'auto', viewType: 'display' }
       }));
     }
-  }, [standardStatus, personalStatus, activeTimer, markStepCompleted, user, hasViewedReport]);
+  }, [personalProgress, activeTimer, markStepCompleted, user, hasViewedReport]);
 
-  // Additional check: user can give feedback ONLY after BOTH reports are completed
-  const canGiveFeedback = hasViewedReport || 
-    (standardStatus?.status === 'completed' && personalStatus?.status === 'completed');
+  // Additional check: user can give feedback after personal report is completed
+  const canGiveFeedback = hasViewedReport || personalProgress?.overallStatus === 'completed';
 
   // Check if holistic reports are working properly
   const reportsWorking = isFeatureEnabled('holisticReportsWorking');
@@ -268,8 +296,7 @@ export default function HolisticReportView({
     role: user?.role,
     hasViewedReport,
     canGiveFeedback,
-    standardStatus: standardStatus?.status,
-    personalStatus: personalStatus?.status,
+    personalProgress: personalProgress?.overallStatus,
     shouldShowButton: user?.isBetaTester || user?.role === 'admin'
   });
 
@@ -277,13 +304,15 @@ export default function HolisticReportView({
     reportType: 'standard' | 'personal',
     title: string,
     description: string,
-    status: ReportStatus | undefined,
+    progress: SectionalProgress | undefined,
     isLoading: boolean
   ) => {
     const isGenerating = generateReportMutation.isPending && generateReportMutation.variables === reportType;
-    const canGenerate = (!status || status.status === 'not_generated' || status.status === 'failed') && reportsWorking;
-    const isCompleted = status?.status === 'completed';
-    const isFailed = status?.status === 'failed';
+    const isActivelyGenerating = activeTimer === reportType && countdown > 0;
+    const canGenerate = (!progress || progress.overallStatus === 'pending' || progress.overallStatus === 'failed') && reportsWorking && !isActivelyGenerating;
+    const isCompleted = progress?.overallStatus === 'completed';
+    const isFailed = progress?.overallStatus === 'failed';
+    const isInProgress = progress?.overallStatus === 'in_progress';
     const isDisabledDueToMaintenance = !reportsWorking;
 
     return (
@@ -308,17 +337,35 @@ export default function HolisticReportView({
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Countdown Timer Display - Show humorous messages during generation */}
-              {(activeTimer === reportType || (status?.status === 'generating' && isGenerating)) && (
+              {/* Progress Display for Sectional Generation */}
+              {(isInProgress || (activeTimer === reportType && countdown > 0)) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 transition-opacity duration-200">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-blue-600 animate-spin" />
                     <span className="text-blue-800 font-medium">
-                      {activeTimer === reportType ? getLoadingMessage(countdown) : 'Generating report...'}
+                      {activeTimer === reportType ? getLoadingMessage(countdown) : 'Generating comprehensive report...'}
                     </span>
                   </div>
+
+                  {/* Progress Bar */}
+                  {progress && (
+                    <div className="mb-2">
+                      <div className="flex justify-between text-sm text-blue-700 mb-1">
+                        <span>Progress: {progress.sectionsCompleted}/{progress.totalSections} parts complete</span>
+                        <span>{progress.progressPercentage}%</span>
+                      </div>
+                      <div className="w-full bg-blue-100 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${progress.progressPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timer Display */}
                   {activeTimer === reportType && (
-                    <p className="text-blue-700 text-sm mt-1">
+                    <p className="text-blue-700 text-sm">
                       {countdown > 0 ? (
                         <>Estimated time: <span className="font-mono font-bold">{formatCountdown(countdown)}</span></>
                       ) : (
@@ -326,19 +373,25 @@ export default function HolisticReportView({
                       )}
                     </p>
                   )}
-                </div>
-              )}
 
-              {/* Generation Status - Fallback if timer not active */}
-              {status?.status === 'generating' && !activeTimer && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-blue-600 animate-spin" />
-                    <span className="text-blue-800 font-medium">Generating report...</span>
-                  </div>
-                  <p className="text-blue-700 text-sm mt-1">
-                    This may take a few moments. Please wait.
-                  </p>
+                  {/* Section Details */}
+                  {progress?.sections && progress.sections.length > 0 && (
+                    <div className="mt-3 text-xs">
+                      <div className="grid grid-cols-2 gap-1">
+                        {progress.sections.map((section, index) => (
+                          <div key={section.id} className="flex items-center gap-1">
+                            <div className={`w-2 h-2 rounded-full ${
+                              section.status === 'completed' ? 'bg-green-500' :
+                              section.status === 'generating' ? 'bg-blue-500 animate-pulse' :
+                              section.status === 'failed' ? 'bg-red-500' :
+                              'bg-gray-300'
+                            }`} />
+                            <span className="text-blue-600 truncate">{section.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -350,8 +403,13 @@ export default function HolisticReportView({
                     <span className="text-red-800 font-medium">Generation failed</span>
                   </div>
                   <p className="text-red-700 text-sm mt-1">
-                    {status?.errorMessage || 'An error occurred while generating the report.'}
+                    {progress?.sections?.find(s => s.status === 'failed')?.errorMessage || 'An error occurred while generating the report.'}
                   </p>
+                  {progress?.sectionsFailed && progress.sectionsFailed > 0 && (
+                    <p className="text-red-600 text-xs mt-1">
+                      {progress.sectionsFailed} of {progress.totalSections} parts failed
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -376,17 +434,20 @@ export default function HolisticReportView({
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <span className="text-green-800 font-medium">Report ready!</span>
                   </div>
-                  {status?.generatedAt && (
+                  <p className="text-green-700 text-sm mt-1">
+                    All {progress?.totalSections || 6} parts completed successfully
+                  </p>
+                  {progress?.completedAt && (
                     <p className="text-green-700 text-sm mt-1">
-                      Generated on {new Date(status.generatedAt).toLocaleDateString('en-US', {
+                      Generated on {new Date(progress.completedAt).toLocaleDateString('en-US', {
                         timeZone: 'America/Los_Angeles',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                      })} at {new Date(status.generatedAt).toLocaleTimeString('en-US', { 
+                      })} at {new Date(progress.completedAt).toLocaleTimeString('en-US', {
                         timeZone: 'America/Los_Angeles',
-                        hour: '2-digit', 
-                        minute: '2-digit', 
+                        hour: '2-digit',
+                        minute: '2-digit',
                         hour12: true,
                         timeZoneName: 'short'
                       })}
@@ -437,8 +498,8 @@ export default function HolisticReportView({
                   </Button>
                 )}
 
-                {/* Show View button when completed OR when reportUrl exists */}
-                {(isCompleted || (status?.htmlUrl && !isDisabledDueToMaintenance)) && (
+                {/* Show View button when completed */}
+                {(isCompleted && !isDisabledDueToMaintenance) && (
                   <>
                     <Button
                       onClick={() => handleViewHtmlReport(reportType)}
@@ -503,8 +564,7 @@ export default function HolisticReportView({
     shouldShowButton: user?.isBetaTester || user?.role === 'admin',
     hasViewedReport,
     canGiveFeedback,
-    standardCompleted: standardStatus?.status === 'completed',
-    personalCompleted: personalStatus?.status === 'completed'
+    personalCompleted: personalProgress?.overallStatus === 'completed'
   });
 
   return (
@@ -641,9 +701,9 @@ export default function HolisticReportView({
                   Thank you {user?.name?.split(' ')[0] || 'participant'} for beta testing AllStarTeams!
                 </h3>
                 <p className="text-purple-800 text-sm">
-                  {canGiveFeedback 
+                  {canGiveFeedback
                     ? "Thank you for completing your workshop! We'd love to hear about your experience with AllStarTeams."
-                    : "Final feedback will be enabled when you generate and view one or both of your reports below. After reviewing your Professional and/or Personal insights, you'll be able to share your complete workshop experience with us."
+                    : "Final feedback will be enabled when you generate and view your report below. After reviewing your comprehensive insights, you'll be able to share your complete workshop experience with us."
                   }
                 </p>
               </div>
@@ -668,27 +728,19 @@ export default function HolisticReportView({
 
 
 
-      {/* Report Generation Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {renderReportCard(
-          'standard',
-          'Professional Report',
-          'This report is written for sharing and is scrubbed of direct reflection quotes and your future-looking statements. It is written about you, not to you.',
-          standardStatus,
-          standardLoading
-        )}
-
+      {/* Report Generation Card - Personal Report Only */}
+      <div className="max-w-4xl mx-auto">
         {renderReportCard(
           'personal',
-          'Comprehensive Report',
-          'This report uses your strengths and flow assessments plus your personal reflections, challenges, well-being factors, and private growth insights.',
-          personalStatus,
+          'Your Comprehensive Development Report',
+          'This enhanced report includes your Star Card, visual charts, and comprehensive personal development insights from your complete AllStarTeams workshop experience.',
+          personalProgress,
           personalLoading
         )}
       </div>
 
       {/* Next Steps */}
-      {(standardStatus?.status === 'completed' || personalStatus?.status === 'completed') && (
+      {personalProgress?.overallStatus === 'completed' && (
         <Card className="mt-8 bg-green-50 border-green-200">
           <CardHeader>
             <CardTitle className="text-green-900">🎉 Congratulations!</CardTitle>
