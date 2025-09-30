@@ -871,6 +871,7 @@ class UserManagementService {
         workshopStepData: 0,
         photos: 0,
         holisticReports: 0,
+        sectionalReports: 0,
         holisticReportFiles: 0
       };
 
@@ -996,6 +997,15 @@ class UserManagementService {
         console.log(`No holistic reports found for user ${userId}`);
       }
 
+      // 11. Delete sectional report sections (critical for canGenerate logic)
+      try {
+        const sectionalResult = await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
+        deletedData.sectionalReports = sectionalResult.length || 0;
+        console.log(`Deleted ${deletedData.sectionalReports} sectional report sections for user ${userId}`);
+      } catch (error) {
+        console.log(`No sectional report sections found for user ${userId}`);
+      }
+
       // 10. Delete holistic report PDF files from /uploads
       try {
         const fs = await import('fs');
@@ -1021,14 +1031,15 @@ class UserManagementService {
         console.error(`Error deleting holistic report files for user ${userId}:`, error);
       }
 
-      const totalRecordsDeleted = deletedData.userAssessments + 
-        deletedData.navigationProgressTable + 
-        deletedData.workshopParticipation + 
-        deletedData.growthPlans + 
-        deletedData.finalReflections + 
-        deletedData.discernmentProgress + 
+      const totalRecordsDeleted = deletedData.userAssessments +
+        deletedData.navigationProgressTable +
+        deletedData.workshopParticipation +
+        deletedData.growthPlans +
+        deletedData.finalReflections +
+        deletedData.discernmentProgress +
         deletedData.workshopStepData +
         deletedData.holisticReports +
+        deletedData.sectionalReports +
         deletedData.holisticReportFiles;
 
       console.log(`Completed data deletion for user ${userId}:`, deletedData);
@@ -1066,6 +1077,16 @@ class UserManagementService {
         console.log(`Deleted ${deletedCount} holistic report DB records for user ${userId}`);
       } catch (error) {
         console.log(`No holistic reports found for user ${userId}`);
+      }
+
+      // Delete sectional report sections (critical for canGenerate logic)
+      try {
+        const sectionalResult = await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
+        const sectionalDeletedCount = sectionalResult.length || 0;
+        console.log(`Deleted ${sectionalDeletedCount} sectional report sections for user ${userId}`);
+        deletedCount += sectionalDeletedCount;
+      } catch (error) {
+        console.log(`No sectional report sections found for user ${userId}`);
       }
 
       // Delete holistic report PDF files from /uploads

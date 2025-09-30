@@ -88,6 +88,7 @@ interface CoachingRequestData {
   sessionId?: string;
   maxTokens?: number;
   stepId?: string;
+  exportData?: any; // For sectional reports with structured user data
 }
 
 /**
@@ -1062,7 +1063,7 @@ export async function createAstReportFromExport(
  * Generate coaching response using OpenAI API
  */
 export async function generateOpenAICoachingResponse(requestData: CoachingRequestData): Promise<string> {
-  const { userMessage, personaType, userName, contextData, userId, sessionId, maxTokens = 800, stepId } = requestData;
+  const { userMessage, personaType, userName, contextData, userId, sessionId, maxTokens = 800, stepId, exportData } = requestData;
 
   try {
     console.log(`🤖 Generating OpenAI response for persona: ${personaType}, user: ${userName}`);
@@ -1087,8 +1088,10 @@ export async function generateOpenAICoachingResponse(requestData: CoachingReques
           }
 
           // Use new clean AST report generation
+          // Use exportData if provided (for sectional reports), otherwise fall back to contextData.userData
+          const userData = exportData || contextData.userData;
           const report = await createAstReportFromExport(
-            contextData.userData,
+            userData,
             assistantConfig.id,
             reportType
           );
