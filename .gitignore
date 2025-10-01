@@ -41,6 +41,9 @@ codex_auth0_migration_kit_*/
 public/version.json
 client/public/version.json
 
+# Performance tracking (build artifacts)
+docs/performance-tracking/bundle-size-history.json
+
 # Development logs and debugging
 *.log
 debug-*.ts
