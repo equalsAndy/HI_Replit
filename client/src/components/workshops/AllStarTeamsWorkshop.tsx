@@ -635,7 +635,7 @@ export default function AllStarTeamsWorkshop() {
       // Check if the entire module is accessible
       const moduleAccessible = isModuleAccessible('ast', module);
 
-      console.log(`🔓 Step ${stepId} (Module ${module}) accessibility check: moduleAccessible=${moduleAccessible}`);
+      // console.log(`🔓 Step ${stepId} (Module ${module}) accessibility check: moduleAccessible=${moduleAccessible}`);
 
       if (!moduleAccessible) {
         return false;

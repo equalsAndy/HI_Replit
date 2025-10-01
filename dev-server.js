@@ -19,6 +19,7 @@ import auth0Routes from './server/routes/auth0-routes.js';
 import feedbackRoutes from './server/routes/feedback-routes.js';
 import betaTesterRoutes from './server/routes/beta-tester-routes.js';
 import betaTesterNotesRoutes from './server/routes/beta-tester-notes-routes.js';
+import astSectionalReportRoutes from './server/routes/ast-sectional-reports-routes.ts';
 import { initializeDatabase } from './server/db.js';
 import { db } from './server/db.js';
 import path from 'path';
@@ -116,6 +117,7 @@ async function startDevServer() {
   app.use('/api', router);
   app.use('/api/reports', reportRoutes);
   app.use('/api/reports/holistic', holisticReportRoutes);
+  app.use('/api/ast-sectional-reports', astSectionalReportRoutes);
   app.use('/api/admin', upload.single('file'), adminUploadRoutes);
   app.use('/api/discernment', discernmentRoutes);
   // Auth routes

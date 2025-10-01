@@ -75,6 +75,42 @@ export default function HolisticReportView({
   const [countdown, setCountdown] = useState<number>(0);
   const [activeTimer, setActiveTimer] = useState<'standard' | 'personal' | null>(null);
 
+  // React Query hooks must be declared BEFORE useEffect hooks that depend on them
+  const queryClient = useQueryClient();
+  const { data: user } = useCurrentUser();
+
+  // Fetch progress for personal report using sectional system
+  const { data: personalProgress, isLoading: personalLoading } = useQuery<SectionalProgress>({
+    queryKey: [`/api/ast-sectional-reports/progress/${user?.id}/ast_personal`],
+    queryFn: async () => {
+      if (!user?.id) throw new Error('User ID not available');
+      const response = await fetch(`/api/ast-sectional-reports/progress/${user.id}/ast_personal`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        // If sectional report doesn't exist, return default state
+        if (response.status === 404) {
+          return {
+            overallStatus: 'pending' as const,
+            progressPercentage: 0,
+            sectionsCompleted: 0,
+            sectionsFailed: 0,
+            totalSections: 6,
+            sections: []
+          };
+        }
+        throw new Error('Failed to fetch progress');
+      }
+      const data = await response.json();
+      return data.progress;
+    },
+    enabled: !!user?.id,
+    refetchInterval: (data) => {
+      // Poll every 3 seconds if generating or in progress
+      return (data?.overallStatus === 'in_progress' || data?.overallStatus === 'generating') ? 3000 : false;
+    },
+  });
+
   // Countdown timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -149,40 +185,6 @@ export default function HolisticReportView({
 
     return rotatingMessages[messageIndex];
   };
-  const queryClient = useQueryClient();
-  const { data: user } = useCurrentUser();
-
-  // Fetch progress for personal report using sectional system
-  const { data: personalProgress, isLoading: personalLoading } = useQuery<SectionalProgress>({
-    queryKey: [`/api/ast-sectional-reports/progress/${user?.id}/ast_personal`],
-    queryFn: async () => {
-      if (!user?.id) throw new Error('User ID not available');
-      const response = await fetch(`/api/ast-sectional-reports/progress/${user.id}/ast_personal`, {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        // If sectional report doesn't exist, return default state
-        if (response.status === 404) {
-          return {
-            overallStatus: 'pending' as const,
-            progressPercentage: 0,
-            sectionsCompleted: 0,
-            sectionsFailed: 0,
-            totalSections: 6,
-            sections: []
-          };
-        }
-        throw new Error('Failed to fetch progress');
-      }
-      const data = await response.json();
-      return data.progress;
-    },
-    enabled: !!user?.id,
-    refetchInterval: (data) => {
-      // Poll every 3 seconds if generating or in progress
-      return (data?.overallStatus === 'in_progress' || data?.overallStatus === 'generating') ? 3000 : false;
-    },
-  });
 
   // Generate report mutation using sectional system
   const generateReportMutation = useMutation({
@@ -225,6 +227,21 @@ export default function HolisticReportView({
     onError: (error) => {
       console.error('❌ Sectional report generation failed:', error);
     },
+  });
+
+  // Auto health check every 30 seconds when reports are disabled
+  const { data: healthStatus } = useQuery({
+    queryKey: ['report-health-check'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/reports/health-check', {
+        credentials: 'include'
+      });
+      if (!response.ok) return { isWorking: false, hasRealData: false };
+      return response.json();
+    },
+    enabled: !isFeatureEnabled('holisticReportsWorking'), // Only run when reports are disabled
+    refetchInterval: 30000, // Check every 30 seconds
+    staleTime: 25000
   });
 
   const handleGenerateReport = (reportType: 'standard' | 'personal') => {
@@ -289,16 +306,16 @@ export default function HolisticReportView({
   const showMaintenanceWarning = !reportsWorking;
 
   // Debug logging for beta tester detection
-  console.log('🔍 HolisticReportView - User data:', {
-    userId: user?.id,
-    username: user?.username,
-    isBetaTester: user?.isBetaTester,
-    role: user?.role,
-    hasViewedReport,
-    canGiveFeedback,
-    personalProgress: personalProgress?.overallStatus,
-    shouldShowButton: user?.isBetaTester || user?.role === 'admin'
-  });
+  // console.log('🔍 HolisticReportView - User data:', {
+  //   userId: user?.id,
+  //   username: user?.username,
+  //   isBetaTester: user?.isBetaTester,
+  //   role: user?.role,
+  //   hasViewedReport,
+  //   canGiveFeedback,
+  //   personalProgress: personalProgress?.overallStatus,
+  //   shouldShowButton: user?.isBetaTester || user?.role === 'admin'
+  // });
 
   const renderReportCard = (
     reportType: 'standard' | 'personal',
@@ -314,6 +331,16 @@ export default function HolisticReportView({
     const isFailed = progress?.overallStatus === 'failed';
     const isInProgress = progress?.overallStatus === 'in_progress';
     const isDisabledDueToMaintenance = !reportsWorking;
+
+    // Debug logging for button visibility
+    console.log(`🔍 ${reportType} Button Conditions:`, {
+      progress: progress?.overallStatus,
+      reportsWorking,
+      isActivelyGenerating,
+      canGenerate,
+      isDisabledDueToMaintenance,
+      buttonWillShow: canGenerate || isDisabledDueToMaintenance
+    });
 
     return (
       <Card className={`transition-all duration-200 ${isCompleted ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
@@ -528,21 +555,6 @@ export default function HolisticReportView({
     });
   };
 
-  // Auto health check every 30 seconds when reports are disabled
-  const { data: healthStatus } = useQuery({
-    queryKey: ['report-health-check'],
-    queryFn: async () => {
-      const response = await fetch('/api/admin/reports/health-check', {
-        credentials: 'include'
-      });
-      if (!response.ok) return { isWorking: false, hasRealData: false };
-      return response.json();
-    },
-    enabled: !reportsWorking, // Only run when reports are disabled
-    refetchInterval: 30000, // Check every 30 seconds
-    staleTime: 25000
-  });
-
   // Auto-enable reports if health check passes
   React.useEffect(() => {
     if (!reportsWorking && healthStatus?.isWorking && healthStatus?.hasRealData) {
@@ -556,16 +568,16 @@ export default function HolisticReportView({
   }, [reportsWorking, healthStatus]);
 
   // Force debug log every render
-  console.log('🔍 HolisticReportView RENDERING - Beta button should show:', {
-    userExists: !!user,
-    userId: user?.id,
-    isBetaTester: user?.isBetaTester,
-    role: user?.role,
-    shouldShowButton: user?.isBetaTester || user?.role === 'admin',
-    hasViewedReport,
-    canGiveFeedback,
-    personalCompleted: personalProgress?.overallStatus === 'completed'
-  });
+  // console.log('🔍 HolisticReportView RENDERING - Beta button should show:', {
+  //   userExists: !!user,
+  //   userId: user?.id,
+  //   isBetaTester: user?.isBetaTester,
+  //   role: user?.role,
+  //   shouldShowButton: user?.isBetaTester || user?.role === 'admin',
+  //   hasViewedReport,
+  //   canGiveFeedback,
+  //   personalCompleted: personalProgress?.overallStatus === 'completed'
+  // });
 
   return (
     <>
