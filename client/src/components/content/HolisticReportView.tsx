@@ -107,15 +107,21 @@ export default function HolisticReportView({
     enabled: !!user?.id,
     refetchInterval: (data) => {
       // Poll every 3 seconds if generating or in progress
-      return (data?.overallStatus === 'in_progress' || data?.overallStatus === 'generating') ? 3000 : false;
+      // Continue polling every 5 seconds during overtime to catch completion
+      if (data?.overallStatus === 'in_progress' || data?.overallStatus === 'generating') {
+        return 3000; // Poll every 3 seconds during active generation
+      }
+      // Continue polling for an additional 5 minutes after expected completion to catch delayed results
+      return activeTimer ? 5000 : false; // Poll every 5 seconds during overtime
     },
+    staleTime: 1000, // Consider data stale after 1 second for real-time updates
   });
 
-  // Countdown timer effect
+  // Countdown timer effect (continues counting up in overtime)
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (countdown > 0) {
+    if (activeTimer && (countdown > 0 || countdown <= 0)) {
       interval = setInterval(() => {
         setCountdown(prev => prev - 1);
       }, 1000);
@@ -124,7 +130,7 @@ export default function HolisticReportView({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [countdown]);
+  }, [countdown, activeTimer]);
 
   // Clear timer when generation is complete
   useEffect(() => {
@@ -165,14 +171,23 @@ export default function HolisticReportView({
   ];
 
   const getLoadingMessage = (countdown: number) => {
-    // Special message if we go over time
+    // Special overtime messages when we go over time
     if (countdown <= 0) {
-      return "I'm collecting overtime now...";
+      const overtimeMessages = [
+        "I'm collecting overtime now...",
+        "Walking down the hall to AI's office...",
+        "Banging my virtual head on my virtual desk..."
+      ];
+
+      // Cycle through overtime messages every 8 seconds
+      const overtimeSeconds = Math.abs(countdown);
+      const messageIndex = Math.floor(overtimeSeconds / 8) % overtimeMessages.length;
+      return overtimeMessages[messageIndex];
     }
 
     // Create a pseudo-random but consistent message based on elapsed time
     // Changes every 6 seconds
-    const elapsedTime = 75 - countdown;
+    const elapsedTime = 210 - countdown;
     const changeInterval = 6;
     const seed = Math.floor(elapsedTime / changeInterval);
 
@@ -246,8 +261,8 @@ export default function HolisticReportView({
 
   const handleGenerateReport = (reportType: 'standard' | 'personal') => {
     console.log(`🚀 Generating ${reportType} sectional report`);
-    // Start countdown timer (180 seconds for sectional generation)
-    setCountdown(180);
+    // Start countdown timer (210 seconds for sectional generation)
+    setCountdown(210);
     setActiveTimer(reportType);
     generateReportMutation.mutate(reportType);
   };
@@ -325,7 +340,7 @@ export default function HolisticReportView({
     isLoading: boolean
   ) => {
     const isGenerating = generateReportMutation.isPending && generateReportMutation.variables === reportType;
-    const isActivelyGenerating = activeTimer === reportType && countdown > 0;
+    const isActivelyGenerating = activeTimer === reportType; // Remove countdown dependency to continue showing progress in overtime
     const canGenerate = (!progress || progress.overallStatus === 'pending' || progress.overallStatus === 'failed') && reportsWorking && !isActivelyGenerating;
     const isCompleted = progress?.overallStatus === 'completed';
     const isFailed = progress?.overallStatus === 'failed';
@@ -365,7 +380,7 @@ export default function HolisticReportView({
           ) : (
             <div className="space-y-3">
               {/* Progress Display for Sectional Generation */}
-              {(isInProgress || (activeTimer === reportType && countdown > 0)) && (
+              {(isInProgress || (activeTimer === reportType)) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 transition-opacity duration-200">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-blue-600 animate-spin" />
@@ -537,6 +552,18 @@ export default function HolisticReportView({
                       View Report
                     </Button>
                   </>
+                )}
+
+                {/* Fallback button when neither generate nor view are available */}
+                {(!canGenerate && !isDisabledDueToMaintenance && !isCompleted && !isActivelyGenerating) && (
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                    className="border-gray-200 hover:bg-gray-50 text-gray-700"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Check Status
+                  </Button>
                 )}
               </div>
             </div>
@@ -744,7 +771,7 @@ export default function HolisticReportView({
       <div className="max-w-4xl mx-auto">
         {renderReportCard(
           'personal',
-          'Your Comprehensive Development Report',
+          'Your Report',
           'This enhanced report includes your Star Card, visual charts, and comprehensive personal development insights from your complete AllStarTeams workshop experience.',
           personalProgress,
           personalLoading

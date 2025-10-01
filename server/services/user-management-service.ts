@@ -1060,71 +1060,37 @@ class UserManagementService {
   }
 
   /**
-   * Reset user holistic reports only (allows regeneration)
+   * Reset user sectional reports only (allows regeneration)
    */
   async resetUserHolisticReports(userId: number) {
     try {
-      console.log(`Starting holistic report reset for user ${userId}`);
+      console.log(`Starting sectional report reset for user ${userId}`);
 
       const { sql } = await import('drizzle-orm');
 
       let deletedCount = 0;
 
-      // Delete holistic report DB records
-      try {
-        const holisticResult = await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
-        deletedCount = holisticResult.length || 0;
-        console.log(`Deleted ${deletedCount} holistic report DB records for user ${userId}`);
-      } catch (error) {
-        console.log(`No holistic reports found for user ${userId}`);
-      }
-
       // Delete sectional report sections (critical for canGenerate logic)
       try {
         const sectionalResult = await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
-        const sectionalDeletedCount = sectionalResult.length || 0;
-        console.log(`Deleted ${sectionalDeletedCount} sectional report sections for user ${userId}`);
-        deletedCount += sectionalDeletedCount;
+        deletedCount = sectionalResult.length || 0;
+        console.log(`Deleted ${deletedCount} sectional report sections for user ${userId}`);
       } catch (error) {
         console.log(`No sectional report sections found for user ${userId}`);
       }
 
-      // Delete holistic report PDF files from /uploads
-      try {
-        const fs = await import('fs');
-        const path = await import('path');
-        const uploadsDir = path.resolve(process.cwd(), 'uploads');
-        const files = fs.readdirSync(uploadsDir);
-        const userPattern = new RegExp(`HI-Report-.*${userId}.*\\.pdf$`);
-        let deletedFiles = 0;
-        for (const file of files) {
-          if (userPattern.test(file)) {
-            try {
-              fs.unlinkSync(path.join(uploadsDir, file));
-              deletedFiles++;
-              console.log(`Deleted holistic report file: ${file}`);
-            } catch (err) {
-              console.error(`Error deleting file ${file}:`, err);
-            }
-          }
-        }
-        console.log(`Deleted ${deletedFiles} holistic report PDF files for user ${userId}`);
-      } catch (error) {
-        console.error(`Error deleting holistic report files for user ${userId}:`, error);
-      }
-
-      console.log(`Completed holistic report reset for user ${userId}: ${deletedCount} DB records deleted`);
+      console.log(`Completed sectional report reset for user ${userId}: ${deletedCount} DB records deleted`);
 
       return {
         success: true,
-        message: 'User holistic reports reset successfully',
+        message: 'User sectional reports reset successfully',
         deletedCount
       };
     } catch (error) {
-      console.error('Error resetting user holistic reports:', error);
+      console.error('Error resetting user sectional reports:', error);
       return {
         success: false,
-        error: 'Failed to reset user holistic reports: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
+        error: 'Failed to reset user sectional reports: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
       };
     }
   }
