@@ -266,6 +266,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   // Helper function to convert step IDs to content keys used in the app
   const getContentKeyFromStepId = (sectionId: string, stepId: string) => {
     // Updated content key mapping for 5-Module Structure - matches AllStarTeamsWorkshop.tsx
+    // CRITICAL: These mappings MUST match the navigationSequence in AllStarTeamsWorkshop.tsx
     const contentKeyMap: Record<string, string> = {
       // MODULE 1: GETTING STARTED
       '1-1': 'welcome',
@@ -275,12 +276,12 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       // MODULE 2: STRENGTH AND FLOW  
       '2-1': 'star-strengths-assessment',
       '2-2': 'flow-patterns',
-      '2-3': 'future-self',
+      '2-3': 'rounding-out',        // FIXED: Step 2-3 → rounding-out (FlowRoundingOutView)
       '2-4': 'module-2-recap',
 
       // MODULE 3: VISUALIZE YOUR POTENTIAL
       '3-1': 'wellbeing-ladder',
-      '3-2': 'rounding-out', 
+      '3-2': 'future-self',         // FIXED: Step 3-2 → future-self (ProtectedFutureSelfView)
       '3-3': 'final-reflection',
       '3-4': 'finish-workshop',
 
