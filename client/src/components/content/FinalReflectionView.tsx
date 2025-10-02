@@ -83,12 +83,15 @@ export default function FinalReflectionView({
     typeof existingData.data.futureLetterText === 'string' ? existingData.data.futureLetterText : '';
 
   useEffect(() => {
-    if (existingData && typeof existingData === 'object' && 'success' in existingData && 
-        existingData.success && 'data' in existingData && existingData.data && 
+    if (existingData && typeof existingData === 'object' && 'success' in existingData &&
+        existingData.success && 'data' in existingData && existingData.data &&
         typeof existingData.data === 'object' && 'futureLetterText' in existingData.data &&
         existingData.data.futureLetterText) {
       // Always set the insight from saved data when available
       setInsight(String(existingData.data.futureLetterText));
+    } else {
+      // Set default prefix text if no existing data
+      setInsight('The intention I want to carry forward is ');
     }
   }, [existingData]);
 
@@ -164,20 +167,24 @@ export default function FinalReflectionView({
   const handleInsightChange = (value: string) => {
     setInsight(value);
     // Clear validation error when user starts typing
-    if (validationError && value.trim().length >= 10) {
+    const prefix = "The intention I want to carry forward is ";
+    const contentLength = value.startsWith(prefix) ? value.slice(prefix.length).trim().length : value.trim().length;
+    if (validationError && contentLength >= 25) {
       setValidationError('');
     }
     // Removed auto-save - data will only save when user clicks "Complete Your Journey"
   };
 
   const handleComplete = async () => {
-    // Validate input before proceeding
-    const error = validateTextInput(insight, 'insight', 10);
-    if (error) {
-      setValidationError(error.message);
+    // Validate input before proceeding - check content after prefix
+    const prefix = 'The intention I want to carry forward is ';
+    const contentAfterPrefix = insight.startsWith(prefix) ? insight.slice(prefix.length).trim() : insight.trim();
+
+    if (contentAfterPrefix.length < 25) {
+      setValidationError('Please write at least 25 characters describing your intention');
       return;
     }
-    
+
     // Clear any previous validation errors
     setValidationError('');
     
@@ -306,13 +313,18 @@ export default function FinalReflectionView({
           {/* Bottom Section: Reflection */}
           <div className="reflection-section">
             <div className="reflection-header">
-              <h2 className="section-title">What's the one insight you want to carry forward?</h2>
-              <p className="intro-text">
-                You've just completed a journey of personal discovery. From understanding your core strengths to envisioning your future potential, each step revealed something valuable about who you are.
-              </p>
-              <p className="intro-text">
-                Now, distill this experience into one clear insight that will guide you forward—something you want to remember as you move into team collaboration.
-              </p>
+              <h2 className="section-title">Your Final Reflection</h2>
+              <div className="intention-card">
+                <h3 className="intention-card-title">Capture an Intention</h3>
+                <p className="intention-card-text">
+                  End this step by choosing one clear intention to carry forward. This becomes the bridge between your vision and your next steps.
+                </p>
+                <ul className="intention-card-list">
+                  <li>Write one sentence that captures your most important takeaway</li>
+                  <li>Begin with: <strong>"The intention I want to carry forward is…"</strong></li>
+                  <li>Keep it short, specific, and meaningful to you</li>
+                </ul>
+              </div>
             </div>
             
             <div className="input-section">
@@ -322,7 +334,7 @@ export default function FinalReflectionView({
                     className={`insight-input ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
                     value={insight}
                     onChange={(e) => handleInsightChange(e.target.value)}
-                    placeholder="What I want to carry forward is..."
+                    placeholder=""
                     rows={4}
                   />
                 </LockedInputWrapper>
@@ -357,9 +369,17 @@ export default function FinalReflectionView({
                       </div>
                       
                       <button
-                        className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
+                        className={`continue-button ${(() => {
+                          const prefix = 'The intention I want to carry forward is ';
+                          const contentAfterPrefix = insight.startsWith(prefix) ? insight.slice(prefix.length).trim() : insight.trim();
+                          return contentAfterPrefix.length >= 25 ? 'enabled' : 'disabled';
+                        })()}`}
                         onClick={handleComplete}
-                        disabled={insight.length < 10}
+                        disabled={(() => {
+                          const prefix = 'The intention I want to carry forward is ';
+                          const contentAfterPrefix = insight.startsWith(prefix) ? insight.slice(prefix.length).trim() : insight.trim();
+                          return contentAfterPrefix.length < 25;
+                        })()}
                         data-continue-button="true"
                       >
                         Continue to Workshop Recap
@@ -528,6 +548,41 @@ export default function FinalReflectionView({
         .reflection-header {
           text-align: center;
           margin-bottom: 32px;
+        }
+
+        .intention-card {
+          background: #f8f3ff;
+          border: 2px solid #d8b4fe;
+          border-radius: 12px;
+          padding: 24px;
+          margin-top: 24px;
+          text-align: left;
+        }
+
+        .intention-card-title {
+          color: #7c3aed;
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-bottom: 16px;
+        }
+
+        .intention-card-text {
+          color: #6b21a8;
+          font-size: 1.1rem;
+          line-height: 1.6;
+          margin-bottom: 16px;
+        }
+
+        .intention-card-list {
+          color: #7c3aed;
+          font-size: 1rem;
+          line-height: 1.8;
+          margin-left: 20px;
+          list-style-type: disc;
+        }
+
+        .intention-card-list li {
+          margin-bottom: 8px;
         }
 
         .header-with-demo {

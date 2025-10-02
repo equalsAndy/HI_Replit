@@ -2,6 +2,7 @@ import React from 'react';
 import { ContentViewProps } from '../../../shared/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExternalLink, Play } from 'lucide-react';
+import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
 
 /**
  * AST-specific introduction to Imaginal Agility module.
@@ -10,6 +11,13 @@ const IntroIAView: React.FC<ContentViewProps> = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="text-center">
+        <div className="flex justify-center mb-6">
+          <img
+            src={imaginalAgilityLogo}
+            alt="Imaginal Agility"
+            className="h-24 w-auto"
+          />
+        </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Introduction to Imaginal Agility</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Discover the principles behind Imaginal Agility and how it can enhance your creative
@@ -28,7 +36,7 @@ const IntroIAView: React.FC<ContentViewProps> = () => {
           <div className="space-y-6">
             <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
               <iframe
-                src="https://www.youtube.com/embed/aGZKWzM-ZL8"
+                src="https://www.youtube.com/embed/CZ89trlNaK8"
                 title="Introduction to Imaginal Agility"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

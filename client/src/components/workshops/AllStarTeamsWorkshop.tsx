@@ -80,10 +80,10 @@ export default function AllStarTeamsWorkshop() {
   // Separate effect for app type detection to prevent setState during render
   useEffect(() => {
     // Detect current route and set app accordingly - be more specific about IA routes
+    // IMPORTANT: 'more-imaginal-agility' is an AST resource step (5-3), not IA workshop
     const isIARoute = location.includes('/imaginal-agility') ||
                       location.includes('/ia-') ||
-                      location.includes('imaginal') ||
-                      currentContent?.includes('imaginal');
+                      (currentContent?.includes('imaginal') && currentContent !== 'more-imaginal-agility');
 
     const currentAppType = isIARoute ? 'imaginal-agility' : 'allstarteams';
 
