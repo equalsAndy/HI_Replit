@@ -5,6 +5,8 @@
  * Extracted from legacy holistic-report-routes.ts and adapted for sectional reports.
  */
 
+import { rmlProcessor } from './rml-processor.js';
+
 export interface ReportSection {
   id: number;
   title: string;
@@ -16,6 +18,7 @@ export interface ReportMetadata {
   reportType: 'ast_personal' | 'ast_professional';
   generatedAt?: Date;
   subtitle?: string;
+  userId?: string;
 }
 
 export class HtmlTemplateService {
@@ -50,9 +53,22 @@ export class HtmlTemplateService {
   /**
    * Generate professional CSS framework
    * Extracted and adapted from legacy system
+   * Now includes RML component styles
    */
   generateCSS(): string {
+    // Import RML processor for component styles
+    let rmlCSS = '';
+    try {
+      rmlCSS = rmlProcessor.getCSS();
+      console.log('✅ RML CSS loaded successfully');
+    } catch (error) {
+      console.error('❌ Failed to load RML CSS:', error);
+      // Fallback: include basic RML styles inline
+      rmlCSS = this.getFallbackRMLCSS();
+    }
+
     return `
+      ${rmlCSS}
       <style>
           body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -90,9 +106,30 @@ export class HtmlTemplateService {
               margin: 0 0 10px 0;
           }
 
-          .participant-info p {
+          .participant-info .report-timestamp {
               margin: 5px 0;
               opacity: 0.9;
+              font-size: 1rem;
+              font-weight: 500;
+          }
+
+          .participant-info .report-subtitle {
+              margin: 5px 0;
+              opacity: 0.9;
+              font-style: italic;
+          }
+
+          .starcard-header {
+              text-align: center;
+              margin-top: 20px;
+          }
+
+          .header-starcard-img {
+              max-width: 60%;
+              height: auto;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(255,255,255,0.3);
+              border: 3px solid rgba(255,255,255,0.4);
           }
 
           .content-section {
@@ -422,22 +459,26 @@ export class HtmlTemplateService {
 
   private generateHeader(title: string, metadata: ReportMetadata): string {
     const generatedAt = metadata.generatedAt || new Date();
+    const staticTimestamp = generatedAt.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) + ' at ' + generatedAt.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
 
     return `
       <div class="header">
           <h1>${title}</h1>
           <div class="participant-info">
               <h2>${metadata.userName}</h2>
-              <p>Generated on ${generatedAt.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })} at ${generatedAt.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                timeZoneName: 'short'
-              })}</p>
-              ${metadata.subtitle ? `<p>${metadata.subtitle}</p>` : ''}
+              <p class="report-timestamp">${staticTimestamp}</p>
+              ${metadata.subtitle ? `<p class="report-subtitle">${metadata.subtitle}</p>` : ''}
+          </div>
+          <div class="starcard-header">
+              <img src="/api/star-card/${metadata.userId || 'current'}" alt="${metadata.userName}'s StarCard" class="header-starcard-img" />
           </div>
       </div>
     `;
@@ -486,6 +527,241 @@ export class HtmlTemplateService {
       default:
         return formattedContent;
     }
+  }
+
+  /**
+   * Fallback RML CSS for when the RML processor fails to load
+   */
+  private getFallbackRMLCSS(): string {
+    return `
+      <style>
+        /* Fallback RML Components Styles */
+        .rml-starcard {
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 20px;
+          background: white;
+          margin: 20px 0;
+        }
+
+        .rml-starcard-header h4 {
+          margin: 0 0 15px 0;
+          font-size: 1.25rem;
+          color: #1f2937;
+        }
+
+        .rml-strength-squares {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          gap: 12px;
+          margin: 20px 0;
+        }
+
+        .rml-square {
+          aspect-ratio: 1;
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .rml-square-label {
+          font-size: 0.875rem;
+          margin-bottom: 8px;
+        }
+
+        .rml-square-value {
+          font-size: 1.5rem;
+        }
+
+        .rml-pie-chart {
+          display: flex;
+          align-items: center;
+          gap: 30px;
+          margin: 20px 0;
+        }
+
+        .rml-pie-svg {
+          width: 200px;
+          height: 200px;
+        }
+
+        .rml-pie-legend {
+          flex: 1;
+        }
+
+        .rml-legend-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 8px 0;
+        }
+
+        .rml-legend-color {
+          width: 20px;
+          height: 20px;
+          border-radius: 4px;
+        }
+
+        .rml-legend-label {
+          flex: 1;
+          font-weight: 500;
+        }
+
+        .rml-legend-value {
+          font-weight: bold;
+          color: #6b7280;
+        }
+
+        .rml-imagination-circle {
+          display: inline-flex;
+          align-items: center;
+          margin: 5px 15px;
+          vertical-align: middle;
+        }
+
+        .rml-circle {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          box-shadow: 0 2px 6px rgba(138, 43, 226, 0.3);
+          flex-shrink: 0;
+        }
+
+        .rml-star-icon {
+          width: 20px;
+          height: 20px;
+          margin-bottom: 2px;
+        }
+
+        .rml-circle-label {
+          font-size: 0.5rem;
+          font-weight: bold;
+          text-align: center;
+          line-height: 1;
+        }
+
+        .rml-flow-conditions {
+          margin: 20px 0;
+        }
+
+        .rml-condition {
+          margin: 15px 0;
+        }
+
+        .rml-condition-label {
+          display: block;
+          font-weight: 500;
+          margin-bottom: 5px;
+          color: #374151;
+        }
+
+        .rml-condition-bar {
+          width: 100%;
+          height: 24px;
+          background: #e5e7eb;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+
+        .rml-condition-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #3b82f6, #2563eb);
+          transition: width 0.3s ease;
+        }
+
+        .rml-badge {
+          display: inline-block;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 0.875rem;
+        }
+
+        .rml-badge-category {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+
+        .rml-badge-attribute {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .rml-ladder {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin: 20px auto;
+          max-width: 300px;
+        }
+
+        .rml-ladder-rung {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          padding: 12px;
+          border: 2px solid #e5e7eb;
+          border-radius: 6px;
+          background: white;
+          transition: all 0.2s;
+        }
+
+        .rml-ladder-rung.rml-current {
+          background: #dbeafe;
+          border-color: #3b82f6;
+          font-weight: 600;
+        }
+
+        .rml-ladder-rung.rml-future {
+          background: #dcfce7;
+          border-color: #22c55e;
+          font-weight: 600;
+        }
+
+        .rml-rung-number {
+          font-size: 1.25rem;
+          font-weight: bold;
+          min-width: 30px;
+        }
+
+        .rml-rung-label {
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+
+        .rml-pattern-gallery,
+        .rml-unknown {
+          padding: 20px;
+          background: #f9fafb;
+          border: 1px dashed #d1d5db;
+          border-radius: 8px;
+          text-align: center;
+          color: #6b7280;
+          margin: 20px 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          .rml-pie-chart {
+            flex-direction: column;
+          }
+
+          .rml-strength-squares {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+      </style>
+    `;
   }
 }
 

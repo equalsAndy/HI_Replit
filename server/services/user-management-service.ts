@@ -1060,37 +1060,52 @@ class UserManagementService {
   }
 
   /**
-   * Reset user sectional reports only (allows regeneration)
+   * Reset user holistic reports (allows regeneration)
+   * Deletes both holistic_reports and report_sections to fully reset
    */
   async resetUserHolisticReports(userId: number) {
     try {
-      console.log(`Starting sectional report reset for user ${userId}`);
+      console.log(`🗑️ Starting report reset for user ${userId} (deletes all report data, preserves user assessments)`);
 
       const { sql } = await import('drizzle-orm');
 
-      let deletedCount = 0;
+      let deletedSections = 0;
+      let deletedReports = 0;
 
-      // Delete sectional report sections (critical for canGenerate logic)
+      // Delete sectional report sections (report_sections table)
       try {
         const sectionalResult = await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
-        deletedCount = sectionalResult.length || 0;
-        console.log(`Deleted ${deletedCount} sectional report sections for user ${userId}`);
+        deletedSections = sectionalResult.length || 0;
+        console.log(`✅ Deleted ${deletedSections} report section(s) from report_sections table`);
       } catch (error) {
-        console.log(`No sectional report sections found for user ${userId}`);
+        console.log(`ℹ️ No report sections found in report_sections table`);
       }
 
-      console.log(`Completed sectional report reset for user ${userId}: ${deletedCount} DB records deleted`);
+      // Delete final assembled reports (holistic_reports table)
+      try {
+        const reportsResult = await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+        deletedReports = reportsResult.length || 0;
+        console.log(`✅ Deleted ${deletedReports} final report(s) from holistic_reports table`);
+      } catch (error) {
+        console.log(`ℹ️ No final reports found in holistic_reports table`);
+      }
+
+      const totalDeleted = deletedSections + deletedReports;
+      console.log(`✅ Report reset complete for user ${userId}: ${totalDeleted} total records deleted (${deletedReports} final reports, ${deletedSections} sections)`);
+      console.log(`ℹ️ User assessments and workshop data preserved - user can regenerate reports`);
 
       return {
         success: true,
-        message: 'User sectional reports reset successfully',
-        deletedCount
+        message: 'User reports reset successfully',
+        deletedCount: totalDeleted,
+        deletedReports,
+        deletedSections
       };
     } catch (error) {
-      console.error('Error resetting user sectional reports:', error);
+      console.error('❌ Error resetting user reports:', error);
       return {
         success: false,
-        error: 'Failed to reset user sectional reports: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
+        error: 'Failed to reset user reports: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
       };
     }
   }
@@ -1207,22 +1222,48 @@ class UserManagementService {
   async deleteUser(userId: number) {
     try {
       console.log(`Starting complete user deletion for user ${userId}`);
-      
+
       // Import required modules
       const { eq } = await import('drizzle-orm');
       const { sql } = await import('drizzle-orm');
-      
+
+      // Get user's Auth0 ID before deletion
+      const userResult = await db.execute(sql`SELECT auth0_sub FROM users WHERE id = ${userId}`);
+      const auth0Sub = userResult[0]?.auth0_sub;
+
       // First delete all related data
       await this.deleteUserData(userId);
-      
-      // Then delete the user account itself
+
+      // Delete from Auth0 if user has Auth0 ID
+      if (auth0Sub) {
+        try {
+          const { deleteAuth0User } = await import('../src/auth0/management.js');
+          console.log(`Deleting Auth0 user: ${auth0Sub}`);
+          const auth0Response = await deleteAuth0User(auth0Sub);
+
+          if (!auth0Response.ok) {
+            const errorText = await auth0Response.text();
+            console.warn(`Auth0 deletion failed for ${auth0Sub}: ${errorText}`);
+            // Continue with local deletion even if Auth0 deletion fails
+          } else {
+            console.log(`Successfully deleted Auth0 user: ${auth0Sub}`);
+          }
+        } catch (auth0Error) {
+          console.warn(`Auth0 deletion error for ${auth0Sub}:`, auth0Error);
+          // Continue with local deletion even if Auth0 deletion fails
+        }
+      } else {
+        console.log(`No Auth0 ID found for user ${userId}, skipping Auth0 deletion`);
+      }
+
+      // Then delete the user account itself from local database
       try {
         await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
         console.log(`Deleted user account for user ${userId}`);
-        
+
         return {
           success: true,
-          message: 'User deleted successfully'
+          message: 'User deleted successfully from both Auth0 and local database'
         };
       } catch (error) {
         console.error(`Error deleting user account ${userId}:`, error);

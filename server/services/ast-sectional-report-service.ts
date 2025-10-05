@@ -9,6 +9,7 @@ import { Pool } from 'pg';
 import { astReportService } from './ast-report-service.js';
 import { generateOpenAICoachingResponse } from './openai-api-service.js';
 import { htmlTemplateService, type ReportSection, type ReportMetadata } from './html-template-service.js';
+import { rmlProcessor } from './rml-processor.js';
 
 // Database connection
 const pool = new Pool({
@@ -633,7 +634,13 @@ class ASTSectionalReportService {
       await openai.beta.threads.del(thread.id);
 
       console.log(`✅ Generated ${content.length} characters for section ${sectionDef.id}`);
-      return content;
+
+      // 🎨 Process content through RML system to render visual components
+      console.log('🎨 Processing content through RML system...');
+      const processedContent = rmlProcessor.processContent(content);
+      console.log(`✅ RML processing complete: ${content.length} → ${processedContent.length} characters`);
+
+      return processedContent;
 
     } catch (error) {
       console.error(`❌ Error generating section content directly:`, error);
@@ -748,49 +755,39 @@ class ASTSectionalReportService {
     userData: any
   ): string {
     const isPersonal = reportType === 'ast_personal';
-    const basePrompt = isPersonal ? sectionDef.personalPrompt : sectionDef.professionalPrompt;
 
-    // Analyze user's strengths constellation for context
-    const strengthsSignature = this.analyzeStrengthsConstellation(userData.starStrengths);
-    const flowCategory = this.categorizeFlowScore(userData.flowScore);
+    // Send only data as JSON - Assistant has its own instructions
+    const dataPayload = {
+      type: 'ast_sectional_report',
+      section_id: sectionDef.id,
+      section_name: sectionDef.name,
+      section_title: sectionDef.title,
+      report_type: isPersonal ? 'personal' : 'professional',
+      participant_name: userData.userName,
+      strengths: {
+        thinking: userData.starStrengths?.thinking || 0,
+        acting: userData.starStrengths?.acting || 0,
+        feeling: userData.starStrengths?.feeling || 0,
+        planning: userData.starStrengths?.planning || 0
+      },
+      flow: {
+        flowScore: userData.flowScore || 0,
+        triggers: userData.flowInsights?.triggers || '',
+        blockers: userData.flowInsights?.blockers || '',
+        conditions: userData.flowInsights?.conditions || '',
+        improvements: userData.flowInsights?.improvements || ''
+      },
+      reflections: userData.stepReflections || {},
+      wellbeing: {
+        current_level: userData.cantrilLadder?.currentLevel || 0,
+        future_level: userData.cantrilLadder?.futureLevel || 0,
+        current_factors: userData.cantrilLadder?.currentFactors || '',
+        future_improvements: userData.cantrilLadder?.futureImprovements || '',
+        specific_changes: userData.cantrilLadder?.specificChanges || ''
+      }
+    };
 
-    return `You are Talia, an expert AI life coach specializing in the AllStarTeams (AST) methodology.
-
-${basePrompt}
-
-USER DATA:
-Name: ${userData.userName}
-Strengths Distribution: ${strengthsSignature.percentages}
-Constellation Archetype: ${strengthsSignature.name} (${strengthsSignature.pattern})
-Flow Score: ${userData.flowScore} (${flowCategory})
-
-SPECIFIC USER REFLECTIONS:
-${Object.entries(userData.stepReflections).map(([step, reflection]) =>
-  `${step}: "${reflection}"`).join('\n')}
-
-WELL-BEING DATA:
-Current Level: ${userData.cantrilLadder.currentLevel}/10
-Future Level: ${userData.cantrilLadder.futureLevel}/10
-Current Factors: ${userData.cantrilLadder.currentFactors}
-Future Improvements: ${userData.cantrilLadder.futureImprovements}
-Specific Changes: ${userData.cantrilLadder.specificChanges}
-
-FLOW INSIGHTS:
-Triggers: ${userData.flowInsights.triggers}
-Blockers: ${userData.flowInsights.blockers}
-Conditions: ${userData.flowInsights.conditions}
-Improvements: ${userData.flowInsights.improvements}
-
-CRITICAL REQUIREMENTS:
-- Use their exact name (${userData.userName}) throughout
-- Reference their specific percentages and reflections
-- Maintain Talia's warm, encouraging coaching voice
-- Quote their reflections directly in quotation marks
-- Focus specifically on the ${sectionDef.title} section content
-- Match the expected word count and tone for this section
-- Build naturally on previous sections if this is part of a larger report
-
-Generate ONLY the content for the ${sectionDef.title} section.`;
+    return JSON.stringify(dataPayload, null, 2);
   }
 
   private async updateSectionStatus(
@@ -932,7 +929,8 @@ Generate ONLY the content for the ${sectionDef.title} section.`;
         generatedAt: new Date(),
         subtitle: reportType === 'ast_personal'
           ? 'Personal Development Insights'
-          : 'Professional Profile Analysis'
+          : 'Professional Profile Analysis',
+        userId: userId
       };
 
       // Generate professional HTML using template service
