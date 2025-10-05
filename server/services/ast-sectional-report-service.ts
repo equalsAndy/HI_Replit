@@ -358,13 +358,15 @@ class ASTSectionalReportService {
       // Generate content via OpenAI directly (simplified approach)
       console.log(`🎯 Generating section content directly via OpenAI for section ${sectionId}`);
 
-      const response = await this.generateSectionContentDirectly(prompt, userData, sectionDef);
+      const rawContent = await this.generateSectionContentDirectly(prompt, userData, sectionDef);
 
-      // Save section content
-      await this.saveSectionContent(userId, reportType, sectionId, sectionDef.title, response);
+      // Save raw content only (no processed content yet - that happens at viewing time)
+      // Pass rawContent as both parameters to maintain section_content for backwards compatibility
+      // The saveSectionContent method will store raw_content and set section_content to the same value
+      await this.saveSectionContent(userId, reportType, sectionId, sectionDef.title, rawContent);
 
-      console.log(`✅ Section ${sectionId} generated successfully for user ${userId}`);
-      return { success: true, content: response };
+      console.log(`✅ Section ${sectionId} generated and raw content saved for user ${userId}`);
+      return { success: true, content: rawContent };
 
     } catch (error) {
       console.error(`❌ Error generating section ${sectionId} for user ${userId}:`, error);
@@ -514,15 +516,28 @@ class ASTSectionalReportService {
         };
       }
 
-      // Get all sections
+      // Get all sections with raw content for RML processing
       const sectionsResult = await pool.query(`
-        SELECT section_id, section_title, section_content
+        SELECT section_id, section_title, section_content, raw_content
         FROM report_sections
         WHERE user_id = $1 AND report_type = $2 AND status = 'completed'
         ORDER BY section_id
       `, [userId, reportType]);
 
-      const sections = sectionsResult.rows;
+      // Process sections: Use raw_content if available, otherwise fall back to section_content
+      // Then process through RML to render visual components
+      console.log(`🎨 Processing ${sectionsResult.rows.length} sections through RML system...`);
+      const sections = sectionsResult.rows.map(row => {
+        const contentToProcess = row.raw_content || row.section_content;
+        const processedContent = rmlProcessor.processContent(contentToProcess);
+
+        return {
+          section_id: row.section_id,
+          section_title: row.section_title,
+          section_content: processedContent
+        };
+      });
+      console.log(`✅ RML processing complete for all sections`);
 
       if (format === 'json') {
         return {
@@ -633,14 +648,14 @@ class ASTSectionalReportService {
       // Clean up the thread
       await openai.beta.threads.del(thread.id);
 
-      console.log(`✅ Generated ${content.length} characters for section ${sectionDef.id}`);
+      console.log(`✅ Generated ${content.length} characters (raw content) for section ${sectionDef.id}`);
 
-      // 🎨 Process content through RML system to render visual components
-      console.log('🎨 Processing content through RML system...');
-      const processedContent = rmlProcessor.processContent(content);
-      console.log(`✅ RML processing complete: ${content.length} → ${processedContent.length} characters`);
+      // 🎨 NOTE: RML processing is now deferred to report viewing time
+      // This allows us to store the raw OpenAI response in the database
+      // and process visuals only when the report is rendered
+      console.log('📦 Storing raw OpenAI content (RML processing deferred to viewing time)');
 
-      return processedContent;
+      return content;
 
     } catch (error) {
       console.error(`❌ Error generating section content directly:`, error);
@@ -808,17 +823,22 @@ class ASTSectionalReportService {
     reportType: string,
     sectionId: number,
     sectionTitle: string,
-    content: string
+    rawContent: string,
+    processedContent?: string
   ): Promise<void> {
+    // If processedContent is not provided, set it same as rawContent (for backwards compatibility)
+    const contentToStore = processedContent !== undefined ? processedContent : rawContent;
+
     await pool.query(`
       UPDATE report_sections
-      SET section_content = $1,
-          section_title = $2,
+      SET raw_content = $1,
+          section_content = $2,
+          section_title = $3,
           status = 'completed',
           completed_at = NOW(),
           updated_at = NOW()
-      WHERE user_id = $3 AND report_type = $4 AND section_id = $5
-    `, [content, sectionTitle, userId, reportType, sectionId]);
+      WHERE user_id = $4 AND report_type = $5 AND section_id = $6
+    `, [rawContent, contentToStore, sectionTitle, userId, reportType, sectionId]);
   }
 
   private async markSectionFailed(
