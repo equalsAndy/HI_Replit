@@ -39,6 +39,8 @@ export class RMLRenderer {
         return this.renderPatternGallery(declaration);
       case 'imagination_circle':
         return this.renderImaginationCircle(declaration);
+      case 'report_intro_content':
+        return this.renderReportIntroContent(declaration);
       case 'shapes_intro_content':
         return this.renderShapesIntroContent(declaration);
       case 'user_strength_chart':
@@ -460,6 +462,38 @@ export class RMLRenderer {
             <span class="text-center leading-tight relative z-10">IMAGINATION</span>
           </div>
         </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render report introduction content - standard "About This Report" section
+   * GENERIC - No user data required, same for all reports
+   */
+  private renderReportIntroContent(decl: RMLVisualDeclaration): string {
+    return `
+      <div class="rml-report-introduction">
+        <h1>About This Report</h1>
+
+        <p>This report is meant as a mirror, reflecting the living patterns of your strengths, flow, imagination, and reflections. It is not a fixed portrait—any more than you are. Strengths show up differently depending on context: at work, at home, in relationships. Some rise naturally in urgency, others surface more quietly with intention. What matters is not a static label but the dynamic interplay of patterns.</p>
+
+        <p>The purpose here is not to define you, but to offer a lens—a way to notice how your strengths combine, how you step into flow, and how imagination shapes your choices. The insights you will read are not prescriptive instructions. They are invitations: invitations to awareness, to reflection, and to conversation with others whose perspectives may complement your own.</p>
+
+        <p>Rather than boxing you in, this report highlights tendencies, rhythms, and shapes that emerge from your responses. Think of it like observing a constellation. Each star matters on its own, but the meaning becomes clearer when you connect them together. In the same way, your strengths, flow experiences, and reflections gain depth when seen in relationship, not isolation.</p>
+
+        <p>This is a holistic report because it pulls together multiple threads into a single picture:</p>
+
+        <ul>
+          <li><strong>Star Strengths:</strong> How your energy distributes across Acting, Planning, Thinking, and Feeling.</li>
+          <li><strong>Flow Experiences:</strong> The conditions and qualities that spark your deepest engagement.</li>
+          <li><strong>Strengths + Flow Together:</strong> How patterns of energy and experience reinforce each other.</li>
+          <li><strong>Well-being Ladder:</strong> A snapshot of how you view life today and where you hope to be in the future.</li>
+          <li><strong>Future Self & One Insight:</strong> How imagination connects your present with possibility.</li>
+        </ul>
+
+        <p>You may already recognize some of these themes in yourself. Others may feel new or only partly familiar. Both are valuable. What matters most is not whether you agree with every line, but whether the report gives you language to explore your own patterns more deeply.</p>
+
+        <p>Finally, remember that this is a snapshot. Just as your mood changes across a day or a season, your strengths and experiences shift over time. This living picture is meant to help you pause and reflect in this moment, knowing that the next chapter may reveal a different constellation of strengths, flows, and visions.</p>
       </div>
     `;
   }
@@ -983,6 +1017,60 @@ export class RMLRenderer {
           .\\32 xl\\:w-full {
             width: 100%;
           }
+        }
+
+        /* Report Introduction Styles */
+        .rml-report-introduction {
+          margin: 30px 0;
+          padding: 30px;
+          background: #ffffff;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .rml-report-introduction h1 {
+          color: #1f2937;
+          margin-bottom: 20px;
+          font-size: 28px;
+          font-weight: 700;
+          border-bottom: 3px solid #667eea;
+          padding-bottom: 10px;
+        }
+
+        .rml-report-introduction p {
+          line-height: 1.8;
+          color: #374151;
+          margin-bottom: 18px;
+          font-size: 16px;
+        }
+
+        .rml-report-introduction ul {
+          margin: 20px 0;
+          padding-left: 25px;
+          list-style-type: none;
+        }
+
+        .rml-report-introduction ul li {
+          margin-bottom: 12px;
+          color: #374151;
+          font-size: 16px;
+          line-height: 1.6;
+          position: relative;
+          padding-left: 10px;
+        }
+
+        .rml-report-introduction ul li::before {
+          content: "•";
+          color: #667eea;
+          font-weight: bold;
+          position: absolute;
+          left: -15px;
+        }
+
+        .rml-report-introduction strong {
+          color: #1f2937;
+          font-weight: 600;
         }
 
         /* Shapes Introduction Styles */
