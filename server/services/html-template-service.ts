@@ -510,9 +510,10 @@ export class HtmlTemplateService {
   private generateReportIntro(): string {
     return `
       <div class="section-container report-intro-section">
-        <h2 class="section-title">About This Report</h2>
         <div class="section-content">
           <div class="rml-report-introduction">
+            <h1>About This Report</h1>
+
             <p>This report is meant as a mirror, reflecting the living patterns of your strengths, flow, imagination, and reflections. It is not a fixed portrait—any more than you are. Strengths show up differently depending on context: at work, at home, in relationships. Some rise naturally in urgency, others surface more quietly with intention. What matters is not a static label but the dynamic interplay of patterns.</p>
 
             <p>The purpose here is not to define you, but to offer a lens—a way to notice how your strengths combine, how you step into flow, and how imagination shapes your choices. The insights you will read are not prescriptive instructions. They are invitations: invitations to awareness, to reflection, and to conversation with others whose perspectives may complement your own.</p>
