@@ -608,7 +608,7 @@ class ASTSectionalReportService {
       });
 
       // Use the Star Report Talia assistant for AST reports
-      const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_CZ9XUvnWRx3RIWFc7pLeH8U2';
+      const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_mTHLtTXri8cI1wtUwgDGsWhp';
 
       // Create a thread for this section generation
       const thread = await openai.beta.threads.create();
