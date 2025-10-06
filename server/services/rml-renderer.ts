@@ -651,8 +651,7 @@ export class RMLRenderer {
   }
 
   /**
-   * Renders flow attribute as colored square (FIXED VERSION)
-   * REPLACES the existing renderFlowAttribute method
+   * Renders flow attribute as colored square - matches thinking square style
    */
   private renderFlowAttributeSquare(decl: RMLVisualDeclaration): string {
     const { value } = decl;
@@ -662,11 +661,14 @@ export class RMLRenderer {
     }
 
     const attributeValue = typeof value === 'string' ? value : String(value);
-    const color = this.getFlowAttributeColor(attributeValue);
+    const strengthType = this.getFlowAttributeColor(attributeValue);
+    const color = this.colors[strengthType as keyof typeof this.colors];
 
     return `
-      <div class="rml-flow-attribute-square rml-${color}">
-        <span class="rml-flow-attribute-text">${attributeValue}</span>
+      <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white mr-3" style="background-color: ${color};">
+        <div class="relative flex items-center justify-center w-full h-full">
+          <span class="text-center leading-tight relative z-10">${attributeValue.toUpperCase()}</span>
+        </div>
       </div>
     `;
   }
