@@ -292,7 +292,8 @@ class ASTSectionalReportService {
       await this.updateReportStatus(userId, reportType, 'generating');
 
       // Get sections to generate (all sections or specific ones)
-      const sectionsToGenerate = options.specificSections || [0, 1, 2, 3, 4, 5];
+      // NOTE: Skipping section 0 (Introduction & Overview) - app provides static "About This Report" intro
+      const sectionsToGenerate = options.specificSections || [1, 2, 3, 4, 5];
 
       // Sort sections by dependencies
       const sortedSections = this.sortSectionsByDependencies(sectionsToGenerate);
@@ -415,7 +416,7 @@ class ASTSectionalReportService {
       }));
 
       const reportData = reportResult.rows[0];
-      const totalSections = 6;
+      const totalSections = 5; // Sections 1-5 (section 0 skipped, static intro used)
       const sectionsCompleted = sections.filter(s => s.status === 'completed').length;
       const sectionsFailed = sections.filter(s => s.status === 'failed').length;
       const progressPercentage = totalSections > 0 ? Math.round((sectionsCompleted / totalSections) * 100) : 0;
@@ -704,7 +705,7 @@ class ASTSectionalReportService {
       INSERT INTO holistic_reports (
         user_id, report_type, generation_mode, generation_status,
         report_data, sectional_progress, sections_completed, sections_failed, total_sections
-      ) VALUES ($1, $2, 'sectional', 'pending', '{}', 0, 0, 0, 6)
+      ) VALUES ($1, $2, 'sectional', 'pending', '{}', 0, 0, 0, 5)
       RETURNING id
     `, [userId, holisticReportType]);
 
@@ -719,7 +720,7 @@ class ASTSectionalReportService {
   }
 
   private async initializeSections(userId: string, reportType: string, specificSections?: number[]): Promise<void> {
-    const sectionsToInit = specificSections || [0, 1, 2, 3, 4, 5];
+    const sectionsToInit = specificSections || [1, 2, 3, 4, 5]; // Skip section 0
 
     for (const sectionId of sectionsToInit) {
       const sectionDef = this.sectionDefinitions.find(s => s.id === sectionId);
