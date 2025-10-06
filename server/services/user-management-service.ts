@@ -857,9 +857,20 @@ class UserManagementService {
   async deleteUserData(userId: number) {
     try {
       console.log(`Starting complete data deletion for user ${userId}`);
-      
+
       const { sql } = await import('drizzle-orm');
-      
+
+      // First, verify user exists
+      const userCheck = await db.execute(sql`SELECT id, email FROM users WHERE id = ${userId}`);
+      if (!userCheck || userCheck.length === 0) {
+        const error = new Error(`User ${userId} does not exist in the database`);
+        console.error(`❌ ${error.message}`);
+        throw error;
+      }
+
+      const userEmail = userCheck[0].email;
+      console.log(`✅ User ${userId} (${userEmail}) found - proceeding with data deletion`);
+
       let deletedData = {
         userAssessments: 0,
         navigationProgressTable: 0,
@@ -1074,18 +1085,32 @@ class UserManagementService {
 
       // Delete sectional report sections (report_sections table)
       try {
-        const sectionalResult = await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
-        deletedSections = sectionalResult.length || 0;
-        console.log(`✅ Deleted ${deletedSections} report section(s) from report_sections table`);
+        // First count how many exist
+        const countSections = await db.execute(sql`SELECT COUNT(*) as count FROM report_sections WHERE user_id = ${userId}`);
+        deletedSections = countSections[0]?.count || 0;
+
+        if (deletedSections > 0) {
+          await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
+          console.log(`✅ Deleted ${deletedSections} report section(s) from report_sections table`);
+        } else {
+          console.log(`ℹ️ No report sections found in report_sections table`);
+        }
       } catch (error) {
         console.log(`ℹ️ No report sections found in report_sections table`);
       }
 
       // Delete final assembled reports (holistic_reports table)
       try {
-        const reportsResult = await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
-        deletedReports = reportsResult.length || 0;
-        console.log(`✅ Deleted ${deletedReports} final report(s) from holistic_reports table`);
+        // First count how many exist
+        const countReports = await db.execute(sql`SELECT COUNT(*) as count FROM holistic_reports WHERE user_id = ${userId}`);
+        deletedReports = countReports[0]?.count || 0;
+
+        if (deletedReports > 0) {
+          await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+          console.log(`✅ Deleted ${deletedReports} final report(s) from holistic_reports table`);
+        } else {
+          console.log(`ℹ️ No final reports found in holistic_reports table`);
+        }
       } catch (error) {
         console.log(`ℹ️ No final reports found in holistic_reports table`);
       }

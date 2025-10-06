@@ -6,12 +6,17 @@ import path from 'path';
 
 console.log('🔧 Loading environment config...');
 
-// Load environment-specific config
+// Load root .env file first (contains AWS RDS DATABASE_URL)
+config({ path: path.join(process.cwd(), '.env') });
+
+// Then load environment-specific overrides if they exist (but don't override root values)
 const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
-config({ path: path.join(process.cwd(), 'server', envFile) });
+const envSpecificPath = path.join(process.cwd(), 'server', envFile);
+config({ path: envSpecificPath, override: false }); // Don't override root .env values
 
 console.log('🔧 Environment loaded:', process.env.NODE_ENV);
 console.log('🔧 Database URL exists:', !!process.env.DATABASE_URL);
+console.log('🔧 Database URL (partial):', process.env.DATABASE_URL?.substring(0, 30) + '...');
 console.log('🔧 Loading express...');
 
 import express from 'express';
