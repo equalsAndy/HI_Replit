@@ -43,6 +43,9 @@ export class RMLProcessor {
       // Step 2: Remove <RML> block from content (keep only markdown body)
       let processedContent = rmlParser.removeRMLBlock(cleanedContent);
 
+      // Step 2.5: Strip first heading if present (template adds section title)
+      processedContent = this.stripFirstHeading(processedContent);
+
       // Step 3: Create a lookup using PLAIN OBJECT (Map was corrupted)
       const visualLookup: Record<string, string> = {};
       declarations.forEach(decl => {
@@ -139,6 +142,16 @@ export class RMLProcessor {
   private stripCitationMarkers(content: string): string {
     // Remove OpenAI citation markers: 【number:number†text】
     return content.replace(/【[^】]*】/g, '');
+  }
+
+  /**
+   * Strip first heading (H1, H2, or H3) from content
+   * Template already adds section title, so remove duplicate from OpenAI content
+   */
+  private stripFirstHeading(content: string): string {
+    // Remove first heading if it appears at the start (after optional whitespace)
+    // Matches: # Title, ## Title, or ### Title
+    return content.replace(/^\s*#{1,3}\s+[^\n]+\n/, '');
   }
 
   /**
