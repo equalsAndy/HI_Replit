@@ -605,28 +605,46 @@ export class RMLRenderer {
     const maxHeight = 150;
     const maxPercentage = Math.max(...(Object.values(strengthsData) as number[]));
 
-    const heights = {
-      thinking: Math.round((strengthsData.thinking / maxPercentage) * maxHeight),
-      acting: Math.round((strengthsData.acting / maxPercentage) * maxHeight),
-      planning: Math.round((strengthsData.planning / maxPercentage) * maxHeight),
-      feeling: Math.round((strengthsData.feeling / maxPercentage) * maxHeight)
-    };
+    // Create array of strengths with their data and sort largest to smallest
+    const strengthBars = [
+      {
+        name: 'thinking',
+        label: 'Thinking',
+        value: strengthsData.thinking,
+        height: Math.round((strengthsData.thinking / maxPercentage) * maxHeight),
+        color: this.colors.thinking
+      },
+      {
+        name: 'acting',
+        label: 'Acting',
+        value: strengthsData.acting,
+        height: Math.round((strengthsData.acting / maxPercentage) * maxHeight),
+        color: this.colors.acting
+      },
+      {
+        name: 'planning',
+        label: 'Planning',
+        value: strengthsData.planning,
+        height: Math.round((strengthsData.planning / maxPercentage) * maxHeight),
+        color: this.colors.planning
+      },
+      {
+        name: 'feeling',
+        label: 'Feeling',
+        value: strengthsData.feeling,
+        height: Math.round((strengthsData.feeling / maxPercentage) * maxHeight),
+        color: this.colors.feeling
+      }
+    ].sort((a, b) => b.value - a.value); // Sort largest to smallest
 
     return `
       <div class="rml-user-strength-chart">
         <div class="rml-pattern-bars">
-          <div class="rml-strength-bar rml-thinking" style="height: ${heights.thinking}px;">
-            <span class="rml-strength-label">Thinking</span>
+          ${strengthBars.map(bar => `
+          <div class="rml-strength-bar rml-${bar.name}" style="height: ${bar.height}px;">
+            <span class="rml-strength-label">${bar.label}</span>
           </div>
-          <div class="rml-strength-bar rml-acting" style="height: ${heights.acting}px;">
-            <span class="rml-strength-label">Acting</span>
-          </div>
-          <div class="rml-strength-bar rml-planning" style="height: ${heights.planning}px;">
-            <span class="rml-strength-label">Planning</span>
-          </div>
-          <div class="rml-strength-bar rml-feeling" style="height: ${heights.feeling}px;">
-            <span class="rml-strength-label">Feeling</span>
-          </div>
+          `).join('')}
         </div>
       </div>
     `;

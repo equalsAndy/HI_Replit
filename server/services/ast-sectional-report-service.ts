@@ -530,7 +530,10 @@ class ASTSectionalReportService {
       console.log(`🎨 Processing ${sectionsResult.rows.length} sections through RML system...`);
       const sections = sectionsResult.rows.map(row => {
         const contentToProcess = row.raw_content || row.section_content;
-        const processedContent = rmlProcessor.processContent(contentToProcess);
+        const processedContent = rmlProcessor.processContent(contentToProcess, {
+          sectionId: row.section_id,
+          userId: userId
+        });
 
         return {
           section_id: row.section_id,

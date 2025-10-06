@@ -11,13 +11,26 @@ import { rmlRenderer } from './rml-renderer.js';
 export class RMLProcessor {
   /**
    * Process OpenAI content: extract RML, render visuals, replace placeholders
+   * @param rawContent - The raw markdown content from OpenAI
+   * @param options - Optional processing options (sectionId, userId for auto-injections)
    */
-  processContent(rawContent: string): string {
+  processContent(rawContent: string, options?: { sectionId?: number; userId?: number }): string {
     try {
       console.log('🎨 Starting RML processing...');
 
       // Step 0: Clean OpenAI citation markers (【4:0†source】 format)
-      const cleanedContent = this.stripCitationMarkers(rawContent);
+      let cleanedContent = this.stripCitationMarkers(rawContent);
+
+      // Step 0.5: Auto-inject StarCard at beginning of Section 1
+      if (options?.sectionId === 1 && options?.userId) {
+        console.log(`📸 Auto-injecting StarCard for Section 1, User ${options.userId}`);
+        const starcardHtml = rmlRenderer.render({
+          id: 'starcard_auto',
+          type: 'starcard_img',
+          user_id: options.userId
+        } as any);
+        cleanedContent = starcardHtml + '\n\n' + cleanedContent;
+      }
 
       // Step 1: Extract visual declarations from <RML> block
       const declarations = rmlParser.extractVisualDeclarations(cleanedContent);
