@@ -106,6 +106,17 @@ git merge --no-ff branch-name -m "Merge message"
 **Database Configuration:**
 All environments use AWS RDS PostgreSQL databases. Database connections configured via `DATABASE_URL` environment variable.
 
+**Development Database URL:**
+```
+DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require
+```
+
+**Important Notes:**
+- ✅ All environments (dev, staging, prod) use AWS RDS - NO local databases
+- ✅ Development server automatically connects to AWS RDS when started
+- ✅ Database URL loaded from root `.env` file (not `server/.env`)
+- ⚠️ Never install PostgreSQL locally or create local database connections
+
 **Commands:**
 ```bash
 npm run db:migrate      # Run migrations
