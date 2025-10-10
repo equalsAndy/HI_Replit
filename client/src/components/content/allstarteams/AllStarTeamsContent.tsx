@@ -37,6 +37,8 @@ import WorkshopRecap from '../WorkshopRecap';
 import AstLessonContent from '@/components/ast/AstLessonContentPilot';
 import SelfAwarenessOpportunityView from '../SelfAwarenessOpportunityView';
 import AboutCourseView from '../AboutCourseView';
+import ComprehensiveAssessmentsView from '../ComprehensiveAssessmentsView';
+import PersonalProfileContainer from './PersonalProfileContainer';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -431,9 +433,10 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
       );
 
     case 'extra-stuff':
+    case 'more-fun-stuff':
+    case 'personal-profile':
       return (
-        <PlaceholderView 
-          title="Interesting Extra Stuff"
+        <PersonalProfileContainer
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

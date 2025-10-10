@@ -107,8 +107,37 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       } catch (err) {
         console.log(`No reflection_responses data or table for user ${userId}`);
       }
-      
-      // 6. Reset workshop step data (hybrid approach: hard delete for test users, soft delete for production)
+
+      // 6. Delete holistic reports (AST generated reports - HTML content stored in DB)
+      try {
+        const existingReports = await db.execute(sql`
+          SELECT id, report_type
+          FROM holistic_reports
+          WHERE user_id = ${userId}
+        `);
+
+        if (existingReports.length > 0) {
+          console.log(`Found ${existingReports.length} holistic reports for user ${userId}`);
+
+          await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+          console.log(`✓ Deleted ${existingReports.length} holistic report records (HTML content) from database for user ${userId}`);
+        } else {
+          console.log(`No holistic reports found for user ${userId}`);
+        }
+
+        await db.execute(sql`
+          UPDATE navigation_progress
+          SET standard_report_generated = false,
+              personal_report_generated = false,
+              holistic_reports_unlocked = false
+          WHERE user_id = ${userId}
+        `);
+        console.log(`✓ Reset report flags in navigation_progress for user ${userId}`);
+      } catch (error) {
+        console.error(`❌ Error deleting holistic reports for user ${userId}:`, error);
+      }
+
+      // 7. Reset workshop step data (hybrid approach: hard delete for test users, soft delete for production)
       console.log(`=== STARTING HYBRID RESET for user ${userId} ===`);
       try {
         console.log(`=== IMPORTS SUCCESSFUL ===`);
@@ -149,7 +178,7 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         console.error(`ERROR resetting workshop data for user ${userId}:`, err);
       }
       
-      // 7. Clear navigation progress from users table
+      // 8. Clear navigation progress from users table
       try {
         await db.execute(sql`UPDATE users SET navigation_progress = NULL, updated_at = NOW() WHERE id = ${userId}`);
         console.log(`Cleared navigation progress for user ${userId}`);

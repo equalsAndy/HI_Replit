@@ -26,13 +26,10 @@ export default function IntroductionVideo() {
   return (
     <MainContainer stepId="1-1">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-purple-800 mb-4">All-Star Teams Workshop Introduction</h1>
-        
-        <p className="text-lg text-gray-700 mb-6">
-          Welcome to the All-Star Teams workshop! Through this journey, you'll 
-          discover your unique strengths profile and learn how to leverage it in your 
-          professional life.
-        </p>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-purple-800 mb-3">Discover Your Star Power</h1>
+          <p className="text-xl text-purple-600 font-medium">Unlock what makes you exceptional at work</p>
+        </div>
         
         <Card className="mb-8">
           <CardContent className="p-0 overflow-hidden">
@@ -48,34 +45,38 @@ export default function IntroductionVideo() {
           </CardContent>
         </Card>
 
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200 hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-3">⭐</div>
+              <h3 className="font-bold text-lg text-purple-800 mb-2">Discover</h3>
+              <p className="text-sm text-gray-600">Take the assessment & reveal your Star Profile</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200 hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-3">🌊</div>
+              <h3 className="font-bold text-lg text-blue-800 mb-2">Flow</h3>
+              <p className="text-sm text-gray-600">Find when you're naturally in the zone</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-white border-green-200 hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl mb-3">🚀</div>
+              <h3 className="font-bold text-lg text-green-800 mb-2">Launch</h3>
+              <p className="text-sm text-gray-600">Apply your strengths where they matter most</p>
+            </CardContent>
+          </Card>
+        </div>
         
-        <ul className="space-y-3 mb-8">
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Complete your profile information</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Take the Star Strengths Assessment (10-15 minutes)</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Review your Star Profile and strengths</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Explore your flow attributes</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Visualize your future potential</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Integrate insights into your professional life</span>
-          </li>
-        </ul>
+        <div className="bg-purple-50 rounded-lg p-6 mb-8 border border-purple-100">
+          <p className="text-center text-gray-700">
+            <span className="font-semibold text-purple-800">15 minutes</span> to complete the assessment • 
+            <span className="font-semibold text-purple-800">Lifetime</span> of insights
+          </p>
+        </div>
         
         <div className="flex justify-end items-center space-x-4">
           <a

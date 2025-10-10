@@ -1,21 +1,25 @@
 #!/bin/bash
+
+echo "=== GIT STATUS CHECK ==="
 cd /Users/bradtopliff/Desktop/HI_Replit
 
 echo "Current branch:"
 git branch --show-current
 
-echo ""
-echo "Git status:"
-git status --short
+echo -e "\nGit status:"
+git status --porcelain
 
-echo ""
-echo "Recent commits:"
-git log --oneline -5
+echo -e "\nUntracked files:"
+git ls-files --others --exclude-standard
 
-echo ""
-echo "Uncommitted changes summary:"
-git diff --stat
+echo -e "\nModified files:"
+git diff --name-only
 
-echo ""
-echo "Staged files:"
+echo -e "\nStaged files:"
 git diff --cached --name-only
+
+echo -e "\nRemote tracking:"
+git remote -v
+
+echo -e "\nBranch tracking:"
+git branch -vv

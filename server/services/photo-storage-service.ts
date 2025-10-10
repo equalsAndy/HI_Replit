@@ -81,13 +81,32 @@ export class PhotoStorageService {
       // Get image dimensions using sharp
       let width: number | undefined;
       let height: number | undefined;
-      
+
       try {
         const metadata = await sharp(imageBuffer).metadata();
         width = metadata.width;
         height = metadata.height;
       } catch (error) {
         console.warn('Could not get image dimensions:', error);
+      }
+
+      // VALIDATION: Warn if image_type doesn't match expected dimensions
+      if (imageType === ImageType.STARCARD_GENERATED) {
+        if (width && height) {
+          // StarCards should be roughly 800x1000-1300px (portrait, taller than wide)
+          if (width < 600 || width > 1000 || height < 1000 || height > 1400) {
+            console.warn(`⚠️ Image type is 'starcard_generated' but dimensions ${width}x${height} are unusual for StarCard`);
+            console.warn(`   Expected: 600-1000px wide, 1000-1400px tall. Verify this is correct.`);
+          }
+        }
+      } else if (imageType === ImageType.PROFILE_PICTURE) {
+        if (width && height) {
+          // Profile pictures are typically smaller and squarish
+          if (width > 1000 || height > 1000) {
+            console.warn(`⚠️ Image type is 'profile_picture' but dimensions ${width}x${height} are unusually large`);
+            console.warn(`   Profile pictures are typically < 1000px. This might be a StarCard.`);
+          }
+        }
       }
       
       // Check if we have the enhanced schema with image_type and attribution fields
@@ -337,25 +356,28 @@ export class PhotoStorageService {
       
       if (hasPhotoStorage) {
         // PRODUCTION SCHEMA: Use photo_storage table
-        // First, try to get the user's profile picture (this should be their StarCard)
+        // FIXED: Look for StarCard by image_type FIRST (not profile picture)
+        // Profile pictures and StarCards should be separate images
+        console.log(`🔍 getUserStarCard: Looking for image_type='starcard_generated' for user ${userId}`);
         result = await query(`
-          SELECT ps.photo_data, ps.photo_hash, ps.mime_type, ps.created_at, 'profile_picture' as source
-          FROM photo_storage ps 
-          JOIN users u ON u.profile_picture_id = ps.id
-          WHERE u.id = $1 
-          AND ps.is_thumbnail = false
+          SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'starcard_type' as source
+          FROM photo_storage
+          WHERE uploaded_by = $1
+          AND is_thumbnail = false
+          AND image_type = 'starcard_generated'
+          ORDER BY created_at DESC
+          LIMIT 1
         `, [parseInt(userId)]);
 
         if (result.rows.length === 0) {
-          console.log(`🔍 getUserStarCard: No profile picture found for user ${userId}, looking for StarCard by pattern`);
-          
-          // Enhanced fallback: Look for StarCards using size and dimension characteristics
-          // StarCards are typically 800-900px wide, 1000-1300px tall, 100KB-300KB in size
-          console.log(`🔍 getUserStarCard: Looking for StarCard-like images by dimensions for user ${userId}`);
+          console.log(`🔍 getUserStarCard: No typed StarCard found for user ${userId}, trying dimension-based fallback`);
+
+          // Fallback: Use dimension-based heuristics (legacy support)
+          // This prevents confusion between StarCards and other images (visualizations, uploads, etc.)
           result = await query(`
-            SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'starcard_dimensions' as source
-            FROM photo_storage 
-            WHERE uploaded_by = $1 
+            SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'fallback_dimensions' as source
+            FROM photo_storage
+            WHERE uploaded_by = $1
             AND is_thumbnail = false
             AND mime_type = 'image/png'
             AND file_size > 100000
@@ -364,24 +386,13 @@ export class PhotoStorageService {
             AND width < 1000
             AND height > 1000
             AND height < 1400
-            ORDER BY created_at DESC 
+            ORDER BY created_at DESC
             LIMIT 1
           `, [parseInt(userId)]);
-          
-          // Fallback: Look for any reasonably-sized PNG if no StarCard dimensions found
-          if (result.rows.length === 0) {
-            console.log(`🔍 getUserStarCard: No StarCard dimensions found, checking for any medium PNG for user ${userId}`);
-            result = await query(`
-              SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'medium_png' as source
-              FROM photo_storage 
-              WHERE uploaded_by = $1 
-              AND is_thumbnail = false
-              AND mime_type = 'image/png'
-              AND file_size > 50000
-              AND file_size < 1000000
-              ORDER BY created_at DESC 
-              LIMIT 1
-            `, [parseInt(userId)]);
+
+          if (result.rows.length > 0) {
+            console.warn(`⚠️ WARNING: Using dimension-based fallback for user ${userId} - this may not be the actual StarCard!`);
+            console.warn(`⚠️ Consider updating image_type to 'starcard_generated' for this image to prevent confusion.`);
           }
         }
       } else {
@@ -492,6 +503,7 @@ export class PhotoStorageService {
 
   /**
    * Store a StarCard image generated from user's assessment data
+   * FIXED: Added safeguards to prevent profile picture/StarCard confusion
    */
   async storeStarCard(userId: number, base64Data: string, starCardData: any): Promise<number> {
     console.log(`📊 Storing StarCard for user ${userId}`);
@@ -505,6 +517,32 @@ export class PhotoStorageService {
       `Generated StarCard for user ${userId}`,
       undefined // no source URL for generated images
     );
+
+    // SAFEGUARD: Ensure this StarCard is NOT accidentally set as profile picture
+    // Check if user's profile_picture_id points to a StarCard (shouldn't happen, but prevent it)
+    try {
+      const profileCheck = await query(`
+        SELECT profile_picture_id FROM users WHERE id = $1
+      `, [userId]);
+
+      if (profileCheck.rows.length > 0) {
+        const profilePictureId = profileCheck.rows[0].profile_picture_id;
+
+        // If profile_picture_id points to a starcard_generated image, clear it
+        if (profilePictureId) {
+          const imageTypeCheck = await query(`
+            SELECT image_type FROM photo_storage WHERE id = $1
+          `, [profilePictureId]);
+
+          if (imageTypeCheck.rows.length > 0 && imageTypeCheck.rows[0].image_type === 'starcard_generated') {
+            console.warn(`⚠️ WARNING: User ${userId}'s profile_picture_id points to a StarCard! Clearing it.`);
+            await query(`UPDATE users SET profile_picture_id = NULL WHERE id = $1`, [userId]);
+          }
+        }
+      }
+    } catch (safeguardError) {
+      console.warn(`⚠️ Could not verify profile picture safety for user ${userId}:`, safeguardError);
+    }
 
     // Also update the star_cards table with the image reference
     try {
@@ -529,7 +567,7 @@ export class PhotoStorageService {
         `/api/photos/${photoId}` // Reference to the stored photo
       ]);
 
-      console.log(`✅ StarCard data saved to star_cards table for user ${userId}`);
+      console.log(`✅ StarCard data saved to star_cards table for user ${userId} (photo_id: ${photoId})`);
     } catch (error) {
       console.warn(`⚠️ Failed to update star_cards table for user ${userId}:`, error);
       // Don't fail the photo storage if star_cards table update fails
@@ -540,6 +578,7 @@ export class PhotoStorageService {
 
   /**
    * Store a profile picture for a user
+   * FIXED: Added safeguards to prevent profile picture/StarCard confusion
    */
   async storeProfilePicture(userId: number, base64Data: string): Promise<number> {
     console.log(`👤 Storing profile picture for user ${userId}`);
@@ -557,7 +596,26 @@ export class PhotoStorageService {
     // Update the user's profile_picture_id (if the field exists)
     try {
       await query(`UPDATE users SET profile_picture_id = $1 WHERE id = $2`, [photoId, userId]);
-      console.log(`✅ Profile picture ID updated for user ${userId}`);
+      console.log(`✅ Profile picture ID updated for user ${userId} (photo_id: ${photoId})`);
+
+      // SAFEGUARD: Mark old profile pictures as general uploads to prevent accumulation
+      // This ensures only ONE profile picture per user is marked as PROFILE_PICTURE type
+      try {
+        const updateOldResult = await query(`
+          UPDATE photo_storage
+          SET image_type = 'general_upload'
+          WHERE uploaded_by = $1
+            AND image_type = 'profile_picture'
+            AND id != $2
+        `, [userId, photoId]);
+
+        if (updateOldResult.rowCount && updateOldResult.rowCount > 0) {
+          console.log(`🧹 Marked ${updateOldResult.rowCount} old profile picture(s) as general uploads for user ${userId}`);
+        }
+      } catch (cleanupError) {
+        console.warn(`⚠️ Could not clean up old profile pictures for user ${userId}:`, cleanupError);
+      }
+
     } catch (error) {
       // If profile_picture_id field doesn't exist, try the legacy profile_picture field
       try {

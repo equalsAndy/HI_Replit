@@ -705,6 +705,112 @@ router.post('/users/:id/reports/generate', requireAuth, isAdmin, async (req: Req
 });
 
 /**
+ * Download AI request payloads for all report sections (admin only)
+ * Returns a JSON file with all OpenAI API payloads sent for each section
+ */
+router.get('/users/:id/reports/ai-payloads', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    // Import pg Pool for direct database access
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    // Get user information
+    const userResult = await pool.query(
+      'SELECT id, name, email FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Get all report sections with AI payloads for this user
+    const sectionsResult = await pool.query(`
+      SELECT
+        section_id,
+        section_name,
+        section_title,
+        report_type,
+        ai_request_payload,
+        status,
+        completed_at,
+        created_at
+      FROM report_sections
+      WHERE user_id = $1
+        AND ai_request_payload IS NOT NULL
+      ORDER BY report_type, section_id
+    `, [userId]);
+
+    if (sectionsResult.rows.length === 0) {
+      return res.status(404).json({
+        message: 'No AI request payloads found for this user. User may not have generated any reports yet, or reports were generated before payload storage was implemented.'
+      });
+    }
+
+    // Group sections by report type
+    const reports: Record<string, any> = {};
+
+    sectionsResult.rows.forEach(row => {
+      const reportType = row.report_type;
+
+      if (!reports[reportType]) {
+        reports[reportType] = {
+          reportType,
+          sections: []
+        };
+      }
+
+      reports[reportType].sections.push({
+        sectionId: row.section_id,
+        sectionName: row.section_name,
+        sectionTitle: row.section_title,
+        status: row.status,
+        aiRequestPayload: row.ai_request_payload,
+        completedAt: row.completed_at,
+        createdAt: row.created_at
+      });
+    });
+
+    // Build response payload
+    const response = {
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      exportedAt: new Date().toISOString(),
+      totalSections: sectionsResult.rows.length,
+      reports
+    };
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+    const filename = `user-${userId}-ai-payloads-${timestamp}.json`;
+
+    // Set headers for JSON download
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Send the response
+    res.json(response);
+
+    console.log(`✅ Admin downloaded AI payloads for user ${userId} (${sectionsResult.rows.length} sections)`);
+
+  } catch (error) {
+    console.error('Error downloading AI payloads:', error);
+    res.status(500).json({ message: 'Server error while downloading AI payloads' });
+  }
+});
+
+/**
  * Export user data (admin only, or user accessing their own data)
  */
 router.get('/users/:userId/export', requireAuth, async (req: Request, res: Response) => {

@@ -8,68 +8,49 @@ export interface PageData {
   stepId?: string;
 }
 
-// Map content step IDs to readable titles and modules
+// Map content step IDs to readable titles and modules (matches navigationData.ts menu item names)
 const STEP_MAPPINGS: Record<string, { title: string; workshop: 'ast' | 'ia'; module?: string }> = {
-  // AST Workshop Steps - Using step IDs with menu item names
-  '1-1': { title: 'Introduction', workshop: 'ast', module: 'Introduction' },
-  '2-1': { title: 'Intro to Star Strengths', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  '2-2': { title: 'Star Strengths Self-Assessment', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  '2-3': { title: 'Review Your Star Card', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  '2-4': { title: 'Strength Reflection', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  '3-1': { title: 'Intro to Flow', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  '3-2': { title: 'Flow Assessment', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  '3-3': { title: 'Rounding Out', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  '3-4': { title: 'Add Flow to Star Card', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  '4-1': { title: 'Ladder of Well-being', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
-  '4-2': { title: 'Well-being Reflections', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
-  '4-3': { title: 'Visualizing You', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
-  '4-4': { title: 'Your Future Self', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
-  '4-5': { title: 'Final Reflection', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
-  '5-1': { title: 'Download your Star Card', workshop: 'ast', module: 'NEXT STEPS' },
-  '5-2': { title: 'Your Holistic Report', workshop: 'ast', module: 'NEXT STEPS' },
-  '5-3': { title: 'Growth Plan', workshop: 'ast', module: 'NEXT STEPS' },
-  '5-4': { title: 'Team Workshop Prep', workshop: 'ast', module: 'NEXT STEPS' },
-  '6-1': { title: 'Workshop Resources', workshop: 'ast', module: 'NEXT STEPS' },
-  
-  // Legacy content key mappings for backward compatibility
-  'welcome': { title: 'Introduction', workshop: 'ast', module: 'Introduction' },
-  'intro-strengths': { title: 'Intro to Star Strengths', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  'strengths-assessment': { title: 'Star Strengths Self-Assessment', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  'star-card-preview': { title: 'Review Your Star Card', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  'reflection': { title: 'Strength Reflection', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
-  'intro-to-flow': { title: 'Intro to Flow', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  'flow-assessment': { title: 'Flow Assessment', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  'flow-rounding-out': { title: 'Rounding Out', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  'flow-star-card': { title: 'Add Flow to Star Card', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
-  'wellbeing': { title: 'Ladder of Well-being', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
-  'cantril-ladder': { title: 'Well-being Reflections', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
-  'visualizing-you': { title: 'Visualizing You', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
-  'future-self': { title: 'Your Future Self', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
-  'final-reflection': { title: 'Final Reflection', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
+  // AST Workshop Steps - UPDATED to match navigationData.ts menu item names exactly
+  '1-1': { title: 'The Self-Awareness Gap', workshop: 'ast', module: 'MODULE 1: GETTING STARTED' },
+  '1-2': { title: 'The Self-Awareness Opportunity', workshop: 'ast', module: 'MODULE 1: GETTING STARTED' },
+  '1-3': { title: 'About this Course', workshop: 'ast', module: 'MODULE 1: GETTING STARTED' },
+  '2-1': { title: 'Star Strengths Assessment', workshop: 'ast', module: 'MODULE 2: STRENGTH AND FLOW' },
+  '2-2': { title: 'Flow Patterns', workshop: 'ast', module: 'MODULE 2: STRENGTH AND FLOW' },
+  '2-3': { title: 'Rounding Out', workshop: 'ast', module: 'MODULE 2: STRENGTH AND FLOW' },
+  '2-4': { title: 'Module 2 Recap', workshop: 'ast', module: 'MODULE 2: STRENGTH AND FLOW' },
+  '3-1': { title: 'Well-Being Ladder', workshop: 'ast', module: 'MODULE 3: VISUALIZE YOUR POTENTIAL' },
+  '3-2': { title: 'Your Future Self', workshop: 'ast', module: 'MODULE 3: VISUALIZE YOUR POTENTIAL' },
+  '3-3': { title: 'One Insight', workshop: 'ast', module: 'MODULE 3: VISUALIZE YOUR POTENTIAL' },
+  '3-4': { title: 'Workshop Recap', workshop: 'ast', module: 'MODULE 3: VISUALIZE YOUR POTENTIAL' },
+  '4-1': { title: 'Download your Star Card', workshop: 'ast', module: 'MODULE 4: TAKEAWAYS & NEXT STEPS' },
+  '4-2': { title: 'Your Holistic Report', workshop: 'ast', module: 'MODULE 4: TAKEAWAYS & NEXT STEPS' },
+  '4-3': { title: 'Growth Plan', workshop: 'ast', module: 'MODULE 4: TAKEAWAYS & NEXT STEPS' },
+  '4-4': { title: 'Team Workshop Prep', workshop: 'ast', module: 'MODULE 4: TAKEAWAYS & NEXT STEPS' },
+  '5-1': { title: 'More about AllStarTeams', workshop: 'ast', module: 'MODULE 5: MORE INFORMATION' },
+  '5-2': { title: 'Interesting Extra Stuff', workshop: 'ast', module: 'MODULE 5: MORE INFORMATION' },
+  '5-3': { title: 'Introducing Imaginal Agility', workshop: 'ast', module: 'MODULE 5: MORE INFORMATION' },
 
-  // IA Workshop Steps
-  'ia-1-1': { title: 'Introduction to IA', workshop: 'ia', module: 'Section 1: Getting Started' },
-  'ia-1-2': { title: 'IA Foundations', workshop: 'ia', module: 'Section 1: Getting Started' },
-  'ia-2-1': { title: 'Current State Assessment', workshop: 'ia', module: 'Section 2: Foundations' },
-  'ia-2-2': { title: 'IA Assessment & Results', workshop: 'ia', module: 'Section 2: Foundations' },
-  'ia-3-1': { title: 'Planning Overview', workshop: 'ia', module: 'Section 3: Planning' },
-  'ia-3-2': { title: 'Planning Step 2', workshop: 'ia', module: 'Section 3: Planning' },
-  'ia-3-3': { title: 'Planning Step 3', workshop: 'ia', module: 'Section 3: Planning' },
-  'ia-3-4': { title: 'Planning Step 4', workshop: 'ia', module: 'Section 3: Planning' },
-  'ia-3-5': { title: 'Planning Step 5', workshop: 'ia', module: 'Section 3: Planning' },
-  'ia-3-6': { title: 'Planning Step 6', workshop: 'ia', module: 'Section 3: Planning' },
-  'ia-4-1': { title: 'Practice Step 1', workshop: 'ia', module: 'Section 4: Practice' },
-  'ia-4-2': { title: 'Practice Step 2', workshop: 'ia', module: 'Section 4: Practice' },
-  'ia-4-3': { title: 'Practice Step 3', workshop: 'ia', module: 'Section 4: Practice' },
-  'ia-4-4': { title: 'Practice Step 4', workshop: 'ia', module: 'Section 4: Practice' },
-  'ia-4-5': { title: 'Practice Step 5', workshop: 'ia', module: 'Section 4: Practice' },
-  'ia-4-6': { title: 'Practice Step 6', workshop: 'ia', module: 'Section 4: Practice' },
-  'ia-5-1': { title: 'Assessment and Results', workshop: 'ia', module: 'Section 5: Assessment' },
-  'ia-6-1': { title: 'Team Integration', workshop: 'ia', module: 'Section 6: Team Integration' },
-  'ia-7-1': { title: 'Team Practice 1', workshop: 'ia', module: 'Section 7: Team Practice' },
-  'ia-7-2': { title: 'Team Practice 2', workshop: 'ia', module: 'Section 7: Team Practice' },
-  'ia-8-1': { title: 'More Info 1', workshop: 'ia', module: 'Section 8: More Info' },
-  'ia-8-2': { title: 'More Info 2', workshop: 'ia', module: 'Section 8: More Info' },
+  // IA Workshop Steps - UPDATED to match navigationData.ts menu item names exactly
+  'ia-1-1': { title: 'Orientation', workshop: 'ia', module: 'WELCOME' },
+  'ia-1-2': { title: 'AI\'s 4X Mental Challenge', workshop: 'ia', module: 'WELCOME' },
+  'ia-2-1': { title: 'I4C Prism Overview', workshop: 'ia', module: 'THE I4C MODEL' },
+  'ia-2-2': { title: 'Self-Assessment', workshop: 'ia', module: 'THE I4C MODEL' },
+  'ia-3-1': { title: 'Ladder Overview', workshop: 'ia', module: 'LADDER OF IMAGINATION' },
+  'ia-3-2': { title: 'Autoflow', workshop: 'ia', module: 'LADDER OF IMAGINATION' },
+  'ia-3-3': { title: 'Visualizing Your Potential', workshop: 'ia', module: 'LADDER OF IMAGINATION' },
+  'ia-3-4': { title: 'From Insight to Intention', workshop: 'ia', module: 'LADDER OF IMAGINATION' },
+  'ia-3-5': { title: 'Inspiration', workshop: 'ia', module: 'LADDER OF IMAGINATION' },
+  'ia-3-6': { title: 'The Unimaginable', workshop: 'ia', module: 'LADDER OF IMAGINATION' },
+  'ia-4-1': { title: 'Advanced Ladder Overview', workshop: 'ia', module: 'ADVANCED LADDER OF IMAGINATION' },
+  'ia-4-2': { title: 'Autoflow Mindful Prompts', workshop: 'ia', module: 'ADVANCED LADDER OF IMAGINATION' },
+  'ia-4-3': { title: 'Visualization Stretch', workshop: 'ia', module: 'ADVANCED LADDER OF IMAGINATION' },
+  'ia-4-4': { title: 'Higher Purpose Uplift', workshop: 'ia', module: 'ADVANCED LADDER OF IMAGINATION' },
+  'ia-4-5': { title: 'Inspiration Support', workshop: 'ia', module: 'ADVANCED LADDER OF IMAGINATION' },
+  'ia-4-6': { title: 'Nothing is Unimaginable', workshop: 'ia', module: 'ADVANCED LADDER OF IMAGINATION' },
+  'ia-5-1': { title: 'Overview', workshop: 'ia', module: 'OUTCOMES & BENEFITS' },
+  'ia-6-1': { title: 'Teamwork Preparation', workshop: 'ia', module: 'QUARTERLY TUNE-UP' },
+  'ia-7-1': { title: 'Welcome', workshop: 'ia', module: 'TEAM LADDER OF IMAGINATION' },
+  'ia-7-2': { title: 'Team Whiteboard Workspace', workshop: 'ia', module: 'TEAM LADDER OF IMAGINATION' },
 };
 
 // Map URL patterns to page data
@@ -142,6 +123,30 @@ export function detectCurrentPage(currentStepId?: string): PageData {
     return result;
   } else if (currentStepId) {
     console.log('❌ No step mapping found for stepId:', currentStepId, 'Available mappings:', Object.keys(STEP_MAPPINGS));
+  }
+
+  // If no step ID provided, try to extract from URL as fallback
+  if (!currentStepId) {
+    const urlMatch = currentUrl.match(/\/(\d+-\d+|ia-\d+-\d+)$/);
+    if (urlMatch) {
+      currentStepId = urlMatch[1];
+      console.log('🔗 Extracted step ID from URL:', currentStepId);
+
+      // Try step mapping with extracted ID
+      if (STEP_MAPPINGS[currentStepId]) {
+        const stepInfo = STEP_MAPPINGS[currentStepId];
+        const result = {
+          title: stepInfo.title,
+          workshop: stepInfo.workshop,
+          workshopName: stepInfo.workshop === 'ast' ? 'AllStarTeams' : 'Imaginal Agility',
+          module: stepInfo.module,
+          url: currentUrl,
+          stepId: currentStepId,
+        };
+        console.log('✅ Found step mapping from URL:', result);
+        return result;
+      }
+    }
   }
 
   // Try exact URL mapping first

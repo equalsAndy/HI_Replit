@@ -9,6 +9,7 @@ import { Pool } from 'pg';
 import { astReportService } from './ast-report-service.js';
 import { generateOpenAICoachingResponse } from './openai-api-service.js';
 import { htmlTemplateService, type ReportSection, type ReportMetadata } from './html-template-service.js';
+import { rmlProcessor } from './rml-processor.js';
 
 // Database connection
 const pool = new Pool({
@@ -184,7 +185,7 @@ class ASTSectionalReportService {
       name: 'collaboration_closing',
       title: 'Collaboration & Next Steps',
       description: 'Final insights, key takeaways, and actionable next steps',
-      dependencies: [0, 1, 2, 3, 4],
+      dependencies: [1, 2, 3, 4], // Section 0 is static/skipped, so only depend on generated sections
       personalPrompt: `Generate the KEY TAKEAWAYS & NEXT STEPS section for a Personal Development Report. This section should:
 - Summarize the most important insights from their assessment
 - Provide a clear development roadmap with immediate, medium, and long-term goals
@@ -291,7 +292,8 @@ class ASTSectionalReportService {
       await this.updateReportStatus(userId, reportType, 'generating');
 
       // Get sections to generate (all sections or specific ones)
-      const sectionsToGenerate = options.specificSections || [0, 1, 2, 3, 4, 5];
+      // NOTE: Skipping section 0 (Introduction & Overview) - app provides static "About This Report" intro
+      const sectionsToGenerate = options.specificSections || [1, 2, 3, 4, 5];
 
       // Sort sections by dependencies
       const sortedSections = this.sortSectionsByDependencies(sectionsToGenerate);
@@ -321,8 +323,15 @@ class ASTSectionalReportService {
         await this.updateReportStatus(userId, reportType, 'completed');
         console.log(`✅ Report generation completed for user ${userId}`);
       } else if (progress.sectionsFailed > 0) {
-        await this.updateReportStatus(userId, reportType, 'failed');
-        console.log(`⚠️ Report generation partially failed for user ${userId}`);
+        // Check if ALL sections failed (complete failure)
+        if (progress.sectionsFailed === progress.totalSections && progress.sectionsCompleted === 0) {
+          console.log(`❌ All sections failed for user ${userId} - cleaning up failed report data`);
+          await this.cleanupFailedReport(userId, reportType);
+        } else {
+          // Partial failure - keep the data
+          await this.updateReportStatus(userId, reportType, 'failed');
+          console.log(`⚠️ Report generation partially failed for user ${userId}: ${progress.sectionsCompleted}/${progress.totalSections} completed`);
+        }
       }
 
     } catch (error) {
@@ -357,13 +366,26 @@ class ASTSectionalReportService {
       // Generate content via OpenAI directly (simplified approach)
       console.log(`🎯 Generating section content directly via OpenAI for section ${sectionId}`);
 
-      const response = await this.generateSectionContentDirectly(prompt, userData, sectionDef);
+      const { content: rawContent, aiRequestPayload } = await this.generateSectionContentDirectly(
+        prompt,
+        userData,
+        sectionDef,
+        reportType
+      );
 
-      // Save section content
-      await this.saveSectionContent(userId, reportType, sectionId, sectionDef.title, response);
+      // Save raw content AND AI request payload
+      await this.saveSectionContent(
+        userId,
+        reportType,
+        sectionId,
+        sectionDef.title,
+        rawContent,
+        undefined, // processedContent (not used currently)
+        aiRequestPayload // NEW: Store the complete AI request payload
+      );
 
-      console.log(`✅ Section ${sectionId} generated successfully for user ${userId}`);
-      return { success: true, content: response };
+      console.log(`✅ Section ${sectionId} generated, raw content and AI payload saved for user ${userId}`);
+      return { success: true, content: rawContent };
 
     } catch (error) {
       console.error(`❌ Error generating section ${sectionId} for user ${userId}:`, error);
@@ -412,7 +434,7 @@ class ASTSectionalReportService {
       }));
 
       const reportData = reportResult.rows[0];
-      const totalSections = 6;
+      const totalSections = 5; // Sections 1-5 (section 0 skipped, static intro used)
       const sectionsCompleted = sections.filter(s => s.status === 'completed').length;
       const sectionsFailed = sections.filter(s => s.status === 'failed').length;
       const progressPercentage = totalSections > 0 ? Math.round((sectionsCompleted / totalSections) * 100) : 0;
@@ -513,15 +535,50 @@ class ASTSectionalReportService {
         };
       }
 
-      // Get all sections
+      // Get user's attributes and future self images for auto-injection
+      let userAttributes: any[] | undefined;
+      let futureSelfImages: any[] | undefined;
+      try {
+        const userData = await astReportService.getUserASTData(userId);
+        if (userData && userData.attributes && Array.isArray(userData.attributes)) {
+          userAttributes = userData.attributes;
+          console.log(`✅ Retrieved ${userAttributes.length} flow attributes for user ${userId}`);
+        }
+        if (userData && userData.futureSelfImages && Array.isArray(userData.futureSelfImages)) {
+          futureSelfImages = userData.futureSelfImages;
+          console.log(`✅ Retrieved ${futureSelfImages.length} future self images for user ${userId}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Could not retrieve user data for auto-injection:`, error);
+      }
+
+      // Get all sections with raw content for RML processing
       const sectionsResult = await pool.query(`
-        SELECT section_id, section_title, section_content
+        SELECT section_id, section_title, section_content, raw_content
         FROM report_sections
         WHERE user_id = $1 AND report_type = $2 AND status = 'completed'
         ORDER BY section_id
       `, [userId, reportType]);
 
-      const sections = sectionsResult.rows;
+      // Process sections: Use raw_content if available, otherwise fall back to section_content
+      // Then process through RML to render visual components
+      console.log(`🎨 Processing ${sectionsResult.rows.length} sections through RML system...`);
+      const sections = sectionsResult.rows.map(row => {
+        const contentToProcess = row.raw_content || row.section_content;
+        const processedContent = rmlProcessor.processContent(contentToProcess, {
+          sectionId: row.section_id,
+          userId: userId,
+          attributes: userAttributes,
+          futureSelfImages: futureSelfImages
+        });
+
+        return {
+          section_id: row.section_id,
+          section_title: row.section_title,
+          section_content: processedContent
+        };
+      });
+      console.log(`✅ RML processing complete for all sections`);
 
       if (format === 'json') {
         return {
@@ -560,9 +617,18 @@ class ASTSectionalReportService {
 
   /**
    * Generate section content directly via OpenAI (simplified approach)
+   * Returns both content and the complete AI request payload for storage
    */
-  private async generateSectionContentDirectly(prompt: string, userData: any, sectionDef: any): Promise<string> {
+  private async generateSectionContentDirectly(
+    prompt: string,
+    userData: any,
+    sectionDef: any,
+    reportType: string
+  ): Promise<{ content: string; aiRequestPayload: any }> {
     try {
+      // Capture timestamp before API call
+      const requestTimestamp = new Date().toISOString();
+
       // Use the existing OpenAI assistant for AST reports
       const OpenAI = (await import('openai')).default;
 
@@ -592,7 +658,7 @@ class ASTSectionalReportService {
       });
 
       // Use the Star Report Talia assistant for AST reports
-      const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_CZ9XUvnWRx3RIWFc7pLeH8U2';
+      const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_mTHLtTXri8cI1wtUwgDGsWhp';
 
       // Create a thread for this section generation
       const thread = await openai.beta.threads.create();
@@ -608,14 +674,58 @@ class ASTSectionalReportService {
         assistant_id: assistantId
       });
 
-      // Wait for completion
+      // 📦 BUILD COMPLETE AI REQUEST PAYLOAD FOR STORAGE
+      const aiRequestPayload = {
+        threadId: thread.id,
+        runId: run.id,
+        assistantId: assistantId,
+        prompt: prompt,
+        userData: userData,
+        sectionDef: {
+          id: sectionDef.id,
+          name: sectionDef.name,
+          title: sectionDef.title,
+          description: sectionDef.description
+        },
+        reportType: reportType,
+        timestamp: requestTimestamp,
+        apiKeySource: apiKey.startsWith('sk-proj-') ? 'OPENAI_API_KEY' :
+                      process.env.REPORT_OPENAI_API_KEY ? 'REPORT_OPENAI_API_KEY' :
+                      process.env.OPENAI_KEY_TALIA_V1 ? 'OPENAI_KEY_TALIA_V1' : 'OPENAI_KEY_TALIA_V2'
+      };
+
+      // Wait for completion with timeout (10 minutes max)
+      const MAX_WAIT_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
+      const POLL_INTERVAL = 1000; // 1 second
+      const startTime = Date.now();
+
       let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
       while (runStatus.status === 'in_progress' || runStatus.status === 'queued') {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Check if we've exceeded the timeout
+        const elapsed = Date.now() - startTime;
+        if (elapsed > MAX_WAIT_TIME) {
+          console.error(`❌ Timeout waiting for OpenAI assistant after ${elapsed}ms`);
+          // Attempt to cancel the run
+          try {
+            await openai.beta.threads.runs.cancel(thread.id, run.id);
+            console.log(`🛑 Cancelled stalled OpenAI run ${run.id}`);
+          } catch (cancelError) {
+            console.error(`⚠️ Could not cancel run:`, cancelError);
+          }
+          throw new Error(`Report generation timed out after ${Math.round(elapsed / 1000 / 60)} minutes. Please try again.`);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
         runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+
+        // Log progress every 30 seconds
+        if (elapsed % 30000 < POLL_INTERVAL) {
+          console.log(`⏳ Waiting for OpenAI response... ${Math.round(elapsed / 1000)}s elapsed, status: ${runStatus.status}`);
+        }
       }
 
       if (runStatus.status !== 'completed') {
+        console.error(`❌ Assistant run finished with non-completed status: ${runStatus.status}`);
         throw new Error(`Assistant run failed with status: ${runStatus.status}`);
       }
 
@@ -632,11 +742,43 @@ class ASTSectionalReportService {
       // Clean up the thread
       await openai.beta.threads.del(thread.id);
 
-      console.log(`✅ Generated ${content.length} characters for section ${sectionDef.id}`);
-      return content;
+      console.log(`✅ Generated ${content.length} characters (raw content) for section ${sectionDef.id}`);
+      console.log(`📦 Captured AI request payload for section ${sectionDef.id} (${Object.keys(aiRequestPayload).length} fields)`);
+
+      // 🎨 NOTE: RML processing is now deferred to report viewing time
+      // This allows us to store the raw OpenAI response in the database
+      // and process visuals only when the report is rendered
+      console.log('📦 Storing raw OpenAI content (RML processing deferred to viewing time)');
+
+      return { content, aiRequestPayload };
 
     } catch (error) {
       console.error(`❌ Error generating section content directly:`, error);
+
+      // Check if this is an OpenAI 500 error (service temporarily unavailable)
+      const isOpenAI500Error = error?.status === 500 ||
+                                error?.message?.includes('500') ||
+                                error?.message?.includes('server had an error');
+
+      if (isOpenAI500Error) {
+        // Provide a friendly, specific error message for OpenAI service issues
+        const friendlyError = new Error("It looks like our AI Report Writer is taking a virtual break, check back again in a few minutes.");
+        friendlyError.isTemporary = true;
+        friendlyError.originalError = error.message;
+        throw friendlyError;
+      }
+
+      // Log additional details for other OpenAI errors
+      if (error?.response) {
+        console.error('OpenAI API Response:', JSON.stringify(error.response, null, 2));
+      }
+      if (error?.message) {
+        console.error('Error message:', error.message);
+      }
+      if (error?.code) {
+        console.error('Error code:', error.code);
+      }
+
       throw error;
     }
   }
@@ -682,7 +824,7 @@ class ASTSectionalReportService {
       INSERT INTO holistic_reports (
         user_id, report_type, generation_mode, generation_status,
         report_data, sectional_progress, sections_completed, sections_failed, total_sections
-      ) VALUES ($1, $2, 'sectional', 'pending', '{}', 0, 0, 0, 6)
+      ) VALUES ($1, $2, 'sectional', 'pending', '{}', 0, 0, 0, 5)
       RETURNING id
     `, [userId, holisticReportType]);
 
@@ -697,7 +839,7 @@ class ASTSectionalReportService {
   }
 
   private async initializeSections(userId: string, reportType: string, specificSections?: number[]): Promise<void> {
-    const sectionsToInit = specificSections || [0, 1, 2, 3, 4, 5];
+    const sectionsToInit = specificSections || [1, 2, 3, 4, 5]; // Skip section 0
 
     for (const sectionId of sectionsToInit) {
       const sectionDef = this.sectionDefinitions.find(s => s.id === sectionId);
@@ -748,49 +890,39 @@ class ASTSectionalReportService {
     userData: any
   ): string {
     const isPersonal = reportType === 'ast_personal';
-    const basePrompt = isPersonal ? sectionDef.personalPrompt : sectionDef.professionalPrompt;
 
-    // Analyze user's strengths constellation for context
-    const strengthsSignature = this.analyzeStrengthsConstellation(userData.starStrengths);
-    const flowCategory = this.categorizeFlowScore(userData.flowScore);
+    // Send only data as JSON - Assistant has its own instructions
+    const dataPayload = {
+      type: 'ast_sectional_report',
+      section_id: sectionDef.id,
+      section_name: sectionDef.name,
+      section_title: sectionDef.title,
+      report_type: isPersonal ? 'personal' : 'professional',
+      participant_name: userData.userName,
+      strengths: {
+        thinking: userData.starStrengths?.thinking || 0,
+        acting: userData.starStrengths?.acting || 0,
+        feeling: userData.starStrengths?.feeling || 0,
+        planning: userData.starStrengths?.planning || 0
+      },
+      flow: {
+        flowScore: userData.flowScore || 0,
+        triggers: userData.flowInsights?.triggers || '',
+        blockers: userData.flowInsights?.blockers || '',
+        conditions: userData.flowInsights?.conditions || '',
+        improvements: userData.flowInsights?.improvements || ''
+      },
+      reflections: userData.stepReflections || {},
+      wellbeing: {
+        current_level: userData.cantrilLadder?.currentLevel || 0,
+        future_level: userData.cantrilLadder?.futureLevel || 0,
+        current_factors: userData.cantrilLadder?.currentFactors || '',
+        future_improvements: userData.cantrilLadder?.futureImprovements || '',
+        specific_changes: userData.cantrilLadder?.specificChanges || ''
+      }
+    };
 
-    return `You are Talia, an expert AI life coach specializing in the AllStarTeams (AST) methodology.
-
-${basePrompt}
-
-USER DATA:
-Name: ${userData.userName}
-Strengths Distribution: ${strengthsSignature.percentages}
-Constellation Archetype: ${strengthsSignature.name} (${strengthsSignature.pattern})
-Flow Score: ${userData.flowScore} (${flowCategory})
-
-SPECIFIC USER REFLECTIONS:
-${Object.entries(userData.stepReflections).map(([step, reflection]) =>
-  `${step}: "${reflection}"`).join('\n')}
-
-WELL-BEING DATA:
-Current Level: ${userData.cantrilLadder.currentLevel}/10
-Future Level: ${userData.cantrilLadder.futureLevel}/10
-Current Factors: ${userData.cantrilLadder.currentFactors}
-Future Improvements: ${userData.cantrilLadder.futureImprovements}
-Specific Changes: ${userData.cantrilLadder.specificChanges}
-
-FLOW INSIGHTS:
-Triggers: ${userData.flowInsights.triggers}
-Blockers: ${userData.flowInsights.blockers}
-Conditions: ${userData.flowInsights.conditions}
-Improvements: ${userData.flowInsights.improvements}
-
-CRITICAL REQUIREMENTS:
-- Use their exact name (${userData.userName}) throughout
-- Reference their specific percentages and reflections
-- Maintain Talia's warm, encouraging coaching voice
-- Quote their reflections directly in quotation marks
-- Focus specifically on the ${sectionDef.title} section content
-- Match the expected word count and tone for this section
-- Build naturally on previous sections if this is part of a larger report
-
-Generate ONLY the content for the ${sectionDef.title} section.`;
+    return JSON.stringify(dataPayload, null, 2);
   }
 
   private async updateSectionStatus(
@@ -811,17 +943,34 @@ Generate ONLY the content for the ${sectionDef.title} section.`;
     reportType: string,
     sectionId: number,
     sectionTitle: string,
-    content: string
+    rawContent: string,
+    processedContent?: string,
+    aiRequestPayload?: any
   ): Promise<void> {
+    // If processedContent is not provided, set it same as rawContent (for backwards compatibility)
+    const contentToStore = processedContent !== undefined ? processedContent : rawContent;
+
     await pool.query(`
       UPDATE report_sections
-      SET section_content = $1,
-          section_title = $2,
+      SET raw_content = $1,
+          section_content = $2,
+          section_title = $3,
+          ai_request_payload = $4,
           status = 'completed',
           completed_at = NOW(),
           updated_at = NOW()
-      WHERE user_id = $3 AND report_type = $4 AND section_id = $5
-    `, [content, sectionTitle, userId, reportType, sectionId]);
+      WHERE user_id = $5 AND report_type = $6 AND section_id = $7
+    `, [
+      rawContent,
+      contentToStore,
+      sectionTitle,
+      aiRequestPayload ? JSON.stringify(aiRequestPayload) : null,
+      userId,
+      reportType,
+      sectionId
+    ]);
+
+    console.log(`💾 Saved section ${sectionId} content ${aiRequestPayload ? 'WITH' : 'WITHOUT'} AI request payload`);
   }
 
   private async markSectionFailed(
@@ -932,7 +1081,8 @@ Generate ONLY the content for the ${sectionDef.title} section.`;
         generatedAt: new Date(),
         subtitle: reportType === 'ast_personal'
           ? 'Personal Development Insights'
-          : 'Professional Profile Analysis'
+          : 'Professional Profile Analysis',
+        userId: userId
       };
 
       // Generate professional HTML using template service
@@ -1015,6 +1165,100 @@ Generate ONLY the content for the ${sectionDef.title} section.`;
     if (score >= 39) return 'Flow Aware';
     if (score >= 26) return 'Flow Blocked';
     return 'Flow Distant';
+  }
+
+  /**
+   * Cleanup failed report data when all sections fail
+   * Deletes the holistic_reports record and all report_sections for this user/report_type
+   */
+  private async cleanupFailedReport(userId: string, reportType: 'ast_personal' | 'ast_professional'): Promise<void> {
+    try {
+      const holisticReportType = this.mapToHolisticReportType(reportType);
+
+      console.log(`🧹 Cleaning up failed report data for user ${userId}, type ${reportType}`);
+
+      // Delete all report sections
+      await pool.query(`
+        DELETE FROM report_sections
+        WHERE user_id = $1 AND report_type = $2
+      `, [userId, reportType]);
+
+      console.log(`  ✓ Deleted failed report sections for user ${userId}`);
+
+      // Delete the holistic report record
+      await pool.query(`
+        DELETE FROM holistic_reports
+        WHERE user_id = $1 AND report_type = $2 AND generation_mode = 'sectional'
+      `, [userId, holisticReportType]);
+
+      console.log(`  ✓ Deleted failed holistic report record for user ${userId}`);
+      console.log(`✅ Cleanup complete - user can retry report generation`);
+
+    } catch (error) {
+      console.error(`❌ Error cleaning up failed report for user ${userId}:`, error);
+      // Don't throw - cleanup failure shouldn't block other operations
+    }
+  }
+
+  /**
+   * Detect and clean up stalled report sections
+   * A section is considered stalled if it's been "generating" for more than 15 minutes
+   */
+  async cleanupStalledSections(): Promise<{ cleaned: number; details: any[] }> {
+    try {
+      console.log(`🔍 Checking for stalled report sections...`);
+
+      // Find sections that have been generating for more than 15 minutes
+      const stalledSections = await pool.query(`
+        SELECT id, user_id, report_type, section_id, section_name,
+               EXTRACT(EPOCH FROM (NOW() - updated_at))/60 as minutes_stalled
+        FROM report_sections
+        WHERE status = 'generating'
+          AND updated_at < NOW() - INTERVAL '15 minutes'
+      `);
+
+      const details = [];
+
+      for (const section of stalledSections.rows) {
+        console.log(`⚠️ Found stalled section: user ${section.user_id}, section ${section.section_id}, stalled for ${Math.round(section.minutes_stalled)} minutes`);
+
+        // Mark as failed with timeout error
+        await pool.query(`
+          UPDATE report_sections
+          SET status = 'failed',
+              error_message = $1,
+              generation_attempts = generation_attempts + 1,
+              updated_at = NOW()
+          WHERE id = $2
+        `, [
+          `Report generation timed out after ${Math.round(section.minutes_stalled)} minutes. Please try again.`,
+          section.id
+        ]);
+
+        details.push({
+          userId: section.user_id,
+          reportType: section.report_type,
+          sectionId: section.section_id,
+          sectionName: section.section_name,
+          minutesStalled: Math.round(section.minutes_stalled)
+        });
+      }
+
+      if (stalledSections.rows.length > 0) {
+        console.log(`✅ Cleaned up ${stalledSections.rows.length} stalled sections`);
+      } else {
+        console.log(`✅ No stalled sections found`);
+      }
+
+      return {
+        cleaned: stalledSections.rows.length,
+        details
+      };
+
+    } catch (error) {
+      console.error(`❌ Error cleaning up stalled sections:`, error);
+      return { cleaned: 0, details: [] };
+    }
   }
 }
 

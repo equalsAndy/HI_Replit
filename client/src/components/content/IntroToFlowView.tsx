@@ -1099,6 +1099,12 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             <div className="mt-12 text-center border-t border-gray-200 pt-8">
               <Button
                 onClick={async () => {
+                  console.log('🚀 Finish Assessment button clicked');
+                  console.log('📝 Available functions:', {
+                    hasMarkStepCompleted: !!markStepCompleted,
+                    hasSetCurrentContent: !!setCurrentContent
+                  });
+
                   // Auto-capture StarCard before proceeding
                   if (user?.id) {
                     console.log('🎯 Auto-capturing StarCard for user:', user.id);
@@ -1110,8 +1116,27 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                     }
                   }
 
-                  markStepCompleted('2-2');
-                  setCurrentContent("rounding-out");
+                  if (markStepCompleted) {
+                    console.log('✅ Marking step 2-2 complete');
+                    await markStepCompleted('2-2');
+                  } else {
+                    console.error('❌ markStepCompleted function not available');
+                  }
+
+                  if (setCurrentContent) {
+                    console.log('✅ Navigating to rounding-out');
+                    setCurrentContent("rounding-out");
+
+                    // Scroll to content title anchor when navigating
+                    setTimeout(() => {
+                      const anchor = document.getElementById('content-title');
+                      if (anchor) {
+                        anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 100);
+                  } else {
+                    console.error('❌ setCurrentContent function not available');
+                  }
                 }}
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
                 data-continue-button="true"

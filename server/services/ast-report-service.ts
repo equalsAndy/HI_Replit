@@ -43,6 +43,13 @@ interface ASTUserData {
     fiveYear: string;
     flowOptimized: string;
   };
+  futureSelfImages?: Array<{
+    id: string;
+    photoId: number;
+    url: string;
+    source: string;
+    searchTerm?: string;
+  }>;
 }
 
 interface ASTReportResult {
@@ -543,7 +550,8 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
           tenYear: '',
           fiveYear: '',
           flowOptimized: futureData.flowOptimizedLife || ''
-        }
+        },
+        futureSelfImages: futureData.imageData?.selectedImages || []
       };
 
     } catch (error) {

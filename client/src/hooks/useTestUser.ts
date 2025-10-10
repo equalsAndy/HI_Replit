@@ -55,9 +55,12 @@ export const useTestUser = () => {
   // Admin users automatically get test user privileges  
   const hasTestAccess = isTestUser || isAdmin;
   
-  // Demo buttons are controlled by database field showDemoDataButtons
-  // Only show demo buttons if explicitly granted by admin OR if user is admin
-  const shouldShowDemoButtons = isAdmin || (user?.showDemoDataButtons === true);
+  // Demo buttons visibility logic:
+  // - Test users see demo buttons by default (for quick testing)
+  // - Beta testers do NOT see demo buttons (they provide real data)
+  // - Admin can grant permission via showDemoDataButtons for special cases
+  // - Regular participants never see demo buttons
+  const shouldShowDemoButtons = isAdmin || isTestUser || (user?.showDemoDataButtons === true);
   
   // Debug test user access (single log to verify fix)
   if (user && !sessionStorage.getItem('demo-buttons-logged')) {

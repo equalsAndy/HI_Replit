@@ -10,6 +10,7 @@ export interface FutureSelfImageData {
     url: string;
     source: string;
     searchTerm: string;
+    description?: string;
     credit?: {
       photographer: string;
       photographerUrl: string;

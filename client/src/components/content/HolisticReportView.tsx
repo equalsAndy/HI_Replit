@@ -117,6 +117,11 @@ export default function HolisticReportView({
     staleTime: 1000, // Consider data stale after 1 second for real-time updates
   });
 
+  // Mark step 4-2 as completed when component loads
+  useEffect(() => {
+    markStepCompleted('4-2');
+  }, [markStepCompleted]);
+
   // Countdown timer effect (continues counting up in overtime)
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -291,11 +296,37 @@ export default function HolisticReportView({
 
   // Track sectional report completion for user experience
   useEffect(() => {
-    // Check report completion to reset timer
+    // Check report completion to reset timer for personal
     if (personalProgress?.overallStatus === 'completed') {
       if (activeTimer === 'personal') {
         setCountdown(0);
         setActiveTimer(null);
+      }
+    }
+
+    // Auto-start timer if personal report is in progress (e.g., after page refresh or navigation)
+    if (personalProgress?.overallStatus === 'in_progress' && activeTimer !== 'personal') {
+      console.log('🔄 Detected in-progress personal report - resuming timer');
+      setActiveTimer('personal');
+
+      // Calculate time based on progress or elapsed time
+      if (personalProgress.startedAt) {
+        const startTime = new Date(personalProgress.startedAt).getTime();
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const estimatedTotal = 210; // 3.5 minutes
+        const remaining = estimatedTotal - elapsed;
+
+        // If we're past estimated time, start in overtime
+        if (remaining <= 0) {
+          setCountdown(remaining); // This will be negative (overtime)
+        } else {
+          setCountdown(remaining);
+        }
+      } else {
+        // Fallback: estimate based on progress percentage
+        const estimatedTotal = 210;
+        const remainingSeconds = Math.max(30, estimatedTotal - (personalProgress.progressPercentage * estimatedTotal / 100));
+        setCountdown(Math.floor(remainingSeconds));
       }
     }
 
@@ -347,6 +378,9 @@ export default function HolisticReportView({
     const isInProgress = progress?.overallStatus === 'in_progress';
     const isDisabledDueToMaintenance = !reportsWorking;
 
+    // Stall detection: if in overtime for more than 3 minutes (180 seconds), consider it stalled
+    const isStalled = activeTimer === reportType && countdown < -180 && isInProgress;
+
     // Debug logging for button visibility
     console.log(`🔍 ${reportType} Button Conditions:`, {
       progress: progress?.overallStatus,
@@ -382,11 +416,40 @@ export default function HolisticReportView({
               {/* Progress Display for Sectional Generation */}
               {(isInProgress || (activeTimer === reportType)) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 transition-opacity duration-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4 text-blue-600 animate-spin" />
-                    <span className="text-blue-800 font-medium">
-                      {activeTimer === reportType ? getLoadingMessage(countdown) : 'Generating comprehensive report...'}
-                    </span>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-600 animate-spin" />
+                      <span className="text-blue-800 font-medium">
+                        {activeTimer === reportType ? getLoadingMessage(countdown) : 'Generating comprehensive report...'}
+                      </span>
+                    </div>
+                    {/* Cancel button during generation */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        if (!user?.id) return;
+                        const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
+                        try {
+                          const response = await fetch(`/api/ast-sectional-reports/cancel/${user.id}/${astReportType}`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' }
+                          });
+                          if (response.ok) {
+                            console.log('✅ Report cancelled successfully');
+                          }
+                          setActiveTimer(null);
+                          setCountdown(0);
+                          queryClient.invalidateQueries({ queryKey: [`/api/ast-sectional-reports/progress/${user.id}/${astReportType}`] });
+                        } catch (error) {
+                          console.error('Error cancelling report:', error);
+                        }
+                      }}
+                      className="text-blue-700 hover:text-blue-900 hover:bg-blue-100 text-xs"
+                    >
+                      Cancel
+                    </Button>
                   </div>
 
                   {/* Progress Bar */}
@@ -437,8 +500,53 @@ export default function HolisticReportView({
                 </div>
               )}
 
+              {/* Stalled Status - Report taking too long */}
+              {isStalled && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-orange-600" />
+                    <span className="text-orange-800 font-medium">Report generation seems stalled</span>
+                  </div>
+                  <p className="text-orange-700 text-sm mt-1">
+                    It looks like our AI Report Writer is taking a virtual break, check back again in a few minutes.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if (!user?.id) return;
+                      // Cancel and reset report using the new cancel endpoint
+                      try {
+                        const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
+                        const response = await fetch(`/api/ast-sectional-reports/cancel/${user.id}/${astReportType}`, {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        if (response.ok) {
+                          console.log('✅ Report cancelled successfully');
+                        }
+
+                        // Reset local state
+                        setActiveTimer(null);
+                        setCountdown(0);
+                        // Refetch progress
+                        queryClient.invalidateQueries({ queryKey: [`/api/ast-sectional-reports/progress/${user.id}/${astReportType}`] });
+                      } catch (error) {
+                        console.error('Error cancelling report:', error);
+                      }
+                    }}
+                    className="mt-3 border-orange-300 text-orange-700 hover:bg-orange-100"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Cancel and Reset
+                  </Button>
+                </div>
+              )}
+
               {/* Error Status */}
-              {isFailed && (
+              {isFailed && !isStalled && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="h-4 w-4 text-red-600" />
@@ -509,40 +617,61 @@ export default function HolisticReportView({
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-2 flex-wrap">
+              <div className="space-y-3">
                 {(canGenerate || isDisabledDueToMaintenance) && (
-                  <Button
-                    onClick={() => handleGenerateReport(reportType)}
-                    disabled={isGenerating || generateReportMutation.isPending || isDisabledDueToMaintenance}
-                    className={`${isDisabledDueToMaintenance ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-                  >
-                    {isDisabledDueToMaintenance ? (
-                      <>
-                        <Wrench className="h-4 w-4 mr-2" />
-                        Temporarily Unavailable
-                      </>
-                    ) : isGenerating ? (
-                      <>
-                        <Clock className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : isFailed ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Retry Generation
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Generate Report
-                      </>
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => handleGenerateReport(reportType)}
+                      disabled={isGenerating || generateReportMutation.isPending || isDisabledDueToMaintenance}
+                      className={`${isDisabledDueToMaintenance ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                    >
+                      {isDisabledDueToMaintenance ? (
+                        <>
+                          <Wrench className="h-4 w-4 mr-2" />
+                          Temporarily Unavailable
+                        </>
+                      ) : isGenerating ? (
+                        <>
+                          <Clock className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : isFailed ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Retry Generation
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Generate Report
+                        </>
+                      )}
+                    </Button>
+                    
+                    {/* Timing and Activity Suggestions */}
+                    {!isDisabledDueToMaintenance && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-base">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Clock className="h-5 w-5 text-blue-600" />
+                          <span className="font-medium text-blue-800 text-lg">Report generation takes 3-4 minutes</span>
+                        </div>
+                        <p className="text-blue-700 mb-3 text-base">Perfect time to:</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-blue-600 text-base">
+                          <span className="flex items-center gap-2">📖 Read the text below</span>
+                          <span className="flex items-center gap-2">🧘 Get up and stretch</span>
+                          <span className="flex items-center gap-2">☕ Make a cup of tea</span>
+                          <span className="flex items-center gap-2">💪 Do 90 squats</span>
+                          <span className="flex items-center gap-2">💝 Send a loving text</span>
+                          <span className="flex items-center gap-2">🌬️ Mindful breathing exercise</span>
+                        </div>
+                      </div>
                     )}
-                  </Button>
+                  </div>
                 )}
 
                 {/* Show View button when completed */}
                 {(isCompleted && !isDisabledDueToMaintenance) && (
-                  <>
+                  <div className="flex gap-2">
                     <Button
                       onClick={() => handleViewHtmlReport(reportType)}
                       variant="outline"
@@ -551,18 +680,41 @@ export default function HolisticReportView({
                       <Monitor className="h-4 w-4 mr-2" />
                       View Report
                     </Button>
-                  </>
+                  </div>
                 )}
 
-                {/* Fallback button when neither generate nor view are available */}
+                {/* Check Status button - also restores timer if in progress */}
                 {(!canGenerate && !isDisabledDueToMaintenance && !isCompleted && !isActivelyGenerating) && (
                   <Button
-                    onClick={() => window.location.reload()}
+                    onClick={() => {
+                      // Refresh status
+                      const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
+                      queryClient.invalidateQueries({
+                        queryKey: [`/api/ast-sectional-reports/progress/${user?.id}/${astReportType}`]
+                      });
+
+                      // If report is in progress, restore the timer
+                      if (isInProgress && !isActivelyGenerating) {
+                        setActiveTimer(reportType);
+                        if (progress?.startedAt) {
+                          const startTime = new Date(progress.startedAt).getTime();
+                          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                          const estimatedTotal = 210;
+                          const remaining = estimatedTotal - elapsed;
+                          setCountdown(remaining); // Can be negative for overtime
+                        } else {
+                          // Estimate based on progress
+                          const estimatedTotal = 210;
+                          const remaining = Math.max(30, estimatedTotal - (progress.progressPercentage * estimatedTotal / 100));
+                          setCountdown(Math.floor(remaining));
+                        }
+                      }
+                    }}
                     variant="outline"
                     className="border-gray-200 hover:bg-gray-50 text-gray-700"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Check Status
+                    {isInProgress ? 'Resume Tracking' : 'Check Status'}
                   </Button>
                 )}
               </div>
@@ -612,11 +764,23 @@ export default function HolisticReportView({
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Holistic Reports</h1>
         <p className="text-lg text-gray-700 mb-8">
-          Congratulations on completing your AllStarTeams workshop! Your personalized development reports 
+          Congratulations on completing your AllStarTeams workshop! Your personalized development reports
           are now available, synthesizing your journey into actionable insights for continued growth.
         </p>
+      </div>
 
-        {/* About This Report Section */}
+      {/* Report Generation Card - Personal Report - AT TOP */}
+      <div className="max-w-4xl mx-auto mb-8">
+        {renderReportCard(
+          'personal',
+          'Your Report',
+          'This enhanced report includes your Star Card, visual charts, and comprehensive personal development insights from your complete AllStarTeams workshop experience.',
+          personalProgress,
+          personalLoading
+        )}
+      </div>
+
+      <div className="mb-8">
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl text-blue-900">
@@ -728,8 +892,7 @@ export default function HolisticReportView({
         </Card>
       </div>
 
-
-      {/* Beta Tester Feedback Button - Before Report Generation */}
+      {/* Beta Tester Feedback Button - After Report Generation */}
       {(user?.isBetaTester || user?.role === 'admin') && (
         <Card className="mb-6 bg-gradient-to-r from-purple-100 to-indigo-100 border-2 border-purple-300 shadow-lg">
           <CardContent className="p-6">
@@ -764,19 +927,6 @@ export default function HolisticReportView({
           </CardContent>
         </Card>
       )}
-
-
-
-      {/* Report Generation Card - Personal Report Only */}
-      <div className="max-w-4xl mx-auto">
-        {renderReportCard(
-          'personal',
-          'Your Report',
-          'This enhanced report includes your Star Card, visual charts, and comprehensive personal development insights from your complete AllStarTeams workshop experience.',
-          personalProgress,
-          personalLoading
-        )}
-      </div>
 
       {/* Next Steps */}
       {personalProgress?.overallStatus === 'completed' && (

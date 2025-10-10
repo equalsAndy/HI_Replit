@@ -435,9 +435,30 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
           </div>
         ) : (
           <>
+            {/* Current Step Display */}
+            {pageContext && (
+              <div className="flex-shrink-0 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-purple-600 font-semibold text-sm shadow-sm">
+                    {pageContext.stepId || '?'}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-gray-900">
+                      {pageContext.title}
+                    </div>
+                    {pageContext.module && (
+                      <div className="text-xs text-gray-600 mt-0.5">
+                        {pageContext.module}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Form Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
+
 
               {/* Note Type */}
               <div>

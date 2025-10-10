@@ -1,7 +1,7 @@
 import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import { photoStorageService } from '../services/photo-storage-service.js';
+import { photoStorageService, ImageType } from '../services/photo-storage-service.js';
 
 const router = express.Router();
 
@@ -41,7 +41,15 @@ router.post('/auto-save', async (req, res) => {
           // The old one will have its reference count decremented
         }
         
-        const photoId = await photoStorageService.storePhoto(imageData, userId, true, `StarCard-user-${userId}-${Date.now()}.png`);
+        const photoId = await photoStorageService.storePhoto(
+          imageData, 
+          userId, 
+          true, 
+          `StarCard-user-${userId}-${Date.now()}.png`,
+          ImageType.STARCARD_GENERATED,
+          `Generated StarCard for user ${userId}`,
+          undefined
+        );
         results.photoId = photoId;
         results.replaced = !!existingStarCard;
         results.message += ` (Database ID: ${photoId}${existingStarCard ? ', replaced existing' : ''})`;
@@ -130,14 +138,62 @@ router.post('/auto-save', async (req, res) => {
 /**
  * Get user's saved StarCards from database
  */
+/**
+ * GET /api/star-card/:userId - Serve StarCard image for reports
+ * Returns the actual image data (PNG)
+ */
+router.get('/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    console.log(`🎯 StarCard Image Request: user ${userId}`);
+
+    // Get user's StarCard from database
+    const starCard = await photoStorageService.getUserStarCard(userId);
+
+    if (!starCard || !starCard.photoData) {
+      console.log(`⚠️ No StarCard found for user ${userId}`);
+      return res.status(404).json({
+        success: false,
+        message: 'StarCard not found for this user'
+      });
+    }
+
+    // Extract base64 data and convert to buffer
+    const base64Data = starCard.photoData.includes(',')
+      ? starCard.photoData.split(',')[1]
+      : starCard.photoData;
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Set appropriate headers for image serving
+    // StarCards are always PNG format
+    res.set({
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=86400', // Cache for 1 day
+      'Content-Length': buffer.length
+    });
+
+    console.log(`✅ Serving StarCard for user ${userId} (${buffer.length} bytes)`);
+    res.send(buffer);
+
+  } catch (error) {
+    console.error('❌ Error serving StarCard:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to serve StarCard',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 router.get('/saved/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     // This would get all StarCards for a user
     // For now, just get the most recent one
     const starCard = await photoStorageService.getUserStarCard(userId);
-    
+
     if (!starCard) {
       return res.json({
         success: false,

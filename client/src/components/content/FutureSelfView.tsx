@@ -34,6 +34,9 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [imagesConfirmed, setImagesConfirmed] = useState(false);
   const [reflectionSubmitted, setReflectionSubmitted] = useState(false);
   const [isSavingImages, setIsSavingImages] = useState(false);
+  const [uploadDescription, setUploadDescription] = useState('');
+  const [showDescriptionPrompt, setShowDescriptionPrompt] = useState(false);
+  const [pendingUploadData, setPendingUploadData] = useState<any>(null);
 
 
 
@@ -100,10 +103,10 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
   // FIXED: Clear search after adding image
   const addImage = (image: any) => {
-    if (imageData.selectedImages.length >= 2) {
+    if (imageData.selectedImages.length >= 4) {
       toast({
         title: "Maximum reached",
-        description: "You can select up to 2 images.",
+        description: "You can select up to 4 images.",
         variant: "destructive"
       });
       return;
@@ -114,6 +117,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       url: image.urls.regular,
       source: 'unsplash',
       searchTerm: searchQuery,
+      description: image.description || image.alt_description || searchQuery || 'Selected image',
       credit: {
         photographer: image.user.name,
         photographerUrl: image.user.links.html,
@@ -201,6 +205,39 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     }
   };
 
+  // Save uploaded image with description
+  const saveUploadedImage = async () => {
+    if (!pendingUploadData) return;
+
+    const newImage = {
+      id: pendingUploadData.photoId.toString(),
+      url: pendingUploadData.imageUrl,
+      source: 'upload',
+      searchTerm: 'uploaded image',
+      description: uploadDescription.trim() || pendingUploadData.filename || 'Uploaded image',
+      photoId: pendingUploadData.photoId,
+      credit: null
+    };
+
+    const updatedImageData = {
+      ...imageData,
+      selectedImages: [...imageData.selectedImages, newImage]
+    };
+
+    setImageData(updatedImageData);
+    await saveImageData(updatedImageData);
+
+    // Reset state
+    setShowDescriptionPrompt(false);
+    setPendingUploadData(null);
+    setUploadDescription('');
+
+    toast({
+      title: "Image uploaded",
+      description: "Your image has been uploaded successfully.",
+    });
+  };
+
   // Handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -251,27 +288,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           throw new Error(uploadResult.error || 'Upload failed');
         }
 
-        const newImage = {
-          id: uploadResult.photoId.toString(),
-          url: uploadResult.imageUrl, // Use the returned image URL
-          source: 'upload',
-          searchTerm: 'uploaded image',
+        // Store upload data temporarily and show description prompt
+        setPendingUploadData({
           photoId: uploadResult.photoId,
-          credit: null // No credit needed for user uploads
-        };
-
-        const updatedImageData = {
-          ...imageData,
-          selectedImages: [...imageData.selectedImages, newImage]
-        };
-
-        setImageData(updatedImageData);
-        await saveImageData(updatedImageData);
-
-        toast({
-          title: "Image uploaded",
-          description: "Your image has been uploaded successfully.",
+          imageUrl: uploadResult.imageUrl,
+          filename: file.name
         });
+        setShowDescriptionPrompt(true);
       } catch (error) {
         console.error('Upload error:', error);
         toast({
@@ -394,7 +417,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                 {imageData.selectedImages.length} image{imageData.selectedImages.length > 1 ? 's' : ''} selected
               </h3>
               <p className="text-sm text-indigo-600 mt-1">
-                You can select up to 2 images total.
+                You can select up to 4 images total.
               </p>
             </div>
             <Button
@@ -409,8 +432,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         </div>
       )}
 
-      {/* Search interface - hide when 2 images selected or after confirmation */}
-      {!workshopCompleted && !imagesConfirmed && imageData.selectedImages.length < 2 && (
+      {/* Search interface - hide when 4 images selected or after confirmation */}
+      {!workshopCompleted && !imagesConfirmed && imageData.selectedImages.length < 4 && (
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-8">
           <h3 className="text-lg font-medium mb-4">Find Images</h3>
           <div className="space-y-4">
@@ -523,6 +546,46 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         />
       )}
 
+      {/* Upload Description Prompt Modal */}
+      {showDescriptionPrompt && pendingUploadData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Add Image Description (Optional)</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Help us understand what this image represents to you. This description will be used to personalize your report.
+            </p>
+            <Input
+              value={uploadDescription}
+              onChange={(e) => setUploadDescription(e.target.value)}
+              placeholder="e.g., A peaceful lake representing inner calm..."
+              className="mb-4"
+              maxLength={200}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  saveUploadedImage();
+                }
+              }}
+            />
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Skip description and save with default
+                  saveUploadedImage();
+                }}
+              >
+                Skip
+              </Button>
+              <Button
+                onClick={saveUploadedImage}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

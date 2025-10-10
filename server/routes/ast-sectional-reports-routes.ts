@@ -675,6 +675,90 @@ router.delete('/:userId/:reportType', requireAuth, async (req, res) => {
 });
 
 // ===================================================================
+// ENDPOINT: POST /api/ast-sectional-reports/cleanup-stalled
+// Clean up stalled report sections (admin only)
+// ===================================================================
+router.post('/cleanup-stalled', requireAuth, async (req, res) => {
+  try {
+    console.log('🧹 Cleaning up stalled report sections');
+
+    const result = await astSectionalReportService.cleanupStalledSections();
+
+    res.json({
+      success: true,
+      message: `Cleaned up ${result.cleaned} stalled sections`,
+      cleaned: result.cleaned,
+      details: result.details
+    });
+
+  } catch (error) {
+    console.error('❌ Error cleaning up stalled sections:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clean up stalled sections'
+    });
+  }
+});
+
+// ===================================================================
+// ENDPOINT: POST /api/ast-sectional-reports/cancel/:userId/:reportType
+// Cancel an in-progress report generation and reset the report
+// ===================================================================
+router.post('/cancel/:userId/:reportType', requireAuth, async (req, res) => {
+  try {
+    const { userId: urlUserId, reportType } = req.params;
+    const sessionUserId = req.session?.userId;
+
+    // SECURITY: Validate authenticated user matches the userId in URL
+    if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
+      console.log(`❌ SECURITY: User ${sessionUserId} attempted to cancel report for user ${urlUserId}`);
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied: You can only cancel your own reports'
+      });
+    }
+
+    const userId = sessionUserId;
+    console.log(`🛑 Cancelling report generation for user: ${userId}, type: ${reportType}`);
+
+    // Validate report type
+    if (!['ast_personal', 'ast_professional'].includes(reportType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid report type. Must be "ast_personal" or "ast_professional"'
+      });
+    }
+
+    // Delete all sections and report data to allow fresh start
+    await pool.query(`
+      DELETE FROM report_sections
+      WHERE user_id = $1 AND report_type = $2
+    `, [userId, reportType]);
+
+    const holisticReportType = reportType === 'ast_personal' ? 'personal' : 'standard';
+    await pool.query(`
+      DELETE FROM holistic_reports
+      WHERE user_id = $1 AND report_type = $2 AND generation_mode = 'sectional'
+    `, [userId, holisticReportType]);
+
+    res.json({
+      success: true,
+      message: 'Report generation cancelled and data reset successfully',
+      user_id: userId,
+      report_type: reportType
+    });
+
+  } catch (error) {
+    console.error('❌ Error cancelling report:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to cancel report generation',
+      details: error.message
+    });
+  }
+});
+
+// ===================================================================
 // ENDPOINT: GET /api/ast-sectional-reports/list
 // List all users with sectional reports (admin only)
 // ===================================================================

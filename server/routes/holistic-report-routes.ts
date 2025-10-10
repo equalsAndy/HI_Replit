@@ -1,22 +1,11 @@
 import express from 'express';
 import { Pool } from 'pg';
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
 import { requireAuth } from '../middleware/auth.js';
-import { db } from '../db.js';
-import { 
-  GenerateReportRequest, 
-  GenerateReportResponse, 
-  ReportStatusResponse,
-  HolisticReport,
-  ReportType 
+import {
+  ReportStatusResponse
 } from '../../shared/holistic-report-types';
-import { mockReportDataService } from '../services/mock-report-data-service';
-import { pdfReportService } from '../services/pdf-report-service';
-import { generateOpenAICoachingResponse } from '../services/openai-api-service.js';
-import { taliaPersonaService } from '../services/talia-personas.js';
-// Note: Star card image generation will be handled separately
+// Note: This file now only handles viewing/downloading of already-generated reports
+// Report generation happens via ast-sectional-report-service.ts
 
 const router = express.Router();
 
@@ -26,180 +15,12 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Test endpoint /test-generate has been removed. Use /generate with proper authentication instead.
-
-/**
- * Generate a holistic report (Standard or Personal)
- * POST /api/reports/holistic/generate
- */
-router.post('/generate', async (req, res) => {
-  const { reportType }: GenerateReportRequest = req.body;
-  
-  // SECURITY: Use only session-based authentication (no cookie fallback for security)
-  let userId = req.session?.userId;
-
-  if (!userId) {
-    return res.status(401).json({ 
-      success: false, 
-      message: 'Authentication required' 
-    } as GenerateReportResponse);
-  }
-
-  if (!reportType || !['standard', 'personal'].includes(reportType)) {
-    return res.status(400).json({
-      success: false,
-      message: 'Valid report type (standard or personal) is required'
-    } as GenerateReportResponse);
-  }
-
-  try {
-    console.log(`🚀 Starting ${reportType} report generation for user ${userId}`);
-
-    // Enhanced constraint: Check for any concurrent generation attempts for this user
-    const existingGeneratingReports = await pool.query(
-      'SELECT id, report_type, generation_status FROM holistic_reports WHERE user_id = $1 AND generation_status = $2',
-      [userId, 'generating']
-    );
-
-    if (existingGeneratingReports.rows.length > 0) {
-      const existing = existingGeneratingReports.rows[0];
-      return res.status(409).json({
-        success: false,
-        message: `You already have a ${existing.report_type} report being generated. Only one report can be generated at a time. Please wait for it to complete before requesting another.`,
-        reportId: existing.id,
-        status: 'generating',
-        existingReportType: existing.report_type
-      } as GenerateReportResponse);
-    }
-
-    // Always create a new report record (no limit on generations)
-    const newReport = await pool.query(
-      `INSERT INTO holistic_reports (user_id, report_type, report_data, generation_status, generated_by_user_id) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [userId, reportType, JSON.stringify({}), 'generating', userId]
-    );
-    const reportId = newReport.rows[0].id;
-
-    // Start background generation (don't await - return immediately)
-    generateReportInBackground(reportId, userId, reportType as ReportType).catch(err => {
-      console.error(`❌ Background report generation failed for report ${reportId}:`, err);
-    });
-
-    // Return immediately with generating status
-    console.log(`✅ Report generation started in background for user ${userId}, reportId: ${reportId}`);
-    
-    res.json({
-      success: true,
-      reportId,
-      message: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report generation started`,
-      status: 'generating'
-    } as GenerateReportResponse);
-
-  } catch (error) {
-    console.error(`❌ Report generation failed for user ${userId}:`, error);
-    
-    res.status(500).json({
-      success: false,
-      message: 'Uh oh, something went wrong',
-      status: 'failed'
-    } as GenerateReportResponse);
-  }
-});
-
-/**
- * Generate report in background (async, no timeout)
- */
-async function generateReportInBackground(reportId: string, userId: number, reportType: ReportType) {
-  try {
-    console.log(`🔄 Background generation starting for report ${reportId}`);
-    
-    // Generate report data using Star Report Talia AI persona
-    console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
-    const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
-
-    // StarCard image will be retrieved via getUserStarCard method during report generation
-    // No need to get separate path here
-    
-    // Also store the base64 data directly for HTML reports with validation
-    if (!reportData.starCardImageBase64) {
-      try {
-        const { photoStorageService } = await import('../services/photo-storage-service.js');
-        const starCardImage = await photoStorageService.getUserStarCardImage(userId);
-        if (starCardImage && starCardImage.photoData) {
-          // Validate that this looks like a StarCard (not a random image)
-          console.log(`🔍 StarCard validation for user ${userId}:`);
-          console.log(`   - Source: ${starCardImage.source || 'unknown'}`);
-          console.log(`   - Data length: ${starCardImage.photoData.length} chars`);
-          
-          // Additional validation for fallback images
-          if (starCardImage.source === 'fallback_png') {
-            console.warn(`⚠️ Using fallback PNG for user ${userId} - report may show wrong image`);
-          }
-          
-          reportData.starCardImageBase64 = starCardImage.photoData;
-          console.log(`✅ StarCard image added to report for user ${userId}`);
-        } else {
-          console.warn(`⚠️ No StarCard image found for user ${userId} - report will have no StarCard`);
-        }
-      } catch (error) {
-        console.warn('Could not get StarCard base64 data:', error);
-      }
-    }
-
-    // Generate HTML report content (no file system operations for container compatibility)
-    console.log('🎯 Generating HTML report content');
-    let htmlContent: string;
-    try {
-      htmlContent = generateHtmlReport(reportData, reportType);
-    } catch (htmlError) {
-      console.error('❌ Error generating HTML content:', htmlError);
-      await pool.query(
-        'UPDATE holistic_reports SET generation_status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
-        ['failed', 'HTML generation failed', reportId]
-      );
-      throw htmlError; // Re-throw to be caught by outer try-catch
-    }
-    
-    // Store report data and HTML content directly in database (no file system)
-    const pdfFileName = `${reportData.participant.name}-${reportType}-report.pdf`;
-    
-    // Update database with complete report (store HTML content instead of file paths)
-    await pool.query(
-      `UPDATE holistic_reports SET 
-        report_data = $1, 
-        html_content = $2,
-        pdf_file_name = $3, 
-        generation_status = $4,
-        updated_at = NOW()
-       WHERE id = $5`,
-      [
-        JSON.stringify(reportData),
-        htmlContent,
-        pdfFileName,
-        'completed',
-        reportId
-      ]
-    );
-
-    // Update user progress in navigation_progress table
-    const progressField = reportType === 'standard' ? 'standard_report_generated' : 'personal_report_generated';
-    await pool.query(
-      `UPDATE navigation_progress SET ${progressField} = true, holistic_reports_unlocked = true WHERE user_id = $1`,
-      [userId]
-    );
-
-    console.log(`✅ ${reportType} report generated successfully in background for user ${userId}`);
-
-  } catch (error) {
-    console.error(`❌ Background report generation failed for report ${reportId}:`, error);
-    
-    // Update report status to failed
-    await pool.query(
-      'UPDATE holistic_reports SET generation_status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
-      ['failed', 'Report generation failed', reportId]
-    );
-  }
-}
+// ============================================================================
+// REMOVED: POST /generate endpoint (orphaned - no frontend callers)
+// Frontend uses /api/ast-sectional-reports/generate instead
+// Removed on: October 4, 2025
+// See: tempClaudecomms/REPORT-SYSTEM-AUDIT.md
+// ============================================================================
 
 // Test endpoint /test-status has been removed. Use /:reportType/status with proper authentication instead.
 
@@ -241,10 +62,9 @@ router.get('/:reportType/debug-status', async (req, res) => {
     };
 
     if (report.generation_status === 'completed') {
-      response.pdfUrl = `/api/reports/holistic/${reportType}/download`; // PDF for viewing in iframe (inline)
-      response.reportUrl = `/api/reports/holistic/${reportType}/view`; // HTML version
-      response.downloadUrl = `/api/reports/holistic/${reportType}/download?download=true`; // PDF for download (attachment)
-      response.htmlUrl = `/api/reports/holistic/${reportType}/html`; // HTML version
+      response.reportUrl = `/api/reports/holistic/${reportType}/view`; // HTML version (inline viewing)
+      response.downloadUrl = `/api/reports/holistic/${reportType}/download?download=true`; // HTML download (attachment)
+      response.htmlUrl = `/api/reports/holistic/${reportType}/html`; // HTML version (alternate endpoint)
     }
 
     res.json(response);
@@ -293,10 +113,9 @@ router.get('/:reportType/status', requireAuth, async (req, res) => {
     };
 
     if (report.generation_status === 'completed') {
-      response.pdfUrl = `/api/reports/holistic/${reportType}/download`; // PDF for viewing in iframe (inline)
-      response.reportUrl = `/api/reports/holistic/${reportType}/view`; // HTML version
-      response.downloadUrl = `/api/reports/holistic/${reportType}/download?download=true`; // PDF for download (attachment)
-      response.htmlUrl = `/api/reports/holistic/${reportType}/html`; // HTML version
+      response.reportUrl = `/api/reports/holistic/${reportType}/view`; // HTML version (inline viewing)
+      response.downloadUrl = `/api/reports/holistic/${reportType}/download?download=true`; // HTML download (attachment)
+      response.htmlUrl = `/api/reports/holistic/${reportType}/html`; // HTML version (alternate endpoint)
     }
 
     res.json(response);
@@ -360,7 +179,7 @@ router.get('/:reportType/view', requireAuth, async (req, res) => {
 });
 
 /**
- * Download PDF report
+ * Download HTML report (PDF generation removed)
  * GET /api/reports/holistic/:reportType/download
  */
 router.get('/:reportType/download', requireAuth, async (req, res) => {
@@ -373,7 +192,7 @@ router.get('/:reportType/download', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT html_content, report_data, pdf_file_name FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3 ORDER BY generated_at DESC LIMIT 1',
+      'SELECT html_content, report_data FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3 ORDER BY generated_at DESC LIMIT 1',
       [userId, reportType, 'completed']
     );
 
@@ -381,8 +200,8 @@ router.get('/:reportType/download', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Report not found or not completed' });
     }
 
-    const { html_content, report_data, pdf_file_name } = result.rows[0];
-    
+    const { html_content, report_data } = result.rows[0];
+
     // Use stored HTML content, or generate if not available
     let htmlContent = html_content;
     if (!htmlContent && report_data) {
@@ -393,104 +212,24 @@ router.get('/:reportType/download', requireAuth, async (req, res) => {
         return res.status(500).json({ error: 'Failed to render HTML report.' });
       }
     }
-    
+
     if (!htmlContent) {
       return res.status(404).json({ error: 'Report content not available' });
     }
 
-    try {
-      console.log('🔄 Attempting PDF generation using Puppeteer...');
-      
-      // Try to import and use puppeteer
-      const puppeteer = await import('puppeteer');
-      const browser = await puppeteer.default.launch({
-        headless: true,
-        args: [
-          '--no-sandbox', 
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ]
-      });
-      
-      const page = await browser.newPage();
-      
-      // Set viewport and wait for content to load
-      await page.setViewport({ width: 1200, height: 800 });
-      await page.setContent(htmlContent, { 
-        waitUntil: ['networkidle0', 'domcontentloaded'],
-        timeout: 30000 
-      });
-      
-      // Give extra time for images to load
-      await page.waitForTimeout(2000);
-      
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm'
-        },
-        displayHeaderFooter: false,
-        preferCSSPageSize: true
-      });
-      
-      await browser.close();
-      
-      console.log('✅ PDF generated successfully');
-      
-      // Set headers for PDF - inline for viewing, attachment for download
-      const filename = pdf_file_name || `${reportType}-report.pdf`;
-      const isDownload = req.query.download === 'true';
-      
-      // Prepare headers
-      const headers = {
-        'Content-Type': 'application/pdf',
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache',
-        'Content-Disposition': isDownload ? `attachment; filename="${filename}"` : `inline; filename="${filename}"`
-      };
-      
-      // Send PDF buffer - force binary mode
-      res.writeHead(200, headers);
-      res.end(pdfBuffer);
-      
-    } catch (pdfError) {
-      console.error('❌ PDF generation failed, serving HTML instead:', pdfError);
-      console.error('PDF Error details:', {
-        message: pdfError.message,
-        stack: pdfError.stack?.split('\n')[0]
-      });
-      
-      // Fallback to HTML view if PDF generation fails
-      const filename = pdf_file_name?.replace('.pdf', '.html') || `${reportType}-report.html`;
-      
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Cache-Control', 'no-cache');
-      
-      // For download requests, still try to offer the HTML as a file
-      if (req.query.download === 'true') {
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      }
-      
-      // Send HTML content with a note about PDF unavailability
-      const htmlWithNote = htmlContent.replace(
-        '<div class="header">',
-        `<div class="header">
-          <div style="background-color: #fef3c7; color: #92400e; padding: 10px; margin-bottom: 20px; border-radius: 6px; font-size: 14px;">
-            <strong>Note:</strong> PDF generation is temporarily unavailable. This is the HTML version of your report.
-          </div>`
-      );
-      
-      res.send(htmlWithNote);
+    // Serve HTML report for download
+    const filename = `${reportType}-report.html`;
+    const isDownload = req.query.download === 'true';
+
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache');
+
+    // Set as attachment for download, inline for viewing
+    if (isDownload) {
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     }
+
+    res.send(htmlContent);
 
   } catch (error) {
     console.error('Error downloading report:', error);
@@ -598,289 +337,12 @@ router.get('/admin/list', requireAuth, async (req, res) => {
   }
 });
 
-/**
- * Generate report using Star Report Talia AI persona with proper AST methodology
- */
-async function generateReportUsingTalia(userId: number, reportType: ReportType): Promise<any> {
-  try {
-    console.log(`🎆 Starting Star Report Talia generation using ADMIN CONSOLE methodology for user ${userId}, type: ${reportType}`);
-    
-    // Use the SAME process as admin console - get user data first
-    const userResult = await pool.query(
-      'SELECT id, username, name, ast_workshop_completed, ast_completed_at FROM users WHERE id = $1',
-      [userId]
-    );
-    
-    if (userResult.rows.length === 0) {
-      console.log(`⚠️ User ${userId} not found, falling back to mock data`);
-      return await mockReportDataService.generateMockReportData(userId, reportType);
-    }
-    
-    const user = userResult.rows[0];
-    console.log(`🔍 User data: ID=${user.id}, completed=${user.ast_workshop_completed}, name=${user.name}`);
-    
-    if (!user.ast_workshop_completed) {
-      console.log(`⚠️ User ${userId} has not completed AST workshop, falling back to mock data`);
-      return await mockReportDataService.generateMockReportData(userId, reportType);
-    }
-    
-    // Get user's workshop data (same as admin console)
-    const assessmentResult = await pool.query(
-      'SELECT * FROM user_assessments WHERE user_id = $1 ORDER BY created_at DESC',
-      [userId]
-    );
-    
-    const stepDataResult = await pool.query(
-      'SELECT * FROM workshop_step_data WHERE user_id = $1 ORDER BY step_id, created_at DESC',
-      [userId]
-    );
-    
-    console.log(`📊 Found ${assessmentResult.rows.length} assessments and ${stepDataResult.rows.length} step data records`);
-    
-    // Get StarCard image FIRST (same as admin console) with enhanced validation
-    let starCardImageBase64 = '';
-    try {
-      console.log(`🖼️ Getting StarCard image for user ${userId}...`);
-      const { photoStorageService } = await import('../services/photo-storage-service.js');
-      const starCardImage = await photoStorageService.getUserStarCardImage(userId);
-      
-      if (starCardImage && starCardImage.photoData) {
-        starCardImageBase64 = starCardImage.photoData;
-        console.log('✅ Found StarCard image for report integration');
-        console.log(`📊 StarCard image details: length=${starCardImage.photoData.length}, source=${starCardImage.source}`);
-        console.log(`🔍 StarCard data preview: ${starCardImage.photoData.substring(0, 50)}...`);
-        
-        // Warn if using fallback method (may be wrong image)
-        if (starCardImage.source === 'fallback_png') {
-          console.warn(`⚠️ ALERT: Using fallback PNG for user ${userId} - this may not be the actual StarCard!`);
-          console.warn(`   This could result in visualization exercise images appearing in the report instead of StarCard`);
-        }
-      } else {
-        console.log('⚠️ No StarCard image found for this user');
-        console.log(`🔍 StarCard retrieval result: ${starCardImage ? 'object exists but no photoData' : 'null/undefined'}`);
-      }
-    } catch (error) {
-      console.warn('Could not retrieve StarCard image:', error);
-    }
-    
-    // Use UPDATED TEMPLATE-BASED PROMPT from taliaPersonaService
-    const isPersonalReport = reportType === 'personal';
-    
-    // Create context for the talia persona service
-    const reportContext = {
-      userName: user.name,
-      reportType: reportType,
-      essentialAssessments: assessmentResult.rows,
-      essentialReflections: stepDataResult.rows
-    };
-    
-    console.log('🚀 Using clean AST transformer for report generation');
-
-    // Build user context for clean report generation
-    const userContextData = {
-      name: user.name,
-      strengths: assessmentResult.rows.find(a => a.assessment_type === 'starCard')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'starCard').results as string) : {"thinking":0,"feeling":0,"acting":0,"planning":0},
-      reflections: assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection').results as string) : {},
-      flowData: assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment').results as string) : null
-    };
-    
-    console.log('🔍 DEBUG: Assessment results:', assessmentResult.rows.map(r => ({ type: r.assessment_type, hasResults: !!r.results })));
-    console.log('🔍 DEBUG: User context data structure:', {
-      userName: userContextData.userName || 'N/A',
-      hasStrengths: !!userContextData.strengths,
-      hasReflections: !!userContextData.reflections,
-      hasFlowData: !!userContextData.flowData,
-      assessmentCount: Array.isArray(userContextData.assessments) ? userContextData.assessments.length : 0,
-      stepDataCount: Array.isArray(userContextData.stepData) ? userContextData.stepData.length : 0
-    });
-    
-    // Use clean AST report generation (no legacy TALIA prompt injection)
-    console.log('[AST] Using clean report generation with compact input only');
-    let reportContent;
-    let usingOpenAI = false;
-
-    try {
-      // Import clean report generation functions
-      const { createAstReportFromExport, getAssistantByPurpose } = await import('../services/openai-api-service.js');
-
-      // Get assistant configuration
-      let assistantConfig = getAssistantByPurpose('report');
-      if (!assistantConfig) {
-        assistantConfig = getAssistantByPurpose('ia');
-      }
-      if (!assistantConfig) {
-        throw new Error('No suitable assistant available for report generation');
-      }
-
-      // ===================================================================
-      // CRITICAL FIX: Transform database rows into expected structure
-      // ===================================================================
-      console.log('🔧 [DATA FIX] Transforming database structure for transformer...');
-      console.log('🔧 [DATA FIX] Raw assessment count:', assessmentResult.rows.length);
-      
-      // Parse all assessment results from database rows into an object
-      const parsedAssessments: any = {};
-      for (const row of assessmentResult.rows) {
-        try {
-          if (row.assessment_type && row.results) {
-            parsedAssessments[row.assessment_type] = JSON.parse(row.results as string);
-            console.log(`🔧 [DATA FIX] Parsed ${row.assessment_type}:`, Object.keys(parsedAssessments[row.assessment_type]));
-          }
-        } catch (parseError) {
-          console.error(`❌ [DATA FIX] Failed to parse ${row.assessment_type}:`, parseError);
-        }
-      }
-      
-      console.log('🔧 [DATA FIX] Parsed assessment types:', Object.keys(parsedAssessments));
-      
-      // Construct raw export data in the format expected by transformer
-      const rawExportData = {
-        userInfo: {
-          userName: user.name,
-          firstName: user.name?.split(' ')[0] || user.name,
-          lastName: user.name?.split(' ').slice(1).join(' ') || ''
-        },
-        assessments: {
-          starCard: parsedAssessments.starCard || {},
-          flowAssessment: parsedAssessments.flowAssessment || {},
-          flowAttributes: parsedAssessments.flowAttributes || {},
-          stepByStepReflection: parsedAssessments.stepByStepReflection || {},
-          roundingOutReflection: parsedAssessments.roundingOutReflection || {},
-          cantrilLadder: parsedAssessments.cantrilLadder || {},
-          futureSelfReflection: parsedAssessments.futureSelfReflection || {},
-          finalReflection: parsedAssessments.finalReflection || {}
-        }
-      };
-      
-      // Log what we're sending to transformer
-      console.log('🔧 [DATA FIX] Structured export data:');
-      console.log('  - userName:', rawExportData.userInfo.userName);
-      console.log('  - starCard keys:', Object.keys(rawExportData.assessments.starCard));
-      console.log('  - flowAssessment keys:', Object.keys(rawExportData.assessments.flowAssessment));
-      console.log('  - stepByStepReflection keys:', Object.keys(rawExportData.assessments.stepByStepReflection));
-      console.log('  - cantrilLadder keys:', Object.keys(rawExportData.assessments.cantrilLadder));
-      console.log('🔧 [DATA FIX] Export data ready for transformer');
-
-      // Generate report using clean AST approach
-      reportContent = await createAstReportFromExport(
-        rawExportData,
-        assistantConfig.id,
-        isPersonalReport ? 'personal' : 'sharable'
-      );
-
-      usingOpenAI = true;
-      console.log('✅ Clean AST report generation successful');
-    } catch (openaiError) {
-      console.log('❌ OpenAI report generation failed:', openaiError.message);
-      console.log('🔴 Report generation service is currently offline');
-
-      // Simple offline message instead of complex fallback
-      reportContent = `
-        <div style="padding: 40px; text-align: center; font-family: Arial, sans-serif;">
-          <h2 style="color: #e74c3c;">Report Generation Temporarily Offline</h2>
-          <p style="color: #666;">We're experiencing technical difficulties with the report generation service.</p>
-          <p style="color: #666;">Please try again later or contact support if the issue persists.</p>
-          <p style="margin-top: 30px; font-size: 12px; color: #999;">Error: ${openaiError.message}</p>
-        </div>
-      `;
-      usingOpenAI = false;
-    }
-
-    // Quality monitoring temporarily disabled to focus on foundation
-    console.log('📊 Foundation testing mode - quality monitoring disabled');
-    
-    if (!reportContent || reportContent.trim() === '') {
-      throw new Error('Report generation failed: Empty response from Claude API');
-    }
-    
-    // Post-process: Replace StarCard placeholder with actual image data
-    if (starCardImageBase64 && reportContent.includes('{{STARCARD_IMAGE}}')) {
-      const starCardHtml = `<img src="data:image/png;base64,${starCardImageBase64}" alt="StarCard for ${user.name}" class="starcard-image" style="max-width: 300px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />`;
-      reportContent = reportContent.replace(/\{\{STARCARD_IMAGE\}\}/g, starCardHtml);
-      console.log('✅ StarCard placeholder replaced with actual image data');
-    }
-    
-    console.log(`✅ Admin-style report generated successfully (${reportContent.length} chars)`);
-    
-    // Extract actual StarCard assessment data from user assessments
-    const starCardAssessment = assessmentResult.rows.find(a => a.assessment_type === 'starCard');
-    let actualStrengths = { thinking: 0, acting: 0, feeling: 0, planning: 0 };
-    
-    if (starCardAssessment && starCardAssessment.results) {
-      try {
-        const starCardData = JSON.parse(starCardAssessment.results as string);
-        actualStrengths = {
-          thinking: starCardData.thinking || 0,
-          acting: starCardData.acting || 0,
-          feeling: starCardData.feeling || 0,
-          planning: starCardData.planning || 0
-        };
-        console.log(`✅ Extracted actual user strengths data:`, actualStrengths);
-      } catch (error) {
-        console.warn(`⚠️ Failed to parse StarCard data for user ${userId}, using defaults:`, error);
-      }
-    } else {
-      console.warn(`⚠️ No StarCard assessment found for user ${userId}, using default values`);
-    }
-
-    // Structure the data for the holistic report system
-    const reportData = {
-      participant: {
-        name: user.name,
-        title: user.username,
-        organization: '',
-        completedAt: new Date(user.ast_completed_at || Date.now())
-      },
-      strengths: {
-        thinking: actualStrengths.thinking,
-        acting: actualStrengths.acting,
-        feeling: actualStrengths.feeling,
-        planning: actualStrengths.planning,
-        topStrengths: [],
-        strengthInsights: []
-      },
-      flow: {
-        attributes: [],
-        flowInsights: [],
-        preferredWorkStyle: []
-      },
-      vision: {
-        currentState: '',
-        futureVision: '',
-        obstacles: [],
-        strengths: [],
-        actionSteps: []
-      },
-      growth: {
-        developmentAreas: [],
-        recommendedActions: [],
-        teamCollaborationTips: []
-      },
-      reportType: reportType,
-      generatedAt: new Date(),
-      workshopVersion: '2.1',
-      generatedBy: `Star Report Talia (${usingOpenAI ? 'OpenAI' : 'Claude'} via Admin Console Method)`,
-      personalReport: isPersonalReport ? reportContent : '',
-      professionalProfile: !isPersonalReport ? reportContent : '',
-      starCardImageBase64: starCardImageBase64,
-      userData: {
-        user: user,
-        assessments: assessmentResult.rows,
-        stepData: stepDataResult.rows
-      }
-    };
-    
-    console.log(`✅ Complete admin-style report data generated for user ${userId}`);
-    return reportData;
-    
-  } catch (error) {
-    console.error(`❌ Error generating admin-style report for user ${userId}:`, error);
-    
-    // Fallback to mock data
-    console.log(`🔄 Falling back to mock data service for user ${userId}`);
-    return await mockReportDataService.generateMockReportData(userId, reportType);
-  }
-}
+// ============================================================================
+// REMOVED: generateReportUsingTalia function (orphaned - only called by removed /generate endpoint)
+// Frontend uses sectional report generation with RML via ast-sectional-report-service.ts
+// Removed on: October 4, 2025
+// See: tempClaudecomms/REPORT-SYSTEM-AUDIT.md
+// ============================================================================
 
 // Removed getStarCardImagePath function - using getUserStarCard from photo-storage-service instead
 

@@ -5,6 +5,8 @@
  * Extracted from legacy holistic-report-routes.ts and adapted for sectional reports.
  */
 
+import { rmlProcessor } from './rml-processor.js';
+
 export interface ReportSection {
   id: number;
   title: string;
@@ -16,6 +18,7 @@ export interface ReportMetadata {
   reportType: 'ast_personal' | 'ast_professional';
   generatedAt?: Date;
   subtitle?: string;
+  userId?: string;
 }
 
 export class HtmlTemplateService {
@@ -50,9 +53,22 @@ export class HtmlTemplateService {
   /**
    * Generate professional CSS framework
    * Extracted and adapted from legacy system
+   * Now includes RML component styles
    */
   generateCSS(): string {
+    // Import RML processor for component styles
+    let rmlCSS = '';
+    try {
+      rmlCSS = rmlProcessor.getCSS();
+      console.log('✅ RML CSS loaded successfully');
+    } catch (error) {
+      console.error('❌ Failed to load RML CSS:', error);
+      // Fallback: include basic RML styles inline
+      rmlCSS = this.getFallbackRMLCSS();
+    }
+
     return `
+      ${rmlCSS}
       <style>
           body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -90,9 +106,30 @@ export class HtmlTemplateService {
               margin: 0 0 10px 0;
           }
 
-          .participant-info p {
+          .participant-info .report-timestamp {
               margin: 5px 0;
               opacity: 0.9;
+              font-size: 1rem;
+              font-weight: 500;
+          }
+
+          .participant-info .report-subtitle {
+              margin: 5px 0;
+              opacity: 0.9;
+              font-style: italic;
+          }
+
+          .starcard-header {
+              text-align: center;
+              margin-top: 20px;
+          }
+
+          .header-starcard-img {
+              max-width: 400px;
+              height: auto;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(255,255,255,0.3);
+              border: 3px solid rgba(255,255,255,0.4);
           }
 
           .content-section {
@@ -346,6 +383,16 @@ export class HtmlTemplateService {
 
     let processed = content;
 
+    // Handle code fence blocks with embedded HTML tags (``<code>markdown\ncontent\n</code>``)
+    // Remove the outer markdown syntax but preserve the actual content inside
+    processed = processed.replace(/``<code>([a-z]*)\n([\s\S]*?)<\/code>``/g, '$2');
+
+    // Handle standard code fence blocks (```lang\ncode\n``` -> remove fence, keep content)
+    processed = processed.replace(/```[a-z]*\n([\s\S]*?)```/g, '$1');
+
+    // Handle double backtick code blocks (``code`` -> remove backticks, keep content)
+    processed = processed.replace(/``([^`]+)``/g, '$1');
+
     // Handle bold text (**text** -> <strong>text</strong>)
     processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
@@ -416,36 +463,49 @@ export class HtmlTemplateService {
 
   private getReportTitle(reportType: 'ast_personal' | 'ast_professional'): string {
     return reportType === 'ast_personal'
-      ? 'Personal Development Report'
+      ? 'AllStarTeams Report'
       : 'Professional Profile Report';
   }
 
   private generateHeader(title: string, metadata: ReportMetadata): string {
     const generatedAt = metadata.generatedAt || new Date();
+    const staticTimestamp = generatedAt.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) + ' at ' + generatedAt.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
 
     return `
       <div class="header">
           <h1>${title}</h1>
           <div class="participant-info">
               <h2>${metadata.userName}</h2>
-              <p>Generated on ${generatedAt.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })} at ${generatedAt.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                timeZoneName: 'short'
-              })}</p>
-              ${metadata.subtitle ? `<p>${metadata.subtitle}</p>` : ''}
+              <p class="report-timestamp">${staticTimestamp}</p>
+              ${metadata.subtitle ? `<p class="report-subtitle">${metadata.subtitle}</p>` : ''}
+          </div>
+          <div class="starcard-header">
+              <img
+                src="/api/starcard/${metadata.userId || 'current'}?v=${Date.now()}"
+                alt="${metadata.userName}'s StarCard"
+                class="header-starcard-img"
+                onerror="this.style.display='none'; this.parentElement.innerHTML='<p style=\\'color: rgba(255,255,255,0.7); font-style: italic;\\'>StarCard not available</p>';"
+              />
           </div>
       </div>
     `;
   }
 
   private generateSectionsHTML(sections: ReportSection[], isPersonal: boolean): string {
+    // Auto-insert "About This Report" intro section before all sections
+    const introHTML = this.generateReportIntro();
+
     return `
       <div class="content-section">
+          ${introHTML}
           ${sections.map((section, index) => `
               <div class="section-container">
                   <h2 class="section-title">${section.title}</h2>
@@ -454,6 +514,42 @@ export class HtmlTemplateService {
                   </div>
               </div>
           `).join('')}
+      </div>
+    `;
+  }
+
+  /**
+   * Generate automatic "About This Report" introduction
+   * This is inserted before all report sections
+   */
+  private generateReportIntro(): string {
+    return `
+      <div class="section-container report-intro-section">
+        <div class="section-content">
+          <div class="rml-report-introduction">
+            <h1>About This Report</h1>
+
+            <p>This report is meant as a mirror, reflecting the living patterns of your strengths, flow, imagination, and reflections. It is not a fixed portrait—any more than you are. Strengths show up differently depending on context: at work, at home, in relationships. Some rise naturally in urgency, others surface more quietly with intention. What matters is not a static label but the dynamic interplay of patterns.</p>
+
+            <p>The purpose here is not to define you, but to offer a lens—a way to notice how your strengths combine, how you step into flow, and how imagination shapes your choices. The insights you will read are not prescriptive instructions. They are invitations: invitations to awareness, to reflection, and to conversation with others whose perspectives may complement your own.</p>
+
+            <p>Rather than boxing you in, this report highlights tendencies, rhythms, and shapes that emerge from your responses. Think of it like observing a constellation. Each star matters on its own, but the meaning becomes clearer when you connect them together. In the same way, your strengths, flow experiences, and reflections gain depth when seen in relationship, not isolation.</p>
+
+            <p>This is a holistic report because it pulls together multiple threads into a single picture:</p>
+
+            <ul>
+              <li><strong>Star Strengths:</strong> How your energy distributes across Acting, Planning, Thinking, and Feeling.</li>
+              <li><strong>Flow Experiences:</strong> The conditions and qualities that spark your deepest engagement.</li>
+              <li><strong>Strengths + Flow Together:</strong> How patterns of energy and experience reinforce each other.</li>
+              <li><strong>Well-being Ladder:</strong> A snapshot of how you view life today and where you hope to be in the future.</li>
+              <li><strong>Future Self & One Insight:</strong> How imagination connects your present with possibility.</li>
+            </ul>
+
+            <p>You may already recognize some of these themes in yourself. Others may feel new or only partly familiar. Both are valuable. What matters most is not whether you agree with every line, but whether the report gives you language to explore your own patterns more deeply.</p>
+
+            <p>Finally, remember that this is a snapshot. Just as your mood changes across a day or a season, your strengths and experiences shift over time. This living picture is meant to help you pause and reflect in this moment, knowing that the next chapter may reveal a different constellation of strengths, flows, and visions.</p>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -486,6 +582,241 @@ export class HtmlTemplateService {
       default:
         return formattedContent;
     }
+  }
+
+  /**
+   * Fallback RML CSS for when the RML processor fails to load
+   */
+  private getFallbackRMLCSS(): string {
+    return `
+      <style>
+        /* Fallback RML Components Styles */
+        .rml-starcard {
+          border: 2px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 20px;
+          background: white;
+          margin: 20px 0;
+        }
+
+        .rml-starcard-header h4 {
+          margin: 0 0 15px 0;
+          font-size: 1.25rem;
+          color: #1f2937;
+        }
+
+        .rml-strength-squares {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          gap: 12px;
+          margin: 20px 0;
+        }
+
+        .rml-square {
+          aspect-ratio: 1;
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .rml-square-label {
+          font-size: 0.875rem;
+          margin-bottom: 8px;
+        }
+
+        .rml-square-value {
+          font-size: 1.5rem;
+        }
+
+        .rml-pie-chart {
+          display: flex;
+          align-items: center;
+          gap: 30px;
+          margin: 20px 0;
+        }
+
+        .rml-pie-svg {
+          width: 200px;
+          height: 200px;
+        }
+
+        .rml-pie-legend {
+          flex: 1;
+        }
+
+        .rml-legend-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 8px 0;
+        }
+
+        .rml-legend-color {
+          width: 20px;
+          height: 20px;
+          border-radius: 4px;
+        }
+
+        .rml-legend-label {
+          flex: 1;
+          font-weight: 500;
+        }
+
+        .rml-legend-value {
+          font-weight: bold;
+          color: #6b7280;
+        }
+
+        .rml-imagination-circle {
+          display: inline-flex;
+          align-items: center;
+          margin: 5px 15px;
+          vertical-align: middle;
+        }
+
+        .rml-circle {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          box-shadow: 0 2px 6px rgba(138, 43, 226, 0.3);
+          flex-shrink: 0;
+        }
+
+        .rml-star-icon {
+          width: 20px;
+          height: 20px;
+          margin-bottom: 2px;
+        }
+
+        .rml-circle-label {
+          font-size: 0.5rem;
+          font-weight: bold;
+          text-align: center;
+          line-height: 1;
+        }
+
+        .rml-flow-conditions {
+          margin: 20px 0;
+        }
+
+        .rml-condition {
+          margin: 15px 0;
+        }
+
+        .rml-condition-label {
+          display: block;
+          font-weight: 500;
+          margin-bottom: 5px;
+          color: #374151;
+        }
+
+        .rml-condition-bar {
+          width: 100%;
+          height: 24px;
+          background: #e5e7eb;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+
+        .rml-condition-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #3b82f6, #2563eb);
+          transition: width 0.3s ease;
+        }
+
+        .rml-badge {
+          display: inline-block;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 0.875rem;
+        }
+
+        .rml-badge-category {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+
+        .rml-badge-attribute {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .rml-ladder {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin: 20px auto;
+          max-width: 300px;
+        }
+
+        .rml-ladder-rung {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          padding: 12px;
+          border: 2px solid #e5e7eb;
+          border-radius: 6px;
+          background: white;
+          transition: all 0.2s;
+        }
+
+        .rml-ladder-rung.rml-current {
+          background: #dbeafe;
+          border-color: #3b82f6;
+          font-weight: 600;
+        }
+
+        .rml-ladder-rung.rml-future {
+          background: #dcfce7;
+          border-color: #22c55e;
+          font-weight: 600;
+        }
+
+        .rml-rung-number {
+          font-size: 1.25rem;
+          font-weight: bold;
+          min-width: 30px;
+        }
+
+        .rml-rung-label {
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+
+        .rml-pattern-gallery,
+        .rml-unknown {
+          padding: 20px;
+          background: #f9fafb;
+          border: 1px dashed #d1d5db;
+          border-radius: 8px;
+          text-align: center;
+          color: #6b7280;
+          margin: 20px 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          .rml-pie-chart {
+            flex-direction: column;
+          }
+
+          .rml-strength-squares {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+      </style>
+    `;
   }
 }
 

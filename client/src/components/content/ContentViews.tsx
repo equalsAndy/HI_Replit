@@ -24,6 +24,7 @@ import DownloadStarCardView from './allstarteams/DownloadStarCardView';
 import GeneralHolisticReportView from './HolisticReportView';
 import PlaceholderView from './PlaceholderView';
 import WorkshopResourcesView from './allstarteams/WorkshopResourcesView';
+import ComprehensiveAssessmentsView from './ComprehensiveAssessmentsView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
@@ -1300,6 +1301,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'workshop-resources':
       return (
         <WorkshopResourcesView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'more-fun-stuff':
+      return (
+        <ComprehensiveAssessmentsView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
