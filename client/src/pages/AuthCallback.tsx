@@ -116,9 +116,14 @@ export default function AuthCallback() {
         if (user?.role === 'admin') {
           dest = '/admin';
           console.log('[AuthCallback] Admin user detected, routing to /admin');
-        } else if (user?.isBetaTester || user?.isTestUser) {
+        } else if (user?.isTestUser && !user?.isBetaTester) {
+          // Test users (not beta testers) go to dashboard with testing controls
           dest = '/dashboard';
-          console.log('[AuthCallback] Beta tester detected, routing to /dashboard');
+          console.log('[AuthCallback] Test user detected, routing to /dashboard');
+        } else if (user?.isBetaTester) {
+          // Beta testers go directly to AST workshop (treated as participants)
+          dest = '/allstarteams';
+          console.log('[AuthCallback] Beta tester detected, routing to /allstarteams');
         } else if (user?.astAccess) {
           dest = '/allstarteams';
           console.log('[AuthCallback] AST access detected, routing to /allstarteams');

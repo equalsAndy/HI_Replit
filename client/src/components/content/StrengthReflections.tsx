@@ -466,7 +466,7 @@ export default function StrengthReflections({
                     onClick={toggleSuggestions}
                     className="flex items-center w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-all duration-200"
                   >
-                    <ListChecks className="w-5 h-5 text-indigo-600 mr-3" />
+                    <ListChecks className="w-5 h-5 text-gray-400 mr-3" />
                     <span className="text-base font-medium text-gray-800 flex-1">
                       Reflection Inspiration
                     </span>
@@ -499,7 +499,7 @@ export default function StrengthReflections({
                     onClick={toggleExamples}
                     className="flex items-center w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-all duration-200"
                   >
-                    <Lightbulb className="w-5 h-5 text-blue-600 mr-3" />
+                    <Lightbulb className="w-5 h-5 text-gray-400 mr-3" />
                     <span className="text-base font-medium text-gray-800 flex-1">
                       Example Responses
                     </span>

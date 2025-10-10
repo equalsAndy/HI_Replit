@@ -9,6 +9,7 @@ import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CARD_WIDTH } from '@/components/starcard/starCardConstants';
 import { useStarCardData } from '@/hooks/useStarCardData';
 import StrengthReflections from './StrengthReflections';
+import StrengthShapesExplainer from './StrengthShapesExplainer';
 import { ChevronRight } from 'lucide-react';
 
 interface ContentViewProps {
@@ -321,44 +322,43 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                   </div>
                 </div>
 
-                {/* Five Core Strengths Section - moved from Assessment description */}
-                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md">
-                  <p className="text-lg text-gray-700 mb-3">The AllStarTeams assessment focuses on <strong>five core strengths</strong> that influence how you approach work and life:</p>
-                  <table className="w-full text-base border-separate" style={{ borderSpacing: 0 }}>
-                    <tbody>
-                      <tr>
-                        <td className="py-2 pr-4 align-top w-20">
-                          <span className="font-semibold" style={{ color: 'rgb(138,43,226)' }}>Imagine</span>
-                        </td>
-                        <td className="py-2 text-gray-700">Your limitless potential to envision possibilities and create new connections</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 pr-4 align-top">
-                          <span className="font-semibold" style={{ color: 'rgb(241,64,64)' }}>Act</span>
-                        </td>
-                        <td className="py-2 text-gray-700">How you take initiative and make decisions</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 pr-4 align-top">
-                          <span className="font-semibold" style={{ color: 'rgb(1,162,82)' }}>Think</span>
-                        </td>
-                        <td className="py-2 text-gray-700">How you process information and solve problems</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 pr-4 align-top">
-                          <span className="font-semibold" style={{ color: 'rgb(255,203,47)' }}>Plan</span>
-                        </td>
-                        <td className="py-2 text-gray-700">How you organize and structure your approach</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 pr-4 align-top">
-                          <span className="font-semibold" style={{ color: 'rgb(22,126,253)' }}>Feel</span>
-                        </td>
-                        <td className="py-2 text-gray-700">How you connect with others and understand emotions</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                {/* Five Core Strengths Section - Compact visual version */}
+                <div className="mt-6 p-4 bg-white border border-gray-200 rounded-md">
+                  <p className="text-base text-gray-700 mb-3">The AllStarTeams assessment focuses on <strong>five core strengths</strong>:</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ backgroundColor: 'rgb(138,43,226)' }} />
+                      <span><strong>Imagine</strong> — Envision possibilities</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 flex-shrink-0" style={{ backgroundColor: 'rgb(241,64,64)' }} />
+                      <span><strong>Act</strong> — Take initiative and decide</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 flex-shrink-0" style={{ backgroundColor: 'rgb(1,162,82)' }} />
+                      <span><strong>Think</strong> — Process and problem-solve</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 flex-shrink-0" style={{ backgroundColor: 'rgb(255,203,47)' }} />
+                      <span><strong>Plan</strong> — Organize and structure</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 flex-shrink-0" style={{ backgroundColor: 'rgb(22,126,253)' }} />
+                      <span><strong>Feel</strong> — Connect and understand</span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Strength Shapes Explainer - Eight Core Patterns */}
+                <StrengthShapesExplainer
+                  className="mt-6"
+                  userStrengths={{
+                    thinking: starCardData?.thinking || 0,
+                    acting: starCardData?.acting || 0,
+                    planning: starCardData?.planning || 0,
+                    feeling: starCardData?.feeling || 0
+                  }}
+                />
 
                 {/* NEW: Progressive Button: "Let's talk about your strengths" */}
                 {showStrengthsButton && !showReflections && (

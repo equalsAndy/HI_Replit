@@ -1,7 +1,7 @@
 import express from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import { photoStorageService } from '../services/photo-storage-service.js';
+import { photoStorageService, ImageType } from '../services/photo-storage-service.js';
 
 const router = express.Router();
 
@@ -41,7 +41,15 @@ router.post('/auto-save', async (req, res) => {
           // The old one will have its reference count decremented
         }
         
-        const photoId = await photoStorageService.storePhoto(imageData, userId, true, `StarCard-user-${userId}-${Date.now()}.png`);
+        const photoId = await photoStorageService.storePhoto(
+          imageData, 
+          userId, 
+          true, 
+          `StarCard-user-${userId}-${Date.now()}.png`,
+          ImageType.STARCARD_GENERATED,
+          `Generated StarCard for user ${userId}`,
+          undefined
+        );
         results.photoId = photoId;
         results.replaced = !!existingStarCard;
         results.message += ` (Database ID: ${photoId}${existingStarCard ? ', replaced existing' : ''})`;

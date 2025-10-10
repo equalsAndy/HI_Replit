@@ -22,6 +22,7 @@ import { forceAssessmentCacheDump } from '@/utils/forceRefresh';
 import { useStarCardData } from '@/hooks/useStarCardData';
 import { useWelcomeVideo } from '@/hooks/useWelcomeVideo';
 import WelcomeVideoModal from '@/components/modals/WelcomeVideoModal';
+import { useStepContextSafe } from '@/contexts/StepContext';
 
 export default function AllStarTeamsWorkshop() {
   const [location, navigate] = useLocation();
@@ -42,6 +43,7 @@ export default function AllStarTeamsWorkshop() {
   // Updated to use unified navigation system
   const navigation = useUnifiedWorkshopNavigation('ast');
   const { isWorkshopLocked, isModuleAccessible, getStepModule } = useWorkshopStatus();
+  const { setCurrentStepId } = useStepContextSafe();
   const {
     progress: navProgress,
     updateVideoProgress,
@@ -93,6 +95,14 @@ export default function AllStarTeamsWorkshop() {
       setCurrentApp(currentAppType);
     }
   }, [location, currentContent, currentApp, setCurrentApp]);
+
+  // Sync navigation step with StepContext for feedback/notes modals
+  useEffect(() => {
+    if (navProgress?.currentStepId) {
+      console.log('🔄 Syncing step context:', navProgress.currentStepId);
+      setCurrentStepId(navProgress.currentStepId);
+    }
+  }, [navProgress?.currentStepId, setCurrentStepId]);
 
   // Determine which navigation sections to use based on the selected app AND user role/content access
   // Get user role for navigation customization (using existing user query below)
@@ -691,18 +701,11 @@ export default function AllStarTeamsWorkshop() {
 
     // MODULE 5: MORE INFORMATION (unlocked after 3-4)
     '5-1': { prev: '4-4', next: '5-2', contentKey: 'workshop-resources' }, // ✅ WorkshopResourcesView
-    '5-2': { prev: '5-1', next: '5-3', contentKey: 'extra-stuff' }, // ✅ ExtraStuffView
-    '5-3': { prev: '5-2', next: null, contentKey: 'more-imaginal-agility' }, // ✅ MoreImaginalAgilityView
+    '5-2': { prev: '5-1', next: '5-3', contentKey: 'extra-stuff' }, // ✅ PersonalProfileContainer (comprehensive assessments)
+    '5-3': { prev: '5-2', next: null, contentKey: 'more-imaginal-agility' }, // ✅ IntroIAView (Imaginal Agility intro)
     };
 
-    // For non-test users, modify navigation to skip 5-2 and 5-3 (they're placeholders anyway)
-    if (!shouldShowDemoButtons) {
-      baseSequence['5-1'] = { prev: '4-4', next: null, contentKey: 'workshop-resources' };
-      // Remove 5-2 and 5-3 from navigation for non-test users
-      delete baseSequence['5-2'];
-      delete baseSequence['5-3'];
-    }
-
+    // Steps 5-2 and 5-3 are now fully implemented with real content - available to all users
     return baseSequence;
   };
 

@@ -297,12 +297,14 @@ export function NavBar() {
           {/* User Controls Menu for authenticated users */}
           {user?.id ? (
             <div className="flex items-center gap-2">
-              {/* Feedback button for logged in users */}
-              <FeedbackTrigger 
-                currentPage={detectCurrentPage(currentStepId || undefined)}
-                variant="button"
-                className="text-xs"
-              />
+              {/* Blue feedback button - only for test users (not beta testers) */}
+              {user?.isTestUser && !user?.isBetaTester && (
+                <FeedbackTrigger
+                  currentPage={detectCurrentPage(currentStepId || undefined)}
+                  variant="button"
+                  className="text-xs"
+                />
+              )}
 
               {/* Admin/Facilitator button - shown for admin and facilitator users */}
               {(user?.role === 'admin' || user?.role === 'facilitator') && (

@@ -12,24 +12,29 @@ export class RMLProcessor {
   /**
    * Process OpenAI content: extract RML, render visuals, replace placeholders
    * @param rawContent - The raw markdown content from OpenAI
-   * @param options - Optional processing options (sectionId, userId for auto-injections)
+   * @param options - Optional processing options (sectionId, userId, attributes, futureSelfImages for auto-injections)
    */
-  processContent(rawContent: string, options?: { sectionId?: number; userId?: number }): string {
+  processContent(rawContent: string, options?: { sectionId?: number; userId?: number; attributes?: any[]; futureSelfImages?: any[] }): string {
     try {
       console.log('🎨 Starting RML processing...');
 
       // Step 0: Clean OpenAI citation markers (【4:0†source】 format)
       let cleanedContent = this.stripCitationMarkers(rawContent);
 
-      // Step 0.5: Auto-inject StarCard at beginning of Section 1
-      if (options?.sectionId === 1 && options?.userId) {
-        console.log(`📸 Auto-injecting StarCard for Section 1, User ${options.userId}`);
-        const starcardHtml = rmlRenderer.render({
-          id: 'starcard_auto',
-          type: 'starcard_img',
-          user_id: options.userId
-        } as any);
-        cleanedContent = starcardHtml + '\n\n' + cleanedContent;
+      // Note: StarCard is now rendered in report header only (html-template-service.ts)
+      // No auto-injection needed in Section 1
+
+      // Step 0.5: Auto-inject flow attributes row at beginning of Section 2 (Flow State Analysis)
+      if (options?.sectionId === 2 && options?.attributes && Array.isArray(options.attributes) && options.attributes.length > 0) {
+        console.log('🎯 Auto-injecting flow attributes row at beginning of Section 2');
+        const flowAttrsDecl = {
+          type: 'flow_attributes_row',
+          id: 'auto_flow_attrs',
+          attributes: options.attributes
+        };
+        const flowAttrsHTML = rmlRenderer.render(flowAttrsDecl);
+        // Insert at the very beginning of the content
+        cleanedContent = flowAttrsHTML + '\n\n' + cleanedContent;
       }
 
       // Step 1: Extract visual declarations from <RML> block
@@ -49,19 +54,37 @@ export class RMLProcessor {
       // Step 3: Create a lookup using PLAIN OBJECT (Map was corrupted)
       const visualLookup: Record<string, string> = {};
       declarations.forEach(decl => {
+        // Auto-inject photo_id for vision1, vision2, vision3, vision4, starcard tags from user data
+        if (decl.type === 'vision1' && options?.futureSelfImages && options.futureSelfImages.length >= 1) {
+          decl.photo_id = options.futureSelfImages[0].photoId;
+          console.log(`🎯 Auto-injected photo_id for vision1: ${decl.photo_id}`);
+        } else if (decl.type === 'vision2' && options?.futureSelfImages && options.futureSelfImages.length >= 2) {
+          decl.photo_id = options.futureSelfImages[1].photoId;
+          console.log(`🎯 Auto-injected photo_id for vision2: ${decl.photo_id}`);
+        } else if (decl.type === 'vision3' && options?.futureSelfImages && options.futureSelfImages.length >= 3) {
+          decl.photo_id = options.futureSelfImages[2].photoId;
+          console.log(`🎯 Auto-injected photo_id for vision3: ${decl.photo_id}`);
+        } else if (decl.type === 'vision4' && options?.futureSelfImages && options.futureSelfImages.length >= 4) {
+          decl.photo_id = options.futureSelfImages[3].photoId;
+          console.log(`🎯 Auto-injected photo_id for vision4: ${decl.photo_id}`);
+        } else if (decl.type === 'starcard' && options?.userId) {
+          decl.user_id = options.userId;
+          console.log(`🎯 Auto-injected user_id for starcard: ${decl.user_id}`);
+        }
+
         const html = rmlRenderer.render(decl);
         // Store with defensive multiple keys
         visualLookup[decl.id] = html;
         visualLookup[decl.id.trim()] = html;
         visualLookup[decl.id.toLowerCase()] = html;
-        
+
         // DEBUG: Analyze visual ID characteristics
         console.log(`📊 Debug visual ID: "${decl.id}"`);
         console.log(`   Length: ${decl.id.length}`);
         console.log(`   Char codes: [${Array.from(decl.id).map(c => c.charCodeAt(0)).join(', ')}]`);
         console.log(`   Escaped: ${JSON.stringify(decl.id)}`);
         console.log(`   Type: ${typeof decl.id}`);
-        
+
         console.log(`✅ Rendered visual: ${decl.id} (${decl.type})`);
       });
 

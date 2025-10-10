@@ -41,6 +41,7 @@ import BetaTesterWelcomeModal from '@/components/modals/BetaTesterWelcomeModal';
 import { BetaTesterFAB } from '@/components/beta-testing/BetaTesterFAB';
 import { BetaTesterReviewModal } from '@/components/beta-testing/BetaTesterReviewModal';
 import { BetaTesterFeedbackModal } from '@/components/beta-testing/BetaTesterFeedbackModal';
+import { StepProvider } from '@/contexts/StepContext';
 
 // No need for a custom history hook, we'll use the default wouter behavior
 
@@ -182,10 +183,11 @@ const App: React.FC = () => {
         <QueryClientProvider client={queryClient}>
           <ApplicationProvider>
             <DemoModeProvider>
-              <ReportTaliaProvider>
-                <FloatingAIProvider>
-                <SessionManagerProvider>
-                  <div className="min-h-screen bg-background">
+              <StepProvider>
+                <ReportTaliaProvider>
+                  <FloatingAIProvider>
+                  <SessionManagerProvider>
+                    <div className="min-h-screen bg-background">
                     <AutoSyncWrapper />
                     <BetaWelcomeWrapper />
                     <BetaFeedbackReviewWrapper />
@@ -320,6 +322,7 @@ const App: React.FC = () => {
                 </SessionManagerProvider>
                 </FloatingAIProvider>
               </ReportTaliaProvider>
+              </StepProvider>
             </DemoModeProvider>
           </ApplicationProvider>
         </QueryClientProvider>

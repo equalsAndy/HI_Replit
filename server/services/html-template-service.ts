@@ -125,7 +125,7 @@ export class HtmlTemplateService {
           }
 
           .header-starcard-img {
-              max-width: 60%;
+              max-width: 400px;
               height: auto;
               border-radius: 12px;
               box-shadow: 0 4px 20px rgba(255,255,255,0.3);
@@ -383,6 +383,16 @@ export class HtmlTemplateService {
 
     let processed = content;
 
+    // Handle code fence blocks with embedded HTML tags (``<code>markdown\ncontent\n</code>``)
+    // Remove the outer markdown syntax but preserve the actual content inside
+    processed = processed.replace(/``<code>([a-z]*)\n([\s\S]*?)<\/code>``/g, '$2');
+
+    // Handle standard code fence blocks (```lang\ncode\n``` -> remove fence, keep content)
+    processed = processed.replace(/```[a-z]*\n([\s\S]*?)```/g, '$1');
+
+    // Handle double backtick code blocks (``code`` -> remove backticks, keep content)
+    processed = processed.replace(/``([^`]+)``/g, '$1');
+
     // Handle bold text (**text** -> <strong>text</strong>)
     processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
@@ -453,7 +463,7 @@ export class HtmlTemplateService {
 
   private getReportTitle(reportType: 'ast_personal' | 'ast_professional'): string {
     return reportType === 'ast_personal'
-      ? 'Personal Development Report'
+      ? 'AllStarTeams Report'
       : 'Professional Profile Report';
   }
 
@@ -478,7 +488,12 @@ export class HtmlTemplateService {
               ${metadata.subtitle ? `<p class="report-subtitle">${metadata.subtitle}</p>` : ''}
           </div>
           <div class="starcard-header">
-              <img src="/api/star-card/${metadata.userId || 'current'}" alt="${metadata.userName}'s StarCard" class="header-starcard-img" />
+              <img
+                src="/api/starcard/${metadata.userId || 'current'}?v=${Date.now()}"
+                alt="${metadata.userName}'s StarCard"
+                class="header-starcard-img"
+                onerror="this.style.display='none'; this.parentElement.innerHTML='<p style=\\'color: rgba(255,255,255,0.7); font-style: italic;\\'>StarCard not available</p>';"
+              />
           </div>
       </div>
     `;

@@ -29,6 +29,16 @@ export class RMLRenderer {
     let result: string;
 
     switch (type) {
+      case 'starcard':
+        return this.renderStarCard(declaration);
+      case 'vision1':
+        return this.renderVisionImage(declaration, 1);
+      case 'vision2':
+        return this.renderVisionImage(declaration, 2);
+      case 'vision3':
+        return this.renderVisionImage(declaration, 3);
+      case 'vision4':
+        return this.renderVisionImage(declaration, 4);
       case 'starcard_img':
         return this.renderStarCard(declaration);
       case 'strength_squares':
@@ -47,6 +57,10 @@ export class RMLRenderer {
         return this.renderUserStrengthChart(declaration);
       case 'flow_attribute':
         return this.renderFlowAttributeSquare(declaration);
+      case 'flow_attributes_row':
+        return this.renderFlowAttributesRow(declaration);
+      case 'future_self_image':
+        return this.renderFutureSelfImage(declaration);
       case 'ladder':
         return this.renderLadder(declaration);
       case 'thinking_square':
@@ -68,11 +82,11 @@ export class RMLRenderer {
    */
   private renderStarCard(decl: RMLVisualDeclaration): string {
     const { participant, user_id } = decl;
-    
+
     // StarCard should reference the actual PNG file from the database
-    // The file should be in the user's stored images
-    const starCardPath = `/api/star-card/${user_id || 'current'}`;
-    
+    // Add cache-busting timestamp to prevent browser caching issues
+    const starCardPath = `/api/starcard/${user_id || 'current'}?v=${Date.now()}`;
+
     return `
       <div class="rml-starcard">
         <div class="rml-starcard-header">
@@ -664,11 +678,104 @@ export class RMLRenderer {
     const strengthType = this.getFlowAttributeColor(attributeValue);
     const color = this.colors[strengthType as keyof typeof this.colors];
 
+    // Scale font size based on word length
+    const wordLength = attributeValue.length;
+    let fontSize = '0.75rem'; // 12px default (text-xs)
+    if (wordLength > 12) {
+      fontSize = '0.5rem'; // 8px for very long words like COLLABORATIVE
+    } else if (wordLength > 10) {
+      fontSize = '0.625rem'; // 10px for long words
+    }
+
     return `
-      <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white mr-3" style="background-color: ${color};">
-        <div class="relative flex items-center justify-center w-full h-full">
-          <span class="text-center leading-tight relative z-10">${attributeValue.toUpperCase()}</span>
+      <div class="w-20 h-20 rounded flex items-center justify-center font-bold text-white mr-3" style="background-color: ${color};">
+        <div class="relative flex items-center justify-center w-full h-full px-1">
+          <span class="text-center leading-tight relative z-10" style="font-size: ${fontSize};">${attributeValue.toUpperCase()}</span>
         </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Renders multiple flow attributes as a horizontal row of colored squares
+   * Uses actual user-selected attributes from their workshop data
+   */
+  private renderFlowAttributesRow(decl: RMLVisualDeclaration): string {
+    const { attributes } = decl;
+
+    if (!attributes || !Array.isArray(attributes)) {
+      return '<div class="rml-error">Missing attributes data for flow attributes row</div>';
+    }
+
+    // Sort attributes by their order
+    const sortedAttributes = [...attributes].sort((a, b) => a.order - b.order);
+
+    // Map attribute names to colors based on strength category
+    const attributeColors = sortedAttributes.map(attr => ({
+      label: attr.name,
+      color: this.getFlowAttributeColor(attr.name)
+    }));
+
+    // Render as horizontal row
+    return `
+      <div class="rml-flow-attributes-row">
+        ${attributeColors.map(attr => `
+          <div class="rml-flow-attr-square" style="background-color: ${this.colors[attr.color as keyof typeof this.colors]};">
+            <span class="rml-flow-attr-label">${attr.label.toUpperCase()}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  /**
+   * Renders a vision image (vision1 or vision2) from the user's future self data
+   * Photo ID comes from user data's futureSelfImages array
+   */
+  private renderVisionImage(decl: RMLVisualDeclaration, imageNumber: number): string {
+    const { photo_id } = decl;
+
+    if (!photo_id) {
+      return `<div class="rml-error">Missing photo_id for vision${imageNumber}</div>`;
+    }
+
+    const photoUrl = `/api/photos/${photo_id}`;
+
+    return `
+      <div class="rml-vision-image">
+        <img
+          src="${photoUrl}"
+          alt="Vision ${imageNumber}"
+          class="rml-vision-img"
+          onerror="this.style.display='none'; this.parentElement.innerHTML='<p class=\\'rml-error\\'>Image not available</p>';"
+        />
+      </div>
+    `;
+  }
+
+  /**
+   * Renders a future self image from the user's vision board
+   * Uses photo URLs from the database (/api/photos/{photoId})
+   */
+  private renderFutureSelfImage(decl: RMLVisualDeclaration): string {
+    const { photo_id, caption } = decl;
+
+    if (!photo_id) {
+      return '<div class="rml-error">Missing photo_id for future self image</div>';
+    }
+
+    const photoUrl = `/api/photos/${photo_id}`;
+    const captionText = caption || '';
+
+    return `
+      <div class="rml-future-self-image">
+        <img
+          src="${photoUrl}"
+          alt="Future self vision"
+          class="rml-future-img"
+          onerror="this.style.display='none'; this.parentElement.innerHTML='<p class=\\'rml-error\\'>Image not available</p>';"
+        />
+        ${captionText ? `<p class="rml-future-caption">${captionText}</p>` : ''}
       </div>
     `;
   }
@@ -789,9 +896,11 @@ export class RMLRenderer {
    */
   private renderThinkingSquare(decl: RMLVisualDeclaration): string {
     return `
-      <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white mr-3" style="background-color: ${this.colors.thinking};">
-        <div class="relative flex items-center justify-center w-full h-full">
-          <span class="text-center leading-tight relative z-10">THINKING</span>
+      <div style="display: flex; justify-content: center; margin: 20px auto;">
+        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.thinking};">
+          <div class="relative flex items-center justify-center w-full h-full">
+            <span class="text-center leading-tight relative z-10">THINKING</span>
+          </div>
         </div>
       </div>
     `;
@@ -802,9 +911,11 @@ export class RMLRenderer {
    */
   private renderFeelingSquare(decl: RMLVisualDeclaration): string {
     return `
-      <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white mr-3" style="background-color: ${this.colors.feeling};">
-        <div class="relative flex items-center justify-center w-full h-full">
-          <span class="text-center leading-tight relative z-10">FEELING</span>
+      <div style="display: flex; justify-content: center; margin: 20px auto;">
+        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.feeling};">
+          <div class="relative flex items-center justify-center w-full h-full">
+            <span class="text-center leading-tight relative z-10">FEELING</span>
+          </div>
         </div>
       </div>
     `;
@@ -815,9 +926,11 @@ export class RMLRenderer {
    */
   private renderActingSquare(decl: RMLVisualDeclaration): string {
     return `
-      <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white mr-3" style="background-color: ${this.colors.acting};">
-        <div class="relative flex items-center justify-center w-full h-full">
-          <span class="text-center leading-tight relative z-10">ACTING</span>
+      <div style="display: flex; justify-content: center; margin: 20px auto;">
+        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.acting};">
+          <div class="relative flex items-center justify-center w-full h-full">
+            <span class="text-center leading-tight relative z-10">ACTING</span>
+          </div>
         </div>
       </div>
     `;
@@ -828,9 +941,11 @@ export class RMLRenderer {
    */
   private renderPlanningSquare(decl: RMLVisualDeclaration): string {
     return `
-      <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white mr-3" style="background-color: ${this.colors.planning};">
-        <div class="relative flex items-center justify-center w-full h-full">
-          <span class="text-center leading-tight relative z-10">PLANNING</span>
+      <div style="display: flex; justify-content: center; margin: 20px auto;">
+        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.planning};">
+          <div class="relative flex items-center justify-center w-full h-full">
+            <span class="text-center leading-tight relative z-10">PLANNING</span>
+          </div>
         </div>
       </div>
     `;
@@ -861,24 +976,30 @@ export class RMLRenderer {
         }
 
         .rml-starcard-img {
-          max-width: 100%;
+          max-width: 400px;
           height: auto;
           border-radius: 8px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          display: block;
+          margin: 0 auto;
         }
 
         .rml-strength-squares {
           display: flex;
           flex-wrap: wrap;
+          justify-content: center;
           gap: 12px;
-          margin: 20px 0;
+          margin: 20px auto;
+          max-width: fit-content;
         }
 
         .rml-pie-chart {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 30px;
-          margin: 20px 0;
+          margin: 20px auto;
+          max-width: fit-content;
         }
 
         .rml-pie-svg {
@@ -914,10 +1035,11 @@ export class RMLRenderer {
         }
 
         .rml-imagination-circle {
-          display: inline-flex;
+          display: flex;
           align-items: center;
-          margin: 5px 15px;
-          vertical-align: middle;
+          justify-content: center;
+          margin: 25px auto;
+          width: fit-content;
         }
 
         /* Utility classes for the imagination circle layout */
@@ -1238,6 +1360,41 @@ export class RMLRenderer {
           letter-spacing: 0.5px;
         }
 
+        /* Flow Attributes Row Styles */
+        .rml-flow-attributes-row {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 15px;
+          margin: 25px 0;
+          padding: 20px 0;
+        }
+
+        .rml-flow-attr-square {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 120px;
+          height: 60px;
+          padding: 10px 15px;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          transition: all 0.3s ease;
+        }
+
+        .rml-flow-attr-square:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .rml-flow-attr-label {
+          color: white;
+          font-weight: 700;
+          font-size: 13px;
+          text-align: center;
+          letter-spacing: 0.5px;
+        }
+
         .rml-error {
           padding: 15px;
           background: #fee2e2;
@@ -1304,6 +1461,62 @@ export class RMLRenderer {
         .rml-pattern-single svg {
           max-width: 100%;
           height: auto;
+        }
+
+        /* Vision Image Styles (vision1, vision2) */
+        .rml-vision-image {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 25px auto;
+          width: fit-content;
+        }
+
+        .rml-vision-img {
+          width: 200px;
+          height: auto;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          border: 3px solid rgba(255,255,255,0.6);
+          transition: all 0.3s ease;
+        }
+
+        .rml-vision-img:hover {
+          transform: scale(1.02);
+          box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Future Self Image Styles */
+        .rml-future-self-image {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          margin: 25px auto;
+          width: fit-content;
+        }
+
+        .rml-future-img {
+          width: 200px;
+          height: auto;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          border: 3px solid rgba(255,255,255,0.6);
+          transition: all 0.3s ease;
+        }
+
+        .rml-future-img:hover {
+          transform: scale(1.02);
+          box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+
+        .rml-future-caption {
+          margin-top: 15px;
+          font-size: 14px;
+          font-style: italic;
+          color: #6b7280;
+          text-align: center;
+          max-width: 80%;
         }
 
         .rml-unknown {

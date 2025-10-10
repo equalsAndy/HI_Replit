@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage, RotateCcw, FileText } from 'lucide-react';
+import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage, RotateCcw, FileText, FileCode } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -682,6 +682,59 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
+  // Download AI request payloads mutation
+  const downloadAIPayloadsMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await fetch(`/api/admin/users/${userId}/reports/ai-payloads`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to download AI payloads');
+      }
+
+      // Get the blob and trigger download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `user-${userId}-ai-payloads-${new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      return { userId };
+    },
+    onSuccess: (data) => {
+      const { userId } = data;
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'AI payloads downloaded',
+        description: `Downloaded complete AI request payloads for all report sections.`,
+      });
+    },
+    onError: (error: any, userId: number) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'Download failed',
+        description: error.message || 'No AI payloads found for this user or payloads not available.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Generate holistic report mutation
   const generateReportMutation = useMutation({
     mutationFn: async ({ userId, reportType }: { userId: number; reportType: 'personal' | 'standard' }) => {
@@ -1279,6 +1332,27 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Download user's StarCard PNG (if available)</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
+                                          onClick={() => downloadAIPayloadsMutation.mutate(user.id)}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && downloadAIPayloadsMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <FileCode className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Download AI request payloads (all sections with prompts sent to OpenAI)</p>
                                       </TooltipContent>
                                     </Tooltip>
 

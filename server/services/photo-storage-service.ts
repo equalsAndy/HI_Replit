@@ -356,54 +356,43 @@ export class PhotoStorageService {
       
       if (hasPhotoStorage) {
         // PRODUCTION SCHEMA: Use photo_storage table
-        // First, try to get the user's profile picture (this should be their StarCard)
+        // FIXED: Look for StarCard by image_type FIRST (not profile picture)
+        // Profile pictures and StarCards should be separate images
+        console.log(`🔍 getUserStarCard: Looking for image_type='starcard_generated' for user ${userId}`);
         result = await query(`
-          SELECT ps.photo_data, ps.photo_hash, ps.mime_type, ps.created_at, 'profile_picture' as source
-          FROM photo_storage ps 
-          JOIN users u ON u.profile_picture_id = ps.id
-          WHERE u.id = $1 
-          AND ps.is_thumbnail = false
+          SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'starcard_type' as source
+          FROM photo_storage
+          WHERE uploaded_by = $1
+          AND is_thumbnail = false
+          AND image_type = 'starcard_generated'
+          ORDER BY created_at DESC
+          LIMIT 1
         `, [parseInt(userId)]);
 
         if (result.rows.length === 0) {
-          console.log(`🔍 getUserStarCard: No profile picture found for user ${userId}, looking for StarCard by image_type`);
+          console.log(`🔍 getUserStarCard: No typed StarCard found for user ${userId}, trying dimension-based fallback`);
 
-          // FIXED: Use image_type field instead of dimension-based heuristics
+          // Fallback: Use dimension-based heuristics (legacy support)
           // This prevents confusion between StarCards and other images (visualizations, uploads, etc.)
-          console.log(`🔍 getUserStarCard: Looking for image_type='starcard_generated' for user ${userId}`);
           result = await query(`
-            SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'starcard_type' as source
+            SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'fallback_dimensions' as source
             FROM photo_storage
             WHERE uploaded_by = $1
             AND is_thumbnail = false
-            AND image_type = 'starcard_generated'
+            AND mime_type = 'image/png'
+            AND file_size > 100000
+            AND file_size < 500000
+            AND width > 600
+            AND width < 1000
+            AND height > 1000
+            AND height < 1400
             ORDER BY created_at DESC
             LIMIT 1
           `, [parseInt(userId)]);
 
-          // Final fallback: Look for StarCards using BOTH type and dimensions (safety check)
-          if (result.rows.length === 0) {
-            console.log(`🔍 getUserStarCard: No typed StarCard found, trying dimension-based fallback with WARNING for user ${userId}`);
-            result = await query(`
-              SELECT photo_data, photo_hash, mime_type, created_at, file_size, width, height, 'fallback_dimensions' as source
-              FROM photo_storage
-              WHERE uploaded_by = $1
-              AND is_thumbnail = false
-              AND mime_type = 'image/png'
-              AND file_size > 100000
-              AND file_size < 500000
-              AND width > 600
-              AND width < 1000
-              AND height > 1000
-              AND height < 1400
-              ORDER BY created_at DESC
-              LIMIT 1
-            `, [parseInt(userId)]);
-
-            if (result.rows.length > 0) {
-              console.warn(`⚠️ WARNING: Using dimension-based fallback for user ${userId} - this may not be the actual StarCard!`);
-              console.warn(`⚠️ Consider updating image_type to 'starcard_generated' for this image to prevent confusion.`);
-            }
+          if (result.rows.length > 0) {
+            console.warn(`⚠️ WARNING: Using dimension-based fallback for user ${userId} - this may not be the actual StarCard!`);
+            console.warn(`⚠️ Consider updating image_type to 'starcard_generated' for this image to prevent confusion.`);
           }
         }
       } else {
