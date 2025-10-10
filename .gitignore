@@ -162,3 +162,65 @@ client/stats.html
 
 # Removed/archived files
 *.removed
+
+# Debug and troubleshooting scripts (project-specific)
+check-*.mjs
+check-*.sql
+cleanup-*.mjs
+clear-*.mjs
+debug-*.mjs
+debug-*.sh
+deploy-*-fix*.sh
+discover-*.sh
+export-*.mjs
+fix-*.mjs
+fix-*.js
+fix-*.sql
+fix-*-database*.sh
+get-*.mjs
+restore-*.sh
+restart-*.sh
+verify-*.mjs
+complete-*.sh
+commit-*.sh
+git-cleanup-*.sh
+merge-*.sh
+quick-*.sh
+run-migration-*.mjs
+*-starcard-*.sh
+*-user-*.mjs
+*-user-*.sql
+*-user-*.js
+user-*-raw-*.json
+
+# Temporary documentation and status files
+*-DEBUG-*.md
+*-TIMEOUT-*.md
+*-DEPLOYMENT-*.md
+*-ASSESSMENT-*.md
+*-SCALE-*.md
+*-INTEGRATION-*.md
+*-IMPLEMENTATION-*.md
+RML-*.md
+WOO-*.md
+STAGING-*.md
+REPORT-*.md
+phase*_developer_ai_prompt_*.md
+
+# Archive directories
+archive-*/
+
+# Temporary data files
+all_files.json
+test-output/
+
+# Migration duplicates (migrations should be in server/db/migrations/)
+migrations/
+
+# Server code variations and fixes
+server/services/*-fixed*.ts
+server/services/*-FIXED*.ts
+server/services/*-processor-fixed*.ts
+
+# Search and cleanup prompts
+find_and_remove_*.md
