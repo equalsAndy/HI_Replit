@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLogout } from '@/hooks/use-logout';
 import { queryClient } from "@/lib/queryClient";
 
 export function MobileFooterNav() {
   const [, navigate] = useLocation();
+  const appLogout = useLogout();
   const { toast } = useToast();
   const { data: user } = useQuery<{
     id: number;
@@ -96,11 +98,11 @@ export function MobileFooterNav() {
         Contact Us
       </Button>
       {user?.id && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="rounded-md text-white hover:bg-yellow-400"
-          onClick={() => navigate('/logout')}
+          onClick={() => appLogout.mutate()}
         >
           Logout
         </Button>

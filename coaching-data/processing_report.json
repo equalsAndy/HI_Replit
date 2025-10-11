@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-07-20T01:06:29.991Z",
+  "summary": {
+    "total_chunks": 131,
+    "ast_methodology_chunks": 1,
+    "team_profile_chunks": 130
+  },
+  "ast_content_types": {
+    "team_dynamics": 1
+  },
+  "team_sources": {
+    "11_revised-project-coordinator-team.md": 8,
+    "12_updated-team-report-guidelines.md": 9,
+    "13_revised-product-management-team.md": 5,
+    "14_revised-technical-program-management-team.md": 5,
+    "15_revised-customer-success-team.md": 5,
+    "16_revised-data-science-team.md": 5,
+    "17_revised-sales-team.md": 5,
+    "18_revised-hr-team.md": 5,
+    "19_revised-executive-leadership-team.md": 4,
+    "20_revised-mobile-development-team.md": 5,
+    "21_revised-legal-team.md": 5,
+    "22_revised-finance-team.md": 5,
+    "23_revised-operations-team.md": 5,
+    "24_revised-zoo-operations-innovation-team.md": 5,
+    "25_revised-conservation-technology-team.md": 5,
+    "26_revised-infrastructure-security-team.md": 5,
+    "27_revised-core-development-team.md": 5,
+    "28_revised-product-design-team.md": 5,
+    "29_revised-marketing-team.md": 5,
+    "30_revised-innovation-incubation-breakthrough-team.md": 5,
+    "31_revised-data-driven-performance-management-team.md": 5,
+    "32_revised-cross-functional-collaboration-team.md": 5,
+    "33_revised-distributed-workforce-team.md": 5,
+    "34_updated-team-analysis-report-guidelines.md": 9
+  },
+  "total_word_count": 4823
+}

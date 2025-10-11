@@ -1,0 +1,16 @@
+{
+  "1": {
+    "patterns": {
+      "userId": "1",
+      "confidenceLevel": "medium",
+      "communicationStyle": "brief",
+      "languageComplexity": "moderate",
+      "responseLength": "short",
+      "emotionalTone": "neutral",
+      "helpPreference": "guided",
+      "lastUpdated": "2025-08-04T14:44:21.360Z",
+      "conversationCount": 2
+    },
+    "lastUpdated": "2025-08-04T14:44:21.361Z"
+  }
+}

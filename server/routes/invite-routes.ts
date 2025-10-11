@@ -11,7 +11,7 @@ const router = express.Router();
  */
 router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const { email, role, name, expiresAt, cohortId, organizationId } = req.body;
+    const { email, role, name, expiresAt, cohortId, organizationId, isBetaTester } = req.body;
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
     
@@ -48,6 +48,7 @@ router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       createdBy: userId,
       cohortId: cohortId || null,
       organizationId: organizationId || null,
+      isBetaTester: isBetaTester || false,
       expiresAt: expiresAt ? new Date(expiresAt) : undefined
     });
     
@@ -81,14 +82,16 @@ router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
+    const statusParam = (req.query.status as string | undefined)?.toLowerCase();
+    const status = statusParam === 'used' || statusParam === 'pending' ? (statusParam as 'used' | 'pending') : undefined;
     
     let result;
     if (userRole === 'facilitator') {
       // Facilitators only see invites they created with cohort/organization details
-      result = await inviteService.getInvitesWithDetails(userId);
+      result = await inviteService.getInvitesWithDetails(userId, status);
     } else {
       // Admins see all invites with full details
-      result = await inviteService.getInvitesWithDetails();
+      result = await inviteService.getInvitesWithDetails(undefined, status);
     }
     
     if (!result.success) {
@@ -100,7 +103,10 @@ router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       ...invite,
       formattedCode: formatInviteCode((invite as any).inviteCode || (invite as any).invite_code),
       createdAt: (invite as any).created_at || (invite as any).createdAt,
-      inviteCode: (invite as any).invite_code || (invite as any).inviteCode
+      inviteCode: (invite as any).invite_code || (invite as any).inviteCode,
+      usedByName: (invite as any).used_by_name,
+      usedByEmail: (invite as any).used_by_email,
+      usedAt: (invite as any).used_at || (invite as any).usedAt
     }));
     
     res.json({
@@ -193,6 +199,35 @@ router.delete('/:id', requireAuth, isAdmin, async (req, res) => {
       success: false,
       error: 'Failed to delete invite'
     });
+  }
+});
+
+/**
+ * Bulk delete invites (admin only)
+ */
+router.post('/bulk-delete', requireAuth, isAdmin, async (req, res) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids.map((n: any) => parseInt(n, 10)).filter((n: any) => !isNaN(n)) : [];
+    const result = await inviteService.deleteInvites(ids);
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (error) {
+    console.error('Error bulk deleting invites:', error);
+    res.status(500).json({ success: false, error: 'Failed to bulk delete invites' });
+  }
+});
+
+/**
+ * Delete all used invites (admin only)
+ */
+router.post('/delete-used', requireAuth, isAdmin, async (_req, res) => {
+  try {
+    const result = await inviteService.deleteUsedInvites();
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (error) {
+    console.error('Error deleting used invites:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete used invites' });
   }
 });
 

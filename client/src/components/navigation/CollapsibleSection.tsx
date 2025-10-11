@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import { ChevronDown, ChevronRight, Check, Lock, LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { cn } from '@/lib/utils';
 
 interface NavigationStep {
@@ -36,10 +36,11 @@ interface CollapsibleSectionProps {
 
 export function CollapsibleSection({ section, icon: Icon, children }: CollapsibleSectionProps) {
   const [location, navigate] = useLocation();
-  const { progress, isStepAccessibleByProgression } = useNavigationProgress();
+  const navigation = useUnifiedWorkshopNavigation('ast'); // TODO: Get appType from context
+  const { progress, isStepAccessibleByProgression } = navigation; // Maintain compatibility
   
-  // Check if this section is expanded (default open for unlocked sections)
-  const isExpanded = true; // Always show steps for better UX
+  // Check if this section is expanded based on progress state
+  const isExpanded = progress.sectionExpansion?.[section.id] ?? true;
   
   // Get section progress from props (calculated in NavigationSidebar)
   const progressDisplay = section.progressDisplay || `0/${section.totalSteps}`;
@@ -151,7 +152,7 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
                     <div 
                       className={cn(
                         "flex items-center p-4 transition-colors",
-                        isStepCurrent ? "bg-indigo-50" : "",
+                        isStepCurrent ? "bg-purple-50" : "",
                         isStepCompleted ? "bg-green-50" : "",
                         isStepAccessible && !isLocked ? "hover:bg-gray-50 cursor-pointer" : "opacity-50 cursor-not-allowed"
                       )}
@@ -180,7 +181,7 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
                         <p className={cn(
                           "text-sm font-medium",
                           isStepCompleted ? "text-green-700" : 
-                          isStepCurrent ? "text-indigo-700" : "text-gray-700"
+                          isStepCurrent ? "text-purple-700" : "text-gray-700"
                         )}>
                           {step.label}
                         </p>

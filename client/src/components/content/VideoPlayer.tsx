@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useVideoBySection, useVideoByStepId } from '@/hooks/use-videos';
-import { processVideoUrl, type VideoUrlParams } from '@/lib/videoUtils';
+import { useVideoBySection, useVideoByStepId } from '../../hooks/use-videos';
+import { processVideoUrl, type VideoUrlParams } from '../../lib/videoUtils';
+import { useVisible } from '@/hooks/useVisible';
 
 interface VideoPlayerProps {
   workshopType: string;
@@ -14,7 +15,13 @@ interface VideoPlayerProps {
   autoplay?: boolean;
   customParams?: VideoUrlParams;
   onProgress?: (percentage: number) => void;
+  onUnlockNext?: (stepId: string) => void; // New callback for unlocking next step
   startTime?: number; // Start time in seconds for resume functionality
+  /**
+   * If true (default), hides the VideoPlayer entirely when no video is available for the given step/section.
+   * If false, shows the fallback UI ("Video not available" message).
+   */
+  hideWhenUnavailable?: boolean;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -29,32 +36,44 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   autoplay = true,
   customParams = {},
   onProgress,
-  startTime = 0
+  onUnlockNext,
+  startTime = 0,
+  hideWhenUnavailable = true
 }) => {
+  // All hooks must be called unconditionally and in the same order
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
+  const isVisible = useVisible(playerRef);
   const [processedUrl, setProcessedUrl] = useState<string>('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [progressSimulated, setProgressSimulated] = useState(false);
-  
-  // Try to get video by stepId first, then by section
+  const [currentProgress, setCurrentProgress] = useState(0);
+
+  // Always call hooks before any conditional return
   const { data: videoByStepId, isLoading: isLoadingStepId } = useVideoByStepId(
     workshopType, 
     stepId || ''
   );
-  
   const { data: videoBySection, isLoading: isLoadingSection } = useVideoBySection(
     workshopType, 
     section || ''
   );
-
   const isLoading = isLoadingStepId || isLoadingSection;
   const video = videoByStepId || videoBySection;
+  const noVideoAvailable = !forceUrl && !video?.url && !fallbackUrl;
 
-  // Debug logging for video selection
-  console.log(`🎬 VideoPlayer Debug - Step: ${stepId}, Workshop: ${workshopType}`);
-  console.log(`🎬 VideoByStepId:`, videoByStepId ? { id: videoByStepId.id, title: videoByStepId.title, editableId: videoByStepId.editableId } : 'null');
-  console.log(`🎬 VideoBySection:`, videoBySection ? { id: videoBySection.id, title: videoBySection.title, editableId: videoBySection.editableId } : 'null');
-  console.log(`🎬 Selected video:`, video ? { id: video.id, title: video.title, editableId: video.editableId, url: video.url } : 'null');
+  // Now safe to return conditionally
+  if (!isLoading && hideWhenUnavailable && noVideoAvailable) {
+    return null;
+  }
+
+  // Debug logging for video selection - only in dev mode with flag
+  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
+    console.log(`🎬 VideoPlayer Debug - Step: ${stepId}, Workshop: ${workshopType}`);
+    console.log(`🎬 VideoByStepId:`, videoByStepId ? { id: videoByStepId.id, title: videoByStepId.title, editableId: videoByStepId.editableId } : 'null');
+    console.log(`🎬 VideoBySection:`, videoBySection ? { id: videoBySection.id, title: videoBySection.title, editableId: videoBySection.editableId } : 'null');
+    console.log(`🎬 Selected video:`, video ? { id: video.id, title: video.title, editableId: video.editableId, url: video.url } : 'null');
+  }
 
   // Process the video URL when it changes
   useEffect(() => {
@@ -75,29 +94,48 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const processed = processVideoUrl(rawUrl, params);
       setProcessedUrl(processed.embedUrl);
       
-      // Debug logging for video selection
-      if (forceUrl) {
-        console.log(`🎬 VideoPlayer: Using forceUrl: ${forceUrl}`);
-      } else {
-        console.log(`🎬 VideoPlayer: Using ${video?.url ? 'database' : 'fallback'} URL: ${rawUrl}`);
-      }
+      // Debug logging for video selection (disabled to reduce console spam)
+      // if (forceUrl) {
+      //   console.log(`🎬 VideoPlayer: Using forceUrl: ${forceUrl}`);
+      // } else {
+      //   console.log(`🎬 VideoPlayer: Using ${video?.url ? 'database' : 'fallback'} URL: ${rawUrl}`);
+      // }
     }
   }, [forceUrl, video?.url, fallbackUrl, autoplay, customParams]);
 
-  // Simple progress tracking without YouTube API dependency
+  // Enhanced progress tracking with unlocking logic
   useEffect(() => {
     if (videoLoaded && onProgress && !progressSimulated) {
       setProgressSimulated(true);
       
-      // Simulate basic progress tracking - mark as viewed after a few seconds
-      const progressTimer = setTimeout(() => {
-        console.log('🎬 Video marked as viewed (simplified tracking)');
-        onProgress(100); // Mark as complete after basic viewing time
-      }, 3000); // 3 seconds viewing time
+      // Simulate progressive tracking with multiple checkpoints
+      const progressCheckpoints = [10, 25, 50, 75, 90, 100];
+      let checkpointIndex = 0;
       
-      return () => clearTimeout(progressTimer);
+      const progressTimer = setInterval(() => {
+        if (checkpointIndex < progressCheckpoints.length) {
+          const progress = progressCheckpoints[checkpointIndex];
+          setCurrentProgress(progress);
+          onProgress(progress);
+          
+          console.log(`🎬 Video progress: ${progress}% for step ${stepId}`);
+          
+          // Check if this progress meets the required threshold for unlocking
+          const requiredThreshold = video?.requiredWatchPercentage || 75;
+          if (progress >= requiredThreshold && onUnlockNext && stepId) {
+            console.log(`🔓 Unlocking next step - watched ${progress}% (required: ${requiredThreshold}%)`);
+            onUnlockNext(stepId);
+          }
+          
+          checkpointIndex++;
+        } else {
+          clearInterval(progressTimer);
+        }
+      }, 2000); // Progress every 2 seconds for demo
+      
+      return () => clearInterval(progressTimer);
     }
-  }, [videoLoaded, onProgress, progressSimulated]);
+  }, [videoLoaded, onProgress, onUnlockNext, stepId, video?.requiredWatchPercentage, progressSimulated]);
 
   // Handle iframe load event
   const handleIframeLoad = () => {
@@ -129,9 +167,25 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const videoTitle = video?.title || title || 'Workshop Video';
 
+  // Debug logging for troubleshooting - only in dev mode with flag
+  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
+    console.log(`🎬 VideoPlayer Debug:`, {
+      stepId,
+      workshopType,
+      isLoading,
+      video: video ? { id: video.id, title: video.title, url: video.url, editableId: video.editableId } : null,
+      processedUrl,
+      noVideoAvailable,
+      hideWhenUnavailable
+    });
+  }
+
   if (!processedUrl) {
+    if (hideWhenUnavailable) {
+      return null;
+    }
     return (
-      <div className={`video-responsive-container ${className}`}>
+      <div ref={playerRef} className={`video-responsive-container ${className}`}>
         <div className={`video-aspect-wrapper ${aspectClass}`}>
           <div className="video-responsive-element bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
             <div className="text-center">
@@ -144,8 +198,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
+  // Temporarily disable visibility check for debugging
+  // if (!isVisible) {
+  //   return (
+  //     <div ref={playerRef} className={`video-responsive-container ${className}`}>
+  //       <div className={`video-aspect-wrapper ${aspectClass}`}>
+  //         <div className="video-responsive-element bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+  //           <div className="text-center">
+  //             <div className="text-gray-400 text-4xl mb-2">📹</div>
+  //             <span className="text-gray-500">Video not visible</span>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   return (
-    <div className={`video-responsive-container ${className}`}>
+    <div ref={playerRef} className={`video-responsive-container ${className}`}>
       <div className={`video-aspect-wrapper ${aspectClass}`}>
         <iframe 
           ref={iframeRef}

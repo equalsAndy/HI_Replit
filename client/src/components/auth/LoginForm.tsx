@@ -25,11 +25,12 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: boolean } = {}) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [showTestInfo, setShowTestInfo] = useState(false);
   
+
   // Initialize react-hook-form
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -48,7 +49,11 @@ export function LoginForm() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data),
+          credentials: 'include',
+          body: JSON.stringify({
+            username: data.identifier,
+            password: data.password,
+          }),
         });
         
         if (!response.ok) {
@@ -63,8 +68,14 @@ export function LoginForm() {
       }
     },
     onSuccess: (data) => {
+      let redirectTo: string | null = null;
       // Update authentication state
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      // Set fresh login flag for beta tester welcome modal
+      if (data.user.isBetaTester && data.user.id) {
+        sessionStorage.setItem(`beta_fresh_login_${data.user.id}`, 'true');
+      }
       
       // Show success message
       toast({
@@ -72,31 +83,64 @@ export function LoginForm() {
         description: `Welcome back, ${data.user.name || 'User'}!`,
       });
       
-      // Admin users should always go to admin console
+      // Route users based on their role and user type
       if (data.user.role === 'admin') {
-        navigate('/admin');
-        return;
+        // Admins go to admin console
+        redirectTo = '/admin';
       }
       
-      // Check if we should redirect to a specific workshop
-      const selectedWorkshop = sessionStorage.getItem('selectedWorkshop');
+      if (!redirectTo && data.user.role === 'facilitator') {
+        // Facilitators go to dashboard/console
+        redirectTo = '/dashboard';
+      }
       
-      if (selectedWorkshop) {
-        // Clear the stored selection
-        sessionStorage.removeItem('selectedWorkshop');
-        
-        // Redirect to the appropriate workshop
-        if (selectedWorkshop === 'allstarteams') {
-          navigate('/workshop/allstarteams');
-        } else if (selectedWorkshop === 'imaginalagility') {
-          navigate('/workshop/imaginalagility');
+      if (!redirectTo && data.user.isTestUser) {
+        // Test users go to dashboard/console
+        redirectTo = '/dashboard';
+      }
+      
+      // Beta testers and regular users go directly to workshops
+      // Clear any stored return URL to prevent session manager override
+      sessionStorage.removeItem('returnUrl');
+      
+      if (!redirectTo && (data.user.isBetaTester || !data.user.isTestUser)) {
+        if (data.user.astAccess) {
+          redirectTo = '/allstarteams';
+        } else if (data.user.iaAccess) {
+          redirectTo = '/imaginal-agility';
         } else {
-          navigate('/dashboard');
+          // Check if we should redirect to a specific workshop
+          const selectedWorkshop = sessionStorage.getItem('selectedWorkshop');
+          
+          if (selectedWorkshop) {
+            // Clear the stored selection
+            sessionStorage.removeItem('selectedWorkshop');
+            
+            // Redirect to the appropriate workshop
+            if (selectedWorkshop === 'allstarteams') {
+              redirectTo = '/allstarteams';
+            } else if (selectedWorkshop === 'imaginalagility') {
+              redirectTo = '/imaginal-agility';
+            } else {
+              // Default to AllStarTeams for regular users
+              redirectTo = '/allstarteams';
+            }
+          } else {
+            // Default to AllStarTeams for regular users
+            redirectTo = '/allstarteams';
+          }
         }
-      } else {
-        // No stored workshop selection, go to dashboard
-        navigate('/dashboard');
       }
+      // Fallback default if none set
+      if (!redirectTo) redirectTo = '/dashboard';
+
+      // Perform navigation with hard redirect fallback
+      navigate(redirectTo);
+      setTimeout(() => {
+        if (window.location.pathname.startsWith('/auth')) {
+          window.location.assign(redirectTo!);
+        }
+      }, 50);
     },
     onError: (error: Error) => {
       toast({
@@ -109,6 +153,7 @@ export function LoginForm() {
   
   // Form submission handler
   const onSubmit = (data: LoginFormValues) => {
+    // Use credentials-based login via API to establish session
     loginMutation.mutate(data);
   };
   
@@ -138,37 +183,38 @@ export function LoginForm() {
         <CardDescription>
           Enter your username and password to access your account
         </CardDescription>
-        <Button 
-          variant="outline" 
-          type="button"
-          onClick={() => {
-            setShowTestInfo(!showTestInfo);
-            if (!showTestInfo) {
-              // Open test user picker when button is clicked
-              const modal = document.querySelector('[role="dialog"]');
-              if (!modal) {
-                const testUserPickerModal = document.createElement('div');
-                testUserPickerModal.setAttribute('role', 'dialog');
-                document.body.appendChild(testUserPickerModal);
+        {showTestInfoToggle && (
+          <Button 
+            variant="outline" 
+            type="button"
+            onClick={() => {
+              setShowTestInfo(!showTestInfo);
+              if (!showTestInfo) {
+                const modal = document.querySelector('[role="dialog"]');
+                if (!modal) {
+                  const testUserPickerModal = document.createElement('div');
+                  testUserPickerModal.setAttribute('role', 'dialog');
+                  document.body.appendChild(testUserPickerModal);
+                }
               }
-            }
-          }}
-          className="text-sm"
-        >
-          {showTestInfo ? "Hide Test User Info" : "Test User Info"}
-        </Button>
+            }}
+            className="text-sm"
+          >
+            {showTestInfo ? "Hide Test User Info" : "Test User Info"}
+          </Button>
+        )}
       </CardHeader>
 
       {showTestInfo && (
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-medium text-blue-800">Test Environment</h3>
-          <p className="mt-2 text-blue-700">All test accounts use the password <strong>password123</strong></p>
+          <p className="mt-2 text-blue-700">Admin login: <strong>admin / Heliotrope@2025</strong></p>
           <p className="mt-2 text-blue-700 italic">You can use either username or email to login</p>
           <Alert className="mt-2 bg-amber-50 border-amber-200">
             <InfoIcon className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-700">Important Note</AlertTitle>
+            <AlertTitle className="text-amber-700">Production Access</AlertTitle>
             <AlertDescription className="text-amber-700">
-              Make sure to use <strong>password123</strong> (not just "password") for all test accounts.
+              For production admin access, use the credentials provided by your administrator.
             </AlertDescription>
           </Alert>
           <ul className="mt-4 space-y-1 text-blue-700">

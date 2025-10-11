@@ -1,0 +1,7 @@
+{
+  "legacy_to_auth0_role_id": {
+    "admin": "rol_adminxxxxxxxxxxxxx",
+    "facilitator": "rol_facilitatorxxxxx",
+    "participant": "rol_participantxxxxx"
+  }
+}

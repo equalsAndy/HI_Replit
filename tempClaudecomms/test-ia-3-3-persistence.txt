@@ -1,0 +1,52 @@
+# Test IA_3_3 Data Persistence - 2025-07-26
+
+## ISSUES FOUND AND FIXED:
+
+1. **handleSave function was broken** - was using old `setSaving` instead of persistence hook
+2. **Missing saveNow from hook** - wasn't destructuring `saveNow` from useWorkshopStepData
+3. **Not actually saving data** - handleSave was only simulating save, not calling real save
+
+## FIXES APPLIED:
+
+1. Updated handleSave to use `await saveNow()` from persistence hook
+2. Added `saveNow` to destructured hook return values
+3. Added proper error handling for save failures
+
+## TO TEST THE FIX:
+
+1. Go to IA workshop step 3-3 (Visualizing Your Potential)
+2. Select an image from the gallery OR upload an image
+3. Fill in the reflection textarea 
+4. Fill in the image title field
+5. Click "Continue to From Insight to Intention" button
+
+**Expected Results:**
+- Button should work and navigate to step 3-4
+- Data should persist if you go back to step 3-3
+- Data should appear in admin export for the user
+
+## VERIFICATION COMMANDS:
+
+Check if data is being saved:
+```sql
+SELECT user_id, step_id, data, created_at 
+FROM workshop_step_data 
+WHERE workshop_type = 'ia' AND step_id = 'ia-3-3' 
+ORDER BY created_at DESC;
+```
+
+Check all IA data for a user:
+```sql
+SELECT step_id, data->>'reflection' as reflection, data->>'imageTitle' as title
+FROM workshop_step_data 
+WHERE workshop_type = 'ia' AND user_id = [USER_ID]
+ORDER BY step_id;
+```
+
+## REMAINING COMPONENTS TO FIX:
+
+These IA components still need the same treatment:
+- IA_4_4_Content.tsx (needs full persistence hook implementation)
+- IA_4_6_Content.tsx (needs full persistence hook implementation)
+
+The build completed successfully, so the fixes should be active now.

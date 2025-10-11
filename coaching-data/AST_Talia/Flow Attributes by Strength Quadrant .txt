@@ -1,0 +1,88 @@
+This is a list of Flow Attributes by Strength Quadrant
+
+- Flow attributes are chosen from a list without users knowing the quadrant mapping
+- The percentages are just for ranking, not statistical meaning 
+- The relationship between chosen flow attributes and strength quadrants can be interesting to note
+- There's more to learn about how to discuss these patterns appropriately
+
+What's particularly interesting is comparing their chosen flow attributes to their strength quadrant percentages. If I understand correctly, we might notice patterns like:
+- Someone with high Thinking strengths choosing flow attributes that map to Thinking
+- Or perhaps interesting mismatches where their flow state comes from a different quadrant than their dominant strengths
+
+
+
+  Thinking Attributes (14 attributes)
+
+  - Abstract
+  - Analytic
+  - Astute
+  - Big Picture
+  - Curious
+  - Focused
+  - Insightful
+  - Logical
+  - Investigative
+  - Rational
+  - Reflective
+  - Sensible
+  - Strategic
+  - Thoughtful
+
+  Feeling Attributes (12 attributes)
+
+  - Collaborative
+  - Creative
+  - Encouraging
+  - Expressive
+  - Empathic
+  - Intuitive
+  - Inspiring
+  - Objective
+  - Passionate
+  - Positive
+  - Receptive
+  - Supportive
+
+  Planning Attributes (14 attributes)
+
+  - Detail-Oriented
+  - Diligent
+  - Immersed
+  - Industrious
+  - Methodical
+  - Organized
+  - Precise
+  - Punctual
+  - Reliable
+  - Responsible
+  - Straightforward
+  - Tidy
+  - Systematic
+  - Thorough
+
+  Acting Attributes (14 attributes)
+
+  - Adventuresome
+  - Competitive
+  - Dynamic
+  - Effortless
+  - Energetic
+  - Engaged
+  - Funny
+  - Persuasive
+  - Open-Minded
+  - Optimistic
+  - Practical
+  - Resilient
+  - Spontaneous
+  - Vigorous
+  
+- Flow attributes are chosen from a list without users knowing the quadrant mapping
+- The percentages are just for ranking, not statistical meaning 
+- The relationship between chosen flow attributes and strength quadrants can be interesting to note
+- There's more to learn about how to discuss these patterns appropriately
+
+What's particularly interesting is comparing their chosen flow attributes to their strength quadrant percentages. If I understand correctly, we might notice patterns like:
+- Someone with high Thinking strengths choosing flow attributes that map to Thinking
+- Or perhaps interesting mismatches where their flow state comes from a different quadrant than their dominant strengths
+

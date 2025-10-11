@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { userManagementService } from '../services/user-management-service.js';
+import { convertUserToPhotoReference, sanitizeUserForNetwork } from '../utils/user-photo-utils.js';
 import { NavigationSyncService } from '../services/navigation-sync-service.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isAdmin } from '../middleware/roles.js';
@@ -30,7 +31,12 @@ const upload = multer({
  */
 router.get('/me', async (req, res) => {
   try {
-    console.log('Me request - Session data:', req.session);
+    // Log session data safely (sanitized to avoid base64 profile pictures)
+    const sessionCopy = { ...req.session };
+    if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
+      sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
+    }
+    console.log('Me request - Session data:', sessionCopy);
     console.log('Me request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie
@@ -71,18 +77,23 @@ router.get('/me', async (req, res) => {
 
     console.log(`Raw user data from service:`, result.user);
 
+    // Convert user data to use photo references instead of base64 data
+    const userWithPhotoRef = convertUserToPhotoReference(result.user);
+    
     // Return simplified user info for /me endpoint
     const userInfo = {
-      id: result.user?.id,
-      name: result.user?.name,
-      email: result.user?.email,
-      role: result.user?.role,
-      username: result.user?.username,
-      organization: result.user?.organization,
-      jobTitle: result.user?.jobTitle
+      id: userWithPhotoRef.id,
+      name: userWithPhotoRef.name,
+      email: userWithPhotoRef.email,
+      role: userWithPhotoRef.role,
+      username: userWithPhotoRef.username,
+      organization: userWithPhotoRef.organization,
+      jobTitle: userWithPhotoRef.jobTitle,
+      profilePictureUrl: userWithPhotoRef.profilePictureUrl,
+      hasProfilePicture: userWithPhotoRef.hasProfilePicture
     };
 
-    console.log(`Final user info being returned:`, userInfo);
+    console.log(`Final user info being returned:`, sanitizeUserForNetwork(userInfo));
 
     // Return user data directly (not wrapped in success object for /me endpoint)
     res.json(userInfo);
@@ -100,7 +111,12 @@ router.get('/me', async (req, res) => {
  */
 router.get('/profile', async (req, res) => {
   try {
-    console.log('Profile request - Session data:', req.session);
+    // Log session data safely (sanitized to avoid base64 profile pictures)
+    const sessionCopy = { ...req.session };
+    if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
+      sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
+    }
+    console.log('Profile request - Session data:', sessionCopy);
     console.log('Profile request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie
@@ -139,18 +155,20 @@ router.get('/profile', async (req, res) => {
       });
     }
 
-    console.log(`Raw user data from service:`, result.user);
+    console.log(`Raw user data from service:`, sanitizeUserForNetwork(result.user));
+
+    // Convert user data to use photo references instead of base64 data
+    const userWithPhotoRef = convertUserToPhotoReference(result.user);
 
     // Return the user profile with additional fields
     const userProfile = {
-      ...result.user,
+      ...userWithPhotoRef,
       // Add any additional user data from other services if needed
       progress: 0,  // Default progress value
-      title: result.user?.jobTitle || '',  // Map jobTitle to title for backward compatibility
-      isTestUser: result.user?.isTestUser || false, // Ensure isTestUser field is included
+      title: userWithPhotoRef.jobTitle || '',  // Map jobTitle to title for backward compatibility
     };
 
-    console.log(`Final user profile being returned:`, userProfile);
+    console.log(`Final user profile being returned:`, sanitizeUserForNetwork(userProfile));
 
     // Return user data wrapped in success object for NavBar compatibility
     res.json({
@@ -661,29 +679,47 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
       });
     }
 
-    // Convert file to base64 for database storage
+    // Convert file to base64 for photo storage system
     const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
 
     console.log(`Uploading photo for user ${userId}, size: ${req.file.size} bytes`);
 
-    // Update user's profile picture
-    const result = await userManagementService.updateUser(userId, {
-      profilePicture: base64Image
-    });
+    // Import photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
 
-    if (!result.success) {
-      return res.status(400).json({
+    try {
+      // Store photo and get photo ID
+      const photoId = await photoStorageService.storePhoto(base64Image, userId, true);
+      console.log(`Photo stored with ID ${photoId} for user ${userId}`);
+
+      // Update user's profile picture ID
+      const result = await userManagementService.updateUserProfilePictureId(userId, photoId);
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: 'Failed to save profile picture reference'
+        });
+      }
+
+      console.log(`Photo uploaded successfully for user ${userId} with photo ID ${photoId}`);
+
+      // Generate photo URL for response
+      const photoUrl = photoStorageService.getPhotoUrl(photoId);
+
+      res.json({
+        success: true,
+        profilePicture: base64Image, // For compatibility
+        profilePictureId: photoId,
+        profilePictureUrl: photoUrl
+      });
+    } catch (error) {
+      console.error('Error storing photo:', error);
+      return res.status(500).json({
         success: false,
-        error: 'Failed to save profile picture'
+        error: 'Failed to store profile picture'
       });
     }
-
-    console.log(`Photo uploaded successfully for user ${userId}`);
-
-    res.json({
-      success: true,
-      profilePicture: base64Image
-    });
   } catch (error) {
     console.error('Error uploading photo:', error);
     res.status(500).json({
@@ -864,9 +900,11 @@ router.get('/export-data', requireAuth, async (req, res) => {
       assessments: [],
       navigationProgress: [],
       workshopParticipation: [],
+      workshopStepData: [],
       growthPlans: [],
       finalReflections: [],
-      discernmentProgress: []
+      discernmentProgress: [],
+      userPhotos: []
     };
 
     try {
@@ -888,6 +926,12 @@ router.get('/export-data', requireAuth, async (req, res) => {
         .where(eq(schema.workshopParticipation.userId, sessionUserId));
       (userData as any).workshopParticipation = workshopParticipation;
 
+      // Get workshop step data (includes IA-3-5 and other step data)
+      const workshopStepData = await db.select()
+        .from(schema.workshopStepData)
+        .where(eq(schema.workshopStepData.userId, sessionUserId));
+      (userData as any).workshopStepData = workshopStepData;
+
       // Get growth plans
       const growthPlans = await db.select()
         .from(schema.growthPlans)
@@ -905,6 +949,26 @@ router.get('/export-data', requireAuth, async (req, res) => {
         .from(schema.userDiscernmentProgress)
         .where(eq(schema.userDiscernmentProgress.userId, sessionUserId));
       (userData as any).discernmentProgress = discernmentProgress;
+
+      // Get user photos (from photo_storage table)
+      try {
+        const { Pool } = await import('pg');
+        const pool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        });
+        
+        const photosResult = await pool.query(
+          'SELECT id, photo_hash, mime_type, file_size, width, height, is_thumbnail, original_photo_id, created_at FROM photo_storage WHERE uploaded_by = $1 ORDER BY created_at DESC',
+          [sessionUserId]
+        );
+        
+        (userData as any).userPhotos = photosResult.rows;
+        pool.end();
+      } catch (photoError) {
+        console.warn('Could not fetch user photos for export:', photoError);
+        (userData as any).userPhotos = [];
+      }
 
     } catch (dbError) {
       console.error('Error fetching user data for export:', dbError);

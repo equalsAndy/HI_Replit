@@ -1,8 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { useQuery } from '@tanstack/react-query';
-import VideoPlayer from './VideoPlayer';
+import VideoTranscriptGlossary from '../common/VideoTranscriptGlossary';
+import { trpc } from "@/utils/trpc";
+import '@/styles/section-headers.css';
+import { Check, X, Play } from 'lucide-react';
+import JeopardySelfAwarenessGame from './JeopardySelfAwarenessGame';
+// import organizationalChallengesImg from '@/assets/graphics/organizational-challenges-diagram.png';
 
 interface WelcomeViewProps {
   currentContent: string;
@@ -11,13 +16,15 @@ interface WelcomeViewProps {
   setCurrentContent?: (content: string) => void;
   starCard?: any;
   isImaginalAgility?: boolean;
+  triggerWelcomeVideo?: () => void;
 }
 
 const WelcomeView: React.FC<WelcomeViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent,
-  isImaginalAgility = false
+  isImaginalAgility = false,
+  triggerWelcomeVideo
 }) => {
   // Get user data for content customization
   const { data: userData, isLoading: userLoading } = useQuery<{
@@ -48,15 +55,42 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   // Different content based on which app is active
   const stepId = isImaginalAgility ? "ia-1-1" : "1-1";
+
+  // Welcome video functionality for replay (passed as prop)
+  
+  // Fetch video from database using tRPC (single video for backwards compatibility)
+  const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
+    workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
+    stepId: stepId,
+  }, {
+    staleTime: 0, // Force fresh fetch
+    cacheTime: 0, // Don't cache results
+  });
+
+  // Debug logging
+  console.log('🎬 WelcomeView tRPC query:', {
+    workshop: isImaginalAgility ? 'imaginal-agility' : 'allstarteams',
+    stepId: stepId,
+    videoLoading,
+    error: error?.message,
+    videoData: videoData ? {
+      workshop: videoData.workshop,
+      stepId: videoData.stepId,
+      youtubeId: videoData.youtubeId,
+      title: videoData.title,
+      transcriptMd: videoData.transcriptMd ? 'HAS_TRANSCRIPT' : 'NO_TRANSCRIPT',
+      glossary: videoData.glossary ? `HAS_GLOSSARY(${videoData.glossary.length})` : 'NO_GLOSSARY'
+    } : 'NO_VIDEO_DATA'
+  });
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   
-  // Get navigation progress using the main hook
+  // Get navigation progress using the unified hook
+  const navigation = useUnifiedWorkshopNavigation(isImaginalAgility ? 'ia' : 'ast');
   const { 
-    progress: navigationProgress, 
     updateVideoProgress,
     markStepCompleted: navMarkStepCompleted
-  } = useNavigationProgress();
+  } = navigation;
 
   // Simplified mode: Next button always active for video steps
   useEffect(() => {
@@ -67,13 +101,13 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     ? "Welcome to Imaginal Agility Workshop" 
     : isStudentOrFacilitator 
       ? "Welcome to AllStarTeams 5-Week Program"
-      : "Welcome to AllStarTeams Workshop";
+      : "The Self-Awareness Gap";
 
   const description = isImaginalAgility
     ? null // IA content will be rendered separately in the main content area
     : isStudentOrFacilitator
       ? "Welcome to AllStarTeams - a new kind of workshop designed just for you! This is where your personal strengths meet your future goals."
-      : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
+      : "Self-awareness is a core human asset and the foundation for trust, collaboration, and growth. This Microcourse Workshop offers a practical way to enhance individual and team self-awareness.";
 
   const fallbackUrl = isImaginalAgility 
     ? "https://youtu.be/JxdhWd8agmE" 
@@ -90,11 +124,11 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   const nextButton = isImaginalAgility
     ? "Next: The Triple Challenge"
-    : "Next: Intro to Star Strengths";
+    : "Continue to The Self-Awareness Opportunity";
 
   const nextContentId = isImaginalAgility
     ? "ia-2-1"
-    : "intro-strengths";
+    : "self-awareness-opp";
 
   // Track last logged progress to prevent spam
   const lastLoggedProgressRef = useRef(0);
@@ -104,7 +138,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   // Calculate start time for video resume based on current progress
   const calculateStartTime = (): number => {
-    const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
+    const videoProgress = navigation.getVideoProgress(stepId) || 0;
     
     // Convert percentage to seconds (assuming average video duration of 150 seconds)
     // Only resume if progress is between 5% and 95% to avoid edge cases
@@ -117,6 +151,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     
     return 0; // Start from beginning
   };
+
+
 
   // Simplified linear progression: Next button always active for video steps
   const isStepComplete = (): boolean => {
@@ -151,15 +187,23 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
       console.log(`🚀 Next button clicked for step: ${stepId}`);
       
       // Try both markStepCompleted functions - props first, then navigation hook
+      console.log(`🔍 Available functions:`, { 
+        hasPropsMarkCompleted: !!markStepCompleted, 
+        hasNavMarkCompleted: !!navMarkStepCompleted 
+      });
+      
       if (markStepCompleted) {
+        console.log(`🎯 Calling PROPS markStepCompleted(${stepId})`);
         await markStepCompleted(stepId);
         console.log(`✅ Step ${stepId} marked complete via props, navigating to ${nextContentId}`);
       } else if (navMarkStepCompleted) {
+        console.log(`🎯 Calling UNIFIED HOOK markStepCompleted(${stepId})`);
         await navMarkStepCompleted(stepId);
         console.log(`✅ Step ${stepId} marked complete via navigation hook, navigating to ${nextContentId}`);
       } else {
         console.log(`⚠️ No markStepCompleted function available`);
-      }
+  }
+
       
       if (setCurrentContent) {
         setCurrentContent(nextContentId);
@@ -171,14 +215,28 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           }
         }, 100);
       }
-    } catch (error) {
-      console.error(`❌ Error completing step ${stepId}:`, error);
-    }
-  };
+  } catch (error) {
+    console.error(`❌ Error completing step ${stepId}:`, error);
+  }
+};
+
 
   return (
     <>
       <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
+
+      {/* Play Welcome Video Again Link - Only for AST */}
+      {!isImaginalAgility && triggerWelcomeVideo && (
+        <div className="mb-6">
+          <button
+            onClick={triggerWelcomeVideo}
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm font-medium"
+          >
+            <Play className="h-4 w-4" />
+            Play welcome video again
+          </button>
+        </div>
+      )}
 
       <div className="prose max-w-none">
         {!isImaginalAgility && !isStudentOrFacilitator && (
@@ -205,18 +263,200 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         {/* YouTube Video Player */}
         <div className="mb-8 max-w-4xl mx-auto">
-          <VideoPlayer
-            workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
-            stepId={stepId}
-            fallbackUrl={fallbackUrl}
-            forceUrl={forceUrl}
-            title={videoTitle}
-            aspectRatio="16:9"
-            autoplay={true}
-            onProgress={handleVideoProgress}
-            startTime={calculateStartTime()}
-          />
+          {videoLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading video...</span>
+            </div>
+          ) : error ? (
+            <div className="rounded-md border border-red-300 bg-red-50 p-4 text-red-900">
+              <strong>Error loading video from database:</strong> {error.message}
+              <br />
+              <small>Workshop: {isImaginalAgility ? 'imaginal-agility' : 'allstarteams'}, Step: {stepId}</small>
+            </div>
+          ) : videoData ? (
+            <VideoTranscriptGlossary
+              youtubeId={videoData.youtubeId}
+              title={videoData.title}
+              transcriptMd={videoData.transcriptMd}
+              glossary={videoData.glossary ?? []}
+              forceUrl={forceUrl}
+              startTime={calculateStartTime()}
+              onProgress={handleVideoProgress}
+            />
+          ) : (
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              No video data found in database for workshop '{isImaginalAgility ? 'imaginal-agility' : 'allstarteams'}' step '{stepId}'
+              <br />
+              <small>Falling back to default video: {fallbackUrl}</small>
+              <VideoTranscriptGlossary
+                youtubeId={fallbackUrl}
+                title={videoTitle}
+                transcriptMd=""
+                glossary={[]}
+                forceUrl={forceUrl}
+                startTime={calculateStartTime()}
+                onProgress={handleVideoProgress}
+              />
+            </div>
+          )}
         </div>
+
+        {/* AST 1-1 sections: Content, Activities, Reflections */}
+        <div className="section-headers-tabs-60 mt-16 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--content">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">📚 Some Things to Know</div>
+          </div>
+        </div>
+        {/* Graphics Cards Container - Side by side on wide screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* First Content Card - Organizational Challenges Diagram */}
+          <div className="section-content-card-60 section-content-card-60--content relative h-full">
+            <div
+              className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+              style={{ marginLeft: '-8px' }}
+            >
+              <div
+                className="text-xs font-bold text-purple-600 bg-purple-50 px-0.5 py-1 rounded text-center"
+                style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+              >
+                📚 Some Things to Know
+              </div>
+            </div>
+            <div className="section-content-card-60__strip" aria-hidden="true" />
+            <div className="section-content-card-60__box h-full">
+              <div className="flex flex-col items-center justify-center h-[420px] py-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Here's What Happens Without Self-Awareness</h3>
+                <div className="w-full max-w-lg flex justify-center flex-grow items-center">
+                  <img 
+                    src="/assets/organizational-challenges-diagram.png" 
+                    alt="Organizational challenges diagram showing relational, individual, and organizational levels" 
+                    className="w-full h-auto rounded-lg shadow-sm max-h-[300px] object-contain"
+                    style={{ maxWidth: '115%' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Second Content Card - Ben Franklin Quote */}
+          <div className="section-content-card-60 section-content-card-60--content relative h-full">
+            <div
+              className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+              style={{ marginLeft: '-8px' }}
+            >
+              <div
+                className="text-xs font-bold text-purple-600 bg-purple-50 px-0.5 py-1 rounded text-center"
+                style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+              >
+                📚 Some Things to Know
+              </div>
+            </div>
+            <div className="section-content-card-60__strip" aria-hidden="true" />
+            <div className="section-content-card-60__box h-full">
+              <div className="flex flex-col items-center justify-center h-[420px] py-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Self-Awareness is Not Easy</h3>
+                <div className="w-full max-w-lg flex justify-center flex-grow items-center">
+                  <img 
+                    src="/assets/ben-franklin-quote.png" 
+                    alt="Ben Franklin quote" 
+                    className="w-full h-auto rounded-lg shadow-sm max-h-[300px] object-contain"
+                    style={{ maxWidth: '115%' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Third Content Card - What Is NOT Self-Awareness */}
+        <div className="section-content-card-60 section-content-card-60--content relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-purple-600 bg-purple-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              📚 Content
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <div className="bg-red-50 border-l-4 border-red-400 p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold text-red-800 mb-4 flex items-center">
+                <span className="mr-2">❌</span>
+                What Is NOT Self-Awareness
+              </h3>
+              <p className="text-red-700 mb-4 text-sm italic">
+                According to researcher Tasha Eurich, many people mistake these behaviors for genuine self-awareness:
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Endless Introspection:</strong>
+                    <span className="text-red-700"> Overanalyzing feelings and asking "why" questions traps people in rumination without offering actionable insight.</span>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Self-Loathing or Self-Consciousness:</strong>
+                    <span className="text-red-700"> Being overly focused on flaws or anxious about self-image is not true self-awareness.</span>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Focusing Only on Internal Thoughts:</strong>
+                    <span className="text-red-700"> Genuine self-awareness balances internal knowledge with external awareness of how others see you.</span>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <strong className="text-red-800">Ignoring Feedback:</strong>
+                    <span className="text-red-700"> Not seeking or integrating how others perceive your actions means missing half of self-awareness.</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+                <p className="text-green-800 font-medium">
+                  <span className="mr-2">✅</span>
+                  <strong>True Self-Awareness:</strong> The will and skill to understand both who you are (internal) and how others see you (external), using this balanced insight to take actionable, positive steps forward.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--activities">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🧠 Activity</div>
+          </div>
+        </div>
+        <div className="section-content-card-60 section-content-card-60--activities relative">
+          <div
+            className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
+            style={{ marginLeft: '-8px' }}
+          >
+            <div
+              className="text-xs font-bold text-amber-600 bg-amber-50 px-0.5 py-1 rounded text-center"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}
+            >
+              🧠 Activity
+            </div>
+          </div>
+          <div className="section-content-card-60__strip" aria-hidden="true" />
+          <div className="section-content-card-60__box">
+            <JeopardySelfAwarenessGame />
+          </div>
+        </div>
+
 
         {isImaginalAgility ? (
           <>
@@ -354,64 +594,21 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
                 </div>
               </>
             ) : (
-              /* Original Adult Content */
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">PART I: INDIVIDUAL MICRO COURSE (SELF-GUIDED)</h2>
-                <p className="text-lg text-gray-700 mb-4">
-                  This self-paced experience is an opportunity for reflection and self-expression. Through several guided exercises and self-assessments, you will:
-                </p>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Discover your Star Strengths</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Identify your Flow State</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Visualize your Professional Growth</span>
-                  </li>
-                </ul>
-
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">Your Takeaways:</h3>
-                <ul className="space-y-2 mb-6">
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">A personalized Digital Star Card</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">A personalized AI Holistic Profile Report</span>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-sm">Readiness for High-Impact Teamwork Practice</span>
-                  </li>
-                </ul>
-
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">PART II: TEAMWORK PRACTICE (FACILITATED)</h2>
-                <p className="text-lg text-gray-700 mb-6">
-                  Join your teammates in a guided session where you'll bring your insights to life.
-                </p>
-                <p className="text-lg text-gray-700 mb-6">
-                  Together, you'll align your strengths, deepen collaboration, and practice in real time using a shared digital whiteboard.
-                </p>
-              </>
+              /* Content removed as requested */
+              <></>
             )}
           </>
         )}
 
-        <div className="flex justify-end">
-          <Button 
+        <div className="text-center">
+          <Button
             onClick={handleNext}
             disabled={!isStepComplete() && !allowTestingBypass}
             className={`${(isStepComplete() || allowTestingBypass)
-              ? (isImaginalAgility ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white')
+              ? (isImaginalAgility ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3')
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
-            size="lg"
+            data-continue-button="true"
           >
             {(isStepComplete() || allowTestingBypass) ? nextButton : "Watch video to continue (5% minimum)"}
           </Button>

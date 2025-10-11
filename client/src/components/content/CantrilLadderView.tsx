@@ -8,6 +8,75 @@ import { useTestUser } from '@/hooks/useTestUser';
 import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
+
+// Cantril Ladder reflection questions
+interface CantrilQuestion {
+  id: number;
+  key: keyof CantrilFormData;
+  title: string;
+  question: string;
+  description: string;
+  placeholder: string;
+  section: 'current' | 'future' | 'quarterly';
+}
+
+interface CantrilFormData {
+  currentFactors: string;
+  futureImprovements: string;
+  specificChanges: string;
+  quarterlyProgress: string;
+  quarterlyActions: string;
+}
+
+// Cantril Ladder Questions
+const cantrilQuestions: CantrilQuestion[] = [
+  {
+    id: 1,
+    key: 'currentFactors',
+    title: 'Current Well-being Factors',
+    question: 'What factors shape your current rating?',
+    description: 'What are the main elements contributing to your current well-being?',
+    placeholder: 'Consider your work, relationships, health, finances, and personal growth...',
+    section: 'current'
+  },
+  {
+    id: 2,
+    key: 'futureImprovements', 
+    title: 'Future Vision',
+    question: 'What improvements do you envision?',
+    description: 'What achievements or changes would make your life better in one year?',
+    placeholder: 'Describe specific improvements you hope to see in your life...',
+    section: 'future'
+  },
+  {
+    id: 3,
+    key: 'specificChanges',
+    title: 'Tangible Differences',
+    question: 'What will be different?',
+    description: 'How will your experience be noticeably different in tangible ways?',
+    placeholder: 'Describe concrete changes you\'ll experience...',
+    section: 'future'
+  },
+  {
+    id: 4,
+    key: 'quarterlyProgress',
+    title: 'Quarterly Milestones',
+    question: 'What progress would you expect in 3 months?',
+    description: 'Name one specific indicator that you\'re moving up the ladder.',
+    placeholder: 'Describe a measurable sign of progress...',
+    section: 'quarterly'
+  },
+  {
+    id: 5,
+    key: 'quarterlyActions',
+    title: 'Quarterly Commitments',
+    question: 'What actions will you commit to this quarter?',
+    description: 'Name 1-2 concrete steps you\'ll take before your first quarterly check-in.',
+    placeholder: 'Describe specific actions you\'ll take...',
+    section: 'quarterly'
+  }
+];
 
 // Props interface
 interface ContentViewProps {
@@ -21,17 +90,21 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
+  // Current question navigation
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  
   // READ-ONLY values loaded from visualization data (set in step 4-1)
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CantrilFormData>({
     currentFactors: '',
     futureImprovements: '',
     specificChanges: '',
     quarterlyProgress: '',
     quarterlyActions: ''
   });
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
+  const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
   
   // Workshop status for testing
   const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
@@ -121,6 +194,59 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     loadExistingData();
   }, []);
 
+  // Set up FloatingAI context for step 4-2 with current question context
+  useEffect(() => {
+    setFloatingAIStep('4-2');
+    
+    const currentQuestionData = cantrilQuestions[currentQuestion];
+    updateContext({
+      stepName: 'Cantril Ladder Reflection',
+      strengthLabel: undefined,
+      questionText: currentQuestionData?.question,
+      aiEnabled: true,
+      workshopContext: {
+        currentStep: '4-2',
+        stepName: 'Cantril Ladder Reflection - Well-being Analysis',
+        previousSteps: [
+          'Completed strengths assessment and discovered your Star Card',
+          'Explored individual strengths in detail through reflection',
+          'Learned about Flow states and completed Flow assessment',
+          'Set your current and future well-being levels on the Cantril Ladder'
+        ],
+        currentTask: `Reflecting on Cantril Ladder question ${currentQuestion + 1} of ${cantrilQuestions.length}`,
+        questionContext: {
+          questionNumber: currentQuestion + 1,
+          totalQuestions: cantrilQuestions.length,
+          currentQuestion: currentQuestionData?.question,
+          hint: currentQuestionData?.description,
+          allQuestions: cantrilQuestions.map(q => q.question),
+          currentSection: currentQuestionData?.section,
+          wellBeingLevels: {
+            current: wellBeingLevel,
+            future: futureWellBeingLevel
+          }
+        }
+      }
+    });
+  }, [currentQuestion, updateContext, setFloatingAIStep, wellBeingLevel, futureWellBeingLevel]);
+
+  // Navigation functions
+  const nextQuestion = () => {
+    if (currentQuestion < cantrilQuestions.length - 1) {
+      setCurrentQuestion(prev => prev + 1);
+    }
+  };
+
+  const prevQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1);
+    }
+  };
+
+  // Get current question data
+  const currentQuestionData = cantrilQuestions[currentQuestion];
+  const currentValue = formData[currentQuestionData.key];
+
   // Debounced save function for text inputs only (ladder values are READ-ONLY from step 4-1)
   const debouncedSave = useCallback(
     debounce(async (dataToSave) => {
@@ -137,7 +263,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
         
         const result = await response.json();
         if (result.success) {
-          console.log('Cantril Ladder reflections auto-saved successfully');
+          // console.log('Cantril Ladder reflections auto-saved successfully');
         }
       } catch (error) {
         console.error('Cantril Ladder auto-save failed:', error);
@@ -150,7 +276,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     // Don't auto-save if workshop is locked
     if (testWorkshopLocked) {
-      console.log('🔒 Workshop locked - skipping auto-save');
+      // console.log('🔒 Workshop locked - skipping auto-save');
       return;
     }
     
@@ -175,7 +301,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 
   // Function to populate with meaningful demo data
   const fillWithDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -388,7 +514,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
-          {isTestUser && (
+          {shouldShowDemoButtons && (
             <Button 
               variant="outline" 
               size="sm"

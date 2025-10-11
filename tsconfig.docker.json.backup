@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "strict": false,
-    "noImplicitAny": false,
-    "skipLibCheck": true
-  },
-  "exclude": ["vite.config.ts", "client/**/*", "**/*.js", "node_modules", "dist"]
-}

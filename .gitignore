@@ -3,6 +3,224 @@ dist
 .DS_Store
 server/public
 vite.config.ts.*
-*.tar.gzcreate-admin-backup.ts
+*.tar.gz
+create-admin-backup.ts
 dev_schema.sql
 .env
+.env.local
+.env.*.local
+
+# Test files and temporary development files
+test-*.ts
+test-*.mjs
+test-*.js
+**/test-*.json
+**/pg_search_test.json
+**/process_ast_simple.*
+
+# Claude Code development files
+.claude_code
+Claude\ Code\ Prompts/
+check-ast-videos.js
+clean-placeholder-content.js
+clean-placeholder-content.ts
+diagnose-ast-videos.ts
+execute-ast-video-*.js
+fix-ast-video-sync.ts
+organize-ast-videos.ts
+update-existing-ast-videos.js
+
+# Temporary development and cleanup files
+pages_cleanup_*/
+pages_cleanup_*.txt
+codex_auth0_migration_kit_*/
+/src/
+# client/src/styles/ # Commented out - we want to track client/src/
+
+# Version and build artifacts (these are managed by versioning system)
+public/version.json
+client/public/version.json
+
+# Performance tracking (build artifacts)
+docs/performance-tracking/bundle-size-history.json
+
+# Development logs and debugging
+*.log
+debug-*.ts
+debug-*.js
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+*.old
+*" 2".*
+*" 2"
+*" 3".*
+*" 3"
+*.copy
+*.copy-only
+*.dev-copy
+*.hybrid
+*.layered
+*.layered-fixed
+*.local-test
+*.quick-fix
+*.update
+*.update2
+*.working-base
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Package installers
+*.pkg
+*.dmg
+*.msi
+*.exe
+
+# ChromaDB data
+chromadb_data/
+.chroma/
+
+# Python cache (if any Python scripts are added)
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary development files and notes
+Commands.rtf
+auth-system-fixes.md
+beta-tester-test.md
+test-session-system.md
+tempClaudecomms/
+test-*.html
+keys/Unsplash.txt
+temp/
+
+# Temporary development and deployment files
+production-deployment-*.json
+production-public-endpoint.json
+*-starcard-data.json
+generate-*.js
+process-*.js
+*-base64.txt
+*-logo-*.png
+*-logo-*.jpg
+
+# Environment files (development should not be committed)
+server/.env.development
+server/.env.staging
+server/.env.production
+client/.env.development
+client/.env.staging
+client/.env.production
+
+# Staging deployment packages
+staging-deploy-*/
+staging-deploy-beta-*/
+
+# Database setup scripts (for local use only)
+setup-local-dev-database.sh
+
+# Test directories at root level
+/src/test/
+
+# Development variations and archive files
+*.minimal.tsx
+*.safe.tsx
+*-archive.tsx
+storage/star-cards/*.png
+storage/temp-report-images/*.png
+
+# Database backups - contain sensitive production data
+backups/
+cookies.txt
+test-*openai*.js
+
+# Temporary documentation and mockup files
+docs/*copy*
+docs/*bkp*
+# Generated star card images
+storage/star-cards/user-*-starcard-*.jpeg
+storage/star-cards/user-*-starcard-*.png
+\n+# Local CA certs for Docker build (never commit)
+certs/*.pem
+certs/*.crt
+
+# Claude Code artifacts
+.claude/
+build.tgz
+client/stats.html
+
+# Removed/archived files
+*.removed
+
+# Debug and troubleshooting scripts (project-specific)
+check-*.mjs
+check-*.sql
+cleanup-*.mjs
+clear-*.mjs
+debug-*.mjs
+debug-*.sh
+deploy-*-fix*.sh
+discover-*.sh
+export-*.mjs
+fix-*.mjs
+fix-*.js
+fix-*.sql
+fix-*-database*.sh
+get-*.mjs
+restore-*.sh
+restart-*.sh
+verify-*.mjs
+complete-*.sh
+commit-*.sh
+git-cleanup-*.sh
+merge-*.sh
+quick-*.sh
+run-migration-*.mjs
+*-starcard-*.sh
+*-user-*.mjs
+*-user-*.sql
+*-user-*.js
+user-*-raw-*.json
+
+# Temporary documentation and status files
+*-DEBUG-*.md
+*-TIMEOUT-*.md
+*-DEPLOYMENT-*.md
+*-ASSESSMENT-*.md
+*-SCALE-*.md
+*-INTEGRATION-*.md
+*-IMPLEMENTATION-*.md
+RML-*.md
+WOO-*.md
+STAGING-*.md
+REPORT-*.md
+phase*_developer_ai_prompt_*.md
+
+# Archive directories
+archive-*/
+
+# Temporary data files
+all_files.json
+test-output/
+
+# Migration duplicates (migrations should be in server/db/migrations/)
+migrations/
+
+# Server code variations and fixes
+server/services/*-fixed*.ts
+server/services/*-FIXED*.ts
+server/services/*-processor-fixed*.ts
+
+# Search and cleanup prompts
+find_and_remove_*.md

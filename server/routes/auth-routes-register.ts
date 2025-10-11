@@ -1,5 +1,6 @@
 import express from 'express';
 import { userManagementService } from '../services/user-management-service.js';
+import { createAuth0DbUser } from '../src/auth0/management.js';
 import { inviteService } from '../services/invite-service.js';
 import { z } from 'zod';
 import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code.js';
@@ -56,7 +57,8 @@ router.post('/validate-invite', async (req, res) => {
       invite: {
         email: result.invite?.email,
         role: result.invite?.role,
-        name: result.invite?.name
+        name: result.invite?.name,
+        isBetaTester: result.invite?.isBetaTester || result.invite?.is_beta_tester || false
       }
     });
   } catch (error) {
@@ -86,6 +88,11 @@ router.post('/register', async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);
     
+    // Prevent creating a duplicate user
+    const existingUser = await userManagementService.getUserByEmail(data.email);
+    if (existingUser.success) {
+      return res.status(400).json({ success: false, error: 'A user with this email already exists' });
+    }
     // Normalize the invite code
     const normalizedCode = normalizeInviteCode(data.inviteCode);
     
@@ -109,7 +116,7 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Create the user with invite creator tracking
+    // Create the user with invite creator tracking and beta tester status
     const createResult = await userManagementService.createUser({
       username: data.username,
       password: data.password,
@@ -119,13 +126,27 @@ router.post('/register', async (req, res) => {
       organization: data.organization,
       jobTitle: data.jobTitle,
       profilePicture: data.profilePicture,
-      invitedBy: inviteResult.invite.createdBy
+      invitedBy: inviteResult.invite.createdBy,
+      isBetaTester: inviteResult.invite.isBetaTester || inviteResult.invite.is_beta_tester || false
     });
     
     if (!createResult.success) {
       return res.status(400).json(createResult);
     }
     
+    // Provision Auth0 user if Management API is configured
+    try {
+      if (process.env.AUTH0_TENANT_DOMAIN || process.env.TENANT_DOMAIN) {
+        const created = await createAuth0DbUser({ email: data.email, password: data.password, name: data.name });
+        if (created?.user_id && createResult.user?.id) {
+          await userManagementService.updateUser(createResult.user.id, { auth0Sub: created.user_id });
+        }
+      }
+    } catch (auth0Err) {
+      console.warn('⚠️ Auth0 provisioning failed (continuing with app user):', auth0Err instanceof Error ? auth0Err.message : String(auth0Err));
+      // Continue; app user is already created. Optionally attach error details to response.
+    }
+
     // Mark the invite as used
     await inviteService.markInviteAsUsed(normalizedCode, createResult.user?.id as number);
     

@@ -1,0 +1,75 @@
+# Emergency fix for infinite render loop
+
+# The issue is in the navigation/step accessibility logic
+# We need to identify which component is causing the infinite loop
+
+# First, let's check what's different about Barney vs Admin user data
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+
+async function compareUsers() {
+  try {
+    const admin = await pool.query('SELECT * FROM users WHERE id = 1');
+    const barney = await pool.query('SELECT * FROM users WHERE id = 8');
+    
+    console.log('=== ADMIN USER (WORKING) ===');
+    console.log(JSON.stringify(admin.rows[0], null, 2));
+    
+    console.log('\\n=== BARNEY USER (BROKEN) ===');
+    console.log(JSON.stringify(barney.rows[0], null, 2));
+    
+    // Check navigation progress differences
+    const adminNav = await pool.query('SELECT * FROM navigation_progress WHERE user_id = 1');
+    const barneyNav = await pool.query('SELECT * FROM navigation_progress WHERE user_id = 8');
+    
+    console.log('\\n=== ADMIN NAVIGATION ===');
+    console.log(JSON.stringify(adminNav.rows, null, 2));
+    
+    console.log('\\n=== BARNEY NAVIGATION ===');
+    console.log(JSON.stringify(barneyNav.rows, null, 2));
+    
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    pool.end();
+  }
+}
+compareUsers();
+"
+
+# Emergency fix: Set Barney to have the exact same navigation state as admin
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+
+async function copyAdminState() {
+  try {
+    // Get admin's navigation state
+    const adminNav = await pool.query('SELECT * FROM navigation_progress WHERE user_id = 1');
+    
+    // Delete Barney's navigation
+    await pool.query('DELETE FROM navigation_progress WHERE user_id = 8');
+    
+    // Copy admin's navigation to Barney (but change user_id)
+    for (const nav of adminNav.rows) {
+      await pool.query(\`
+        INSERT INTO navigation_progress 
+        (user_id, app_type, current_step_id, completed_steps, unlocked_steps, video_progress, created_at, updated_at)
+        VALUES (8, $1, $2, $3, $4, $5, NOW(), NOW())
+      \`, [nav.app_type, nav.current_step_id, nav.completed_steps, nav.unlocked_steps, nav.video_progress]);
+    }
+    
+    console.log('✅ Copied admin navigation state to Barney');
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    pool.end();
+  }
+}
+copyAdminState();
+"

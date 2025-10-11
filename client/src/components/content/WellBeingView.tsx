@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
+import WellBeingReflections from './WellBeingReflections';
 import WellBeingLadderSvg from "../visualization/WellBeingLadderSvg";
 import VideoPlayer from "./VideoPlayer";
 
@@ -25,9 +26,10 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // Workshop status
-  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
-  const testWorkshopLocked = isWorkshopLocked();
+  // Workshop status - use step-specific locking for step 3-1
+  const stepId = "3-1";
+  const { astCompleted: workshopCompleted, loading: workshopLoading, isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ast', stepId);
 
   // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
@@ -67,8 +69,8 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     if (!isInitialized) return;
     
-    // Prevent auto-save when workshop is completed
-    if (completed) return;
+    // Prevent auto-save when step is locked
+    if (isStepLocked) return;
 
     const wellbeingData = {
       wellBeingLevel,
@@ -91,10 +93,10 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             futureWellBeingLevel,
           }),
         });
-        console.log("Auto-saved wellbeing data:", {
-          wellBeingLevel,
-          futureWellBeingLevel,
-        });
+        // console.log("Auto-saved wellbeing data:", {
+        //   wellBeingLevel,
+        //   futureWellBeingLevel,
+        // });
         queryClient.invalidateQueries({ queryKey: ["/api/visualization"] });
       } catch (error) {
         console.error("Error auto-saving well-being data:", error);
@@ -102,151 +104,25 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [wellBeingLevel, futureWellBeingLevel, isInitialized, completed]);
+  }, [wellBeingLevel, futureWellBeingLevel, isInitialized, isStepLocked]);
 
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const playerRef = useRef<any>(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
-  // YouTube API integration
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    // Load YouTube API
-    const loadYouTubeAPI = () => {
-      if (window.YT && window.YT.Player) {
-        initializePlayer();
-        return;
-      }
-
-      if (!document.querySelector('script[src*="youtube"]')) {
-        const script = document.createElement("script");
-        script.src = "https://www.youtube.com/iframe_api";
-        script.async = true;
-        document.body.appendChild(script);
-      }
-
-      window.onYouTubeIframeAPIReady = initializePlayer;
-    };
-
-    const initializePlayer = () => {
-      const playerElement = document.getElementById("youtube-player-wellbeing");
-      if (playerRef.current || !playerElement) return;
-
-      try {
-        playerRef.current = new window.YT.Player("youtube-player-wellbeing", {
-          height: "100%",
-          width: "100%",
-          videoId: "SjEfwPEl65U",
-          playerVars: {
-            autoplay: 1,
-            controls: 1,
-            modestbranding: 1,
-            rel: 0,
-            showinfo: 0,
-            iv_load_policy: 3,
-          },
-          events: {
-            onReady: (event: any) => {
-              console.log("YouTube player ready");
-              setIsPlayerReady(true);
-              event.target.playVideo();
-            },
-            onStateChange: (event: any) => {
-              if (event.data === window.YT.PlayerState.PLAYING) {
-                startProgressTracking();
-              }
-            },
-          },
-        });
-      } catch (error) {
-        console.error("Error initializing YouTube player:", error);
-      }
-    };
-
-    const startProgressTracking = () => {
-      const checkProgress = () => {
-        if (
-          playerRef.current &&
-          playerRef.current.getCurrentTime &&
-          playerRef.current.getDuration
-        ) {
-          try {
-            const currentTime = playerRef.current.getCurrentTime();
-            const duration = playerRef.current.getDuration();
-
-            if (duration > 0) {
-              const watchPercent = (currentTime / duration) * 100;
-
-              if (watchPercent >= 0.5 && !hasReachedMinimum) {
-                setHasReachedMinimum(true);
-              }
-            }
-          } catch (error) {
-            console.log("Error checking video progress:", error);
-          }
-        }
-      };
-
-      intervalId = setInterval(checkProgress, 1000);
-    };
-
-    loadYouTubeAPI();
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-      // Don't destroy the player on component re-render, only on unmount
-    };
-  }, []); // Empty dependency array to run only once
-
-  const handleSave = async () => {
-    setSaving(true);
-
-    try {
-      await fetch("/api/visualization", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          wellBeingLevel,
-          futureWellBeingLevel,
-        }),
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["/api/visualization"] });
-      markStepCompleted("4-1");
-
-      // Navigate to well-being reflections (cantril-ladder content)
-      console.log("Navigating to cantril-ladder content view");
-      setCurrentContent("cantril-ladder");
-    } catch (error) {
-      console.error("Error saving well-being data:", error);
-      // Navigate anyway even if save fails
-      console.log("Navigating to cantril-ladder despite save error");
-      markStepCompleted("4-1");
-      setCurrentContent("cantril-ladder");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
     <>
 
 
-      {/* Workshop Completion Banner */}
-      {completed && (
+      {/* Step Completion Banner */}
+      {isStepLocked && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
             <ChevronRight className="text-green-600" size={20} />
             <div className="flex-1">
               <h3 className="font-medium text-green-800">
-                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
+                Step 3-1 complete. Your responses are locked, but you can watch videos and review your answers.
               </h3>
             </div>
             <div className="text-green-600">
@@ -265,7 +141,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         <div className="mb-8 max-w-4xl mx-auto">
           <VideoPlayer
             workshopType="allstarteams"
-            stepId="4-1"
+            stepId="3-1"
             fallbackUrl="https://youtu.be/SjEfwPEl65U"
             title="The Cantril Ladder of Well-Being"
             aspectRatio="16:9"
@@ -303,7 +179,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <h3 className="text-md font-medium text-blue-800 mb-2 flex items-center gap-2">
                   Where are you now?
-                  {completed && <span className="text-blue-600">🔒</span>}
+                  {isStepLocked && <span className="text-blue-600">🔒</span>}
                 </h3>
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
@@ -319,9 +195,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={completed ? undefined : (values) => setWellBeingLevel(values[0])}
-                      className={`py-2 ${completed ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      disabled={completed}
+                      onValueChange={isStepLocked ? undefined : (values) => setWellBeingLevel(values[0])}
+                      className={`py-2 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      disabled={isStepLocked}
                     />
                     <div className="text-center mt-1">
                       <span className="font-medium text-lg text-blue-700">
@@ -335,7 +211,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                 <h3 className="text-md font-medium text-green-800 mb-2 flex items-center gap-2">
                   Where do you want to be?
-                  {completed && <span className="text-green-600">🔒</span>}
+                  {isStepLocked && <span className="text-green-600">🔒</span>}
                 </h3>
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
@@ -351,11 +227,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={completed ? undefined : (values) =>
+                      onValueChange={isStepLocked ? undefined : (values) =>
                         setFutureWellBeingLevel(values[0])
                       }
-                      className={`py-2 ${completed ? 'opacity-60 cursor-not-allowed' : ''}`}
-                      disabled={completed}
+                      className={`py-2 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      disabled={isStepLocked}
                     />
                     <div className="text-center mt-1">
                       <span className="font-medium text-lg text-green-700">
@@ -409,20 +285,53 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={saving || completed}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          {completed 
-            ? "Continue to Well-being Reflections"
-            : saving 
-              ? "Saving..." 
-              : "Next: Well-being Reflections"
-          } <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      {/* Reflections Header */}
+      {!isStepLocked && (
+        <div className="section-headers-tabs-60 mb-4">
+          <div className="section-headers-pill-60 section-headers-pill-60--reflection">
+            <div className="section-headers-pill-60__strip" aria-hidden="true" />
+            <div className="section-headers-pill-60__box">🤔 Reflections</div>
+          </div>
+        </div>
+      )}
+
+      {/* Progressive Well-being Reflections */}
+      {!isStepLocked && (
+        <WellBeingReflections
+          onComplete={() => {
+            // Navigate to future self step
+            markStepCompleted('3-1');
+            setCurrentContent('future-self');
+          }}
+          setCurrentContent={setCurrentContent}
+          markStepCompleted={markStepCompleted}
+        />
+      )}
+
+      {/* Show completed message if step is locked */}
+      {isStepLocked && (
+        <div className="text-center py-12">
+          <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+            <ChevronRight className="mx-auto h-12 w-12 text-green-500 mb-4" />
+            <h3 className="text-lg font-semibold text-green-800 mb-2">
+              Well-being Reflections Complete
+            </h3>
+            <p className="text-green-700">
+              Your well-being reflections have been completed and saved. 
+              You can review your responses in your holistic report.
+            </p>
+            <div className="text-center mt-6">
+              <Button
+                onClick={() => setCurrentContent('future-self')}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+                data-continue-button="true"
+              >
+                Continue to Future Self <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

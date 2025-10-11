@@ -12,29 +12,93 @@ import { Link } from 'wouter';
 import ProfileModal from "../profile/ProfileModal";
 import ProfileEditor from "../profile/ProfileEditor";
 import { useToast } from "@/hooks/use-toast";
+import { useLogout } from '@/hooks/use-logout';
 import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import LogoutButton from "../auth/LogoutButton";
 import TestUserBanner from "../auth/TestUserBanner";
+import { FeedbackTrigger } from "../feedback/FeedbackTrigger";
+import { detectCurrentPage } from "../../utils/pageContext";
+import { useStepContextSafe } from "../../contexts/StepContext";
+import BetaTesterWelcomeModal from "@/components/modals/BetaTesterWelcomeModal";
 
-// Environment badge helper - improved detection
-const getEnvironmentBadge = () => {
-  // Check multiple sources for environment detection
+// Environment badge helper - displays dynamic version from build process
+const EnvironmentBadge = () => {
+  const [versionInfo, setVersionInfo] = useState({
+    version: import.meta.env.VITE_APP_VERSION || 'N/A',
+    build: import.meta.env.VITE_BUILD_NUMBER || '',
+    environment: import.meta.env.VITE_ENVIRONMENT || 'development'
+  });
+
+  // Debug environment variables
+  useEffect(() => {
+    console.log('Environment Variables Debug:', {
+      VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION,
+      VITE_BUILD_NUMBER: import.meta.env.VITE_BUILD_NUMBER,
+      VITE_ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT,
+      MODE: import.meta.env.MODE,
+      DEV: import.meta.env.DEV
+    });
+  }, []);
+
+  // Fetch version info from public/version.json as fallback
+  useEffect(() => {
+    const fetchVersionInfo = async () => {
+      try {
+        const response = await fetch('/version.json');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Version.json data:', data);
+          setVersionInfo({
+            version: data.version || 'N/A',
+            build: data.build || '',
+            environment: data.environment || versionInfo.environment
+          });
+        }
+      } catch (error) {
+        console.warn('Could not fetch version.json, using environment variables');
+        console.error('Fetch error:', error);
+      }
+    };
+
+    // Always try to fetch version.json for the most up-to-date version
+    fetchVersionInfo();
+  }, []);
+
+  // Check environment detection
   const viteMode = import.meta.env.MODE;
-  const nodeEnv = import.meta.env.VITE_NODE_ENV;
   const isDev = import.meta.env.DEV;
-  const isProd = import.meta.env.PROD;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.port === '8080';
+  const isStaging = viteMode === 'staging' || (versionInfo.environment === 'staging' && !isLocalhost);
+  const isProduction = versionInfo.environment === 'production';
   
-  // Development detection
-  if (isDev || viteMode === 'development' || window.location.hostname === 'localhost' || window.location.port === '8080') {
-    return <Badge variant="destructive" className="ml-2">DEV</Badge>;
+  // Development detection (but not if version.json says staging or production)
+  if ((isDev || viteMode === 'development' || isLocalhost) && versionInfo.environment !== 'staging' && versionInfo.environment !== 'production') {
+    const displayVersion = versionInfo.version === 'N/A' 
+      ? 'DEV version N/A' 
+      : `DEV v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}`;
+    
+    return (
+      <Badge variant="destructive" className="ml-2 text-xs">
+        {displayVersion}
+      </Badge>
+    );
   }
   
   // Staging detection
-  if (viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com')) {
-    return <Badge variant="secondary" className="ml-2">STAGING</Badge>;
+  if (isStaging) {
+    return (
+      <Badge variant="secondary" className="ml-2 text-xs">
+        STAGING v{versionInfo.version}.{versionInfo.build}
+      </Badge>
+    );
   }
   
+  // Production: No badge shown (version displayed in admin/test dashboards only)
+  if (isProduction) {
+    return null;
+  }
+  
+  // Default: no badge
   return null;
 };
 import {
@@ -52,7 +116,9 @@ export function NavBar() {
   const [, navigate] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isTestInfoOpen, setIsTestInfoOpen] = useState(false);
+  const [isBetaTesterModalOpen, setIsBetaTesterModalOpen] = useState(false);
   const { toast } = useToast();
+  const { currentStepId } = useStepContextSafe();
 
   // Fetch the current user's profile
   const { data, isLoading: isUserLoading, refetch } = useQuery<{
@@ -67,12 +133,14 @@ export function NavBar() {
       jobTitle?: string;
       role?: string;
       isTestUser: boolean;
+      isBetaTester?: boolean;
       profilePicture?: string;
+      profilePictureUrl?: string;
     }
   }>({ 
     queryKey: ['/api/auth/me'],
     queryFn: async () => {
-      console.log('NavBar: Fetching user profile...');
+      // console.log('NavBar: Fetching user profile...');
 
       const response = await fetch('/api/auth/me', {
         method: 'GET',
@@ -102,12 +170,13 @@ export function NavBar() {
   });
 
   // Extract user data from the response
-  const user = data?.user;
+  const user = data?.user || data; // Handle both wrapped and direct user data
   const isTestUser = user?.isTestUser || false;
 
   useEffect(() => {
     // Log user data for debugging
     console.log("NavBar - API response:", data);
+    console.log("NavBar - User extracted:", user);
     console.log("NavBar - User extracted:", user);
     if (user) {
       console.log("User data in NavBar:", user);
@@ -183,46 +252,9 @@ export function NavBar() {
     window.location.href = '/workshop-reset-test';
   };
 
-  // Logout function for ProfileEditor
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Clear React Query cache
-        queryClient.clear();
-
-        // Show success toast
-        toast({
-          title: 'Logged out successfully',
-          description: 'You have been logged out of your account.',
-          variant: 'default',
-        });
-
-        // Navigate to home page
-        navigate('/');
-
-        // Force page reload to clear all state
-        window.location.reload();
-      } else {
-        throw new Error(data.error || 'Logout failed');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: 'Logout failed',
-        description: 'There was a problem logging out. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
+  const appLogout = useLogout();
+  // App logout to clear session and cache
+  const handleLogout = () => appLogout.mutate();
 
   // Function to toggle between applications
   const toggleApplication = () => {
@@ -252,7 +284,7 @@ export function NavBar() {
                 className="h-8 w-auto" 
               />
             </a>
-            {getEnvironmentBadge()}
+            <EnvironmentBadge />
 
 
           </div>
@@ -265,6 +297,15 @@ export function NavBar() {
           {/* User Controls Menu for authenticated users */}
           {user?.id ? (
             <div className="flex items-center gap-2">
+              {/* Blue feedback button - only for test users (not beta testers) */}
+              {user?.isTestUser && !user?.isBetaTester && (
+                <FeedbackTrigger
+                  currentPage={detectCurrentPage(currentStepId || undefined)}
+                  variant="button"
+                  className="text-xs"
+                />
+              )}
+
               {/* Admin/Facilitator button - shown for admin and facilitator users */}
               {(user?.role === 'admin' || user?.role === 'facilitator') && (
                 <Button 
@@ -286,6 +327,18 @@ export function NavBar() {
                   disabled
                 >
                   Test User
+                </Button>
+              )}
+
+              {/* Beta Tester badge - shown for beta testers */}
+              {user?.isBetaTester && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-md text-white hover:bg-yellow-400 cursor-pointer"
+                  onClick={() => setIsBetaTesterModalOpen(true)}
+                >
+                  Beta Tester
                 </Button>
               )}
 
@@ -311,6 +364,22 @@ export function NavBar() {
             onClose={() => setIsProfileModalOpen(false)}
           />
         )}
+
+        {/* Beta Tester Welcome Modal */}
+        <BetaTesterWelcomeModal
+          isOpen={isBetaTesterModalOpen}
+          onClose={() => setIsBetaTesterModalOpen(false)}
+          onDontShowAgain={() => {
+            // This won't change the persistent setting, just closes the modal
+            // The persistent setting is handled by the useBetaWelcome hook
+            setIsBetaTesterModalOpen(false);
+          }}
+          onStartWorkshop={() => {
+            setIsBetaTesterModalOpen(false);
+            navigate('/allstarteams');
+          }}
+          user={user}
+        />
       </div>
     </div>
   );

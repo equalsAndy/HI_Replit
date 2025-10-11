@@ -1,0 +1,19 @@
+AllStarTeams_Talia (Report Generation)
+Project ID: proj_8orRfMnH1xclTnoUKhb6FdZQ
+Vector Store: AllStarTeams_Report_Corpus (vs_688e55e74e68819190cca71d1fa54f52)
+Assistant ID: asst_DtWCcpzPg7Zu1Z4NnkYLUbSI (NEW - provided by user)
+
+Ultra Talia Report Writer
+Project ID: proj_xXZPw7W0m20GkpOhEt39XFZF
+Vector Store: V_Ultra_Report_Sandbox (vs_689c0216a784819180bd2d242c868588)
+
+Reflection Assistant Talia
+Project ID: proj_VAJqPpDcn5FvMfEBFR2R3kP2
+Vector Store: AST Reflections (vs_689bf4308ccc819181e5168906b51fee)
+
+Heliotrope – IA Chatbot MVP
+Project ID: proj_Mb9FcwzNjoFpAdpdUVfgOPsX
+Vector Store: Vector store for IA Workshop Guide (vs_689d33217cb08191875a2a9dfbd06760)
+
+SelfActual OpenAI API Key (New):
+your-imaginal-agility-api-key-here

@@ -2,21 +2,12 @@ import React, { useState, useRef, useMemo, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { QuadrantData } from '@shared/schema';
-import { downloadElementAsImage } from '@/lib/html2canvas';
+import { QuadrantData, ProfileData } from '@shared/schema';
 import { UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
 import cloudImage from '@/assets/starcardcloudimage.png';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS, DEFAULT_COLOR } from '@/components/starcard/starCardConstants';
-
-// Profile data interface
-interface ProfileData {
-  name: string;
-  title: string;
-  organization: string;
-  avatarUrl?: string;
-}
 
 
 
@@ -95,53 +86,81 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
   // Add state for fetched assessment data
   const [fetchedAssessmentData, setFetchedAssessmentData] = useState<QuadrantData | null>(null);
 
-  // TEMPORARILY DISABLE ALL FETCHING TO STOP INFINITE LOOP
+  // Data fetching - only fetch if props don't provide complete data
   React.useEffect(() => {
-    // DISABLED - return early to prevent all data fetching
-    return;
+    // Skip fetching if we have complete profile data from props
+    if (profile && profile.name && profile.name !== 'Your Name') {
+      console.log('✅ StarCard: Using profile data from props, skipping fetch');
+      return;
+    }
     
-    // ALL FETCHING CODE DISABLED BELOW
-    /*
+    console.log('🔄 StarCard: Profile data incomplete, starting fetch:', profile);
+    
     let isMounted = true;
     
     const fetchData = async () => {
-      // ... all the original fetch code ...
+      try {
+        console.log('🔄 StarCard: Fetching user profile and assessment data...');
+        
+        // Fetch user profile
+        const userResponse = await fetch('/api/auth/me', {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          const user = userData.user || userData;
+          if (isMounted) {
+            setUserProfileData(user);
+            console.log('✅ StarCard: User profile fetched:', user);
+          }
+        }
+      } catch (error) {
+        console.error('❌ StarCard: Error fetching data:', error);
+      }
     };
 
-    // Only run if we don't have the necessary data
-    const shouldFetch = !userProfileData || 
-                       (!fetchedAssessmentData && (!quadrantData || (quadrantData.thinking === 0 && quadrantData.acting === 0 && quadrantData.feeling === 0 && quadrantData.planning === 0))) ||
-                       ((!flowAttributes || flowAttributes.length === 0) && fetchedFlowAttributes.length === 0);
+    // Only fetch if we don't have complete profile data
+    const shouldFetch = !userProfileData && (!profile || !profile.name || profile.name === 'Your Name');
 
     if (shouldFetch) {
-      console.log('StarCard: Starting data fetch, current profile:', profile, 'userName:', userName);
+      console.log('🔄 StarCard: Starting data fetch, current profile:', profile);
       fetchData();
     }
 
     return () => {
       isMounted = false;
     };
-    */
   }, []); // Empty dependency array to run only once
 
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {
-    // Use userProfileData if available, then fallback to props
-    if (userProfileData) {
-      return {
-        name: userProfileData.name || 'Your Name',
-        title: userProfileData.title || userProfileData.jobTitle || '',
-        organization: userProfileData.organization || '',
-        avatarUrl: userProfileData.profilePicture || undefined
-      };
-    }
-
-    return profile || {
+    // Since fetching is disabled, always use props first
+    const profileFromProps = profile || {
       name: userName || 'Your Name',
       title: userTitle || '',
       organization: userOrg || '',
       avatarUrl: undefined
     };
+    
+    console.log('🎯 StarCard Profile from props:', profileFromProps);
+    console.log('🎯 StarCard Props received:', { profile, userName, userTitle, userOrg });
+    
+    // Fallback to userProfileData only if props don't have data (should not happen since fetching is disabled)
+    if (userProfileData && (!profileFromProps.name || profileFromProps.name === 'Your Name')) {
+      const profileFromFetch = {
+        name: userProfileData.name || 'Your Name',
+        title: userProfileData.title || userProfileData.jobTitle || '',
+        organization: userProfileData.organization || '',
+        avatarUrl: userProfileData.profilePictureUrl || userProfileData.profilePicture || undefined,
+        profilePictureUrl: userProfileData.profilePictureUrl || undefined
+      };
+      console.log('🎯 StarCard Profile from userProfileData fallback:', profileFromFetch);
+      return profileFromFetch;
+    }
+    
+    return profileFromProps;
   }, [profile, userName, userTitle, userOrg, userProfileData]);
 
   const derivedQuadrantData: QuadrantData = useMemo(() => {
@@ -292,6 +311,8 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
     if (!cardRef.current) return;
     setDownloading(true);
     try {
+      // Ensure consistent dynamic import of html2canvas
+      const { downloadElementAsImage } = await import('@/lib/html2canvas');
       await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
     } catch (error) {
       console.error("Error downloading star card:", error);
@@ -333,65 +354,85 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
 
   return (
     <div className="flex flex-col items-center">
-      <div 
+      <div
         ref={combinedRef}
-        className="bg-white border border-gray-200 rounded-lg p-5 flex-shrink-0"
-        style={{ 
-          width: CARD_WIDTH, 
-          height: CARD_HEIGHT, 
+        data-starcard="true"
+        className="relative bg-white border border-gray-200 rounded-lg p-5 flex-shrink-0"
+        style={{
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
           minWidth: CARD_WIDTH,
-          maxWidth: CARD_WIDTH 
+          maxWidth: CARD_WIDTH
         }}
       >
-        <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
+        <h2 className="mt-0 text-xl font-bold text-center uppercase mb-4">Star Card</h2>
 
-        {/* User Profile */}
+        {/* User Profile - Text only, image moved to top level */}
         <div className="flex items-center mb-6">
-          <div className="rounded-full h-[70px] w-[70px] overflow-hidden mr-5 border border-gray-300">
-            {imageUrl || derivedProfile.avatarUrl ? (
-              <img 
-                src={imageUrl || derivedProfile.avatarUrl} 
-                alt={derivedProfile.name} 
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                <UserIcon className="h-8 w-8 text-gray-400" />
-              </div>
-            )}
+          <div className="w-[70px] mr-5">
+            {/* Spacer for where profile image was */}
           </div>
-          <div>
-            <p className="font-medium text-gray-800">{derivedProfile.name || 'Your Name'}</p>
+          <div className="flex flex-col space-y-0">
+            <div className="font-bold text-lg text-gray-800">{derivedProfile.name || 'Your Name'}</div>
             {derivedProfile.title && (
-              <p className="text-sm text-gray-600">{derivedProfile.title}</p>
+              <div className="text-base text-gray-600">{derivedProfile.title}</div>
             )}
             {derivedProfile.organization && (
-              <p className="text-sm text-gray-600">{derivedProfile.organization}</p>
+              <div className="text-base text-gray-600">{derivedProfile.organization}</div>
             )}
           </div>
         </div>
 
+        {/* Profile Picture - Positioned at top level with high z-index */}
+        <div className="absolute rounded-full h-[70px] w-[70px] overflow-hidden border border-gray-300"
+             style={{ top: '65px', left: '20px', zIndex: 40 }}>
+          {(imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl) && (
+          <img
+            src={imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl}
+            alt={derivedProfile.name}
+            className="h-full w-full object-cover"
+            style={{ marginTop: '0px' }}
+          onError={(e) => {
+          console.log('🖼️ Profile image failed to load:', imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl);
+          const target = e.currentTarget;
+          const parent = target.parentElement;
+            target.style.display = 'none';
+              const fallback = parent?.querySelector('.fallback-avatar');
+                if (fallback) {
+                fallback.classList.remove('hidden');
+              }
+            }}
+            onLoad={() => {
+              console.log('🖼️ Profile image loaded successfully:', imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl);
+            }}
+          />
+        )}
+          <div className={`h-full w-full bg-gray-200 flex items-center justify-center fallback-avatar ${(imageUrl || derivedProfile.profilePictureUrl || derivedProfile.avatarUrl) ? 'hidden' : ''}`}>
+            <UserIcon className="h-8 w-8 text-gray-400" />
+          </div>
+        </div>
+
         {/* Cloud graphic with Apex Strength - Using the provided cloud image */}
-        <div className="relative text-center mb-2" style={{ marginTop: '-20px' }}>
+        <div className="relative text-center mb-2" style={{ marginTop: '-34px' }}>
           {/* Cloud Image - cropped 1px from each side */}
           <div className="relative w-full" style={{ height: '110px' }}>
-            <img 
-              src={cloudImage} 
-              alt="Cloud" 
-              className="w-[98%] object-contain absolute top-0 left-[1%]"
-              style={{ height: '88px' }}
+            <img
+              src={cloudImage}
+              alt="Cloud"
+              className="w-[98%] object-contain absolute left-[1%]"
+              style={{ height: '88px', zIndex: 1, top: '20px' }}
             />
 
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
-            <div className="absolute w-full" style={{ top: '50px' }}>
-              <p className="text-[1.125rem] font-bold text-gray-500">Imagination</p>
-              <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
+            <div className="absolute w-full" style={{ top: '32px', zIndex: 2 }}>
+              <p className="text-[1.125rem] font-bold text-gray-500" style={{ marginTop: '15px' }}>Imagination</p>
+              <p className="text-[0.785rem] text-gray-500 italic" style={{ marginTop: '1px' }}>Your Apex Strength</p>
             </div>
           </div>
         </div>
 
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
-        <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-25px' }}>
+        <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-19px' }}>
           {/* Flow Label */}
           <div className="absolute text-[0.65rem] font-medium" style={{ top: '-6px', right: '9px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
@@ -530,11 +571,17 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
         </div>
 
         {/* Logo - AllStarTeams logo */}
-        <div className="flex justify-end mt-[-3px] pr-4">
+        <div className="flex justify-end mt-[-21px] pr-4">
           <img 
             src={allStarTeamsLogo} 
             alt="allstarteams" 
-            className="h-[28.6px]" 
+            className="h-[28.6px]"
+            onError={(e) => {
+              console.log('❌ AllStarTeams logo failed to load:', allStarTeamsLogo);
+            }}
+            onLoad={() => {
+              console.log('✅ AllStarTeams logo loaded successfully');
+            }}
           />
         </div>
       </div>

@@ -1,0 +1,23 @@
+# Fix Database Connection Issue
+# Date: 2025-07-26
+
+# PROBLEM: Database hostname not resolving
+# ERROR: getaddrinfo ENOTFOUND ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com
+
+# Check current environment file
+cat server/.env.development
+
+# If environment file doesn't exist or has wrong DATABASE_URL, create/update it:
+echo 'NODE_ENV=development' > server/.env.development
+echo 'DATABASE_URL=postgresql://username:password@correct-hostname:5432/database' >> server/.env.development
+echo 'SESSION_SECRET=dev-secret-key-2025' >> server/.env.development
+
+# Test database connectivity directly
+ping ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com
+
+# Alternative: Use local PostgreSQL for development
+# If you have local postgres running:
+echo 'DATABASE_URL=postgresql://postgres:password@localhost:5432/heliotrope_dev' > server/.env.development
+
+# Check if AWS Lightsail database is accessible from your network
+# May need VPN or different database for local development

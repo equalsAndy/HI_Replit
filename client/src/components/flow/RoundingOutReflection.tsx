@@ -39,7 +39,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showExample, setShowExample] = useState(false);
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Get current question
   const question = roundingOutQuestions[currentQuestion];
@@ -51,7 +51,17 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
       setCurrentQuestion(prev => prev + 1);
       setShowExample(false);
     } else {
-      // All questions answered
+      // All questions answered - add auto-scroll to continue button
+      setTimeout(() => {
+        const continueButton = document.querySelector('[data-continue-button="true"]');
+        if (continueButton) {
+          continueButton.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 1000); // Delay to ensure DOM updates
+      
       if (onComplete) {
         onComplete();
       }
@@ -81,7 +91,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
 
   // Function to populate with meaningful demo data
   const fillWithDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -164,17 +174,17 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
           className="min-h-[120px] mb-4 border border-gray-300"
         />
         
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={prevQuestion}
-            disabled={currentQuestion === 0}
-          >
-            Previous
-          </Button>
-          
+        <div className="flex justify-center">
           <div className="flex items-center gap-3">
-            {isTestUser && (
+            {currentQuestion > 0 && (
+              <Button
+                variant="outline"
+                onClick={prevQuestion}
+              >
+                Previous
+              </Button>
+            )}
+            {shouldShowDemoButtons && (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -187,8 +197,9 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
             )}
             <Button
               onClick={nextQuestion}
-              className="bg-indigo-700 hover:bg-indigo-800 ml-2"
+              className="bg-green-600 hover:bg-green-700"
               disabled={currentAnswer.trim().length === 0}
+              data-continue-button={currentQuestion === roundingOutQuestions.length - 1 ? "true" : undefined}
             >
               {currentQuestion === roundingOutQuestions.length - 1 ? "Finish" : "Next"}
             </Button>

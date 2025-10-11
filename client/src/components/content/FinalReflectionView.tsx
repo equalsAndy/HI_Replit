@@ -1,15 +1,14 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useTestUser } from '@/hooks/useTestUser';
-import { FileText } from 'lucide-react';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import ladderImage from '@assets/journeyladder_1749683540778.png';
-import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
-import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useApplication } from '@/hooks/use-application';
+import { BetaFinalReflectionModal } from '@/components/beta-testing/BetaFinalReflectionModal';
+import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -22,32 +21,23 @@ interface FinalReflectionData {
   futureLetterText: string;
 }
 
-export default function FinalReflectionView({ 
-  currentContent, 
-  navigate, 
-  markStepCompleted, 
-  setCurrentContent 
+export default function FinalReflectionView({
+  markStepCompleted,
+  setCurrentContent
 }: FinalReflectionViewProps) {
   const queryClient = useQueryClient();
   const [insight, setInsight] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const isTestUser = useTestUser();
-  
+  const [showBetaEndModal, setShowBetaEndModal] = useState(false);
+  const { data: user } = useCurrentUser();
+
   // Application context for proper app type detection
   const { currentApp } = useApplication();
   const appType = currentApp === 'allstarteams' ? 'ast' : 'ia';
-  
+
   // Workshop status
-  const { astCompleted, iaCompleted, loading, isWorkshopLocked, completeWorkshop, triggerGlobalCompletion } = useWorkshopStatus();
+  const { astCompleted, iaCompleted } = useWorkshopStatus();
   const completed = appType === 'ast' ? astCompleted : iaCompleted;
   
-  // Return visit auto-modal countdown (5 seconds)
-  const [countdown, setCountdown] = useState(5);
-  const [isCountingDown, setIsCountingDown] = useState(false);
-  
-  // Modal auto-close countdown (20 seconds)
-  const [modalCountdown, setModalCountdown] = useState(20);
-  const [isModalCountingDown, setIsModalCountingDown] = useState(false);
   
   // Save status tracking
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -55,11 +45,8 @@ export default function FinalReflectionView({
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
 
-  // Auto-complete step 4-5 when component loads
-  useEffect(() => {
-    console.log('🎯 FinalReflectionView mounted - marking step 4-5 as completed');
-    markStepCompleted('4-5');
-  }, [markStepCompleted]);
+  // Note: Step 4-5 should only be marked completed when user actually submits their final reflection
+  // This is handled in the handleComplete function, not on component mount
 
   // Fetch existing final reflection data
   const { data: existingData } = useQuery({
@@ -81,44 +68,19 @@ export default function FinalReflectionView({
     typeof existingData.data.futureLetterText === 'string' ? existingData.data.futureLetterText : '';
 
   useEffect(() => {
-    if (existingData && typeof existingData === 'object' && 'success' in existingData && 
-        existingData.success && 'data' in existingData && existingData.data && 
+    if (existingData && typeof existingData === 'object' && 'success' in existingData &&
+        existingData.success && 'data' in existingData && existingData.data &&
         typeof existingData.data === 'object' && 'futureLetterText' in existingData.data &&
         existingData.data.futureLetterText) {
       // Always set the insight from saved data when available
       setInsight(String(existingData.data.futureLetterText));
+    } else {
+      // Set default prefix text if no existing data
+      setInsight('The intention I want to carry forward is ');
     }
   }, [existingData]);
 
-  // Remove auto-show modal - users will click "View Options" button instead
-
-  // Auto-close modal after 20 seconds for first-time completion
-  useEffect(() => {
-    if (showModal && !isStepCompleted) { // Only for first-time completion
-      setModalCountdown(20);
-      setIsModalCountingDown(true);
-      
-      const timer = setInterval(() => {
-        setModalCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setIsModalCountingDown(false);
-            setShowModal(false);
-            if (setCurrentContent) {
-              setCurrentContent('download-star-card'); // Navigate to star card
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => {
-        clearInterval(timer);
-        setIsModalCountingDown(false);
-      };
-    }
-  }, [showModal, isStepCompleted, setCurrentContent]);
+  // Modal removed - users navigate directly to workshop recap
 
   // Save final reflection data
   const saveMutation = useMutation({
@@ -126,7 +88,7 @@ export default function FinalReflectionView({
       setSaveStatus('saving');
       return apiRequest('/api/workshop-data/final-reflection', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: data, // apiRequest will handle JSON.stringify
       });
     },
     onSuccess: () => {
@@ -141,157 +103,92 @@ export default function FinalReflectionView({
     },
   });
 
-  // Debounced auto-save function
-  // Function to populate with meaningful demo data
-  const fillWithDemoData = () => {
-    if (!isTestUser) {
-      console.warn('Demo functionality only available to test users');
-      return;
-    }
-    
-    const demoInsights = [
-      "I want to carry forward the understanding that my unique combination of strengths creates value when I lean into them fully. My top strength in planning gives me the foundation to create structure, while my feeling strength helps me ensure that structure serves people, not just processes.",
-      "The key insight I'm taking with me is that my authentic contribution emerges when I stop trying to be good at everything and instead focus on being excellent at what energizes me. My strengths work best when I use them intentionally in service of both individual and team goals.",
-      "What I want to remember is that self-awareness is not a destination but a practice. Understanding my strengths profile gives me a compass for decision-making, whether I'm choosing how to contribute to a project or advocating for the conditions where I can do my best work."
-    ];
-    
-    const randomInsight = demoInsights[Math.floor(Math.random() * demoInsights.length)];
-    setInsight(randomInsight);
-  };
 
   const handleInsightChange = (value: string) => {
     setInsight(value);
     // Clear validation error when user starts typing
-    if (validationError && value.trim().length >= 10) {
+    const prefix = "The intention I want to carry forward is ";
+    const contentLength = value.startsWith(prefix) ? value.slice(prefix.length).trim().length : value.trim().length;
+    if (validationError && contentLength >= 25) {
       setValidationError('');
     }
     // Removed auto-save - data will only save when user clicks "Complete Your Journey"
   };
 
   const handleComplete = async () => {
-    // Validate input before proceeding
-    const error = validateTextInput(insight, 'insight', 10);
-    if (error) {
-      setValidationError(error.message);
+    // Validate input before proceeding - check content after prefix
+    const prefix = 'The intention I want to carry forward is ';
+    const contentAfterPrefix = insight.startsWith(prefix) ? insight.slice(prefix.length).trim() : insight.trim();
+
+    if (contentAfterPrefix.length < 25) {
+      setValidationError('Please write at least 25 characters describing your intention');
       return;
     }
-    
+
     // Clear any previous validation errors
     setValidationError('');
     
-    // Save the final reflection data before completing
+    // Save the final reflection data - workshop completion handled separately
     setSaveStatus('saving');
     try {
       const saveData = { futureLetterText: insight.trim() };
-      await saveMutation.mutateAsync(saveData);
+      const result = await saveMutation.mutateAsync(saveData);
       setSaveStatus('saved');
+
+      // Mark step as completed
+      markStepCompleted('3-3');
+
+      // Auto-scroll to continue button after a brief delay
+      setTimeout(() => {
+        const continueButton = document.querySelector('[data-continue-button="true"]');
+        if (continueButton) {
+          continueButton.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+      }, 1000); // Increased delay to ensure DOM updates
+
+      // Navigate to workshop recap (step 3-4) for all users
+      setCurrentContent('finish-workshop');
       
-      // Mark step as completed first
-      markStepCompleted('4-5');
-      
-      // COMPLETE WORKSHOP - This will save to database and lock ALL workshop steps
-      console.log(`🎯 Calling completeWorkshop for ${appType.toUpperCase()}...`);
-      const result = await completeWorkshop(appType);
-      
-      if (!result.success) {
-        console.error('❌ Failed to complete workshop:', result.error);
-        // Still show modal but log the error
-      }
-      
-      // Show completion modal
-      setShowModal(true);
-      
-      console.log(`🎉 ${appType.toUpperCase()} Workshop completed - all steps are now locked`);
     } catch (error) {
       console.error('Failed to save final reflection:', error);
       setSaveStatus('error');
-      
-      // Still complete the workshop even if save fails
-      console.log(`🎯 Fallback: Calling completeWorkshop for ${appType.toUpperCase()} after save error...`);
-      await completeWorkshop(appType);
-      markStepCompleted('4-5');
-      setShowModal(true);
     }
   };
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when beta modal is open
   useEffect(() => {
-    if (showModal) {
+    if (showBetaEndModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
     }
-    
+
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [showModal]);
+  }, [showBetaEndModal]);
 
-  const handleModalOption = (option: string) => {
-    setIsModalCountingDown(false); // Stop countdown
-    setShowModal(false);
-    
-    // Navigate based on option using setCurrentContent
-    switch(option) {
-      case 'star-card':
-        if (setCurrentContent) {
-          setCurrentContent('download-star-card');
-        }
-        break;
-      case 'holistic-report':
-        if (setCurrentContent) {
-          setCurrentContent('holistic-report');
-        }
-        break;
-      case 'growth-plan':
-        if (setCurrentContent) {
-          setCurrentContent('growth-plan');
-        }
-        break;
-      case 'team-workshop':
-        if (setCurrentContent) {
-          setCurrentContent('team-workshop-prep');
-        }
-        break;
-      default:
-        if (setCurrentContent) {
-          setCurrentContent('download-star-card'); // Default to star card
-        }
-        break;
+  // Show beta tester end modal when they first arrive at Final Reflection
+  useEffect(() => {
+    if (user?.isBetaTester && !completed) {
+      const sessionKey = `beta_end_modal_shown_${user.id}`;
+      const hasShownThisSession = sessionStorage.getItem(sessionKey);
+      
+      if (!hasShownThisSession) {
+        setShowBetaEndModal(true);
+        sessionStorage.setItem(sessionKey, 'true');
+      }
     }
-  };
+  }, [user?.isBetaTester, user?.id, completed]);
 
-  const closeModal = () => {
-    setIsModalCountingDown(false); // Stop countdown
-    setShowModal(false);
-    
-    // Only navigate for first-time completion
-    if (!isStepCompleted && setCurrentContent) {
-      setCurrentContent('download-star-card'); // Navigate to star card
-    }
-    // Returning users: just close modal, stay on page
-  };
 
   return (
     <>
 
 
-      {/* Workshop Completion Banner */}
-      {completed && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto mt-4">
-          <div className="flex items-center gap-3">
-            <FileText className="text-green-600" size={20} />
-            <div className="flex-1">
-              <h3 className="font-medium text-green-800">
-                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
-              </h3>
-            </div>
-            <div className="text-green-600">
-              🔒
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="final-reflection-container">
         <div className="content-layout">
@@ -305,58 +202,37 @@ export default function FinalReflectionView({
               />
             </div>
             
-            <div className="explanation-content">
-              <h3 className="explanation-title">What This Ladder Represents</h3>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">A Natural Progression</h4>
-                <p className="item-text">
-                  Each step builds on the one before — not in leaps, but in deepening awareness.
-                </p>
-              </div>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">Reflective Mirror</h4>
-                <p className="item-text">
-                  This journey wasn't about adding something new. It was about surfacing 
-                  what's already strong within you.
-                </p>
-              </div>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">Team Flow Starts Here</h4>
-                <p className="item-text">
-                  Your self-awareness is your starting point. Now you're ready to contribute 
-                  with clarity and imagination.
-                </p>
-              </div>
-            </div>
           </div>
           
           {/* Bottom Section: Reflection */}
           <div className="reflection-section">
             <div className="reflection-header">
-              <h2 className="section-title">What's the one insight you want to carry forward?</h2>
-              <p className="intro-text">
-                You've just completed a journey of personal discovery. From understanding your core strengths to envisioning your future potential, each step revealed something valuable about who you are.
-              </p>
-              <p className="intro-text">
-                Now, distill this experience into one clear insight that will guide you forward—something you want to remember as you move into team collaboration.
-              </p>
+              <h2 className="section-title">Your Final Reflection</h2>
+              <div className="intention-card">
+                <h3 className="intention-card-title">Capture an Intention</h3>
+                <p className="intention-card-text">
+                  End this step by choosing one clear intention to carry forward. This becomes the bridge between your vision and your next steps.
+                </p>
+                <ul className="intention-card-list">
+                  <li>Write one sentence that captures your most important takeaway</li>
+                  <li>Begin with: <strong>"The intention I want to carry forward is…"</strong></li>
+                  <li>Keep it short, specific, and meaningful to you</li>
+                </ul>
+              </div>
             </div>
             
             <div className="input-section">
               <div className="textarea-wrapper">
-                <textarea
-                  className={`insight-input ${isStepCompleted || completed ? 'readonly' : ''} ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
-                  value={insight}
-                  onChange={isStepCompleted || completed ? undefined : (e) => handleInsightChange(e.target.value)}
-                  disabled={isStepCompleted || completed}
-                  readOnly={isStepCompleted || completed}
-                  placeholder={isStepCompleted || completed ? (completed ? "This workshop is completed and locked for editing" : "") : "What I want to carry forward is..."}
-                  rows={4}
-                />
-                
+                <LockedInputWrapper stepId="3-4">
+                  <textarea
+                    className={`insight-input ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
+                    value={insight}
+                    onChange={(e) => handleInsightChange(e.target.value)}
+                    placeholder=""
+                    rows={4}
+                  />
+                </LockedInputWrapper>
+
                 {/* Validation feedback */}
                 {!isStepCompleted && !completed && (
                   <ValidationMessage 
@@ -379,64 +255,46 @@ export default function FinalReflectionView({
                   // Original completion flow for first-time users
                   <>
                     <div className="flex items-center justify-center gap-3">
-                      {isTestUser && (
-                        <button
-                          onClick={fillWithDemoData}
-                          className="demo-button-inline"
-                          type="button"
-                        >
-                          <FileText className="demo-icon" />
-                          Add Demo Data
-                        </button>
-                      )}
-                      
-                      {/* Gentle completion notice */}
+                      {/* Navigation instructions */}
                       <div className="completion-notice mb-3">
-                        <p className="text-sm text-gray-600 flex items-center gap-2">
-                          <span className="text-blue-500">ℹ️</span>
-                          Finishing your workshop will prevent any further editing.
+                        <p className="text-sm text-gray-600 text-center">
+                          Head to the recap and click Finish Workshop to access your Starcard and reports
                         </p>
                       </div>
                       
                       <button
-                        className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
+                        className={`continue-button ${(() => {
+                          const prefix = 'The intention I want to carry forward is ';
+                          const contentAfterPrefix = insight.startsWith(prefix) ? insight.slice(prefix.length).trim() : insight.trim();
+                          return contentAfterPrefix.length >= 25 ? 'enabled' : 'disabled';
+                        })()}`}
                         onClick={handleComplete}
-                        disabled={insight.length < 10}
+                        disabled={(() => {
+                          const prefix = 'The intention I want to carry forward is ';
+                          const contentAfterPrefix = insight.startsWith(prefix) ? insight.slice(prefix.length).trim() : insight.trim();
+                          return contentAfterPrefix.length < 25;
+                        })()}
+                        data-continue-button="true"
                       >
-                        Complete Your Journey
+                        Continue to Workshop Recap
                       </button>
                     </div>
                     
-                    {insight.length < 10 && (
-                      <p className="helper-text">
-                        Share your insight to complete the workshop
-                      </p>
-                    )}
                   </>
-                ) : completed ? (
-                  // Workshop completed via locking system
-                  <div className="completed-section">
-                    <div className="completion-indicator">
-                      <span className="checkmark">✅</span>
-                      <p className="completed-text">Workshop complete. Your responses are locked, but you can watch videos and read your answers.</p>
-                    </div>
-                    
-                    <div className="flex justify-center mt-4">
-                      <button
-                        onClick={() => setShowModal(true)}
-                        className="continue-button enabled"
-                      >
-                        View Options
-                      </button>
-                    </div>
-                  </div>
                 ) : (
-                  // Completed state via natural completion flow - show completion message and lock the input
+                  // Workshop already completed - show navigation to recap
                   <div className="completed-section">
                     <div className="completion-indicator">
                       <span className="checkmark">✅</span>
-                      <p className="completed-text">Workshop complete. Your responses are locked, but you can watch videos and read your answers.</p>
+                      <p className="completed-text">Workshop Complete</p>
                     </div>
+
+                    <button
+                      onClick={() => setCurrentContent('finish-workshop')}
+                      className="continue-button enabled"
+                    >
+                      Continue to Workshop Recap
+                    </button>
                   </div>
                 )}
               </div>
@@ -445,66 +303,6 @@ export default function FinalReflectionView({
         </div>
       </div>
 
-      {/* Completion Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="logo-container">
-                <img src={allstarteamsLogo} alt="AllStarTeams" className="allstarteams-logo" />
-              </div>
-              <div className="celebration-icon">🎉</div>
-              <h2 className="modal-title">Congratulations!</h2>
-              <p className="modal-subtitle">You have completed the AllStarTeams Individual Workshop</p>
-            </div>
-            
-            <div className="modal-content">
-              <p className="modal-description">
-                You've discovered your strengths, explored your potential, and captured your key insights. 
-                What would you like to do next?
-              </p>
-              
-              <div className="options-grid">
-                <button className="option-card" onClick={() => handleModalOption('star-card')}>
-                  <div className="option-icon">⭐</div>
-                  <h3 className="option-title">Download Your Star Card</h3>
-                  <p className="option-description">Get your personalized strengths profile to keep and share</p>
-                </button>
-                
-                <button className="option-card" onClick={() => handleModalOption('holistic-report')}>
-                  <div className="option-icon">📊</div>
-                  <h3 className="option-title">See Your Holistic Report</h3>
-                  <p className="option-description">View your complete workshop results and insights</p>
-                </button>
-                
-                <button className="option-card" onClick={() => handleModalOption('growth-plan')}>
-                  <div className="option-icon">📈</div>
-                  <h3 className="option-title">Create a Growth Plan</h3>
-                  <p className="option-description">Explore our quarterly growth planning feature</p>
-                </button>
-                
-                <button className="option-card" onClick={() => handleModalOption('team-workshop')}>
-                  <div className="option-icon">👥</div>
-                  <h3 className="option-title">Prepare for Team Workshop</h3>
-                  <p className="option-description">Get ready to collaborate with your team</p>
-                </button>
-              </div>
-              
-              <div className="modal-footer">
-                {!isStepCompleted && isModalCountingDown && (
-                  <p className="auto-proceed-text">
-                    Continuing to your Star Card in {modalCountdown} seconds...
-                  </p>
-                )}
-                
-                <button className="close-button" onClick={closeModal}>
-                  {isStepCompleted ? "Close" : "I'll decide later"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <style jsx>{`
         .final-reflection-container {
@@ -521,33 +319,15 @@ export default function FinalReflectionView({
 
         /* Top Section: Ladder + Explanation Side by Side */
         .ladder-section {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 40px;
-          align-items: start;
-          background: #f8f9fa;
-          border-radius: 16px;
-          padding: 40px;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+          display: none;
         }
 
         .ladder-container {
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
+          display: none;
         }
 
         .ladder-image {
-          width: 100%;
-          max-width: 300px;
-          height: auto;
-          border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          transition: transform 0.2s ease;
-        }
-
-        .ladder-image:hover {
-          transform: translateY(-4px);
+          display: none;
         }
 
         .explanation-content {
@@ -602,6 +382,41 @@ export default function FinalReflectionView({
         .reflection-header {
           text-align: center;
           margin-bottom: 32px;
+        }
+
+        .intention-card {
+          background: #f8f3ff;
+          border: 2px solid #d8b4fe;
+          border-radius: 12px;
+          padding: 24px;
+          margin-top: 24px;
+          text-align: left;
+        }
+
+        .intention-card-title {
+          color: #7c3aed;
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-bottom: 16px;
+        }
+
+        .intention-card-text {
+          color: #6b21a8;
+          font-size: 1.1rem;
+          line-height: 1.6;
+          margin-bottom: 16px;
+        }
+
+        .intention-card-list {
+          color: #7c3aed;
+          font-size: 1rem;
+          line-height: 1.8;
+          margin-left: 20px;
+          list-style-type: disc;
+        }
+
+        .intention-card-list li {
+          margin-bottom: 8px;
         }
 
         .header-with-demo {
@@ -1045,6 +860,12 @@ export default function FinalReflectionView({
           }
         }
       `}</style>
+
+      {/* Beta Tester Workshop End Modal */}
+      <BetaFinalReflectionModal
+        isOpen={showBetaEndModal}
+        onClose={() => setShowBetaEndModal(false)}
+      />
     </>
   );
 }

@@ -1,0 +1,218 @@
+AUTH0 SESSION DEBUGGING - COMPREHENSIVE FIX GUIDE
+
+PROBLEM SUMMARY:
+- After Auth0 login, callback page shows "Login Incomplete"
+- POST requests to session endpoints return 404 (Not Found)
+- GET /api/auth/me returns 401 (Unauthorized)
+- Auth0 logs show successful login, but server can't create sessions
+- Routes appear mounted in server/index.ts but 404s suggest they're not active at runtime
+
+CRITICAL CONTEXT:
+- Development environment: localhost:8080
+- Database: AWS Lightsail PostgreSQL (isolated development)
+- Workshop separation: AST (blue theme) vs IA (purple theme) - NEVER MIX
+- Session storage: PostgreSQL session_aws table
+- Auth flow: Auth0 → /auth/callback → session creation → /api/auth/me → route by role
+
+STEP 1: VERIFY CURRENT ENVIRONMENT STATE
+```bash
+# Ensure we're in development branch with latest code
+cd /Users/bradtopliff/Desktop/HI_Replit
+git checkout development
+git pull origin development
+git status
+
+# Check if server is running and kill if needed
+lsof -ti:8080 | xargs kill -9 2>/dev/null || echo "Port 8080 is free"
+
+# Check feature status
+curl -s http://localhost:8080/api/workshop-data/feature-status 2>/dev/null || echo "Server not running"
+```
+
+STEP 2: BUILD AND START SERVER WITH DEBUGGING
+```bash
+# Clean build
+npm run build
+
+# Start server with enhanced logging
+NODE_ENV=development npm run dev
+
+# Watch for these specific startup messages:
+# ✅ Environment variables validated
+# ✅ Database connection test successful
+# ✅ Session table accessible
+# 📁 Development: serving static files from: [path]
+# ✅ Server successfully started on port 8080
+
+# Look for auth route mounting logs (should see multiple mount points)
+```
+
+STEP 3: VERIFY ROUTE EXISTENCE AT RUNTIME
+Test each expected endpoint to confirm routes are mounted:
+
+```bash
+# Test 1: Primary auth endpoint
+curl -i http://localhost:8080/api/auth/auth0-session
+
+# Test 2: Backup auth endpoint  
+curl -i http://localhost:8080/api/auth/session
+
+# Test 3: Auth0 alias endpoint
+curl -i http://localhost:8080/api/auth0/auth0-session
+
+# Test 4: Auth0 alias session endpoint
+curl -i http://localhost:8080/api/auth0/session
+
+# Test 5: Direct mount endpoints
+curl -i http://localhost:8080/api/auth0-session
+curl -i http://localhost:8080/api/session
+
+# EXPECTED RESULTS:
+# ✅ GOOD: HTTP/1.1 401 with "Missing or invalid authorization header"
+# ❌ BAD: HTTP/1.1 404 with "Cannot POST" - means route not mounted
+```
+
+STEP 4: DIAGNOSE 404 ISSUES (IF ROUTES NOT FOUND)
+If any endpoint returns 404, check these potential causes:
+
+```bash
+# Check if TypeScript compiled correctly
+ls -la server/routes/auth0-routes.js
+cat server/routes/auth0-routes.js | head -20
+
+# Verify imports in compiled server
+grep -n "auth0-routes" server/index.js
+
+# Check route mounting in compiled code
+grep -A5 -B5 "app.use.*auth" server/index.js
+```
+
+STEP 5: ADD DEBUG LOGGING TO CONFIRM ROUTE MOUNTING
+Add temporary logging to server/index.ts after the auth route mounting:
+
+```typescript
+// Add after: app.use('/api/auth', auth0Routes);
+console.log('🔗 AUTH ROUTES MOUNTED: /api/auth -> auth0Routes');
+console.log('🔗 Available auth endpoints:');
+console.log('  POST /api/auth/auth0-session');
+console.log('  POST /api/auth/session');
+
+// Add after: app.use('/api/auth0', auth0Routes);
+console.log('🔗 AUTH0 ALIAS MOUNTED: /api/auth0 -> auth0Routes');
+
+// Add after: app.use('/api', auth0Routes);
+console.log('🔗 API DIRECT MOUNTED: /api -> auth0Routes (includes /api/auth0-session, /api/session)');
+```
+
+STEP 6: TEST WITH REAL AUTH0 TOKEN
+Once routes are confirmed (401 instead of 404), test with actual token:
+
+```bash
+# Get token from browser dev tools after Auth0 login:
+# 1. Login via Auth0 in browser
+# 2. Open dev tools -> Application -> Local Storage -> look for auth0 tokens
+# 3. Or check Network tab during callback for the ID token
+
+# Test session creation with real token
+curl -X POST 'http://localhost:8080/api/auth/auth0-session' \
+  -H 'Authorization: Bearer YOUR_ACTUAL_TOKEN_HERE' \
+  -H 'Content-Type: application/json' \
+  -c cookies.txt \
+  -v
+
+# Expected success response:
+# HTTP/1.1 200 OK
+# {"success":true,"user":{"id":1,"name":"...","email":"...","role":"..."}}
+```
+
+STEP 7: VERIFY SESSION COOKIE AND /api/auth/me
+```bash
+# Test /api/auth/me with session cookie
+curl -b cookies.txt http://localhost:8080/api/auth/me
+
+# Should return user data instead of 401
+```
+
+STEP 8: ADDRESS POTENTIAL USER CREATION ISSUES
+If session creation fails with 500 error, check user creation:
+
+```typescript
+// In server/routes/auth0-routes.ts, modify createUser call:
+const createResult = await userManagementService.createUser({
+  email: email || `${decoded.sub}@placeholder.local`,
+  name: decoded.name || (email ? email.split('@')[0] : 'user'),
+  username: email || decoded.sub,
+  password: 'auth0-generated-' + Math.random().toString(36), // Add this line
+  role: 'participant',
+  auth0Sub: decoded.sub,
+  organization: '',
+  jobTitle: ''
+});
+```
+
+STEP 9: FRONTEND CALLBACK DEBUG
+Check client/src/pages/AuthCallback.tsx behavior:
+
+```bash
+# Monitor browser dev tools console during callback
+# Look for these debug messages:
+# "🔐 ID token claims retrieved"
+# "⚠️ Session creation failed" 
+# "✅ Session created, user authenticated"
+# "❌ Authentication failed"
+```
+
+STEP 10: COMPREHENSIVE LOG ANALYSIS
+Monitor server logs during full auth flow:
+
+```bash
+# In one terminal: tail server logs
+npm run dev | grep -E "(Auth0|Session|🔐|✅|❌)"
+
+# In another terminal: trigger auth flow in browser
+# Watch for sequence:
+# 1. "🔐 Auth0-session called. Token decoded keys: [...]"
+# 2. "Auth0 user data: {...}"
+# 3. "Found existing user: X" or "Created new user from Auth0: X"
+# 4. "Session created for user: X"
+```
+
+TROUBLESHOOTING CHECKLIST:
+□ Server starts without errors
+□ Database connection successful  
+□ Session table accessible
+□ Auth routes return 401 (not 404) when tested without token
+□ TypeScript compiles to JavaScript correctly
+□ Route mounting logs appear in startup
+□ Auth0 token can be extracted from browser
+□ Session creation succeeds with real token
+□ /api/auth/me returns user data with session cookie
+□ Frontend callback completes successfully
+
+COMMON FIXES:
+1. **Import/Export Issues**: Check .js extension in imports for compiled code
+2. **Router Mounting**: Ensure router is exported as default from auth0-routes.ts
+3. **Token Format**: Auth0 ID token must be passed as "Bearer TOKEN"
+4. **Session Store**: PostgreSQL session table must be accessible
+5. **CORS/Headers**: Check that Authorization header reaches the handler
+6. **User Creation**: Password field may be required even for Auth0 users
+
+SUCCESS CRITERIA:
+✅ Login redirects to /auth/callback
+✅ Callback page shows success (not "Login Incomplete")
+✅ Session cookie is set
+✅ /api/auth/me returns 200 with user data
+✅ User is redirected to appropriate dashboard based on role
+✅ No 404 or 401 errors in network tab
+
+ENVIRONMENT REQUIREMENTS:
+- Node.js development server running on localhost:8080
+- PostgreSQL database connection active
+- Auth0 app configured with correct callback URLs
+- Environment variables properly loaded (.env.development)
+
+SAFETY NOTES:
+- This is development environment - changes won't affect production
+- Database is isolated AWS Lightsail instance
+- Always test auth flow completely after changes
+- Monitor for any new session creation errors in logs

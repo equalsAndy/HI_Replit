@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Zap, BarChart3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, BarChart3, FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 
 interface AssessmentQuestion {
@@ -99,7 +99,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   const [responses, setResponses] = useState<AssessmentResponse>({});
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
 
   const currentQ = ASSESSMENT_QUESTIONS[currentQuestion];
   const progress = ((currentQuestion + 1) / ASSESSMENT_QUESTIONS.length) * 100;
@@ -131,17 +131,28 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   };
 
   const handleDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
     
-    const demoResponses: AssessmentResponse = {};
-    ASSESSMENT_QUESTIONS.forEach(q => {
-      demoResponses[`q${q.id}`] = Math.floor(Math.random() * 5) + 1;
-    });
+    // Generate meaningful demo responses that create a balanced, realistic profile
+    const demoResponses: AssessmentResponse = {
+      // Imagination questions (higher scores for imaginative profile)
+      q1: 4, q2: 4, q3: 3, q4: 4, q5: 3, q6: 4, q7: 3, q8: 4, q9: 3, q10: 4, q11: 3, q12: 4,
+      // Curiosity questions (moderate-high scores)
+      q13: 4, q14: 3, q15: 4, q16: 3, q17: 4, q18: 3, q19: 4, q20: 3, q21: 4, q22: 3, q23: 4, q24: 3,
+      // Empathy questions (balanced scores)
+      q25: 3, q26: 4, q27: 3, q28: 4, q29: 3, q30: 4, q31: 3, q32: 4, q33: 3, q34: 4, q35: 3, q36: 4,
+      // Creativity questions (high scores)
+      q37: 4, q38: 4, q39: 3, q40: 4, q41: 3, q42: 4, q43: 3, q44: 4, q45: 3, q46: 4, q47: 3, q48: 4,
+      // Courage questions (moderate scores for realistic profile)
+      q49: 3, q50: 3, q51: 4, q52: 3, q53: 4, q54: 3, q55: 4, q56: 3, q57: 4, q58: 3, q59: 4, q60: 3
+    };
+    
     setResponses(demoResponses);
-    setCurrentQuestion(ASSESSMENT_QUESTIONS.length - 1);
+    setCurrentQuestion(ASSESSMENT_QUESTIONS.length - 1); // Go to last question
+    console.log('IA Assessment filled with meaningful demo data');
   };
 
   const calculateResults = (): AssessmentResults => {
@@ -188,7 +199,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
     try {
       const results = calculateResults();
       onComplete(results);
-      onClose();
+      onClose(); // Close modal immediately - results will show on page
     } catch (error) {
       console.error('Error completing assessment:', error);
     } finally {
@@ -251,14 +262,15 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
                 Auto-advance after selection
               </Label>
             </div>
-            {isTestUser && (
+            {shouldShowDemoButtons && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDemoData}
                 className="text-purple-600 border-purple-200 hover:bg-purple-50"
               >
-                Demo Data
+                <FileText className="w-4 h-4 mr-2" />
+                Add Demo Data
               </Button>
             )}
           </div>

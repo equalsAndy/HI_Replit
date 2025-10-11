@@ -1,0 +1,70 @@
+# Production Deployment v2.1.7 CORRECTED
+# Date: $(date +%Y-%m-%d\ %H:%M:%S)
+
+## 🚨 ISSUE RESOLUTION:
+- Previous v2.1.7 deployment (version 92) FAILED and rolled back
+- Problem: Image compatibility issues with production environment
+- Solution: Rebuilt image with explicit AMD64 platform and proper tag
+
+## ✅ CORRECTED DEPLOYMENT STEPS:
+1. Clean checkout of v2.1.7 git tag
+2. Docker build with --platform linux/amd64 flag
+3. Tagged as v2.1.7-fixed for distinction
+4. Pushed to ECR: 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:v2.1.7-fixed
+5. Deployed as version 93 to Lightsail
+
+## 🔄 CURRENT STATUS:
+- Service state: DEPLOYING
+- Current active version: 90 (old staging image - still serving traffic)
+- Next deployment: Version 93 (v2.1.7-fixed) - ACTIVATING
+- Deployment initiated: 2025-07-28T08:42:48-07:00
+
+## 🎯 KEY FIXES IN THIS CORRECTED BUILD:
+- Platform compatibility: Built with --platform linux/amd64
+- Image validation: Proper AMD64 architecture for production
+- Clean build: From clean v2.1.7 git tag state
+- Distinct tagging: v2.1.7-fixed to differentiate from failed attempt
+
+## 🌐 PRODUCTION URLS (will be active once deployment completes):
+- Custom domain: https://app2.heliotropeimaginal.com/
+- Lightsail URL: https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/
+
+## 📊 MONITORING COMMANDS:
+# Check deployment progress
+aws lightsail get-container-services --region us-west-2 --service-name hi-replit-v2 | jq '.containerServices[0] | {state: .state, currentVersion: .currentDeployment.version, nextVersion: .nextDeployment.version}'
+
+# Test health endpoint (after deployment)
+curl https://app2.heliotropeimaginal.com/health
+
+## 🕐 EXPECTED COMPLETION:
+Lightsail deployments typically take 5-15 minutes. Success indicators:
+- Service state: "RUNNING"
+- Current version: 93
+- Current image: contains "v2.1.7-fixed"
+- Next deployment: null
+
+## 🔍 FEATURES IN v2.1.7:
+- IA navigation improvements (expand sections 1-4, collapse 5-7)
+- Remove lock icons from current IA steps
+- Fix infinite loop in useTestUser hook
+- Semantic versioning system
+- Enhanced feature flag system
+- General platform stability improvements
+
+## ⚠️ IMPORTANT NOTES:
+- AI/Talia features remain development-only (not in production)
+- This deployment contains only stable workshop platform features
+- Version 93 uses corrected AMD64-compatible image
+- Previous version 92 failure has been resolved
+
+## ✅ POST-DEPLOYMENT VERIFICATION:
+Once deployment completes, verify:
+1. https://app2.heliotropeimaginal.com/ returns 200 OK
+2. IA navigation behavior matches v2.1.7 specifications
+3. User login/registration flows work correctly
+4. No console errors or broken functionality
+5. Health endpoint responds properly
+
+## 🔄 ROLLBACK PLAN (if needed):
+If this deployment also fails, rollback is automatic to version 90.
+For manual rollback, redeploy previous known-good image.

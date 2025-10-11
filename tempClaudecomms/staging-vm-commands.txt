@@ -1,0 +1,61 @@
+====================================
+UPDATE STAGING WITH NAVBAR FIX - FINAL FINAL
+Date: 2025-07-25
+Time: 09:06 PDT
+====================================
+
+INSTRUCTIONS:
+1. Go to https://lightsail.aws.amazon.com/
+2. Click 'hi-staging-vm'
+3. Click 'Connect using SSH'
+4. Copy and paste these commands
+
+COMMANDS TO RUN:
+----------------
+
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-navbar-fix
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-navbar-fix
+
+curl http://localhost/version.json
+
+
+====================================
+PREVIOUS: FIX SSL CERTIFICATE ISSUE
+Date: 2025-07-25
+Time: ~08:00 PST
+====================================
+
+COMMANDS THAT FIXED LOGIN:
+--------------------------
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+echo 'NODE_ENV=staging' > staging.env
+
+echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
+
+echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
+
+echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
+
+echo 'ENVIRONMENT=staging' >> staging.env
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-amd64
+
+curl http://localhost/health
+
+
+====================================
+NOTES:
+====================================
+- VM IP: 34.220.143.127
+- Login: admin / Heliotrope@2025
+- Each command is on a single line for easy copy/paste
+- No line breaks within commands

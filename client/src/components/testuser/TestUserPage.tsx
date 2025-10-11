@@ -1,11 +1,13 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import { useLogout } from '@/hooks/use-logout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import VersionInfo from '@/components/ui/VersionInfo';
 import WorkshopCard from './WorkshopCard';
 import TestUserTools from './TestUserTools';
 
@@ -66,35 +68,52 @@ const TestUserPage: React.FC = () => {
     refetchOnWindowFocus: false
   });
 
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: () => apiRequest('/api/auth/logout', { method: 'POST' }),
-    onSuccess: () => {
-      queryClient.clear();
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
-      });
-      setLocation('/auth');
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Logout failed",
-        description: error.message || "There was an error logging out.",
-        variant: "destructive"
-      });
-    }
-  });
+  // App logout
+  const appLogout = useLogout();
 
-  // Redirect non-test users
+  // Redirect non-test users accessing /testuser specifically (except admins who can access for testing)
   React.useEffect(() => {
-    if (userResponse && !userResponse.user?.isTestUser) {
-      toast({
-        variant: 'destructive',
-        title: 'Access Denied',
-        description: 'This page is only available to test users.',
+    if (userResponse) {
+      // Debug logging
+      console.log('🔍 TestUser Access Check:', {
+        user: userResponse.user,
+        isTestUser: userResponse.user?.isTestUser,
+        role: userResponse.user?.role,
+        pathname: window.location.pathname
       });
-      setLocation('/dashboard');
+      
+      // Allow access if user is a test user (but not beta tester) OR an admin
+      // Beta testers should go directly to workshop, not to the console
+      const hasAccess = (userResponse?.user?.isTestUser && !userResponse?.user?.isBetaTester) || 
+                       userResponse?.user?.role === 'admin';
+      
+      console.log('🔍 Access granted:', hasAccess);
+      
+      // Only redirect if we're on the /testuser route and user doesn't have access
+      if (!hasAccess && window.location.pathname === '/testuser') {
+        console.log('❌ Access denied, redirecting beta tester to workshop');
+        
+        // If user is a beta tester, redirect to their workshop instead of showing error
+        if (userResponse?.user?.isBetaTester) {
+          if (userResponse.user.astAccess) {
+            setLocation('/allstarteams');
+          } else if (userResponse.user.iaAccess) {
+            setLocation('/imaginal-agility');
+          } else {
+            setLocation('/auth');
+          }
+        } else {
+          // For other users without access, show error and redirect to auth/login
+          toast({
+            variant: 'destructive',
+            title: 'Access Denied',
+            description: 'This page is only available to test users and administrators.',
+          });
+          setLocation('/auth');
+        }
+      } else if (hasAccess && window.location.pathname === '/testuser') {
+        console.log('✅ Access granted, staying on test user page');
+      }
     }
   }, [userResponse, setLocation, toast]);
 
@@ -307,8 +326,25 @@ const TestUserPage: React.FC = () => {
       <main className="container mx-auto px-6 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Test User Page</h1>
-          <p className="text-muted-foreground">Access your workshops and manage your testing progress</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">
+                {userResponse.user?.isTestUser ? 'Test User Dashboard' : 
+                 userResponse.user?.role === 'admin' ? 'Admin Test View' : 'Workshop Dashboard'}
+              </h1>
+              <p className="text-muted-foreground">
+                {userResponse.user?.isTestUser 
+                  ? 'Access your workshops and manage your testing progress'
+                  : userResponse.user?.role === 'admin'
+                    ? 'Administrative view of the test user interface'
+                    : 'Access your workshops and track your progress'
+                }
+              </p>
+            </div>
+            <div className="text-right">
+              <VersionInfo variant="detailed" />
+            </div>
+          </div>
         </div>
 
         {/* Profile Information Section */}
@@ -353,12 +389,11 @@ const TestUserPage: React.FC = () => {
               {/* Red Logout Button */}
               <Button 
                 variant="destructive" 
-                onClick={() => logoutMutation.mutate()}
-                disabled={logoutMutation.isPending}
+                onClick={() => appLogout.mutate()}
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                Logout
               </Button>
             </div>
           </CardContent>

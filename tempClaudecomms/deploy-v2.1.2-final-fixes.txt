@@ -1,0 +1,18 @@
+# Deploy v2.1.2 - All isTestUser Fixes Applied
+# SSH into staging VM
+ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+
+# Commands to run on VM:
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.1.2
+curl -I http://34.220.143.127
+
+# This deployment includes:
+# ✅ Feedback mechanism implementation 
+# ✅ Emergency infinite loop fix
+# ✅ IA navigation section expansion fix  
+# ✅ Strength reflection examples
+# ✅ Fixed ia-3-3 crash issue (isTestUser undefined)
+# ✅ Fixed all remaining isTestUser undefined references

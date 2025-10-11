@@ -211,9 +211,13 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       contentAccess: z.enum(['student', 'professional', 'both']).optional(),
       astAccess: z.boolean().optional(),
       iaAccess: z.boolean().optional(),
+      isTestUser: z.boolean().optional(),
+      isBetaTester: z.boolean().optional(),
+      showDemoDataButtons: z.boolean().optional(),
       password: z.string().optional(),
       resetPassword: z.boolean().optional(),
       setCustomPassword: z.boolean().optional(),
+      changePassword: z.boolean().optional(),
       newPassword: z.string().optional(),
     });
 
@@ -234,15 +238,19 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     if (updateData.resetPassword) {
       // Reset password - generate temporary password
       processedUpdateData.password = undefined; // This will trigger temporary password generation
-    } else if (updateData.setCustomPassword && updateData.newPassword) {
-      // Set custom password
+    } else if ((updateData.setCustomPassword || updateData.changePassword) && updateData.newPassword) {
+      // Set custom password (support both field names for compatibility)
       processedUpdateData.password = updateData.newPassword;
     }
     
     // Remove the frontend form fields before sending to service
     delete processedUpdateData.resetPassword;
     delete processedUpdateData.setCustomPassword;
+    delete processedUpdateData.changePassword;
     delete processedUpdateData.newPassword;
+
+    // Debug log the data being sent to service
+    console.log(`🔍 DEBUG: About to update user ${id} with data:`, JSON.stringify(processedUpdateData, null, 2));
 
     // Update user via user management service
     const updateResult = await userManagementService.updateUser(id, processedUpdateData);
@@ -396,6 +404,25 @@ router.get('/test-users', requireAuth, isAdmin, async (req: Request, res: Respon
 
 
 /**
+ * Get all beta testers (admin only)
+ */
+router.get('/beta-testers', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const result = await userManagementService.getAllBetaTesters();
+    if (!result.success) {
+      return res.status(500).json({ message: result.error || 'Failed to retrieve beta testers' });
+    }
+    res.json({
+      message: 'Beta testers retrieved successfully',
+      users: result.users
+    });
+  } catch (error) {
+    console.error('Error getting beta testers:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * Video Management Routes
  */
 
@@ -433,10 +460,80 @@ router.get('/videos/workshop/:workshopType', requireAuth, isAdmin, async (req: R
   }
 });
 
+// Create new video
+router.post('/videos', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const { 
+      title, 
+      description = '', 
+      url, 
+      editableId, 
+      workshopType, 
+      section, 
+      stepId,
+      sortOrder = 0,
+      autoplay = false,
+      contentMode = 'both',
+      requiredWatchPercentage = 75,
+      transcriptMd = '',
+      glossary = []
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !url || !workshopType || !section) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Missing required fields: title, url, workshopType, section' 
+      });
+    }
+
+    console.log('Admin creating new video:', { title, workshopType, section, stepId });
+    
+    // Create video using the user management service
+    const createResult = await userManagementService.createVideo({
+      title,
+      description,
+      url,
+      editableId: editableId || '',
+      workshopType,
+      section,
+      stepId: stepId || null,
+      sortOrder,
+      autoplay,
+      contentMode,
+      requiredWatchPercentage,
+      transcriptMd,
+      glossary: Array.isArray(glossary) ? glossary : []
+    });
+    
+    if (!createResult.success) {
+      return res.status(400).json({ 
+        success: false,
+        message: createResult.error || 'Failed to create video'
+      });
+    }
+
+    console.log('Video created successfully:', createResult.video?.id);
+    res.status(201).json({
+      success: true,
+      video: createResult.video,
+      message: 'Video created successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error creating video:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while creating video' 
+    });
+  }
+});
+
 // Update video
 router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
+    console.log(`ADMIN VIDEO UPDATE: ${req.params.id} body:`, req.body);
     if (isNaN(id)) {
       return res.status(400).json({ message: 'Invalid video ID' });
     }
@@ -457,6 +554,34 @@ router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Respon
     res.status(200).json(updateResult.video);
   } catch (error) {
     console.error('Error updating video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete video
+router.delete('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid video ID' });
+    }
+
+    console.log(`Admin deleting video ${id}`);
+    
+    // Delete video using the user management service
+    const deleteResult = await userManagementService.deleteVideo(id);
+    
+    if (!deleteResult.success) {
+      return res.status(404).json({ 
+        message: deleteResult.error || 'Video not found'
+      });
+    }
+    
+    console.log(`Video ${id} deleted successfully`);
+    
+    res.status(200).json({ message: 'Video deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting video:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -513,6 +638,175 @@ router.delete('/users/:id/data', requireAuth, isAdmin, async (req: Request, res:
   } catch (error) {
     console.error('Error deleting user data:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Reset user holistic report generation (admin only)
+ */
+router.delete('/users/:id/reports', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    // Reset holistic reports using user management service
+    const result = await userManagementService.resetUserHolisticReports(id);
+
+    if (!result.success) {
+      return res.status(400).json({ message: result.error || 'Failed to reset user holistic reports' });
+    }
+
+    res.json({
+      message: 'User holistic reports reset successfully',
+      deletedReports: result.deletedCount || 0
+    });
+  } catch (error) {
+    console.error('Error resetting user holistic reports:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Generate holistic report for a user (admin only)
+ */
+router.post('/users/:id/reports/generate', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    const { reportType } = req.body;
+    if (!reportType || !['standard', 'personal'].includes(reportType)) {
+      return res.status(400).json({
+        message: 'Valid report type (standard or personal) is required'
+      });
+    }
+
+    // Generate report using the holistic report service
+    const result = await userManagementService.generateHolisticReportForUser(id, reportType);
+
+    if (!result.success) {
+      return res.status(400).json({ message: result.error || 'Failed to generate holistic report' });
+    }
+
+    res.json({
+      message: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report generated successfully`,
+      reportId: result.reportId,
+      reportUrl: `/api/reports/holistic/${reportType}/html?userId=${id}`,
+      downloadUrl: `/api/reports/holistic/${reportType}/download?userId=${id}&download=true`
+    });
+  } catch (error) {
+    console.error('Error generating holistic report:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Download AI request payloads for all report sections (admin only)
+ * Returns a JSON file with all OpenAI API payloads sent for each section
+ */
+router.get('/users/:id/reports/ai-payloads', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    // Import pg Pool for direct database access
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    // Get user information
+    const userResult = await pool.query(
+      'SELECT id, name, email FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Get all report sections with AI payloads for this user
+    const sectionsResult = await pool.query(`
+      SELECT
+        section_id,
+        section_name,
+        section_title,
+        report_type,
+        ai_request_payload,
+        status,
+        completed_at,
+        created_at
+      FROM report_sections
+      WHERE user_id = $1
+        AND ai_request_payload IS NOT NULL
+      ORDER BY report_type, section_id
+    `, [userId]);
+
+    if (sectionsResult.rows.length === 0) {
+      return res.status(404).json({
+        message: 'No AI request payloads found for this user. User may not have generated any reports yet, or reports were generated before payload storage was implemented.'
+      });
+    }
+
+    // Group sections by report type
+    const reports: Record<string, any> = {};
+
+    sectionsResult.rows.forEach(row => {
+      const reportType = row.report_type;
+
+      if (!reports[reportType]) {
+        reports[reportType] = {
+          reportType,
+          sections: []
+        };
+      }
+
+      reports[reportType].sections.push({
+        sectionId: row.section_id,
+        sectionName: row.section_name,
+        sectionTitle: row.section_title,
+        status: row.status,
+        aiRequestPayload: row.ai_request_payload,
+        completedAt: row.completed_at,
+        createdAt: row.created_at
+      });
+    });
+
+    // Build response payload
+    const response = {
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      exportedAt: new Date().toISOString(),
+      totalSections: sectionsResult.rows.length,
+      reports
+    };
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+    const filename = `user-${userId}-ai-payloads-${timestamp}.json`;
+
+    // Set headers for JSON download
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Send the response
+    res.json(response);
+
+    console.log(`✅ Admin downloaded AI payloads for user ${userId} (${sectionsResult.rows.length} sections)`);
+
+  } catch (error) {
+    console.error('Error downloading AI payloads:', error);
+    res.status(500).json({ message: 'Server error while downloading AI payloads' });
   }
 });
 

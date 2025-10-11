@@ -1,31 +1,71 @@
-FROM node:18-alpine
+# Multi-stage Dockerfile for production
+# - Builder stage: installs full deps, builds the project
+# - Final stage: minimal runtime with only production deps, built JS, and
+#   runtime native libs required by `canvas` and similar packages.
 
-WORKDIR /app
+### Builder
+FROM node:18-bullseye AS builder
+LABEL stage=builder
+WORKDIR /usr/src/app
 
-# Install PM2 globally for production process management
-RUN npm install pm2 -g
+# Install build tools and canvas/build dependencies needed at build time
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential python3 pkg-config libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
+  && rm -rf /var/lib/apt/lists/*
 
-# Copy package files and install dependencies
+# Copy lockfile and package manifests first to leverage docker cache
 COPY package*.json ./
-RUN npm ci --only=production
 
-# Copy application code
-COPY server/ ./server/
-COPY shared/ ./shared/
+# Install all dependencies (including dev) needed for building
+RUN npm ci
 
-# Copy pre-built frontend files (must be built before container)
-COPY dist/public/ ./dist/public/
+# Copy source and build
+COPY . .
+RUN npm run build
 
-# Set production environment variables
+# Keep package.json for runtime install; do not copy node_modules to final image
+
+
+### Runtime
+FROM node:18-slim AS runtime
+LABEL stage=runtime
+WORKDIR /usr/src/app
+
+# Runtime native libs for canvas and imaging
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates curl libcairo2 libpango-1.0-0 libjpeg62-turbo libgif7 librsvg2-2 \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copy built assets and package manifests from builder
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package*.json ./
+# Ensure version.json is available for server to read
+COPY --from=builder /usr/src/app/public/version.json ./dist/public/version.json 2>/dev/null || true
+
+# Install only production dependencies in the runtime image
+RUN npm ci --only=production --production
+
+# Optional: trust custom DB CA certificates placed in repo `certs/`
+# Place your CA PEM at `certs/db-ca.pem` (gitignored). Any .pem in certs/ will be
+# copied into the system CA store at build time so Node and libpq can validate DB TLS.
+# Note: update-ca-certificates only reads *.crt, so convert any *.pem to *.crt.
+COPY certs/ /usr/local/share/ca-certificates/
+RUN find /usr/local/share/ca-certificates -type f -name '*.pem' -exec sh -c 'for f; do cp "$f" "${f%.*}.crt"; done' _ {} + || true \
+  && update-ca-certificates || true
+
+# Ensure Node trusts the system CA bundle (appended with our custom CA)
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+
 ENV NODE_ENV=production
 ENV PORT=8080
+# Configurable health endpoint (set via env at runtime if needed)
+ENV HEALTH_ENDPOINT=/health
 
-# Expose port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
+# Healthcheck (assumes server exposes ${HEALTH_ENDPOINT})
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD /bin/sh -c 'curl -f http://localhost:${PORT}${HEALTH_ENDPOINT} || exit 1'
 
-# Start with PM2 using production entry point
-CMD ["pm2-runtime", "start", "npx", "--name", "allstarteams-app", "--", "tsx", "server/index-production.ts"]
+# Use compiled JS entrypoint in production
+CMD ["node", "dist/index.js"]

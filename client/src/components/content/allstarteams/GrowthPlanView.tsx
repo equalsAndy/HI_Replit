@@ -5,119 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCircle, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCircle, Star, Info, BookOpen, Users, RefreshCw } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import tuningForkImage from '@assets/turningfork_1749438223210.png';
 import StarCard from '@/components/starcard/StarCard';
 import WellBeingLadderSvg from '@/components/visualization/WellBeingLadderSvg';
-
-// Color mapping function for flow attributes
-const getAttributeColor = (text: string): string => {
-  if (!text) return 'rgb(156, 163, 175)'; // Default gray
-  
-  // Default to primary colors by category
-  const attrColorMap: { [key: string]: string } = {
-    // Thinking quadrant attributes (green)
-    'Analytical': 'rgb(1, 162, 82)',
-    'Strategic': 'rgb(1, 162, 82)',
-    'Thoughtful': 'rgb(1, 162, 82)',
-    'Clever': 'rgb(1, 162, 82)',
-    'Innovative': 'rgb(1, 162, 82)',
-    'Investigative': 'rgb(1, 162, 82)',
-    'Abstract': 'rgb(1, 162, 82)',
-    'Analytic': 'rgb(1, 162, 82)',
-    'Astute': 'rgb(1, 162, 82)',
-    'Big Picture': 'rgb(1, 162, 82)',
-    'Curious': 'rgb(1, 162, 82)',
-    'Focussed': 'rgb(1, 162, 82)',
-    'Focused': 'rgb(1, 162, 82)',
-    'Insightful': 'rgb(1, 162, 82)',
-    'Logical': 'rgb(1, 162, 82)',
-    'Rational': 'rgb(1, 162, 82)',
-    'Reflective': 'rgb(1, 162, 82)',
-    'Sensible': 'rgb(1, 162, 82)',
-    
-    // Acting quadrant attributes (red)
-    'Energetic': 'rgb(241, 64, 64)',
-    'Bold': 'rgb(241, 64, 64)',
-    'Decisive': 'rgb(241, 64, 64)',
-    'Proactive': 'rgb(241, 64, 64)',
-    'Persistent': 'rgb(241, 64, 64)',
-    'Physical': 'rgb(241, 64, 64)',
-    'Confident': 'rgb(241, 64, 64)',
-    'Adaptable': 'rgb(241, 64, 64)',
-    'Adventurous': 'rgb(241, 64, 64)',
-    'Assertive': 'rgb(241, 64, 64)',
-    'Brave': 'rgb(241, 64, 64)',
-    'Capable': 'rgb(241, 64, 64)',
-    'Challenging': 'rgb(241, 64, 64)',
-    'Courageous': 'rgb(241, 64, 64)',
-    'Dynamic': 'rgb(241, 64, 64)',
-    'Fearless': 'rgb(241, 64, 64)',
-    'Resolute': 'rgb(241, 64, 64)',
-    'Resourceful': 'rgb(241, 64, 64)',
-    'Strong': 'rgb(241, 64, 64)',
-    'Competitive': 'rgb(241, 64, 64)',
-    'Effortless': 'rgb(241, 64, 64)',
-    
-    // Feeling quadrant attributes (blue)
-    'Empathetic': 'rgb(22, 126, 253)',
-    'Friendly': 'rgb(22, 126, 253)',
-    'Supportive': 'rgb(22, 126, 253)',
-    'Compassionate': 'rgb(22, 126, 253)',
-    'Intuitive': 'rgb(22, 126, 253)',
-    'Empathic': 'rgb(22, 126, 253)',
-    'Accepting': 'rgb(22, 126, 253)',
-    'Authentic': 'rgb(22, 126, 253)',
-    'Calm': 'rgb(22, 126, 253)',
-    'Caring': 'rgb(22, 126, 253)',
-    'Connected': 'rgb(22, 126, 253)',
-    'Considerate': 'rgb(22, 126, 253)',
-    'Diplomatic': 'rgb(22, 126, 253)',
-    'Emotional': 'rgb(22, 126, 253)',
-    'Generous': 'rgb(22, 126, 253)',
-    'Gentle': 'rgb(22, 126, 253)',
-    'Grateful': 'rgb(22, 126, 253)',
-    'Harmonious': 'rgb(22, 126, 253)',
-    'Helpful': 'rgb(22, 126, 253)',
-    'Kind': 'rgb(22, 126, 253)',
-    'Open': 'rgb(22, 126, 253)',
-    'Sociable': 'rgb(22, 126, 253)',
-    'Vulnerable': 'rgb(22, 126, 253)',
-    'Passionate': 'rgb(22, 126, 253)',
-    'Creative': 'rgb(22, 126, 253)',
-    'Receptive': 'rgb(22, 126, 253)',
-    
-    // Planning quadrant attributes (yellow)
-    'Organized': 'rgb(255, 203, 47)',
-    'Meticulous': 'rgb(255, 203, 47)',
-    'Reliable': 'rgb(255, 203, 47)',
-    'Consistent': 'rgb(255, 203, 47)',
-    'Practical': 'rgb(255, 203, 47)',
-    'Careful': 'rgb(255, 203, 47)',
-    'Controlled': 'rgb(255, 203, 47)',
-    'Dependable': 'rgb(255, 203, 47)',
-    'Detailed': 'rgb(255, 203, 47)',
-    'Diligent': 'rgb(255, 203, 47)',
-    'Methodical': 'rgb(255, 203, 47)',
-    'Orderly': 'rgb(255, 203, 47)',
-    'Precise': 'rgb(255, 203, 47)',
-    'Punctual': 'rgb(255, 203, 47)', 
-    'Responsible': 'rgb(255, 203, 47)',
-    'Thorough': 'rgb(255, 203, 47)',
-    'Trustworthy': 'rgb(255, 203, 47)',
-    'Immersed': 'rgb(255, 203, 47)',
-  };
-  
-  // Try exact match first
-  if (attrColorMap[text]) {
-    return attrColorMap[text];
-  }
-  
-  // Fallback to default gray for unrecognized attributes
-  return 'rgb(156, 163, 175)';
-};
 
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
@@ -140,10 +34,6 @@ interface GrowthPlanData {
   visionStart?: string;
   visionNow?: string;
   visionNext?: string;
-  startState?: string;
-  keyChallenges?: string;
-  currentState?: string;
-  supportNeeded?: string;
   progressWorking?: string;
   progressNeedHelp?: string;
   teamFlowStatus?: string;
@@ -156,35 +46,35 @@ interface GrowthPlanData {
   updatedAt?: string;
 }
 
-function GrowthPlanView({
+export default function GrowthPlanView({
   navigate,
   markStepCompleted,
   setCurrentContent
 }: GrowthPlanViewProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0); // Start at 0 for intro
   const [quarter, setQuarter] = useState('Q2');
   const [year, setYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState<Partial<GrowthPlanData>>({});
-  const [use24HourFormat, setUse24HourFormat] = useState(true);
 
+  const { data: user } = useCurrentUser();
   const queryClient = useQueryClient();
 
   // Fetch user's Star Card data
   const { data: starCardData } = useQuery({
     queryKey: ['/api/workshop-data/starcard'],
-    enabled: currentStep === 1
+    enabled: currentStep >= 1
   });
 
   // Fetch user's Cantril Ladder data
   const { data: cantrilData } = useQuery({
     queryKey: ['/api/workshop-data/cantril-ladder'],
-    enabled: currentStep === 2
+    enabled: currentStep >= 1
   });
 
   // Fetch flow attributes data
   const { data: flowAttributesData } = useQuery({
     queryKey: ['/api/workshop-data/flow-attributes'],
-    enabled: currentStep === 1
+    enabled: currentStep >= 1
   });
 
   // Fetch existing growth plan data
@@ -205,8 +95,12 @@ function GrowthPlanView({
           year
         })
       }),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      console.log('Growth plan saved successfully:', response);
       queryClient.invalidateQueries({ queryKey: ['/api/growth-plan'] });
+    },
+    onError: (error) => {
+      console.error('Failed to save growth plan:', error);
     }
   });
 
@@ -222,33 +116,187 @@ function GrowthPlanView({
   };
 
   const handleNext = () => {
-    // Save current step data
-    savePlanMutation.mutate(formData);
+    // Save current step data for steps 1-8
+    if (currentStep >= 1) {
+      savePlanMutation.mutate(formData);
+    }
     
     if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
     } else {
-      markStepCompleted('6-1');
-      setCurrentContent('quarterly-report');
+      // Removed markStepCompleted call - growth plan completion should not advance menu
+      
+      // Beta users should go to team workshop prep instead of final report
+      if (user?.isBetaTester && user?.role !== 'admin') {
+        setCurrentContent('team-workshop-prep');
+      } else {
+        // setCurrentContent('final-report');
+      }
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
   const stepTitles = [
+    'What is a Growth Plan?',
     'Quarter Selection',
     'Remember Your Star Power', 
     'Your Ladder',
     'Playing to Strengths',
     'Flow Optimization',
-    'Progress Check',
     'Vision Vitality',
+    'Progress Check',
     'Key Actions Summary'
   ];
+
+  const renderIntroduction = () => (
+    <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+          <BookOpen className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900">Your Quarterly Growth Plan</h2>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Module 3: Post-Workshop Individual Development
+        </p>
+      </div>
+
+      {/* What is this? */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Info className="w-5 h-5" />
+            What is a Quarterly Growth Plan?
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-gray-700">
+          <p>
+            This post-workshop module is designed for ongoing individual development that builds on 
+            your initial workshop experiences and lessons learned. The Growth Plan helps you:
+          </p>
+          <ul className="space-y-2 ml-6">
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Connect your internal vision with actual, observable steps forward</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Apply flow insights to long-term development and sustained performance</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Create quarterly reviews with your managers or coaches</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <span>Track progress through measurable, strength-based development</span>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Key Features */}
+      <div className="grid md:grid-cols-3 gap-6">
+        <Card>
+          <CardContent className="p-6 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Star className="w-6 h-6 text-yellow-600" />
+            </div>
+            <h3 className="font-semibold">Strengths-Based</h3>
+            <p className="text-sm text-gray-600">
+              Leverage your Star Card assessment to maximize your natural talents and abilities
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto bg-green-100 rounded-lg flex items-center justify-center">
+              <Target className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="font-semibold">Goal-Oriented</h3>
+            <p className="text-sm text-gray-600">
+              Set clear, measurable targets using your Cantril Ladder well-being framework
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6 text-center space-y-3">
+            <div className="w-12 h-12 mx-auto bg-purple-100 rounded-lg flex items-center justify-center">
+              <RefreshCw className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 className="font-semibold">Quarterly Rhythm</h3>
+            <p className="text-sm text-gray-600">
+              Regular 90-day cycles create sustainable growth momentum and accountability
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Process Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Your Growth Planning Process
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Individual Reflection (Steps 1-7)</h4>
+                <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                  <li>• Review your Star Power and strengths</li>
+                  <li>• Set well-being targets using your ladder</li>
+                  <li>• Plan flow optimization strategies</li>
+                  <li>• Align with your vision and purpose</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Implementation Focus (Step 8)</h4>
+                <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                  <li>• Define top 3 quarterly priorities</li>
+                  <li>• Set success metrics and milestones</li>
+                  <li>• Schedule key dates and check-ins</li>
+                  <li>• Create accountability structure</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+              <p className="text-sm text-amber-800">
+                <strong>💡 Best Practice:</strong> Ideally, participants can tie this quarterly review 
+                with their managers or coaches. The structured approach mirrors those from Module 1 
+                to help you connect insights to long-term development and sustained performance.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Team Tune-In Prompts Preview */}
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="text-green-800">Team Tune-In 360 Prompts</CardTitle>
+        </CardHeader>
+        <CardContent className="text-green-700">
+          <p className="mb-3">This module includes reflective prompts for team development:</p>
+          <ul className="space-y-1 text-sm">
+            <li>• "What helps you find flow?"</li>
+            <li>• "How are you feeling about our team?"</li>
+            <li>• "What do you need to stay engaged?"</li>
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   const renderQuarterSelection = () => (
     <div className="space-y-6">
@@ -288,6 +336,15 @@ function GrowthPlanView({
           </Select>
         </div>
       </div>
+
+      {existingPlan?.data && (
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-center">
+          <p className="text-blue-800">
+            <strong>Existing Plan Found:</strong> You have an existing growth plan for {quarter} {year}. 
+            You can review and update it as needed.
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -318,6 +375,17 @@ function GrowthPlanView({
                 <li>Identify areas where you can contribute most effectively</li>
               </ol>
             </div>
+
+            <div>
+              <Label htmlFor="starPowerReflection">Star Power Reflection</Label>
+              <Textarea
+                id="starPowerReflection"
+                placeholder="How can you leverage your unique strength combination this quarter? What opportunities align with your Star Power?"
+                value={formData.starPowerReflection || ''}
+                onChange={(e) => updateFormData('starPowerReflection', e.target.value)}
+                className="h-32"
+              />
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -337,7 +405,7 @@ function GrowthPlanView({
                     }
                     return {
                       text: attr.name,
-                      color: getAttributeColor(attr.name)
+                      color: "rgb(59, 130, 246)"
                     };
                   }) : []
                 }
@@ -352,7 +420,7 @@ function GrowthPlanView({
   };
 
   const renderLadder = () => {
-    const cantrilResults = (cantrilData as any)?.data as { wellBeingLevel: number; futureWellBeingLevel: number; currentLevel?: number; futureLevel?: number } | undefined;
+    const cantrilResults = (cantrilData as any)?.data as { currentLevel: number; futureLevel: number } | undefined;
     
     return (
       <div className="space-y-6">
@@ -365,8 +433,8 @@ function GrowthPlanView({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="flex justify-center">
             <WellBeingLadderSvg 
-              currentValue={cantrilResults?.wellBeingLevel || cantrilResults?.currentLevel || formData.ladderCurrentLevel || 5}
-              futureValue={cantrilResults?.futureWellBeingLevel || cantrilResults?.futureLevel || formData.ladderTargetLevel || 7}
+              currentValue={cantrilResults?.currentLevel || formData.ladderCurrentLevel || 5}
+              futureValue={cantrilResults?.futureLevel || formData.ladderTargetLevel || 7}
             />
           </div>
 
@@ -377,11 +445,11 @@ function GrowthPlanView({
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Current Life Satisfaction:</span>
-                    <span className="font-bold">{cantrilResults.wellBeingLevel || cantrilResults.currentLevel}/10</span>
+                    <span className="font-bold">{cantrilResults.currentLevel}/10</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Future Expectation (1 year):</span>
-                    <span className="font-bold">{cantrilResults.futureWellBeingLevel || cantrilResults.futureLevel}/10</span>
+                    <span className="font-bold">{cantrilResults.futureLevel}/10</span>
                   </div>
                 </div>
               </div>
@@ -439,339 +507,117 @@ function GrowthPlanView({
     );
   };
 
-  const renderPlayingToStrengths = () => {
-    const starData = (starCardData as any) || null;
-    
-    // Create sorted quadrants based on star card data
-    const quadrantData = [
-      { key: 'planning', label: 'PLANNING', score: starData?.planning || 0 },
-      { key: 'thinking', label: 'THINKING', score: starData?.thinking || 0 },
-      { key: 'acting', label: 'ACTING', score: starData?.acting || 0 },
-      { key: 'feeling', label: 'FEELING', score: starData?.feeling || 0 }
-    ].sort((a, b) => b.score - a.score);
+  const renderPlayingToStrengths = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
+        <h3 className="text-xl font-semibold">Playing to Strengths</h3>
+        <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
+      </div>
 
-    const strengthColors = {
-      'PLANNING': { bg: 'bg-yellow-100', circle: 'bg-yellow-500' },
-      'THINKING': { bg: 'bg-green-100', circle: 'bg-green-500' },
-      'ACTING': { bg: 'bg-red-100', circle: 'bg-red-500' },
-      'FEELING': { bg: 'bg-blue-100', circle: 'bg-blue-500' }
-    };
-
-    return (
-      <div className="space-y-6">
-        <div className="text-center mb-6">
-          <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
-          <h3 className="text-xl font-semibold">Playing to Strengths</h3>
-          <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-              <h4 className="font-semibold mb-3">Purpose</h4>
-              <p className="text-sm text-gray-700 mb-4">
-                Apply your Star Card insights to current projects and challenges.
-              </p>
-              
-              <h4 className="font-semibold mb-3">Explanation</h4>
-              <p className="text-sm text-gray-700 mb-4">
-                How are you harnessing your five strengths for maximum impact and engagement.
-              </p>
-
-              <h4 className="font-semibold mb-3">Guidelines</h4>
-              <p className="text-sm text-gray-700">
-                List one stellar example from each following the order of your Star Badge.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold">Star Card Strength</h4>
-                <h4 className="font-semibold">Your Best Example</h4>
-              </div>
-              
-              {quadrantData.map((strength, index) => {
-                const colors = strengthColors[strength.label];
-                const strengthKey = `strength_${strength.key}`;
-                const currentValue = formData.strengthsExamples?.[strengthKey] || '';
-                
-                return (
-                  <div key={strength.key} className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="flex items-center">
-                      <div className={`${colors.bg} p-2 rounded-full mr-3`}>
-                        <div className={`w-6 h-6 ${colors.circle} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
-                          {index + 1}
-                        </div>
-                      </div>
-                      <span className="font-medium text-sm">
-                        {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} ({strength.score}%)
-                      </span>
-                    </div>
-                    <div>
-                      <Textarea
-                        placeholder="Type your paragraph..."
-                        value={currentValue}
-                        onChange={(e) => {
-                          const updatedExamples = {
-                            ...(formData.strengthsExamples || {}),
-                            [strengthKey]: e.target.value
-                          };
-                          updateFormData('strengthsExamples', updatedExamples);
-                        }}
-                        className="h-20 text-sm"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-xs text-gray-600">
-                  List strengths in order... Add your best example
-                </p>
-              </div>
-            </div>
-          </div>
+      <div className="space-y-4">
+        <div>
+          <Label>Strengths Examples & Applications</Label>
+          <Textarea
+            placeholder="How will you apply your top strengths this quarter? Provide specific examples of projects, roles, or responsibilities where you can leverage your unique strength combination..."
+            value={formData.strengthsExamples ? JSON.stringify(formData.strengthsExamples) : ''}
+            onChange={(e) => updateFormData('strengthsExamples', { general: e.target.value })}
+            className="h-32"
+          />
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
-  const renderFlowOptimization = () => {
-    const formatHour = (hour: number) => {
-      if (use24HourFormat) {
-        return `${hour.toString().padStart(2, '0')}:00`;
-      } else {
-        if (hour === 0) return '12:00 AM';
-        if (hour === 12) return '12:00 PM';
-        if (hour < 12) return `${hour}:00 AM`;
-        return `${hour - 12}:00 PM`;
-      }
-    };
+  const renderFlowOptimization = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <Clock className="w-12 h-12 mx-auto text-purple-500 mb-3" />
+        <h3 className="text-xl font-semibold">Flow Optimization</h3>
+        <p className="text-gray-600">Optimize your peak performance hours and flow triggers</p>
+      </div>
 
-    return (
       <div className="space-y-6">
-        <div className="text-center mb-6">
-          <Clock className="w-12 h-12 mx-auto text-purple-500 mb-3" />
-          <h3 className="text-xl font-semibold">Flow Optimization</h3>
-          <p className="text-gray-600">Identify and maximize your peak performance periods and energy patterns</p>
+        <div>
+          <Label>Peak Flow Hours</Label>
+          <div className="text-sm text-gray-600 mb-3">Select your most productive hours</div>
+          <div className="grid grid-cols-6 gap-2">
+            {Array.from({ length: 24 }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  const currentHours = formData.flowPeakHours || [];
+                  const newHours = currentHours.includes(i) 
+                    ? currentHours.filter(h => h !== i)
+                    : [...currentHours, i];
+                  updateFormData('flowPeakHours', newHours);
+                }}
+                className={`p-2 text-xs rounded border ${
+                  (formData.flowPeakHours || []).includes(i)
+                    ? 'bg-purple-100 border-purple-300 text-purple-700'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                {i.toString().padStart(2, '0')}:00
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-              <h4 className="font-semibold mb-3">Purpose</h4>
-              <p className="text-sm text-gray-700 mb-4">
-                Identify and maximize your peak performance periods and energy patterns.
-              </p>
-              
-              <h4 className="font-semibold mb-3">Explanation</h4>
-              <p className="text-sm text-gray-700 mb-4">
-                Understanding when and how you work best helps align tasks with your natural rhythms.
-              </p>
-
-              <h4 className="font-semibold mb-3">Guidelines</h4>
-              <p className="text-sm text-gray-700 mb-4">
-                Plan Strategically: Align your most demanding or creative tasks with your green-highlighted periods
-              </p>
-
-              <div className="mb-4">
-                <h5 className="font-medium text-sm mb-2">Mark Flow Times</h5>
-                <p className="text-xs text-gray-600">
-                  Use green sticky notes on the 24-hour timeline to highlight your peak focus and energy hours.
-                </p>
-              </div>
-
-              <div>
-                <h5 className="font-medium text-sm mb-2">Catalysts: What helps you find flow? 📝</h5>
-                <p className="text-xs text-gray-600">
-                  Type your response.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <Label>Peak Flow Hours</Label>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-gray-600">12hr</span>
-                  <button
-                    onClick={() => setUse24HourFormat(!use24HourFormat)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      use24HourFormat ? 'bg-blue-600' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                        use24HourFormat ? 'translate-x-5' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                  <span className="text-xs text-gray-600">24hr</span>
-                </div>
-              </div>
-              <div className="text-sm text-gray-600 mb-3">Select your most productive hours (green highlights)</div>
-              <div className="grid grid-cols-6 gap-2">
-                {Array.from({ length: 24 }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      const currentHours = formData.flowPeakHours || [];
-                      const newHours = currentHours.includes(i) 
-                        ? currentHours.filter(h => h !== i)
-                        : [...currentHours, i];
-                      updateFormData('flowPeakHours', newHours);
-                    }}
-                    className={`p-1 text-xs rounded border ${
-                      (formData.flowPeakHours || []).includes(i)
-                        ? 'bg-green-100 border-green-300 text-green-700'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    {formatHour(i)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="flowCatalysts">Catalysts: What helps you find flow?</Label>
-              <Textarea
-                id="flowCatalysts"
-                placeholder="Type your response..."
-                value={formData.flowCatalysts || ''}
-                onChange={(e) => updateFormData('flowCatalysts', e.target.value)}
-                className="h-32"
-              />
-            </div>
-          </div>
+        <div>
+          <Label htmlFor="flowCatalysts">Flow Catalysts</Label>
+          <Textarea
+            id="flowCatalysts"
+            placeholder="What activities, environments, or conditions help you achieve flow state? How can you optimize these for the quarter ahead?"
+            value={formData.flowCatalysts || ''}
+            onChange={(e) => updateFormData('flowCatalysts', e.target.value)}
+            className="h-32"
+          />
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
   const renderVisionVitality = () => (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <div className="w-12 h-12 mx-auto bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mb-3">
-          5
-        </div>
+        <CheckCircle className="w-12 h-12 mx-auto text-teal-500 mb-3" />
         <h3 className="text-xl font-semibold">Vision Vitality</h3>
+        <p className="text-gray-600">Connect your current work to your larger vision and purpose</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-            <h4 className="font-semibold mb-3">Purpose</h4>
-            <p className="text-sm text-gray-700 mb-4">
-              Keep your Module 1 vision active and evolving.
-            </p>
-            
-            <h4 className="font-semibold mb-3">Explanation</h4>
-            <p className="text-sm text-gray-700 mb-4">
-              Track progress from initial vision through current achievements to next goals.
-            </p>
-
-            <h4 className="font-semibold mb-3">Guidelines</h4>
-            <div className="text-sm text-gray-700 space-y-1">
-              <p>2. Review Module 1 vision statement</p>
-              <p>3. Note START (initial state, challenges)</p>
-              <p>4. Document NOW (achievements, current state)</p>
-              <p>5. Plan NEXT (priorities, support needed)</p>
-            </div>
-          </div>
+      <div className="space-y-6">
+        <div>
+          <Label htmlFor="visionStart">Where I Started</Label>
+          <Textarea
+            id="visionStart"
+            placeholder="Reflect on where you began this journey..."
+            value={formData.visionStart || ''}
+            onChange={(e) => updateFormData('visionStart', e.target.value)}
+            className="h-24"
+          />
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="moduleVision">Module 1 Vision Statement</Label>
-            <Textarea
-              id="moduleVision"
-              placeholder="Type your paragraph..."
-              value={formData.visionStart || ''}
-              onChange={(e) => updateFormData('visionStart', e.target.value)}
-              className="h-20 bg-blue-50"
-            />
-          </div>
+        <div>
+          <Label htmlFor="visionNow">Where I Am Now</Label>
+          <Textarea
+            id="visionNow"
+            placeholder="Describe your current state and progress..."
+            value={formData.visionNow || ''}
+            onChange={(e) => updateFormData('visionNow', e.target.value)}
+            className="h-24"
+          />
+        </div>
 
-          <div className="relative">
-            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-300"></div>
-            
-            <div className="space-y-6">
-              <div className="relative pl-12">
-                <div className="absolute left-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
-                </div>
-                <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-                  <h5 className="font-medium mb-1">START</h5>
-                  <p className="text-xs text-gray-600 mb-2">Initial State:</p>
-                  <Textarea
-                    placeholder="Type your paragraph..."
-                    value={formData.startState || ''}
-                    onChange={(e) => updateFormData('startState', e.target.value)}
-                    className="h-16 mb-2 text-sm"
-                  />
-                  <p className="text-xs text-gray-600 mb-2">Key Challenges:</p>
-                  <Textarea
-                    placeholder="Type your paragraph..."
-                    value={formData.keyChallenges || ''}
-                    onChange={(e) => updateFormData('keyChallenges', e.target.value)}
-                    className="h-16 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="relative pl-12">
-                <div className="absolute left-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
-                </div>
-                <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-                  <h5 className="font-medium mb-1">NOW</h5>
-                  <p className="text-xs text-gray-600 mb-2">Achievements:</p>
-                  <Textarea
-                    placeholder="Type your paragraph..."
-                    value={formData.visionNow || ''}
-                    onChange={(e) => updateFormData('visionNow', e.target.value)}
-                    className="h-16 mb-2 text-sm"
-                  />
-                  <p className="text-xs text-gray-600 mb-2">Current State:</p>
-                  <Textarea
-                    placeholder="Type your paragraph..."
-                    value={formData.currentState || ''}
-                    onChange={(e) => updateFormData('currentState', e.target.value)}
-                    className="h-16 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="relative pl-12">
-                <div className="absolute left-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
-                </div>
-                <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-                  <h5 className="font-medium mb-1">NEXT</h5>
-                  <p className="text-xs text-gray-600 mb-2">Priority Focus:</p>
-                  <Textarea
-                    placeholder="Type your paragraph..."
-                    value={formData.visionNext || ''}
-                    onChange={(e) => updateFormData('visionNext', e.target.value)}
-                    className="h-16 mb-2 text-sm"
-                  />
-                  <p className="text-xs text-gray-600 mb-2">Support Needed:</p>
-                  <Textarea
-                    placeholder="Type your paragraph..."
-                    value={formData.supportNeeded || ''}
-                    onChange={(e) => updateFormData('supportNeeded', e.target.value)}
-                    className="h-16 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+        <div>
+          <Label htmlFor="visionNext">Where I'm Going Next</Label>
+          <Textarea
+            id="visionNext"
+            placeholder="Outline your next steps and future direction..."
+            value={formData.visionNext || ''}
+            onChange={(e) => updateFormData('visionNext', e.target.value)}
+            className="h-24"
+          />
         </div>
       </div>
     </div>
@@ -811,77 +657,63 @@ function GrowthPlanView({
     </div>
   );
 
-  const renderKeyActions = () => {
-    const handleCompleteUpdate = () => {
-      // For now, just show completion message
-      alert(`Thank you for completing your ${quarter} ${year} Quarterly Growth Plan! Your responses have been saved and will help guide your development this quarter.`);
-    };
+  const renderKeyActions = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <Target className="w-12 h-12 mx-auto text-red-500 mb-3" />
+        <h3 className="text-xl font-semibold">Key Actions Summary</h3>
+        <p className="text-gray-600">Define your top priorities and success metrics for the quarter</p>
+      </div>
 
-    return (
       <div className="space-y-6">
-        <div className="text-center mb-6">
-          <Target className="w-12 h-12 mx-auto text-red-500 mb-3" />
-          <h3 className="text-xl font-semibold">Key Actions Summary</h3>
-          <p className="text-gray-600">Define your top priorities and success metrics for the quarter</p>
+        <div>
+          <Label htmlFor="keyPriorities">Top 3 Priorities</Label>
+          <Textarea
+            id="keyPriorities"
+            placeholder="List your three most important priorities for this quarter..."
+            value={formData.keyPriorities ? formData.keyPriorities.join('\n') : ''}
+            onChange={(e) => updateFormData('keyPriorities', e.target.value.split('\n').filter(p => p.trim()))}
+            className="h-24"
+          />
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="keyPriorities">Top 3 Priorities</Label>
-            <Textarea
-              id="keyPriorities"
-              placeholder="List your three most important priorities for this quarter..."
-              value={formData.keyPriorities ? formData.keyPriorities.join('\n') : ''}
-              onChange={(e) => updateFormData('keyPriorities', e.target.value.split('\n').filter(p => p.trim()))}
-              className="h-24"
-            />
-          </div>
+        <div>
+          <Label htmlFor="successLooksLike">Success Looks Like</Label>
+          <Textarea
+            id="successLooksLike"
+            placeholder="Describe what success will look like at the end of this quarter..."
+            value={formData.successLooksLike || ''}
+            onChange={(e) => updateFormData('successLooksLike', e.target.value)}
+            className="h-32"
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="successLooksLike">Success Looks Like</Label>
-            <Textarea
-              id="successLooksLike"
-              placeholder="Describe what success will look like at the end of this quarter..."
-              value={formData.successLooksLike || ''}
-              onChange={(e) => updateFormData('successLooksLike', e.target.value)}
-              className="h-32"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="keyDates">Key Dates & Milestones</Label>
-            <Textarea
-              id="keyDates"
-              placeholder="Important dates, deadlines, and milestones for this quarter..."
-              value={formData.keyDates || ''}
-              onChange={(e) => updateFormData('keyDates', e.target.value)}
-              className="h-24"
-            />
-          </div>
-
-          <div className="pt-6 border-t">
-            <div className="text-center space-y-4">
-              <p className="text-sm text-gray-600">
-                Thank you for taking the time to plan your growth this quarter!
-              </p>
-            </div>
-          </div>
+        <div>
+          <Label htmlFor="keyDates">Key Dates & Milestones</Label>
+          <Textarea
+            id="keyDates"
+            placeholder="Important dates, deadlines, and milestones for this quarter..."
+            value={formData.keyDates || ''}
+            onChange={(e) => updateFormData('keyDates', e.target.value)}
+            className="h-24"
+          />
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
   const renderCurrentStep = () => {
     switch (currentStep) {
+      case 0: return renderIntroduction();
       case 1: return renderQuarterSelection();
       case 2: return renderStarPower();
       case 3: return renderLadder();
       case 4: return renderPlayingToStrengths();
       case 5: return renderFlowOptimization();
-      case 6: return renderProgressCheck();
-      case 7: return renderVisionVitality();
+      case 6: return renderVisionVitality();
+      case 7: return renderProgressCheck();
       case 8: return renderKeyActions();
-      default: return renderQuarterSelection();
+      default: return renderIntroduction();
     }
   };
 
@@ -891,7 +723,7 @@ function GrowthPlanView({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <img src={tuningForkImage} alt="Growth Plan" className="w-8 h-8" />
-            Quarterly Growth Plan - {stepTitles[currentStep - 1]}
+            Quarterly Growth Plan - {stepTitles[currentStep]}
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Step {currentStep} of 8</span>
@@ -911,7 +743,7 @@ function GrowthPlanView({
             <Button
               variant="outline"
               onClick={handlePrevious}
-              disabled={currentStep === 1}
+              disabled={currentStep === 0}
               className="flex items-center gap-2"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -923,7 +755,7 @@ function GrowthPlanView({
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
               disabled={savePlanMutation.isPending}
             >
-              {currentStep === 8 ? 'Complete Plan' : 'Next'}
+              {currentStep === 0 ? 'Begin Growth Planning' : currentStep === 8 ? 'Complete Plan' : 'Next'}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -932,5 +764,3 @@ function GrowthPlanView({
     </div>
   );
 }
-
-export default GrowthPlanView;

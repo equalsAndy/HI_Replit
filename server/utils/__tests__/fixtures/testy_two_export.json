@@ -1,0 +1,86 @@
+{
+  "userInfo": {
+    "userName": "Testy Two",
+    "firstName": "Testy",
+    "lastName": "Two",
+    "email": "testy.two@example.com"
+  },
+  "assessments": {
+    "starCard": {
+      "thinking": 18,
+      "feeling": 21,
+      "acting": 34,
+      "planning": 27
+    },
+    "flowAssessment": {
+      "flowScore": 46
+    },
+    "flowAttributes": {
+      "flowScore": 0,
+      "attributes": [
+        { "name": "focus", "order": 1 },
+        { "name": "challenge", "order": 2 },
+        { "name": "skills", "order": 3 },
+        { "name": "clear_goals", "order": 4 },
+        { "name": "feedback", "order": 5 }
+      ]
+    },
+    "stepByStepReflection": {
+      "strength1": "I excel at breaking down complex problems into manageable, actionable components that teams can execute effectively.",
+      "strength2": "I thrive when working with passionate, dedicated team members who share a commitment to excellence and continuous improvement.",
+      "strength3": "I bring strategic thinking and long-term planning perspectives to projects, helping teams see beyond immediate tasks to larger goals.",
+      "strength4": "I maintain consistently high standards and attention to detail, ensuring quality outcomes while mentoring others to do the same.",
+      "teamValues": "Trust, transparency, mutual respect, and shared accountability for both individual and collective success.",
+      "uniqueContribution": "Strategic analysis combined with systems thinking approach that helps teams navigate complexity while maintaining focus on core objectives."
+    },
+    "roundingOutReflection": {
+      "strengths": "I perform at my absolute best in quiet, focused environments with minimal interruptions, where I can dive deep into analytical work and strategic planning.",
+      "values": "Constant interruptions, unclear or frequently changing requirements, rushed deadlines without proper planning time, and environments lacking psychological safety.",
+      "passions": "Working on meaningful projects that create lasting positive impact, especially those involving system optimization and helping others reach their potential.",
+      "growthAreas": "Building confidence in public speaking and presentation skills, particularly when presenting to senior leadership or large groups."
+    },
+    "cantrilLadder": {
+      "wellBeingLevel": 7,
+      "futureWellBeingLevel": 9,
+      "currentFactors": "Strong work-life balance, supportive team environment, engaging projects that utilize my analytical strengths, and clear growth trajectory.",
+      "futureImprovements": "Enhanced leadership opportunities, advanced skill development in strategic communication, and increased impact on organizational direction.",
+      "specificChanges": "Taking on formal team leadership role, completing advanced leadership training, and establishing mentorship relationships both as mentor and mentee.",
+      "quarterlyProgress": "Complete leadership certification program, successfully lead first major strategic initiative, and establish regular feedback loops with team members.",
+      "quarterlyActions": "Enroll in executive presentation skills workshop, begin mentoring two junior team members, and propose strategic process improvement initiative to leadership."
+    },
+    "futureSelfReflection": {
+      "flowOptimizedLife": "Leading a high-performing, innovative team that consistently delivers exceptional results while fostering an environment of psychological safety, continuous learning, and meaningful impact.",
+      "futureSelfDescription": "A confident, inspiring leader who empowers others to reach their full potential while driving strategic initiatives that create lasting positive change in the organization and beyond.",
+      "visualizationNotes": "I see myself standing confidently before my team during our quarterly review, presenting our achievements with clear metrics and celebrating both individual and collective growth. The energy in the room is positive and forward-looking.",
+      "additionalNotes": "I feel deeply energized by the meaningful work we accomplish together and the strong connections I have with each team member. There's a sense of shared purpose and mutual respect that makes even challenging days fulfilling.",
+      "imageData": {
+        "selectedImages": [
+          {
+            "url": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800",
+            "credit": {
+              "photographer": "Campaign Creators",
+              "source": "Unsplash"
+            }
+          },
+          {
+            "url": "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800",
+            "credit": {
+              "photographer": "Headway",
+              "source": "Unsplash"
+            }
+          }
+        ],
+        "imageMeaning": "These images represent the confident leadership presence I aspire to develop - someone who can guide teams with clarity while fostering an environment of collaboration and innovation."
+      }
+    },
+    "finalReflection": {
+      "futureLetterText": "Dear Future Me, you have grown into the strategic leader you always knew you could become. Your team trusts your vision and follows your guidance because you have learned to balance high standards with genuine care for people. The analytical skills that once felt like solitary strengths now serve as the foundation for building systems and processes that elevate everyone around you. You've found your voice in leadership, and more importantly, you've learned to help others find theirs. Keep growing, keep learning, and never forget that your greatest impact comes not just from what you accomplish, but from how you empower others to accomplish things they never thought possible."
+    }
+  },
+  "metadata": {
+    "workshopType": "AST",
+    "completedAt": "2024-01-15T10:30:00Z",
+    "version": "2.1",
+    "dataExportedAt": "2024-01-15T11:00:00Z"
+  }
+}

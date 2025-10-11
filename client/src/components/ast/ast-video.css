@@ -1,0 +1,19 @@
+/* Native aspect ratio with a safe fallback */
+.hi-video-shell {
+  aspect-ratio: 16 / 9;          /* modern browsers */
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Fallback for very old browsers without aspect-ratio */
+@supports not (aspect-ratio: 16 / 9) {
+  .hi-video-shell {
+    height: 0;
+    padding-bottom: 56.25%;
+  }
+  .hi-video-shell > iframe {
+    position: absolute;
+    inset: 0;
+  }
+}

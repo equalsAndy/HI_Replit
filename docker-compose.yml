@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # ChromaDB Vector Database Service
+  chroma-coaching:
+    image: chromadb/chroma:0.6.0
+    container_name: chroma-coaching
+    ports:
+      - "8000:8000"
+    environment:
+      # ChromaDB Configuration
+      - CHROMA_HOST=0.0.0.0
+      - CHROMA_PORT=8000
+      - CHROMA_LOG_LEVEL=INFO
+      # Server mode configuration
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+      # Authentication and security
+      - ALLOW_RESET=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      # Persist ChromaDB data
+      - chroma_data:/chroma/chroma
+      # Optional: Custom configuration
+      - ./chroma-config:/chroma/config:ro
+    networks:
+      - coaching-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database (if you want to manage it via Docker Compose)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: postgres-coaching
+  #   environment:
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - coaching-network
+  #   restart: unless-stopped
+
+volumes:
+  chroma_data:
+    driver: local
+  # postgres_data:
+  #   driver: local
+
+networks:
+  coaching-network:
+    driver: bridge

@@ -1,57 +1,38 @@
 #!/bin/bash
+# Fast Production Build Script
+# Builds locally with production environment variables, then uses fast Docker deployment
 
-echo "🔨 Building AllStarTeams for Production Container..."
+set -e
 
-# Create build directory
-mkdir -p dist
+echo "🏗️ Building locally with production environment variables..."
 
-# Build the frontend
-echo "📦 Building frontend..."
-npm run build
+# Get production environment variables from AWS Parameter Store
+echo "🔐 Retrieving Auth0 configuration from AWS SSM Parameter Store..."
+export VITE_AUTH0_CLIENT_ID=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_CLIENT_ID" --with-decryption --query "Parameter.Value" --output text)
+export VITE_AUTH0_DOMAIN=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_DOMAIN" --with-decryption --query "Parameter.Value" --output text)
+export VITE_AUTH0_AUDIENCE=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_AUDIENCE" --with-decryption --query "Parameter.Value" --output text)
+export VITE_AUTH0_REDIRECT_URI=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_REDIRECT_URI" --with-decryption --query "Parameter.Value" --output text)
 
-# Verify build files exist
-if [ ! -d "dist/public" ]; then
-    echo "❌ Frontend build failed - dist/public directory not found"
-    exit 1
-fi
+echo "✅ Production environment variables set:"
+echo "   VITE_AUTH0_CLIENT_ID: $VITE_AUTH0_CLIENT_ID"
+echo "   VITE_AUTH0_DOMAIN: $VITE_AUTH0_DOMAIN"
+echo "   VITE_AUTH0_AUDIENCE: $VITE_AUTH0_AUDIENCE"
+echo "   VITE_AUTH0_REDIRECT_URI: $VITE_AUTH0_REDIRECT_URI"
 
-echo "✅ Frontend build complete"
+# Update version for production
+echo "📋 Updating version for production..."
+./version-manager.sh production
 
-# Build the backend (TypeScript to JavaScript)
-echo "🔧 Building backend..."
-npx tsc --build tsconfig.json --verbose
+# Clean previous build
+echo "🧹 Cleaning previous build..."
+rm -rf dist/
 
-if [ $? -ne 0 ]; then
-    echo "❌ Backend build failed"
-    exit 1
-fi
+# Build with production environment variables
+echo "🔨 Running production build..."
+npm run build:production
 
-echo "✅ Backend build complete"
-
-# Verify all required files exist
-REQUIRED_FILES=(
-    "server/index-production.ts"
-    "shared/schema.ts"
-    "dist/public/index.html"
-)
-
-for file in "${REQUIRED_FILES[@]}"; do
-    if [ ! -f "$file" ]; then
-        echo "❌ Required file missing: $file"
-        exit 1
-    fi
-done
-
-echo "✅ All required files verified"
-
-# Build the Docker image
-echo "🐳 Building Docker image..."
-docker build -f Dockerfile.production -t allstarteams-prod .
-
-if [ $? -eq 0 ]; then
-    echo "🎉 Production build complete!"
-    echo "🚀 Run with: docker run -p 8080:8080 --env-file .env allstarteams-prod"
-else
-    echo "❌ Docker build failed"
-    exit 1
-fi
+echo "✅ Production build complete!"
+echo "📁 Built files are in ./dist/"
+echo ""
+echo "🚀 Ready for fast Docker deployment!"
+echo "   Run: ./deploy-to-production-fast.sh -y"

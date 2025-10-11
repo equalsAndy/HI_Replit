@@ -1,0 +1,32 @@
+# Fix IA Workshop Data Persistence - Migration Commands
+# Date: 2025-07-26
+# Issue: workshop_step_data table missing, causing IA workshop data not to persist
+
+# STEP 1: Start the development server (in one terminal)
+cd /Users/bradtopliff/Desktop/HI_Replit/server
+npm run dev
+
+# STEP 2: In another terminal, run the migration
+cd /Users/bradtopliff/Desktop/HI_Replit
+node run-migration.js
+
+# STEP 3: Test the migration worked
+# You can test by going to an IA workshop step and entering some data
+# Then refresh the page - the data should now persist
+
+# STEP 4: Verify table creation (optional)
+# If you want to check the database directly:
+# psql $DATABASE_URL -c "\d workshop_step_data"
+
+# ALTERNATIVE: Manual SQL execution
+# If the node script doesn't work, you can run the SQL directly:
+# psql $DATABASE_URL -f migrations/0002_add_workshop_step_data.sql
+
+# FILES CREATED:
+# - migrations/0002_add_workshop_step_data.sql (proper migration file)
+# - run-migration.js (Node.js script to apply migration)
+
+# WHAT THIS FIXES:
+# - IA workshop step data will now persist between page refreshes
+# - useWorkshopStepData hook will be able to save/load data successfully
+# - The 500 errors on workshop-data/step API calls should be resolved

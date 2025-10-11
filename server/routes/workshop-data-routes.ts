@@ -1,12 +1,105 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Pool } from 'pg';
 import { getFeatureStatus } from '../middleware/feature-flags.js';
 import { db } from '../db.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
-import { users } from '../../shared/schema.js';
+import { users, workshopStepData } from '../../shared/schema.js';
+
+// Create PostgreSQL pool for raw SQL queries
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 // Create a router for workshop data operations
 const workshopDataRouter = Router();
+
+/**
+ * Generate and store StarCard PNG in photo service after workshop completion
+ */
+async function generateAndStoreStarCard(userId: number): Promise<void> {
+  try {
+    console.log(`🎨 Generating StarCard PNG for user ${userId}...`);
+
+    // Import photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
+    
+    // Get user's assessment data for StarCard generation
+    const assessments = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(eq(schema.userAssessments.userId, userId));
+    
+    // Find the starCard assessment
+    const starCardAssessment = assessments.find(a => a.assessmentType === 'starCard');
+    let starCardData;
+    
+    if (!starCardAssessment) {
+      console.warn(`⚠️ No StarCard assessment found for user ${userId}, using default values`);
+      // Use default StarCard data if assessment not found
+      starCardData = {
+        thinking: 25,
+        acting: 25,
+        feeling: 25,
+        planning: 25
+      };
+    } else {
+      try {
+        starCardData = JSON.parse(starCardAssessment.results);
+        console.log(`📊 Found StarCard data for user ${userId}:`, starCardData);
+      } catch (parseError) {
+        console.warn(`⚠️ Failed to parse StarCard data for user ${userId}, using defaults:`, parseError);
+        starCardData = {
+          thinking: 25,
+          acting: 25,
+          feeling: 25,
+          planning: 25
+        };
+      }
+    }
+    
+    // For now, we'll create a placeholder until StarCard image generation is built
+    // In future: Use actual StarCard component rendering to PNG
+    const starCardImageBuffer = await createStarCardImagePlaceholder(userId, starCardData);
+    
+    // Convert buffer to base64 data URL for StarCard storage
+    const base64Data = `data:image/png;base64,${starCardImageBuffer.toString('base64')}`;
+
+    // Store using the dedicated StarCard method (keeps it separate from profile picture)
+    const photoId = await photoStorageService.storeStarCard(userId, base64Data, starCardData);
+
+    console.log(`✅ StarCard PNG generated and stored separately for user ${userId} with photo ID: ${photoId}`);
+    
+  } catch (error) {
+    console.error(`❌ Failed to generate StarCard for user ${userId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Create a placeholder StarCard image (until proper generation is built)
+ */
+async function createStarCardImagePlaceholder(userId: number, starCardData: any): Promise<Buffer> {
+  // For now, create a simple text-based placeholder
+  // In future: Use actual StarCard component with headless browser rendering
+  
+  const placeholderText = `StarCard for User ${userId}\nThinking: ${starCardData.thinking}%\nActing: ${starCardData.acting}%\nFeeling: ${starCardData.feeling}%\nPlanning: ${starCardData.planning}%`;
+  
+  // Create a minimal image buffer (1x1 pixel PNG as placeholder)
+  // In production, this would be replaced with actual StarCard rendering
+  const placeholderBuffer = Buffer.from([
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+    0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0x0F, 0x00, 0x00,
+    0x01, 0x00, 0x01, 0x5C, 0xC2, 0x5E, 0x5D, 0x00, 0x00, 0x00, 0x00, 0x49,
+    0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+  ]);
+  
+  console.log(`📝 Created placeholder StarCard image (${placeholderBuffer.length} bytes)`);
+  return placeholderBuffer;
+}
 
 /**
  * Authentication middleware for workshop data endpoints
@@ -32,35 +125,85 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * Middleware to check workshop completion status and prevent editing
+ * Helper function to determine which module a step belongs to
+ */
+const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
+  if (!stepId) return null;
+
+  // AST Workshop step mapping
+  if (stepId.match(/^[1-5]-[1-9]$/)) {
+    return parseInt(stepId.split('-')[0]) as 1 | 2 | 3 | 4 | 5;
+  }
+
+  // IA Workshop step mapping (ia-X-Y format)
+  if (stepId.match(/^ia-[1-5]-[1-9]$/)) {
+    return parseInt(stepId.split('-')[1]) as 1 | 2 | 3 | 4 | 5;
+  }
+
+  return null;
+};
+
+/**
+ * Helper function to check if a module should be locked
+ * @param module Module number (1-5)
+ * @param isWorkshopCompleted Whether the workshop is completed
+ * @returns true if the module should be locked for editing
+ */
+const isModuleLocked = (module: number, isWorkshopCompleted: boolean): boolean => {
+  if (module >= 1 && module <= 3) {
+    // Modules 1-3: Lock AFTER workshop completion
+    return isWorkshopCompleted;
+  } else if (module >= 4 && module <= 5) {
+    // Modules 4-5: Lock BEFORE workshop completion (unlock AFTER completion)
+    return !isWorkshopCompleted;
+  }
+  return false;
+};
+
+/**
+ * Enhanced middleware to check workshop completion status with module-specific locking
  */
 const checkWorkshopLocked = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req.session as any).userId;
-    
+
     // Determine workshop type from request body or params
-    const appType = req.body.appType || req.params.appType || 'ast';
-    
+    const appType = req.body.workshopType || req.body.appType || req.params.appType || 'ast';
+
     if (!['ast', 'ia'].includes(appType)) {
       return next(); // Skip check for invalid app types
     }
-    
+
     const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user[0]) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
-    const isLocked = user[0][completionField];
-    
-    if (isLocked) {
-      return res.status(403).json({ 
-        error: 'Workshop is completed and locked for editing',
-        workshopType: appType.toUpperCase(),
-        completedAt: user[0][appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']
-      });
+    const isWorkshopCompleted = user[0][completionField];
+
+    // Get step ID from request to determine module
+    const stepId = req.body.stepId || req.params.stepId || req.body.data?.stepId;
+
+    if (stepId) {
+      const module = getStepModule(stepId);
+
+      if (module && isModuleLocked(module, isWorkshopCompleted)) {
+        const lockReason = isWorkshopCompleted
+          ? `Module ${module} is locked because the workshop is completed`
+          : `Module ${module} is locked until the workshop is completed`;
+
+        return res.status(403).json({
+          error: lockReason,
+          workshopType: appType.toUpperCase(),
+          stepId,
+          module,
+          isWorkshopCompleted,
+          completedAt: user[0][appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']
+        });
+      }
     }
-    
+
     next();
   } catch (error) {
     console.error('Error checking workshop lock status:', error);
@@ -138,19 +281,6 @@ workshopDataRouter.get('/videos/:id', async (req: Request, res: Response) => {
  * Get star card data for the current user - TEMPORARILY DISABLED TO STOP INFINITE LOOP
  */
 workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
-  // TEMPORARILY RETURN MOCK DATA TO STOP INFINITE LOOP
-  return res.status(200).json({
-    success: true,
-    thinking: 27,
-    acting: 25,
-    feeling: 23,
-    planning: 25,
-    isEmpty: false,
-    source: 'mock_data_to_stop_loop'
-  });
-  
-  // Original code disabled below
-  /*
   try {
     // Get user ID from session (primary) or cookie (fallback)
     let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
@@ -219,7 +349,8 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
         acting: 0,
         feeling: 0,
         planning: 0,
-        isEmpty: true
+        isEmpty: true,
+        source: 'no_database_data'
       });
     }
   } catch (error) {
@@ -230,7 +361,6 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
       error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
-  */
 });
 
 /**
@@ -351,10 +481,10 @@ workshopDataRouter.get('/assessment/questions', async (req: Request, res: Respon
 });
 
 // Start assessment
-workshopDataRouter.post('/assessment/start', async (req: Request, res: Response) => {
+workshopDataRouter.post('/assessment/start', authenticateUser, async (req: Request, res: Response) => {
   try {
-    // Get user ID from cookie
-    const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Get user ID from session (set by authenticateUser middleware)
+    const userId = (req.session as any).userId;
     
     if (!userId) {
       return res.status(401).json({
@@ -401,10 +531,10 @@ workshopDataRouter.post('/assessment/start', async (req: Request, res: Response)
 });
 
 // Save answer
-workshopDataRouter.post('/assessment/answer', async (req: Request, res: Response) => {
+workshopDataRouter.post('/assessment/answer', authenticateUser, async (req: Request, res: Response) => {
   try {
-    // Get user ID from cookie
-    const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Get user ID from session (set by authenticateUser middleware)
+    const userId = (req.session as any).userId;
     
     if (!userId) {
       return res.status(401).json({
@@ -807,33 +937,60 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
     }
     
     // Handle both new timeline structure and legacy format for backward compatibility
-    const { 
-      direction,
-      twentyYearVision, 
-      tenYearMilestone, 
-      fiveYearFoundation, 
+    const {
       flowOptimizedLife,
       // Legacy fields for backward compatibility
-      futureSelfDescription, 
-      visualizationNotes, 
-      additionalNotes 
+      futureSelfDescription,
+      visualizationNotes,
+      additionalNotes,
+      // Image data for visualization exercise
+      imageData
     } = req.body;
 
     // Validate that at least one field has meaningful content
-    const hasContent = (
-      (twentyYearVision && twentyYearVision.trim().length >= 10) ||
-      (tenYearMilestone && tenYearMilestone.trim().length >= 10) ||
-      (fiveYearFoundation && fiveYearFoundation.trim().length >= 10) ||
+    const hasTextContent = (
       (flowOptimizedLife && flowOptimizedLife.trim().length >= 10) ||
       (futureSelfDescription && futureSelfDescription.trim().length >= 10) ||
       (visualizationNotes && visualizationNotes.trim().length >= 10)
     );
 
-    if (!hasContent) {
+    // Check if image data has meaningful content
+    const hasImageContent = (
+      imageData && (
+        (Array.isArray(imageData.selectedImages) && imageData.selectedImages.length > 0) ||
+        (typeof imageData.imageMeaning === 'string' && imageData.imageMeaning.trim().length >= 5)
+      )
+    );
+
+    // More lenient validation - allow saving with just selected images (no meaning required)
+    const hasMinimalImageContent = (
+      imageData &&
+      Array.isArray(imageData.selectedImages) &&
+      imageData.selectedImages.length > 0
+    );
+
+    console.log('🔍 Future Self validation check:', {
+      hasTextContent,
+      hasImageContent,
+      hasMinimalImageContent,
+      imageDataExists: !!imageData,
+      selectedImagesCount: imageData?.selectedImages?.length || 0,
+      imageMeaningLength: imageData?.imageMeaning?.trim().length || 0
+    });
+
+    // Accept if either meaningful text OR any images are selected
+    if (!hasTextContent && !hasMinimalImageContent) {
       return res.status(400).json({
         success: false,
-        error: 'At least one reflection field must contain at least 10 characters',
-        code: 'VALIDATION_ERROR'
+        error: 'At least one reflection field must contain at least 10 characters, or at least one image must be selected',
+        code: 'VALIDATION_ERROR',
+        debug: {
+          hasTextContent,
+          hasImageContent,
+          hasMinimalImageContent,
+          imageDataStructure: imageData ? Object.keys(imageData) : null,
+          hint: 'Select at least one image or provide meaningful text content'
+        }
       });
     }
 
@@ -845,9 +1002,6 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
     };
 
     try {
-      validateField('twentyYearVision', twentyYearVision);
-      validateField('tenYearMilestone', tenYearMilestone); 
-      validateField('fiveYearFoundation', fiveYearFoundation);
       validateField('flowOptimizedLife', flowOptimizedLife);
       validateField('futureSelfDescription', futureSelfDescription, 1000);
       validateField('visualizationNotes', visualizationNotes, 1000);
@@ -862,21 +1016,30 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
 
     // Build assessment data structure (supports both new and legacy formats)
     const assessmentData = {
-      // New timeline structure
-      direction: direction || 'backward',
-      twentyYearVision: twentyYearVision ? twentyYearVision.trim() : '',
-      tenYearMilestone: tenYearMilestone ? tenYearMilestone.trim() : '',
-      fiveYearFoundation: fiveYearFoundation ? fiveYearFoundation.trim() : '',
+      // Deprecated fields removed from payload
       flowOptimizedLife: flowOptimizedLife ? flowOptimizedLife.trim() : '',
-      
+
       // Legacy fields for backward compatibility
       futureSelfDescription: futureSelfDescription ? futureSelfDescription.trim() : '',
       visualizationNotes: visualizationNotes ? visualizationNotes.trim() : '',
       additionalNotes: additionalNotes ? additionalNotes.trim() : '',
-      
+
+      // Image data for visualization exercise
+      imageData: imageData || null,
+
       // Completion timestamp
       completedAt: new Date().toISOString()
     };
+    
+    console.log('💾 Future Self data being saved:', {
+      userId,
+      hasImageData: !!imageData,
+      imageDataStructure: imageData ? {
+        selectedImages: imageData.selectedImages?.length || 0,
+        imageMeaning: imageData.imageMeaning?.length || 0
+      } : null,
+      assessmentDataKeys: Object.keys(assessmentData)
+    });
     
     // Check if assessment already exists
     const existingAssessment = await db
@@ -911,7 +1074,7 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
       data: assessmentData,
       meta: { 
         saved_at: new Date().toISOString(),
-        assessmentType: 'futureSelfReflection' 
+        assessmentType: 'futureSelfReflection'
       }
     });
   } catch (error) {
@@ -1416,6 +1579,55 @@ workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/workshop-data/assessments/:prefix - Get assessments by prefix
+workshopDataRouter.get('/assessments/:prefix', async (req: Request, res: Response) => {
+  try {
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const { prefix } = req.params;
+
+    // Get assessments that match the prefix (e.g., 'ast-5-2')
+    const assessments = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(eq(schema.userAssessments.userId, userId));
+
+    // Filter by prefix and parse results
+    const result: any = {};
+    assessments.forEach(assessment => {
+      if (assessment.assessmentType.startsWith(prefix)) {
+        const typeSuffix = assessment.assessmentType.replace(`${prefix}-`, '');
+        try {
+          result[typeSuffix] = JSON.parse(assessment.results);
+        } catch (error) {
+          console.error(`Error parsing assessment ${assessment.assessmentType}:`, error);
+        }
+      }
+    });
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Error retrieving assessments:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve assessments',
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
+    });
+  }
+});
+
 /**
  * Step-by-Step Reflection endpoints
  */
@@ -1435,14 +1647,15 @@ workshopDataRouter.post('/step-by-step-reflection', authenticateUser, checkWorks
       });
     }
     
-    const { strength1, strength2, strength3, strength4, teamValues, uniqueContribution } = req.body;
-    
+    const { strength1, strength2, strength3, strength4, imaginationReflection, teamValues, uniqueContribution } = req.body;
+
     // Create the reflections data object
     const reflectionData = {
       strength1: strength1 || '',
       strength2: strength2 || '',
       strength3: strength3 || '',
       strength4: strength4 || '',
+      imaginationReflection: imaginationReflection || '',
       teamValues: teamValues || '',
       uniqueContribution: uniqueContribution || ''
     };
@@ -1533,6 +1746,62 @@ workshopDataRouter.get('/step-by-step-reflection', async (req: Request, res: Res
       success: false,
       error: 'Failed to retrieve assessment',
       code: 'FETCH_ERROR'
+    });
+  }
+});
+
+/**
+ * Upload visualization image to photo storage
+ */
+// POST /api/workshop-data/upload-visualization-image
+workshopDataRouter.post('/upload-visualization-image', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
+  try {
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const { imageData, filename } = req.body;
+
+    if (!imageData || typeof imageData !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Image data is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Import photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
+    
+    // Store the image using the photo storage service
+    const photoId = await photoStorageService.storePhoto(imageData, userId, true, `Workshop-StarCard-user-${userId}-${Date.now()}.png`);
+    
+    // Generate URL for accessing the stored image
+    const imageUrl = `/api/photos/${photoId}`;
+
+    res.json({
+      success: true,
+      photoId,
+      imageUrl,
+      filename: filename || 'uploaded-image',
+      message: 'Image uploaded successfully'
+    });
+
+  } catch (error) {
+    console.error('Image upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Upload failed',
+      code: 'UPLOAD_ERROR'
     });
   }
 });
@@ -1752,103 +2021,19 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
         results: JSON.stringify(assessmentData)
       });
     }
-    
+
+    console.log(`✅ Final reflection saved for user ${userId}`);
+
+    // Simple response - no auto-completion
     res.json({
       success: true,
       data: assessmentData,
-      meta: { 
+      meta: {
         saved_at: new Date().toISOString(),
-        assessmentType: 'finalReflection' 
+        assessmentType: 'finalReflection'
       }
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error instanceof Error ? (error as Error).message : 'Save failed',
-      code: 'SAVE_ERROR'
-    });
-  }
-});
-
-// POST /api/workshop-data/final-reflection
-workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
-  try {
-    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
-    
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
-      userId = (req.session as any).userId;
-    }
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Not authenticated'
-      });
-    }
-    
-    const { futureLetterText } = req.body;
-    
-    // Validation
-    if (!futureLetterText || typeof futureLetterText !== 'string' || futureLetterText.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Future letter text is required',
-        code: 'VALIDATION_ERROR',
-        details: { futureLetterText: 'Required field' }
-      });
-    }
-    
-    if (futureLetterText.length > 5000) {
-      return res.status(400).json({
-        success: false,
-        error: 'Future letter text must be 5000 characters or less',
-        code: 'VALIDATION_ERROR',
-        details: { futureLetterText: 'Must be 5000 characters or less' }
-      });
-    }
-    
-    const reflectionData = {
-      futureLetterText: futureLetterText.trim()
-    };
-    
-    // Check if reflection already exists
-    const existingReflection = await db
-      .select()
-      .from(schema.userAssessments)
-      .where(
-        and(
-          eq(schema.userAssessments.userId, userId),
-          eq(schema.userAssessments.assessmentType, 'finalReflection')
-        )
-      );
-    
-    if (existingReflection.length > 0) {
-      // Update existing reflection
-      await db
-        .update(schema.userAssessments)
-        .set({
-          results: JSON.stringify(reflectionData)
-        })
-        .where(eq(schema.userAssessments.id, existingReflection[0].id));
-    } else {
-      // Create new reflection record
-      await db.insert(schema.userAssessments).values({
-        userId,
-        assessmentType: 'finalReflection',
-        results: JSON.stringify(reflectionData)
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: reflectionData,
-      meta: { 
-        saved_at: new Date().toISOString(),
-        assessmentType: 'finalReflection' 
-      }
-    });
-  } catch (error) {
-    console.error('Error saving final reflection:', error);
     res.status(400).json({
       success: false,
       error: error instanceof Error ? (error as Error).message : 'Save failed',
@@ -2448,7 +2633,17 @@ workshopDataRouter.get('/ia-assessment/:userId?', async (req: Request, res: Resp
     }
     
     const assessmentData = assessment[0];
-    const results = JSON.parse(assessmentData.results);
+    let results;
+    try {
+      results = typeof assessmentData.results === 'string' ? JSON.parse(assessmentData.results) : assessmentData.results;
+    } catch (error) {
+      console.error('Error parsing IA assessment results:', error);
+      // If data is corrupted, return null to trigger a re-assessment
+      return res.status(200).json({
+        success: true,
+        data: null
+      });
+    }
     
     return res.status(200).json({
       success: true,
@@ -2506,7 +2701,7 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
       await db
         .update(schema.userAssessments)
         .set({
-          results: JSON.stringify(results),
+          results: typeof results === 'string' ? results : JSON.stringify(results),
         })
         .where(eq(schema.userAssessments.id, existingAssessment[0].id));
     } else {
@@ -2514,7 +2709,7 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
       await db.insert(schema.userAssessments).values({
         userId,
         assessmentType: 'iaCoreCapabilities',
-        results: JSON.stringify(results)
+        results: typeof results === 'string' ? results : JSON.stringify(results)
       });
     }
     
@@ -2528,6 +2723,227 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
     return res.status(500).json({
       success: false,
       message: 'Failed to save IA assessment'
+    });
+  }
+});
+
+/**
+ * NEW UNIFIED WORKSHOP DATA ENDPOINTS
+ * Generic save/load system for all workshop step data
+ */
+
+/**
+ * GET /api/workshop-data/step/:workshopType/:stepId
+ * Load data for a specific workshop step
+ */
+workshopDataRouter.get('/step/:workshopType/:stepId', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const { workshopType, stepId } = req.params;
+    const userId = (req.session as any).userId;
+    
+    // Validate parameters
+    if (!['ast', 'ia'].includes(workshopType)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid workshop type. Must be "ast" or "ia"' 
+      });
+    }
+    
+    if (!stepId || typeof stepId !== 'string') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Step ID is required' 
+      });
+    }
+    
+    // Query the database (exclude soft-deleted records)
+    const result = await db
+      .select()
+      .from(workshopStepData)
+      .where(and(
+        eq(workshopStepData.userId, userId),
+        eq(workshopStepData.workshopType, workshopType),
+        eq(workshopStepData.stepId, stepId),
+        isNull(workshopStepData.deletedAt)
+      ))
+      .limit(1);
+    
+    if (result.length === 0) {
+      return res.json({
+        success: true,
+        data: null, // No data saved yet
+        stepId,
+        workshopType
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result[0].data,
+      stepId,
+      workshopType,
+      lastUpdated: result[0].updatedAt
+    });
+    
+  } catch (error) {
+    console.error('Error loading workshop step data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to load step data' 
+    });
+  }
+});
+
+/**
+ * POST /api/workshop-data/step
+ * Save data for a workshop step (upsert)
+ */
+workshopDataRouter.post('/step', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
+  try {
+    const { workshopType, stepId, data } = req.body;
+    const userId = (req.session as any).userId;
+    
+    console.log('🔍 POST /step - Request details:', { 
+      workshopType, 
+      stepId, 
+      userId, 
+      hasData: !!data,
+      dataKeys: data ? Object.keys(data) : [],
+      sessionExists: !!(req.session),
+      userIdType: typeof userId
+    });
+    
+    // Validate parameters
+    if (!['ast', 'ia'].includes(workshopType)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid workshop type. Must be "ast" or "ia"' 
+      });
+    }
+    
+    if (!stepId || typeof stepId !== 'string') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Step ID is required' 
+      });
+    }
+    
+    if (!data || typeof data !== 'object') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Data object is required' 
+      });
+    }
+    
+    console.log('🔍 Attempting to save workshop data:', { userId, workshopType, stepId, dataKeys: Object.keys(data) });
+
+    // Check if userId is valid
+    if (!userId || typeof userId !== 'number') {
+      console.error('❌ Invalid userId:', { userId, type: typeof userId });
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required - invalid user ID' 
+      });
+    }
+
+    console.log('🔍 About to execute UPSERT with:', { 
+      userId, 
+      workshopType, 
+      stepId, 
+      hasData: !!data,
+      dataSize: JSON.stringify(data).length 
+    });
+
+    // Upsert the data (insert or update if exists)
+    const result = await db
+      .insert(workshopStepData)
+      .values({
+        userId,
+        workshopType,
+        stepId,
+        data: data,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: [workshopStepData.userId, workshopStepData.workshopType, workshopStepData.stepId],
+        set: {
+          data: data,
+          updatedAt: new Date(),
+          deletedAt: null // Clear deleted_at to restore soft-deleted records
+        }
+      })
+      .returning();
+
+    console.log('✅ Workshop data saved successfully:', result[0]);
+    
+    res.json({
+      success: true,
+      stepId,
+      workshopType,
+      saved: true,
+      lastUpdated: result[0].updatedAt
+    });
+    
+  } catch (error) {
+    console.error('❌ Error saving workshop step data:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to save step data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/workshop-data/steps/:workshopType
+ * Load all data for a workshop (for bulk loading)
+ */
+workshopDataRouter.get('/steps/:workshopType', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const { workshopType } = req.params;
+    const userId = (req.session as any).userId;
+    
+    // Validate parameters
+    if (!['ast', 'ia'].includes(workshopType)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid workshop type. Must be "ast" or "ia"' 
+      });
+    }
+    
+    // Query all steps for this workshop (exclude soft-deleted records)
+    const results = await db
+      .select()
+      .from(workshopStepData)
+      .where(and(
+        eq(workshopStepData.userId, userId),
+        eq(workshopStepData.workshopType, workshopType),
+        isNull(workshopStepData.deletedAt)
+      ))
+      .orderBy(workshopStepData.stepId);
+    
+    // Convert to key-value object for easy access
+    const stepData = results.reduce((acc, row) => {
+      acc[row.stepId] = row.data;
+      return acc;
+    }, {} as Record<string, any>);
+    
+    res.json({
+      success: true,
+      workshopType,
+      stepData,
+      totalSteps: results.length
+    });
+    
+  } catch (error) {
+    console.error('Error loading workshop steps data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to load workshop data' 
     });
   }
 });
@@ -2571,43 +2987,65 @@ workshopDataRouter.get('/completion-status', authenticateUser, async (req: Reque
 workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { appType } = req.body; // 'ast' or 'ia'
-    const userId = (req.session as any).userId;
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!appType || !['ast', 'ia'].includes(appType)) {
       return res.status(400).json({ error: 'Invalid app type. Must be "ast" or "ia"' });
     }
     
-    // Get user's navigation progress to verify completion
+    // FIXED: Read from navigationProgress table instead of users.navigationProgress column
+    const navigationData = await db
+      .select()
+      .from(schema.navigationProgress)
+      .where(
+        and(
+          eq(schema.navigationProgress.userId, userId),
+          eq(schema.navigationProgress.appType, appType)
+        )
+      );
+    
+    if (navigationData.length === 0) {
+      return res.status(400).json({
+        error: 'No navigation progress found',
+        missingSteps: []
+      });
+    }
+
+    // FIXED: Parse completed steps from correct table structure
+    let completedSteps: string[] = [];
+    try {
+      completedSteps = JSON.parse(navigationData[0].completedSteps);
+    } catch (e) {
+      completedSteps = [];
+    }
+    
+    // Define required steps for each workshop type (only core modules 1-3 for AST)
+    const requiredSteps = appType === 'ast'
+      ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4']
+      : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
+    
+    const allCompleted = requiredSteps.every(step => completedSteps.includes(step));
+
+    console.log(`🔍 Workshop completion check for user ${userId} (${appType.toUpperCase()}):`);
+    console.log(`  📋 Required steps:`, requiredSteps);
+    console.log(`  ✅ Completed steps:`, completedSteps);
+    console.log(`  🎯 All completed:`, allCompleted);
+
+    if (!allCompleted) {
+      const missingSteps = requiredSteps.filter(step => !completedSteps.includes(step));
+      console.log(`  ❌ Missing steps:`, missingSteps);
+      return res.status(400).json({
+        error: 'Cannot complete workshop - not all steps finished',
+        missingSteps
+      });
+    }
+    
+    // Check if already completed
     const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user[0]) {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    // Parse navigation progress
-    let progress;
-    try {
-      progress = JSON.parse(user[0].navigationProgress || '{}');
-    } catch (e) {
-      progress = {};
-    }
-    
-    // Define required steps for each workshop type
-    const requiredSteps = appType === 'ast' 
-      ? ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'] 
-      : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
-    
-    const completedSteps = progress[appType]?.completedSteps || [];
-    const allCompleted = requiredSteps.every(step => completedSteps.includes(step));
-    
-    if (!allCompleted) {
-      const missingSteps = requiredSteps.filter(step => !completedSteps.includes(step));
-      return res.status(400).json({ 
-        error: 'Cannot complete workshop - not all steps finished',
-        missingSteps 
-      });
-    }
-    
-    // Check if already completed
     const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
     if (user[0][completionField]) {
       return res.status(400).json({ error: 'Workshop already completed' });
@@ -2615,22 +3053,397 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
     
     // Mark workshop as completed
     const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+    const completedAt = new Date();
     
     await db.update(users)
       .set({ 
         [completionField]: true,
-        [timestampField]: new Date()
+        [timestampField]: completedAt
       })
       .where(eq(users.id, userId));
+
+    // For AST workshop completion, auto-generate StarCard
+    if (appType === 'ast') {
+      try {
+        console.log(`🎯 AST workshop completed for user ${userId}, generating StarCard...`);
+        await generateAndStoreStarCard(userId);
+        console.log(`✅ StarCard generated for user ${userId}`);
+      } catch (starCardError) {
+        console.error(`⚠️ Failed to generate StarCard for user ${userId}:`, starCardError);
+        // Don't fail the workshop completion, just log the error
+      }
+    }
     
     res.json({ 
       success: true, 
       message: `${appType.toUpperCase()} workshop completed successfully`,
-      completedAt: new Date().toISOString()
+      completedAt: completedAt.toISOString()
     });
   } catch (error) {
     console.error('Error completing workshop:', error);
     res.status(500).json({ error: 'Failed to complete workshop' });
+  }
+});
+
+/**
+ * Store visualization image from workshop (with attribution)
+ * POST /api/workshop-data/store-visualization-image
+ */
+workshopDataRouter.post('/store-visualization-image', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const { imageUrl, attribution, context = 'workshop_visualization' } = req.body;
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (!imageUrl || !attribution) {
+      return res.status(400).json({ error: 'Image URL and attribution are required' });
+    }
+
+    console.log(`🖼️ Storing visualization image for user ${userId}: ${imageUrl}`);
+
+    // Import the photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
+
+    // Download and store the image with attribution
+    const photoId = await photoStorageService.storeVisualizationImage(
+      userId,
+      imageUrl,
+      attribution,
+      context
+    );
+
+    res.json({
+      success: true,
+      photoId,
+      message: 'Visualization image stored successfully',
+      imageUrl: `/api/photos/${photoId}`
+    });
+
+  } catch (error) {
+    console.error('Error storing visualization image:', error);
+    res.status(500).json({ error: 'Failed to store visualization image' });
+  }
+});
+
+/**
+ * Get user's assessment profile (MBTI, Enneagram, CliftonStrengths, DISC)
+ * GET /api/workshop-data/assessment-profile
+ */
+workshopDataRouter.get('/assessment-profile', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const result = await pool.query(`
+      SELECT
+        mbti_familiarity,
+        mbti_result,
+        enneagram_familiarity,
+        enneagram_result,
+        clifton_familiarity,
+        clifton_result,
+        disc_familiarity,
+        disc_result,
+        created_at,
+        updated_at
+      FROM user_assessment_profiles
+      WHERE user_id = $1
+    `, [userId]);
+
+    if (result.rows.length === 0) {
+      return res.json({ profile: null });
+    }
+
+    res.json({ profile: result.rows[0] });
+
+  } catch (error) {
+    console.error('Error fetching assessment profile:', error);
+    res.status(500).json({ error: 'Failed to fetch assessment profile' });
+  }
+});
+
+/**
+ * Save/update user's assessment profile
+ * POST /api/workshop-data/assessment-profile
+ */
+workshopDataRouter.post('/assessment-profile', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const {
+      mbti_familiarity,
+      mbti_result,
+      enneagram_familiarity,
+      enneagram_result,
+      clifton_familiarity,
+      clifton_result,
+      disc_familiarity,
+      disc_result
+    } = req.body;
+
+    // Upsert the assessment profile
+    await pool.query(`
+      INSERT INTO user_assessment_profiles (
+        user_id,
+        mbti_familiarity,
+        mbti_result,
+        enneagram_familiarity,
+        enneagram_result,
+        clifton_familiarity,
+        clifton_result,
+        disc_familiarity,
+        disc_result
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        mbti_familiarity = EXCLUDED.mbti_familiarity,
+        mbti_result = EXCLUDED.mbti_result,
+        enneagram_familiarity = EXCLUDED.enneagram_familiarity,
+        enneagram_result = EXCLUDED.enneagram_result,
+        clifton_familiarity = EXCLUDED.clifton_familiarity,
+        clifton_result = EXCLUDED.clifton_result,
+        disc_familiarity = EXCLUDED.disc_familiarity,
+        disc_result = EXCLUDED.disc_result,
+        updated_at = CURRENT_TIMESTAMP
+    `, [
+      userId,
+      mbti_familiarity || '',
+      mbti_result || '',
+      enneagram_familiarity || '',
+      enneagram_result || '',
+      clifton_familiarity || '',
+      clifton_result || '',
+      disc_familiarity || '',
+      disc_result || ''
+    ]);
+
+    // Mark the "add-assessments" activity as completed
+    await pool.query(`
+      INSERT INTO user_profile_activities (user_id, activity_id, completed)
+      VALUES ($1, $2, true)
+      ON CONFLICT (user_id, activity_id)
+      DO UPDATE SET completed = true, completed_at = CURRENT_TIMESTAMP
+    `, [userId, 'add-assessments']);
+
+    res.json({ success: true, message: 'Assessment profile saved successfully' });
+
+  } catch (error) {
+    console.error('Error saving assessment profile:', error);
+    res.status(500).json({ error: 'Failed to save assessment profile' });
+  }
+});
+
+/**
+ * Get user's profile activity completion states
+ * GET /api/workshop-data/profile-activities
+ */
+workshopDataRouter.get('/profile-activities', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const result = await pool.query(`
+      SELECT activity_id, completed, completed_at
+      FROM user_profile_activities
+      WHERE user_id = $1 AND completed = true
+    `, [userId]);
+
+    // Convert to object format: { 'activity-id': true, ... }
+    const completedActivities: Record<string, boolean> = {};
+    result.rows.forEach((row: any) => {
+      completedActivities[row.activity_id] = row.completed;
+    });
+
+    res.json({ completedActivities });
+
+  } catch (error) {
+    console.error('Error fetching profile activities:', error);
+    res.status(500).json({ error: 'Failed to fetch profile activities' });
+  }
+});
+
+/**
+ * Save/update user's WOO assessment results
+ * POST /api/workshop-data/woo-results
+ */
+workshopDataRouter.post('/woo-results', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const {
+      woa,
+      level,
+      label,
+      responses
+    } = req.body;
+
+    // Upsert the WOO results
+    await pool.query(`
+      INSERT INTO user_woo_results (
+        user_id,
+        woa_score,
+        woo_level,
+        woo_label,
+        responses
+      ) VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        woa_score = EXCLUDED.woa_score,
+        woo_level = EXCLUDED.woo_level,
+        woo_label = EXCLUDED.woo_label,
+        responses = EXCLUDED.responses,
+        updated_at = CURRENT_TIMESTAMP
+    `, [
+      userId,
+      woa || 0,
+      level || 0,
+      label || '',
+      JSON.stringify(responses || {})
+    ]);
+
+    // Mark the "woo-assessment" activity as completed
+    await pool.query(`
+      INSERT INTO user_profile_activities (user_id, activity_id, completed)
+      VALUES ($1, $2, true)
+      ON CONFLICT (user_id, activity_id)
+      DO UPDATE SET completed = true, completed_at = CURRENT_TIMESTAMP
+    `, [userId, 'woo-assessment']);
+
+    res.json({ success: true, message: 'WOO results saved successfully' });
+
+  } catch (error) {
+    console.error('Error saving WOO results:', error);
+    res.status(500).json({ error: 'Failed to save WOO results' });
+  }
+});
+
+/**
+ * Get user's WOO assessment results
+ * GET /api/workshop-data/woo-results
+ */
+workshopDataRouter.get('/woo-results', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const result = await pool.query(`
+      SELECT woa_score, woo_level, woo_label, responses, completed_at
+      FROM user_woo_results
+      WHERE user_id = $1
+    `, [userId]);
+
+    if (result.rows.length === 0) {
+      return res.json({ wooResults: null });
+    }
+
+    res.json({
+      wooResults: {
+        woa: parseFloat(result.rows[0].woa_score),
+        level: result.rows[0].woo_level,
+        label: result.rows[0].woo_label,
+        responses: result.rows[0].responses,
+        completedAt: result.rows[0].completed_at
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching WOO results:', error);
+    res.status(500).json({ error: 'Failed to fetch WOO results' });
+  }
+});
+
+/**
+ * Save/update user's quick start profile
+ * POST /api/workshop-data/quick-start-profile
+ */
+workshopDataRouter.post('/quick-start-profile', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const {
+      workStyle,
+      workEnvironment,
+      communicationStyle,
+      meetingPreference,
+      primaryInterests,
+      learningStyle,
+      personalEmail,
+      timezone
+    } = req.body;
+
+    // Upsert the quick start profile
+    await pool.query(`
+      INSERT INTO user_quick_start_profiles (
+        user_id,
+        work_style,
+        work_environment,
+        communication_style,
+        meeting_preference,
+        primary_interests,
+        learning_style,
+        personal_email,
+        timezone
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        work_style = EXCLUDED.work_style,
+        work_environment = EXCLUDED.work_environment,
+        communication_style = EXCLUDED.communication_style,
+        meeting_preference = EXCLUDED.meeting_preference,
+        primary_interests = EXCLUDED.primary_interests,
+        learning_style = EXCLUDED.learning_style,
+        personal_email = EXCLUDED.personal_email,
+        timezone = EXCLUDED.timezone,
+        updated_at = CURRENT_TIMESTAMP
+    `, [
+      userId,
+      workStyle || '',
+      workEnvironment || '',
+      communicationStyle || '',
+      meetingPreference || '',
+      JSON.stringify(primaryInterests || []),
+      learningStyle || '',
+      personalEmail || '',
+      timezone || ''
+    ]);
+
+    // Mark the "quick-start" activity as completed
+    await pool.query(`
+      INSERT INTO user_profile_activities (user_id, activity_id, completed)
+      VALUES ($1, $2, true)
+      ON CONFLICT (user_id, activity_id)
+      DO UPDATE SET completed = true, completed_at = CURRENT_TIMESTAMP
+    `, [userId, 'quick-start']);
+
+    res.json({ success: true, message: 'Quick start profile saved successfully' });
+
+  } catch (error) {
+    console.error('Error saving quick start profile:', error);
+    res.status(500).json({ error: 'Failed to save quick start profile' });
   }
 });
 

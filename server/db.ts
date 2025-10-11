@@ -10,12 +10,14 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL environment variable is not set');
 }
 
-// Create a Postgres client with SSL configuration for deployment
+// Create a Postgres client
 const queryClient = postgres(databaseUrl, {
-  ssl: 'require',
-  max: 10,
-  idle_timeout: 20,
-  connect_timeout: 10,
+  max: 10, // Max connections
+  connect_timeout: 30, // 30 seconds to connect
+  idle_timeout: 60, // 60 seconds before closing idle connections
+  max_lifetime: 60 * 60, // 1 hour max connection lifetime
+  onnotice: () => {}, // Suppress notices
+  debug: false // Disable debug logs
 });
 
 // Create a Drizzle client

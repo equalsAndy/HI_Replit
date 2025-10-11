@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { useLogout } from "@/hooks/use-logout";
+import { useLogout } from '@/hooks/use-logout';
 import { useApplication } from "@/hooks/use-application";
 import Logo from "@/components/branding/Logo";
 
@@ -10,8 +10,8 @@ interface HeaderProps {
 }
 
 export default function Header({ showDashboardLink = true }: HeaderProps) {
-  // Use our custom logout hook
-  const logout = useLogout();
+  // App logout (clears server session and cache)
+  const appLogout = useLogout();
   
   // Get application context
   const { currentApp } = useApplication();
@@ -45,14 +45,13 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
           )}
           
           {isLoggedIn && (
-            <Button 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              variant="destructive"
+              size="sm"
               className="rounded-md text-xs h-8"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
+              onClick={() => appLogout.mutate()}
             >
-              {logout.isPending ? "Logging out..." : "Logout"}
+              Logout
             </Button>
           )}
         </div>

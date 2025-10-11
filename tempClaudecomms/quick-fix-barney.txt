@@ -1,0 +1,37 @@
+# Quick fixes to try for Barney login crash
+
+# Option 1: Clear Barney's navigation progress (might be corrupted)
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('DELETE FROM navigation_progress WHERE user_id = 8')
+  .then(() => console.log('Cleared Barney navigation progress'))
+  .catch(err => console.error('Error:', err))
+  .finally(() => pool.end());
+"
+
+# Option 2: Reset Barney's user progress field
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('UPDATE users SET navigation_progress = NULL WHERE id = 8')
+  .then(() => console.log('Reset Barney navigation_progress'))
+  .catch(err => console.error('Error:', err))
+  .finally(() => pool.end());
+"
+
+# Option 3: Clear any workshop step data that might be causing loops
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('DELETE FROM workshop_step_data WHERE user_id = 8')
+  .then(() => console.log('Cleared Barney workshop step data'))
+  .catch(err => console.error('Error:', err))
+  .finally(() => pool.end());
+"

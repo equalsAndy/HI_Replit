@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autoflow Mindful Prompts — Guided Reframe</title>
+<style>
+  :root{
+    --bg:#f5f7ff; --panel:#eef2ff; --ink:#1b2330; --muted:#667085;
+    --accent:#6b5cff; --accent-weak:#f0edff; --line:#dbe0ea; --ok:#16a34a;
+    --shadow:0 8px 30px rgba(0,0,0,.08); --chip:#eef2ff; --warn:#b42318;
+  }
+  *{box-sizing:border-box;font-family:Inter, system-ui, Arial, sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:980px;margin:48px auto;padding:0 20px}
+  h1{font-size:24px;margin:0 0 16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .row{display:flex;gap:12px;align-items:center}
+  textarea,input,select,button{font:inherit;border-radius:10px;border:1px solid var(--line);padding:12px 14px}
+  textarea{width:100%;min-height:96px;resize:vertical}
+  .hint{color:var(--muted);font-size:13px}
+  .btn{background:var(--accent);color:#fff;border:none;cursor:pointer;padding:12px 14px;border-radius:10px}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn-secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .link{background:none;border:none;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+
+  /* Modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(18,19,28,.32);display:none}
+  .modal{position:fixed;inset:24px;max-width:1080px;margin:auto;background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);display:none;overflow:hidden}
+  .modal[open]{display:block}
+  .modal-backdrop[open]{display:block}
+  .modal-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#faf9ff,#fff)}
+  .modal-body{display:grid;grid-template-columns:1.25fr .9fr;gap:16px;padding:16px}
+  @media (max-width:900px){.modal-body{grid-template-columns:1fr}}
+  .challenge{background:var(--accent-weak);border:1px solid var(--line);padding:12px 14px;border-radius:10px}
+  .rung{height:44px}
+  .close-x{margin-left:auto;border:none;background:#0000;font-size:20px;cursor:pointer}
+
+  /* Chat */
+  .chat{display:flex;flex-direction:column;height:520px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .chat-stream{flex:1;overflow:auto;padding:16px;background:var(--panel)}
+  .msg{max-width:75%;padding:10px 12px;border-radius:14px;line-height:1.35;margin:6px 0;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+  .m-user{margin-left:auto;background:#fff;border:1px solid var(--line)}
+  .m-ai{margin-right:auto;background:#fff;border:1px solid var(--line)}
+  .chat-input{display:flex;gap:8px;border-top:1px solid var(--line);padding:10px;background:#fff}
+  .chat-input textarea{min-height:44px;max-height:120px}
+  .error{background:#fef3f2;border:1px solid #fecdca;color:#b42318;padding:10px;border-radius:8px;font-size:13px;margin:8px 0}
+
+  /* Phase panel */
+  .panel{border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:16px}
+</style>
+<style>
+  .panel-title{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#475467}
+  .head-actions{margin-left:auto;display:flex;gap:8px}
+  .stack{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+  .btn.wide{width:100%}
+  .chat-stream{padding:20px}
+  .panel{gap:16px}
+</style>
+  <style>
+    .panel h3{margin:0 0 4px;font-size:14px;letter-spacing:.02em;color:#0f172a}
+    .latest{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;min-height:62px}
+
+    /* Tagging layout */
+    .radio{display:flex;flex-direction:column;gap:12px}
+    .radio label{
+      display:grid;
+      grid-template-columns:26px 1fr;
+      column-gap:10px;
+      align-items:start;
+      padding:4px 2px;
+      border-radius:8px;
+    }
+    .radio input{grid-column:1;margin-top:3px}
+    .radio strong{grid-column:2;font-weight:700}
+    .radio small{grid-column:2;color:var(--muted);line-height:1.25;margin:2px 0 0 0}
+
+    .divider{height:1px;background:var(--line);margin:10px 0}
+    .save-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+    .ok{color:var(--ok);font-weight:600;font-size:13px;display:none}
+
+    /* Panel spacing */
+    .panel h3{margin:0 0 8px;font-size:14px;letter-spacing:.02em;color:#0f172a}
+    .stack{gap:12px;margin-bottom:10px}
+    .latest{margin-bottom:6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>IA-4-2 · Reframe with AI</h1>
+    <div class="card">
+      <label for="challenge">Your work challenge</label>
+      <textarea id="challenge" placeholder="e.g., I'm stalled on the Q3 plan and worried the team is disengaged."></textarea>
+      <div class="row" style="justify-content:space-between;margin-top:10px">
+        <span class="hint">Write your challenge first. When you’re ready, invite AI to help you reframe it.</span>
+        <button class="btn" id="openModal" disabled>Work with AI to reframe this</button>
+      </div>
+      <div style="margin-top:8px">
+        <button class="link" id="startOver">Start this over with a different challenge</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <div style="font-weight:600">What shifted for you?</div>
+        <span class="hint">(filled by the modal; you can edit)</span>
+      </div>
+      <textarea id="shiftField" placeholder="Name the shift in a word or short phrase..."></textarea>
+      <div class="row" style="gap:8px;margin-top:8px">
+        <span style="font-weight:600">Tag this shift</span>
+        <select id="tag">
+          <option value="" selected>Choose a tag…</option>
+          <option>Reframe</option><option>Surprise</option><option>Clarity</option>
+          <option>Curiosity</option><option>Humor</option><option>Calm</option>
+          <option>Insight</option><option>Other</option>
+        </select>
+      </div>
+      <div style="margin-top:8px">
+        <label for="persp">Your new perspective</label>
+        <textarea id="persp" placeholder="Describe your new perspective or next step…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="backdrop"></div>
+  <section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <header class="modal-head">
+      <img class="rung" alt="Rung 1" src="/assets/adv_rung1_split.png" onerror="this.style.opacity=.35" />
+      <div>
+        <div id="modalTitle" style="font-weight:700">Autoflow Mindful Prompts — Guided Reframe</div>
+        <div class="hint">We’ll offer a concise reframe, then help you name the shift and tag it.</div>
+      </div>
+      <div class="head-actions">
+        <button class="btn-secondary" id="startOverHead">Start Over</button>
+        <button class="btn-secondary" id="closeModal">Close</button>
+      </div>
+    </header>
+
+    <div class="modal-body">
+      <!-- Chat -->
+      <div>
+        <div class="challenge" id="challengeEcho"></div>
+        <div id="error" class="error" style="display:none"></div>
+
+        <div class="chat" aria-live="polite">
+          <div class="chat-stream" id="stream"></div>
+          <div class="chat-input">
+            <textarea id="chatInput" placeholder="Type a message (Cmd/Ctrl+Enter to send)"></textarea>
+            <button class="btn" id="sendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase panel -->
+      <aside class="panel" role="complementary" aria-label="Exercise answers">
+        <h2 class="panel-title">Exercise answers</h2>
+        <div id="phaseReframe">
+          <h3 style="margin:0 0 6px">Reframing your challenge</h3>
+          <div class="stack">
+            <div class="latest" id="latestReframe">(No reframe yet—work with AI to craft it.)</div>
+            <div class="hint">If it’s not quite right, tell AI what to change.</div>
+          </div>
+          <button class="btn wide" id="toShift">Looks right — explore what shifted</button>
+        </div>
+
+        <div id="phaseShift" style="display:none">
+          <h3>What shifted for you?</h3>
+          <textarea id="shiftBox" placeholder="e.g., From pressure → experiment"></textarea>
+          <div class="hint">You can tweak the wording. AI will keep checking it with you.</div>
+          <button class="btn" id="toTag">Looks right — choose a tag</button>
+          <button class="btn-secondary" id="backToReframe" style="margin-top:6px">Back to reframe</button>
+        </div>
+
+        <div id="phaseTag" style="display:none">
+          <h3>Tag this shift</h3>
+          <div class="radio" id="tagRadios">
+            <label title="I’m holding it differently now."><input type="radio" name="tagR" value="Reframe"> <strong>Reframe</strong> <small>I’m holding it differently now.</small></label>
+            <label title="Something I didn’t expect clicked."><input type="radio" name="tagR" value="Surprise"> <strong>Surprise</strong> <small>Something I didn’t expect clicked.</small></label>
+            <label title="It feels simpler or sharper."><input type="radio" name="tagR" value="Clarity"> <strong>Clarity</strong> <small>It feels simpler or sharper.</small></label>
+            <label title="I want to explore, not conclude."><input type="radio" name="tagR" value="Curiosity"> <strong>Curiosity</strong> <small>I want to explore, not conclude.</small></label>
+            <label title="It lightened; there’s play here."><input type="radio" name="tagR" value="Humor"> <strong>Humor</strong> <small>It lightened; there’s play here.</small></label>
+            <label title="Less noise, more ease."><input type="radio" name="tagR" value="Calm"> <strong>Calm</strong> <small>Less noise, more ease.</small></label>
+            <label title="A fresh understanding landed."><input type="radio" name="tagR" value="Insight"> <strong>Insight</strong> <small>A fresh understanding landed.</small></label>
+            <label title="Something else—name it later."><input type="radio" name="tagR" value="Other"> <strong>Other</strong> <small>Something else—name it later.</small></label>
+          </div>
+          <div class="divider"></div>
+          <div class="save-row">
+            <button class="btn-secondary" id="backToShift">Back to shift</button>
+            <button class="btn" id="applyClose">Apply & Close</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+<script>
+  // Page controls
+  const challenge = document.getElementById('challenge');
+  const openModal = document.getElementById('openModal');
+  const startOver = document.getElementById('startOver');
+  const shiftField = document.getElementById('shiftField');
+  const tagSelect = document.getElementById('tag');
+  const perspField = document.getElementById('persp');
+
+  challenge.addEventListener('input', ()=>{ openModal.disabled = challenge.value.trim().length < 8; });
+  startOver.addEventListener('click', ()=>{
+    if(confirm('Delete chat & reset challenge?')){
+      challenge.value=''; openModal.disabled=true; shiftField.value=''; tagSelect.value=''; perspField.value='';
+    } else {
+      alert('Keep chat context: change the challenge and reopen the modal.');
+    }
+  });
+
+  // Modal elements
+  const modal = document.getElementById('modal');
+  const backdrop = document.getElementById('backdrop');
+  const closeModalBtn = document.getElementById('closeModal');
+  const startOverHead = document.getElementById('startOverHead');
+  const challengeEcho = document.getElementById('challengeEcho');
+  const stream = document.getElementById('stream');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const err = document.getElementById('error');
+  const latestReframe = document.getElementById('latestReframe');
+  const toShift = document.getElementById('toShift');
+  const phaseReframe = document.getElementById('phaseReframe');
+  const phaseShift = document.getElementById('phaseShift');
+  const phaseTag = document.getElementById('phaseTag');
+  const shiftBox = document.getElementById('shiftBox');
+  const backToReframe = document.getElementById('backToReframe');
+  const toTag = document.getElementById('toTag');
+  const backToShift = document.getElementById('backToShift');
+  const applyClose = document.getElementById('applyClose');
+
+  function open(){
+    challengeEcho.textContent = `Your Challenge: “${challenge.value.trim()}”`;
+    stream.innerHTML=''; latestReframe.textContent='(No reframe yet—work with AI to craft it.)';
+    shiftBox.value=''; err.style.display='none';
+    backdrop.setAttribute('open',''); modal.setAttribute('open',''); chatInput.focus();
+  }
+  function close(){ backdrop.removeAttribute('open'); modal.removeAttribute('open'); }
+  openModal.addEventListener('click', open);
+  closeModalBtn.addEventListener('click', close);
+
+  // Chat helpers (mocked)
+  function push(type,text){
+    const el=document.createElement('div'); el.className='msg '+(type==='user'?'m-user':'m-ai'); el.textContent=text; stream.appendChild(el); stream.scrollTop=stream.scrollHeight;
+  }
+  function pushAI(t){ push('ai', t); }
+  function pushUser(t){ push('user', t); }
+  function updateLatestFromLastAssistant(){
+    const msgs=[...document.querySelectorAll('.m-ai')]; if(!msgs.length) return;
+    const last=msgs[msgs.length-1].textContent||'';
+    const parts=last.split('Shift:')[0].trim();
+    latestReframe.textContent = parts || last;
+    if(!shiftBox.value){
+      const m = last.match(/Shift:\s*(.+)$/m);
+      if(m) shiftBox.value = m[1].trim();
+    }
+  }
+  function send(){
+    const t=chatInput.value.trim(); if(!t) return; pushUser(t); chatInput.value='';
+    // Simulated assistant behavior
+    setTimeout(()=>{
+      if(toShift.disabled){ // not used now
+        pushAI('Noted.');
+      } else if(phaseReframe.style.display!== 'none'){
+        pushAI('Adjusted: make the first step smaller and time-boxed.\nShift: from “pressure to prove” → “permission to try”.');
+        updateLatestFromLastAssistant();
+      } else if(phaseShift.style.display!== 'none'){
+        pushAI('That captures it. Anything to tweak?');
+      } else {
+        pushAI('Tag looks good. Click Apply & Close when ready.');
+      }
+    }, 300);
+  }
+  sendBtn.addEventListener('click', send);
+  chatInput.addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){ e.preventDefault(); send(); }});
+
+  // Phase switching
+  toShift.addEventListener('click', ()=>{ phaseShift.style.display='block'; phaseTag.style.display='none'; toShift.style.display='none'; });
+  backToReframe.addEventListener('click', ()=>{ phaseShift.style.display='none'; phaseTag.style.display='none'; toShift.style.display='block'; });
+  toTag.addEventListener('click', ()=>{ phaseTag.style.display='block'; });
+  backToShift.addEventListener('click', ()=>{ phaseShift.style.display='block'; phaseTag.style.display='none'; });
+
+  // Apply back to page
+  applyClose.addEventListener('click', ()=>{
+    const chosen = document.querySelector('input[name="tagR"]:checked');
+    const tag = chosen ? chosen.value : '';
+    // Simulate piping to page fields
+    document.getElementById('shiftField').value = shiftBox.value.trim();
+    document.getElementById('tag').value = tag;
+    close();
+  });
+
+  startOverHead.addEventListener('click', ()=>{
+    if(confirm('Delete chat & reset challenge?')){
+      challenge.value=''; openModal.disabled=true; shiftField.value=''; tagSelect.value=''; perspField.value='';
+      // Clear modal state as well
+      stream.innerHTML=''; latestReframe.textContent='(AI will propose a concise reframe here)'; shiftBox.value='';
+    }
+  });
+
+  // ESC to close
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && modal.hasAttribute('open')) close(); });
+</script>
+</body>
+</html>

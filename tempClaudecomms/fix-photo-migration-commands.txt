@@ -1,0 +1,46 @@
+# Fix Photo Migration Commands
+# Run these commands one by one to fix the migration issues
+
+# 1. Drop the problematic trigger that references non-existent workshop_data table
+PGPASSWORD=HeliotropeDev2025 psql -h ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com -U dbmasteruser -d postgres -c "DROP TRIGGER IF EXISTS users_photo_reference_trigger ON users;"
+
+# 2. Create a simpler trigger function that only handles users table
+PGPASSWORD=HeliotropeDev2025 psql -h ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com -U dbmasteruser -d postgres -c "
+CREATE OR REPLACE FUNCTION update_user_photo_reference_count()
+RETURNS TRIGGER AS \$\$
+BEGIN
+    -- Update reference count when photo is referenced
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        IF NEW.profile_picture_id IS NOT NULL THEN
+            UPDATE photo_storage 
+            SET reference_count = (
+                SELECT COUNT(*) FROM users WHERE profile_picture_id = NEW.profile_picture_id
+            ),
+            last_accessed = CURRENT_TIMESTAMP
+            WHERE id = NEW.profile_picture_id;
+        END IF;
+    END IF;
+    
+    -- Clean up reference count when photo reference is removed
+    IF TG_OP = 'DELETE' OR TG_OP = 'UPDATE' THEN
+        IF OLD.profile_picture_id IS NOT NULL THEN
+            UPDATE photo_storage 
+            SET reference_count = (
+                SELECT COUNT(*) FROM users WHERE profile_picture_id = OLD.profile_picture_id
+            )
+            WHERE id = OLD.profile_picture_id;
+        END IF;
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+\$\$ LANGUAGE plpgsql;"
+
+# 3. Create the corrected trigger
+PGPASSWORD=HeliotropeDev2025 psql -h ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com -U dbmasteruser -d postgres -c "CREATE TRIGGER users_photo_reference_trigger AFTER INSERT OR UPDATE OR DELETE ON users FOR EACH ROW EXECUTE FUNCTION update_user_photo_reference_count();"
+
+# 4. Now run the migration script again
+NODE_TLS_REJECT_UNAUTHORIZED=0 DATABASE_URL="postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require" node migrate-profile-photos.js
+
+# 5. Verify the migration worked
+PGPASSWORD=HeliotropeDev2025 psql -h ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com -U dbmasteruser -d postgres -c "SELECT u.id, u.username, u.profile_picture_id, CASE WHEN p.id IS NOT NULL THEN 'MIGRATED' ELSE 'NOT_MIGRATED' END as status FROM users u LEFT JOIN photo_storage p ON u.profile_picture_id = p.id WHERE u.profile_picture IS NOT NULL;"

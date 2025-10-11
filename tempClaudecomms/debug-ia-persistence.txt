@@ -1,0 +1,68 @@
+# Debug IA Persistence Issue - 2025-07-26
+
+## Problem
+IA workshop data is not persisting to database and not showing up in exports
+
+## Investigation Steps
+
+### 1. Database Check
+- ✅ workshop_step_data table exists 
+- ❌ No IA data in database (0 rows with workshop_type = 'ia')
+- ✅ Users exist in system (admin, stu1000, etc.)
+
+### 2. API Endpoint Test
+- ❌ API requires authentication (returns "Authentication required")
+- Need to test with proper session/cookies
+
+### 3. Next Steps to Debug
+
+**In Browser Console** (while on IA workshop page):
+1. Open browser dev tools
+2. Go to an IA step (like ia-3-4)
+3. Enter some data in the form fields
+4. Check Console tab for any errors
+5. Check Network tab for API calls to /api/workshop-data/step
+6. Look for any 401/403/500 errors
+
+**Server-side Debug** (add temporary logging):
+Add console.log to useWorkshopStepData hook to see if save is being called:
+
+```typescript
+// In saveData function, add:
+console.log('🔍 Saving IA data:', { workshopType, stepId, dataToSave });
+
+// After fetch, add:
+console.log('🔍 Save response:', response.status, result);
+```
+
+**Check for Issues:**
+1. Authentication - are users properly logged in?
+2. Hook triggering - is the debounced save being called?
+3. API validation - is data being rejected by server?
+4. Database constraints - are there any constraint violations?
+
+### 4. Debugging Commands
+
+Check if any API calls are being made:
+```sql
+-- Check server logs for any workshop-data requests
+-- Look for 401, 403, or 500 errors
+```
+
+Test with a specific user session:
+```bash
+# Need to login as a user first, then test API
+# This requires browser session cookies
+```
+
+## Likely Issues
+1. **Authentication failure** - user not properly authenticated
+2. **Hook not triggering** - debounced save not firing
+3. **API validation** - data format rejected by server
+4. **Database constraints** - foreign key or unique constraints failing
+
+## Fix Priority
+1. First: Add debug logging to see where it's failing
+2. Second: Test authentication flow
+3. Third: Verify API endpoint with proper auth
+4. Fourth: Check database operations

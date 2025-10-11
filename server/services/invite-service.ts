@@ -15,6 +15,7 @@ class InviteService {
     organizationId?: string | null;
     createdBy: number;
     expiresAt?: Date;
+    isBetaTester?: boolean;
   }) {
     try {
       // Validate email format
@@ -26,6 +27,11 @@ class InviteService {
         };
       }
       
+      // Prevent duplicate invites for the same email
+      const existingInvites = await db.select().from(invites).where(eq(invites.email, data.email.toLowerCase()));
+      if (existingInvites.length > 0) {
+        return { success: false, error: 'An invite already exists for this email' };
+      }
       // Generate a unique invite code (remove hyphens to fit 12-char limit)
       const inviteCode = generateInviteCode().replace(/-/g, '');
       
@@ -36,8 +42,8 @@ class InviteService {
       
       // Insert the invite into the database with cohort and organization assignment
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null})
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null}, ${data.isBetaTester || false})
         RETURNING *
       `);
       
@@ -51,6 +57,7 @@ class InviteService {
         expires_at: data.expiresAt || null,
         cohort_id: data.cohortId || null,
         organization_id: data.organizationId || null,
+        is_beta_tester: data.isBetaTester || false,
         created_at: new Date(),
         used_at: null,
         used_by: null
@@ -83,6 +90,7 @@ class InviteService {
     expiresAt?: Date;
     cohortId?: string;
     organizationId?: string;
+    isBetaTester?: boolean;
   }) {
     try {
       // Validate email format
@@ -104,8 +112,8 @@ class InviteService {
       
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId ? parseInt(data.cohortId) : null}, ${data.organizationId || null})
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId ? parseInt(data.cohortId) : null}, ${data.organizationId || null}, ${data.isBetaTester || false})
         RETURNING *
       `);
       
@@ -117,6 +125,7 @@ class InviteService {
         name: data.name || null,
         created_by: data.createdBy,
         expires_at: data.expiresAt || null,
+        is_beta_tester: data.isBetaTester || false,
         created_at: new Date(),
         used_at: null,
         used_by: null
@@ -213,44 +222,39 @@ class InviteService {
   }
   
   /**
-   * Get invites with enhanced information (cohort, organization names)
+   * Get invites with enhanced information (cohort, organization names, user status)
    */
-  async getInvitesWithDetails(creatorId?: number) {
+  async getInvitesWithDetails(creatorId?: number, status?: 'used' | 'pending') {
     try {
-      let query = sql`
+      let base = sql`
         SELECT 
-          i.*,
-          u.name as creator_name,
-          u.email as creator_email,
-          u.role as creator_role,
+          i.*, 
+          creator.name as creator_name,
+          creator.email as creator_email,
+          creator.role as creator_role,
           c.name as cohort_name,
-          o.name as organization_name
+          o.name as organization_name,
+          invited_user.is_test_user,
+          invited_user.is_beta_tester as user_is_beta_tester,
+          used_user.name as used_by_name,
+          used_user.email as used_by_email
         FROM invites i
-        LEFT JOIN users u ON i.created_by = u.id
+        LEFT JOIN users creator ON i.created_by = creator.id
         LEFT JOIN cohorts c ON i.cohort_id = c.id
         LEFT JOIN organizations o ON i.organization_id = o.id
+        LEFT JOIN users invited_user ON i.email = invited_user.email
+        LEFT JOIN users used_user ON i.used_by = used_user.id
       `;
-      
-      if (creatorId) {
-        query = sql`
-          SELECT 
-            i.*,
-            u.name as creator_name,
-            u.email as creator_email,
-            u.role as creator_role,
-            c.name as cohort_name,
-            o.name as organization_name
-          FROM invites i
-          LEFT JOIN users u ON i.created_by = u.id
-          LEFT JOIN cohorts c ON i.cohort_id = c.id
-          LEFT JOIN organizations o ON i.organization_id = o.id
-          WHERE i.created_by = ${creatorId}
-        `;
-      }
-      
-      query = sql`${query} ORDER BY i.created_at DESC`;
-      
-      const result = await db.execute(query);
+      const where: any[] = [];
+      if (creatorId) where.push(sql`i.created_by = ${creatorId}`);
+      if (status === 'used') where.push(sql`i.used_at IS NOT NULL`);
+      if (status === 'pending') where.push(sql`i.used_at IS NULL`);
+
+      let finalQuery: any = base;
+      if (where.length) finalQuery = sql`${base} WHERE ${sql.join(where, sql` AND `)}`;
+      finalQuery = sql`${finalQuery} ORDER BY i.created_at DESC`;
+
+      const result = await db.execute(finalQuery);
       const invitesData = (result as any) || (result as any).rows || [];
       
       return {
@@ -270,20 +274,36 @@ class InviteService {
   }
 
   /**
-   * Get all invites (admin only) with creator information
+   * Get all invites (admin only) with creator information and user status
    */
-  async getAllInvites() {
+  async getAllInvites(status?: 'used' | 'pending') {
     try {
-      const result = await db.execute(sql`
+      let base = sql`
         SELECT 
           i.*,
-          u.name as creator_name,
-          u.email as creator_email,
-          u.role as creator_role
+          creator.name as creator_name,
+          creator.email as creator_email,
+          creator.role as creator_role,
+          c.name as cohort_name,
+          o.name as organization_name,
+          invited_user.is_test_user,
+          invited_user.is_beta_tester as user_is_beta_tester,
+          used_user.name as used_by_name,
+          used_user.email as used_by_email
         FROM invites i
-        LEFT JOIN users u ON i.created_by = u.id
-        ORDER BY i.created_at DESC
-      `);
+        LEFT JOIN users creator ON i.created_by = creator.id
+        LEFT JOIN cohorts c ON i.cohort_id = c.id
+        LEFT JOIN organizations o ON i.organization_id = o.id
+        LEFT JOIN users invited_user ON i.email = invited_user.email
+        LEFT JOIN users used_user ON i.used_by = used_user.id
+      `;
+
+      let finalQuery: any = base;
+      if (status === 'used') finalQuery = sql`${finalQuery} WHERE i.used_at IS NOT NULL`;
+      if (status === 'pending') finalQuery = sql`${finalQuery} WHERE i.used_at IS NULL`;
+      finalQuery = sql`${finalQuery} ORDER BY i.created_at DESC`;
+
+      const result = await db.execute(finalQuery);
       
       return {
         success: true,
@@ -349,6 +369,50 @@ class InviteService {
         success: false,
         error: 'Failed to delete invite'
       };
+    }
+  }
+
+  /**
+   * Bulk delete invites by IDs
+   */
+  async deleteInvites(ids: number[]) {
+    try {
+      if (!ids || ids.length === 0) {
+        return { success: true, deletedCount: 0 };
+      }
+      const result = await db.execute(sql`
+        DELETE FROM invites WHERE id = ANY(${sql.array(ids, 'int4')})
+        RETURNING id
+      `);
+      const rows = (result as any).rows || (Array.isArray(result) ? result : []);
+      const count = rows.length ?? 0;
+      return {
+        success: true,
+        deletedCount: count
+      };
+    } catch (error) {
+      console.error('Error bulk deleting invites:', error);
+      return {
+        success: false,
+        error: 'Failed to bulk delete invites'
+      };
+    }
+  }
+
+  /**
+   * Delete all used invites (used_at is not null)
+   */
+  async deleteUsedInvites() {
+    try {
+      const result = await db.execute(sql`
+        DELETE FROM invites WHERE used_at IS NOT NULL RETURNING id
+      `);
+      const rows = (result as any).rows || (Array.isArray(result) ? result : []);
+      const count = rows.length ?? 0;
+      return { success: true, deletedCount: count };
+    } catch (error) {
+      console.error('Error deleting used invites:', error);
+      return { success: false, error: 'Failed to delete used invites' };
     }
   }
 

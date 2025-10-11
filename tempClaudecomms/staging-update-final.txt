@@ -1,0 +1,44 @@
+====================================
+FINAL STAGING UPDATE - CORRECT BADGE
+Date: 2025-07-25
+Time: 08:52 PDT
+====================================
+
+PROBLEM: The staging-fixed-badge image was built BEFORE we updated version.json, 
+so it still shows "development" instead of "staging"
+
+SOLUTION: Rebuild with the latest code that has correct version.json
+
+COMMANDS TO RUN LOCALLY FIRST:
+------------------------------
+
+# Ensure version.json is correct
+cat dist/public/version.json
+
+# Should show "environment": "staging"
+# If not, run: npm run build:staging
+
+# Build fresh image with timestamp tag
+docker build --platform linux/amd64 -t staging-final .
+
+# Tag with timestamp for clarity  
+docker tag staging-final 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-0852
+
+# Push to ECR
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-0852
+
+
+THEN IN VM SSH TERMINAL:
+------------------------
+
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-0852
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true  
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-0852
+
+curl http://localhost/version.json
+
+# Should show "environment": "staging"

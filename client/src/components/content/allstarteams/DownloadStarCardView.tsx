@@ -23,13 +23,25 @@ export default function DownloadStarCardView({
   // Fetch star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery({
     queryKey: ['/api/workshop-data/starcard'],
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Fetch flow attributes data
   const { data: flowAttributesData, isLoading: flowLoading } = useQuery({
     queryKey: ['/api/workshop-data/flow-attributes'],
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
+  });
+
+  // Fetch user data for filename
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['/api/auth/me'],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const handleDownload = async () => {
@@ -42,12 +54,59 @@ export default function DownloadStarCardView({
     }
 
     try {
-      // Use the utility function for consistent configuration
-      const { downloadElementAsImage } = await import('@/lib/html2canvas');
-      await downloadElementAsImage(starCardRef.current, 'your-star-card.png');
+      // Create dynamic filename with username, full name, and timestamp
+      const user = (userData as any)?.user || userData;
+      const fullName = user?.name || 'Unknown_User';
+      const username = user?.username || 'unknown';
+      
+      // Clean both name and username for filename (remove spaces and special characters)
+      const cleanFullName = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanUsername = username.replace(/[^a-zA-Z0-9]/g, '_');
+      
+      // Create timestamp in YYYY-MM-DD_HH-MM-SS format
+      const now = new Date();
+      const timestamp = now.toISOString()
+        .replace(/:/g, '-')  // Replace colons with hyphens
+        .replace(/\.\d{3}Z$/, '')  // Remove milliseconds and Z
+        .replace('T', '_');  // Replace T with underscore
+      
+      const filename = `Star_Card-${cleanUsername}-${cleanFullName}-${timestamp}.png`;
+      console.log('Generated filename:', filename);
+      
+      // Ensure consistent dynamic import of html2canvas
+      const { downloadElementAsImage, captureElementAsBase64 } = await import('@/lib/html2canvas');
+      
+      // Generate the image and get base64 data
+      const base64Data = await captureElementAsBase64(starCardRef.current);
+      
+      // Save StarCard image to database as user's profile picture
+      try {
+        const saveResponse = await fetch('/api/photos/starcard', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            imageData: base64Data,
+            filename: filename
+          })
+        });
+        
+        if (saveResponse.ok) {
+          console.log('✅ StarCard saved to database as profile picture');
+        } else {
+          console.warn('⚠️ Failed to save StarCard to database, but download will continue');
+        }
+      } catch (saveError) {
+        console.warn('⚠️ Error saving StarCard to database:', saveError);
+      }
+      
+      // Download the image file
+      await downloadElementAsImage(starCardRef.current, filename);
       
       console.log('Download completed successfully');
-      markStepCompleted('5-1');
+      // Removed markStepCompleted call - star card download should not advance menu
     } catch (error) {
       console.error('Error generating star card image:', error);
       alert('Download failed. Please try right-clicking on your star card and selecting "Save as Image"');
@@ -55,7 +114,7 @@ export default function DownloadStarCardView({
   };
 
   const handleNext = () => {
-    markStepCompleted('5-1');
+    // Removed markStepCompleted call - navigation should not advance menu
     setCurrentContent('holistic-report');
   };
 
@@ -81,7 +140,7 @@ export default function DownloadStarCardView({
       };
     }) : [];
 
-  if (starCardLoading || flowLoading) {
+  if (starCardLoading || flowLoading || userLoading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-8">

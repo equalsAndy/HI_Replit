@@ -1,0 +1,39 @@
+## Staging Deployment Commands - July 26, 2025
+## Generated at: 10:07 AM
+## Changes: Removed div from IA 4-1, version v2.0.10.0726.1007
+
+# Step 1: Build AMD64-compatible Docker image
+docker build --platform linux/amd64 -t staging-amd64 .
+
+# Step 2: Tag for ECR with timestamp
+docker tag staging-amd64 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1007
+
+# Step 3: Login to ECR
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+# Step 4: Push to ECR
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1007
+
+# Step 5: SSH to staging VM (IP: 34.220.143.127)
+# Access via: https://lightsail.aws.amazon.com/ → hi-staging-vm → Connect using SSH
+
+# Step 6: Create environment file on VM (run these commands line by line)
+echo 'NODE_ENV=staging' > staging.env
+echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
+echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
+echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
+echo 'ENVIRONMENT=staging' >> staging.env
+
+# Step 7: Deploy container on VM
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1007
+
+# Step 8: Verify deployment
+# Check: http://34.220.143.127
+# Should show STAGING v2.0.10.0726.1007 badge in navbar
+
+## Version Badge Configuration:
+# - STAGING: Shows "STAGING v2.0.10.0726.1007" in navbar
+# - PRODUCTION: No navbar badge (clean interface)
+# - DEVELOPMENT: Shows "DEV v2025.07.26.1007" in navbar

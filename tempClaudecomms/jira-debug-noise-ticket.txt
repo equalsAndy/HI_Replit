@@ -1,0 +1,70 @@
+====================================
+JIRA TICKET - EXCESSIVE DEBUG LOGGING
+Date: 2025-07-25
+====================================
+
+ISSUE TYPE: Bug
+PROJECT: KAN (Development tasks)
+PRIORITY: Medium
+SUMMARY: Excessive console debug logging causing performance issues on page reload
+
+DESCRIPTION:
+The workshop interface is generating excessive debug console output on every page reload, causing:
+- Poor user experience with noisy console
+- Potential performance degradation
+- Difficult debugging of real issues
+
+CURRENT BEHAVIOR:
+- Every page reload generates 200+ debug messages
+- Multiple duplicate debug messages for same operations
+- Debug messages include:
+  * Step completion checks for ALL steps (1-1 through 6-1)
+  * Step accessibility checks for ALL steps  
+  * Navigation debug for ALL steps
+  * Video player debug messages (repeated)
+  * User home navigation debug (repeated)
+  * AllStarTeams interface debug (repeated)
+  * Route detection debug (repeated)
+
+SPECIFIC DEBUG PATTERNS FOUND:
+```
+🔍 Step X-X completion check: false completedSteps: []
+🔓 Step accessibility check: X-X - unlocked: false, available steps: 1-1
+📊 UserHomeNavigation Debug: {completedSteps: Array(0)...}
+🎯 AllStarTeams Interface Debug: {userData: ...}
+🔍 Route Detection Debug: ...
+🎥 useVideoByStepId: Looking for stepId "1-1"...  
+🎬 VideoPlayer Debug - Step: 1-1...
+```
+
+EXPECTED BEHAVIOR:
+- Minimal console output in production
+- Debug messages only when needed for troubleshooting
+- Performance-optimized component rendering
+
+ACCEPTANCE CRITERIA:
+1. Reduce console debug messages by 90%+
+2. Keep only essential error logging in production
+3. Move detailed debug to development mode only
+4. Optimize component re-rendering to prevent duplicate checks
+
+TECHNICAL NOTES:
+- Debug messages originate from multiple components (NavBar, VideoPlayer, UserHomeNavigation, etc.)
+- Many messages are duplicated due to component re-renders
+- Pattern suggests unnecessary re-computation of step accessibility
+- Consider implementing debug flag feature switch
+
+ENVIRONMENT: Staging (app2.heliotropeimaginal.com)
+BROWSER: All browsers affected
+STEPS TO REPRODUCE:
+1. Navigate to /allstarteams
+2. Open browser console (F12)
+3. Reload page
+4. Observe 200+ debug messages
+
+FILES LIKELY INVOLVED:
+- client/src/components/layout/NavBar.tsx
+- client/src/hooks/useTestUser.tsx  
+- client/src/hooks/useVideoByStepId.tsx
+- client/src/hooks/UserHomeNavigation.tsx
+- client/src/pages/allstarteams.tsx

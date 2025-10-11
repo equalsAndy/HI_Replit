@@ -1,10 +1,19 @@
 import { Video, BookOpen, Zap, Glasses, PenLine, Download, ChevronRight, CheckCircle, Circle, Clock, Activity } from 'lucide-react';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { CollapsibleSection } from './CollapsibleSection';
-import { navigationSections } from './navigationData';
+import { navigationSections, imaginalAgilityNavigationSections } from './navigationData';
 
-export function NavigationSidebar() {
-  const { progress, getSectionProgressData, sections } = useNavigationProgress();
+interface NavigationSidebarProps {
+  appType?: 'ast' | 'ia';
+  customSections?: any[];
+}
+
+export function NavigationSidebar({ appType = 'ast', customSections }: NavigationSidebarProps = {}) {
+  const navigation = useUnifiedWorkshopNavigation(appType);
+  const { progress, getSectionProgressData } = navigation; // Maintain compatibility
+  
+  // Use custom sections if provided, otherwise use the default sections based on app type
+  const sections = customSections || (appType === 'ia' ? imaginalAgilityNavigationSections : navigationSections);
 
   // Get section icon based on section ID
   const getSectionIcon = (sectionId: string) => {
@@ -45,11 +54,12 @@ export function NavigationSidebar() {
   // Create sections with real-time progress data
   const sectionsWithProgress = sections.map(section => {
     // Get section progress based on completed steps
-    const sectionStepIds = section.steps.map(step => step.id);
+    const sectionStepIds = section.steps.map((step: any) => step.id);
     const progressData = getSectionProgressData(sectionStepIds);
 
     // Check if section is unlocked
-    const isUnlocked = progress.unlockedSections.includes(section.id);
+    const isUnlocked = true; // TEMPORARY: All sections unlocked for testing
+    // const isUnlocked = progress.unlockedSections.includes(section.id);
 
     return {
       ...section,

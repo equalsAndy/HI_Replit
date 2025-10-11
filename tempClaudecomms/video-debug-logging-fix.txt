@@ -1,0 +1,78 @@
+# Video Debug Logging Fix - KAN-134 Related
+# Date: 2025-07-26 | Build: 2010
+
+## ✅ ISSUE FIXED
+
+### Problem:
+Excessive console logging on every keystroke caused by video management system:
+```
+🎥 Found video for step ia-3-3: {title: 'Visualization Exercise', editableId: '7__r4FVj-EI'}
+🎬 VideoPlayer Debug - Step: ia-3-3, Workshop: imaginal-agility
+🎬 VideoByStepId: {id: 2, title: 'Visualization Exercise', editableId: '7__r4FVj-EI'}
+🎬 VideoBySection: null
+🎬 Selected video: {id: 2, title: 'Visualization Exercise', editableId: '7__r4FVj-EI'}
+```
+
+### Root Cause:
+- `useVideoByStepId` hook was logging on every call
+- `VideoPlayer` component was logging on every render  
+- These were triggered by React re-renders on user input/keystroke
+
+### Solution Applied:
+Wrapped all video debug console logs in environment variable check:
+```javascript
+// OLD (always logged):
+console.log(`🎥 Found video for step ${stepId}:`, video);
+
+// NEW (only when debug enabled):
+if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
+  console.log(`🎥 Found video for step ${stepId}:`, video);
+}
+```
+
+## 📁 Files Modified:
+1. **client/src/hooks/use-videos.tsx**
+   - Wrapped `useVideoByStepId` logging in debug flag
+   - Wrapped `useVideoByStep` logging in debug flag
+
+2. **client/src/components/content/VideoPlayer.tsx** 
+   - Wrapped VideoPlayer debug logging in debug flag
+
+## 🔧 How to Re-enable Debug Logging
+
+### For Development Testing:
+```bash
+# Add to client/.env.development
+VITE_DEBUG_VIDEOS=true
+
+# Then restart dev server
+cd client && npm run dev
+```
+
+### For Temporary Testing:
+```bash
+# Set environment variable for single session
+VITE_DEBUG_VIDEOS=true npm run dev
+```
+
+### Admin Console Unaffected:
+- Video management in admin console still works normally
+- Database operations for video CRUD unchanged
+- Only reduced console noise during normal user interaction
+
+## ✅ Results:
+- ❌ No more console spam on every keystroke
+- ✅ Video management system still functional
+- ✅ Admin video console features preserved  
+- ✅ Debug logging available when needed via environment variable
+
+## 🎯 Next Steps for KAN-134:
+When ready to continue video tracking feature development:
+
+1. Set `VITE_DEBUG_VIDEOS=true` in development environment
+2. Implement YouTube API watch progress tracking
+3. Store user video progress in database
+4. Add progress tracking to admin dashboard
+5. Remove debug flag once feature is stable
+
+**Console is now clean for normal development! 🎉**

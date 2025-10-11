@@ -1,0 +1,194 @@
+[
+  {
+    "email": "admin@heliotropeimaginal.com",
+    "email_verified": true,
+    "name": "System Administrator",
+    "blocked": false,
+    "app_metadata": {
+      "role": "admin",
+      "organization": "Heliotrope Imaginal Workshops",
+      "job_title": "System Administrator",
+      "is_test_user": true,
+      "is_beta_tester": false,
+      "internal_user_id": 1
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$jFmVn3hUWAGZomhiq0HjZO0Ri6RfW0SQr0MBAuIhmCdk.WgaI8jyq"
+  },
+  {
+    "email": "potentialist@icloud.com",
+    "email_verified": true,
+    "name": "Richard Day",
+    "blocked": false,
+    "app_metadata": {
+      "role": "facilitator",
+      "organization": "Life & Business Leadership Institute",
+      "job_title": "Director",
+      "is_test_user": false,
+      "is_beta_tester": false,
+      "internal_user_id": 12
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$OWZbT2loHVOd9zJwNKYZU.0WjN/xX6EKGIYGZATGTUR8IydJ8PfFy"
+  },
+  {
+    "email": "beta@test.com",
+    "email_verified": true,
+    "name": "Beta Fish",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "Fish Tank",
+      "job_title": "Fish",
+      "is_test_user": false,
+      "is_beta_tester": true,
+      "internal_user_id": 13
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$s4ujJe8YZQBvsgp49dSP2OunzaU8UEHRUkRtPjf6EADpvF6qkIBZO"
+  },
+  {
+    "email": "beta2@test.com",
+    "email_verified": true,
+    "name": "Beta Alpha",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "Beta University",
+      "job_title": "Beta Tester",
+      "is_test_user": false,
+      "is_beta_tester": true,
+      "internal_user_id": 14
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$/Cc5Nery/84/PoiFEM04JOhaFAz24rRRhd39D1mS9geWluwDmVRBG"
+  },
+  {
+    "email": "beta3@test.com",
+    "email_verified": true,
+    "name": "Beta Guy",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "Beta U",
+      "job_title": "Headmaster",
+      "is_test_user": false,
+      "is_beta_tester": true,
+      "internal_user_id": 15
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$uU..nsqru.5pNdnSfTZNPePgKi5e9mOaSH8YKdp0k5OMGcVU2sAve"
+  },
+  {
+    "email": "beta4@test.com",
+    "email_verified": true,
+    "name": "Beta Fore",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "B4",
+      "job_title": "Beta Testester",
+      "is_test_user": true,
+      "is_beta_tester": true,
+      "internal_user_id": 16
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$UiYL4UVAQdSzmOazKGVTYefmiBDf6Vt5jvf2c.zgjX1rPujJ/E4/W"
+  },
+  {
+    "email": "betatester1454@email.com",
+    "email_verified": true,
+    "name": "Abigail Wagura",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "DirectEd",
+      "job_title": "",
+      "is_test_user": false,
+      "is_beta_tester": true,
+      "internal_user_id": 29
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$cVjhKBTGvb.xKzDJ2XJxl.ERUMqVITC2VK1RGX/Yz/hDENCgJdecW"
+  },
+  {
+    "email": "betatester1459@email.com",
+    "email_verified": true,
+    "name": "Deb Mrazek",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "Create AdvantEdge",
+      "job_title": "Co-founder",
+      "is_test_user": false,
+      "is_beta_tester": true,
+      "internal_user_id": 30
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$2fboXqCW4ozf3fwNVdDq8u6DQY4vDTfxiih1fkaozDcOTaFs9Mjmm"
+  },
+  {
+    "email": "betatester1477@test.com",
+    "email_verified": true,
+    "name": "Alberts",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "ILRI",
+      "job_title": "Head of Program Management",
+      "is_test_user": false,
+      "is_beta_tester": true,
+      "internal_user_id": 33
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$P.NaoIvdcM/UkfBxHa5Hp.EFonsHVtiokFKo1CcQARA.DMLSq3Olq"
+  },
+  {
+    "email": "jessieupp@gmail.com",
+    "email_verified": true,
+    "name": "Jessie Upp",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "DayBalancer",
+      "job_title": "Founder",
+      "is_test_user": false,
+      "is_beta_tester": true,
+      "internal_user_id": 34
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$.DcNY.EsTnONAxcXWJVgC.AMDc7OOOEpZFV22kgyxx.DM1PepLh8m"
+  },
+  {
+    "email": "testuser1500@test.com",
+    "email_verified": true,
+    "name": "Andy Dale",
+    "blocked": false,
+    "app_metadata": {
+      "role": "participant",
+      "organization": "",
+      "job_title": "",
+      "is_test_user": false,
+      "is_beta_tester": false,
+      "internal_user_id": 35
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$b7yNJjbHbTY3FuUe2keq1.KB9.t7MkowhZDnOWh2ynC22MfKTXfKu"
+  },
+  {
+    "email": "brad@allstarteams.co",
+    "email_verified": true,
+    "name": "Brad the Admin",
+    "blocked": false,
+    "app_metadata": {
+      "role": "admin",
+      "organization": "Company A",
+      "job_title": "Job B",
+      "is_test_user": false,
+      "is_beta_tester": false,
+      "internal_user_id": 36
+    },
+    "user_metadata": {},
+    "password_hash": "$2b$10$Q6MslBNSrLlGl.QHgEt35uk4f6N44CeKiW2uARyb2bjjZJPSNBlBa"
+  }
+]

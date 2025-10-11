@@ -1,0 +1,2 @@
+# Verify IA data is in database
+psql -d heliotrope_dev -c "SELECT id, user_id, workshop_type, step_id, created_at FROM workshop_step_data WHERE workshop_type = 'ia' ORDER BY created_at DESC LIMIT 5;"

@@ -11,6 +11,7 @@ import { youthAssessmentQuestions, optionCategoryMapping as youthOptionCategoryM
 import { QuadrantData } from '@shared/schema';
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 import { useTestUser } from '@/hooks/useTestUser';
+import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
 
 type Option = AssessmentOption;
 
@@ -37,7 +38,7 @@ interface AssessmentModalProps {
 
 export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'ast' }: AssessmentModalProps) {
   const { toast } = useToast();
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
 
   // Get current user data to determine content access preference
   const { data: userData } = useQuery<{
@@ -126,8 +127,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
             console.error("Error starting assessment:", error);
           }
 
-          // Skip intro and go straight to assessment
-          setView('assessment');
+          // Show intro screen first
+          setView('intro');
           setIsLoading(false);
         } catch (error) {
           console.error("Error checking assessment status:", error);
@@ -143,8 +144,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
             });
             setView('results');
           } else {
-            // Skip intro and go straight to assessment
-            setView('assessment');
+            // Show intro screen first
+            setView('intro');
           }
         }
       };
@@ -479,7 +480,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
   // Auto-complete with demo answers for questions and submit to server
   // For demo mode, only fill the first 22 questions, then stop
   const handleDemoAnswers = async () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -726,47 +727,57 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
 
   // Render the intro screen
   const renderIntro = () => (
-    <div className="py-4 space-y-4">
-      <div className="bg-blue-50 rounded-lg p-4">
-        <h3 className="font-medium text-blue-800 mb-2">About this assessment</h3>
-        <ul className="text-sm text-blue-700 space-y-2">
+    <div className="py-4 space-y-6">
+      <div className="bg-blue-50 rounded-lg p-6 mb-6 border border-blue-100">
+        <h3 className="font-semibold text-blue-800 mb-4 text-xl">About this assessment</h3>
+        <ul className="space-y-3">
           <li className="flex items-start">
-            <ClipboardCheck className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-            <span>22 questions about how you approach work and collaboration</span>
+            <span className="w-3 h-3 bg-blue-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span className="text-base">The AST Star Self-Assessment reveals your unique core strengths profile: Thinking, Acting, Feeling, Planning, and Imagining.</span>
           </li>
           <li className="flex items-start">
-            <ClipboardCheck className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-            <span>Takes approximately 10-15 minutes to complete</span>
+            <span className="w-3 h-3 bg-blue-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span className="text-base">There are 22 short scenarios on how you approach work and collaboration.</span>
           </li>
           <li className="flex items-start">
-            <ClipboardCheck className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-            <span>Rank options based on how well they describe you</span>
-          </li>
-          <li className="flex items-start">
-            <ClipboardCheck className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-            <span>Creates your personal Star Card showing your strengths distribution</span>
+            <span className="w-3 h-3 bg-blue-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span className="text-base">This takes 10–15 minutes</span>
           </li>
         </ul>
       </div>
 
-      <div className="bg-amber-50 rounded-lg p-4">
-        <h3 className="font-medium text-amber-800 mb-2">Instructions</h3>
-        <p className="text-sm text-amber-700">
-          For each scenario, drag and drop the options to rank them from most like you (1) to least 
-          like you (4). There are no right or wrong answers - just be honest about your preferences.
-        </p>
+      <div className="bg-amber-50 rounded-lg p-6 mb-6 border border-amber-100">
+        <h3 className="font-semibold text-amber-800 mb-4 text-xl">Instructions</h3>
+        <ul className="space-y-3 text-amber-700 text-base">
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-amber-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>For each scenario, drag and drop the four options</span>
+          </li>
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-amber-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>Rank them from most like you (1) to least like you (4).</span>
+          </li>
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-amber-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>There are no right or wrong answers—just what feels true for you.</span>
+          </li>
+        </ul>
       </div>
 
-      <div className="bg-green-50 rounded-lg p-4">
-        <h3 className="font-medium text-green-800 mb-2 flex items-center">
-          <CheckCircle className="h-4 w-4 mr-2" /> What you'll get
-        </h3>
-        <p className="text-sm text-green-700">
-          Your personal Star Card showing your unique distribution of strengths across the four 
-          dimensions: Thinking, Acting, Feeling, and Planning. This will guide your learning journey
-          through the rest of the AllStarTeams program.
-        </p>
+      <div className="bg-green-50 rounded-lg p-6 mb-6 border border-green-100">
+        <h3 className="font-semibold text-green-800 mb-4 text-xl">Results</h3>
+        <ul className="space-y-3 text-green-700 text-base">
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-green-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>Your four core strengths are quantified, color-coded, and shown on your Star Card.</span>
+          </li>
+          <li className="flex items-start">
+            <span className="w-3 h-3 bg-green-600 rounded-full mt-2 mr-4 flex-shrink-0"></span>
+            <span>Imagination is not ranked but appears at the top—blank like a canvas, symbolizing your unique potential.</span>
+          </li>
+        </ul>
       </div>
+
 
       <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 mt-4">
         <Button variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
@@ -803,7 +814,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
         <h3 className="text-lg font-medium text-indigo-700 mb-4">{currentQuestion.text}</h3>
 
         {/* Options to rank - displayed as draggable items */}
-        <div className="mb-4">
+        <LockedInputWrapper stepId="2-2">
+          <div className="mb-4">
           <div className="bg-amber-50 p-4 rounded-lg mb-4 min-h-[140px] flex flex-col justify-center">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto min-h-[100px]">
               {availableOptions.length > 0 ? (
@@ -928,7 +940,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Least like me</p>
             </div>
           </div>
-        </div>
+          </div>
+        </LockedInputWrapper>
 
         <div className="flex justify-between items-center pb-2">
           <div className="space-x-2">
@@ -943,7 +956,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
           </div>
 
           <div className="flex items-center gap-3">
-            {isTestUser && (
+            {shouldShowDemoButtons && (
               <Button
                 variant="outline"
                 onClick={handleDemoAnswers}

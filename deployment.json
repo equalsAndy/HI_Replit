@@ -1,0 +1,25 @@
+{
+  "containers": {
+    "allstarteams-app": {
+      "image": "962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:full-fixed-20250723",
+      "environment": {
+        "NODE_ENV": "staging"
+      },
+      "ports": {
+        "8080": "HTTP"
+      }
+    }
+  },
+  "publicEndpoint": {
+    "containerName": "allstarteams-app",
+    "containerPort": 8080,
+    "healthCheck": {
+      "healthyThreshold": 5,
+      "unhealthyThreshold": 5,
+      "timeoutSeconds": 60,
+      "intervalSeconds": 90,
+      "path": "/health",
+      "successCodes": "200-499"
+    }
+  }
+}

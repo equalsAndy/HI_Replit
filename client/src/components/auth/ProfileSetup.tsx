@@ -4,165 +4,136 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PasswordInput } from '@/components/ui/password-input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
-import AvatarUploader from '@/components/profile/AvatarUploader';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { useEffect } from 'react';
+import { useLocation } from 'wouter';
 
 // Define the form schema
-const profileFormSchema = z
-  .object({
-    username: z
-      .string()
-      .min(3, 'Username must be at least 3 characters')
-      .max(50, 'Username cannot exceed 50 characters')
-      .regex(/^[a-zA-Z0-9._-]+$/, 'Username can only contain letters, numbers, and ._-'),
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/.*[A-Z].*/, 'Password must contain at least one uppercase letter')
-      .regex(/.*[a-z].*/, 'Password must contain at least one lowercase letter')
-      .regex(/.*\d.*/, 'Password must contain at least one number'),
-    confirmPassword: z.string(),
-    name: z.string().min(1, 'Name is required'),
-    organization: z.string().optional(),
-    jobTitle: z.string().optional(),
-    profilePicture: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
+const profileFormSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required'),
+  jobTitle: z.string().optional(),
+  organization: z.string().optional(),
+  externalEmail: z.string().email('Invalid email address').optional(),
+  password: z.string().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Must include an uppercase letter').regex(/[a-z]/, 'Must include a lowercase letter').regex(/[0-9]/, 'Must include a number'),
+  confirmPassword: z.string().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Must include an uppercase letter').regex(/[a-z]/, 'Must include a lowercase letter').regex(/[0-9]/, 'Must include a number'),
+});
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+// Ensure passwords match
+profileFormSchema.refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
 
-interface ProfileSetupProps {
-  inviteData: {
-    inviteCode: string;
-    email: string;
-    role: string;
-    name?: string;
-  };
-  onComplete: () => void;
-}
-
-const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organization?: string; inviteCode?: string } ; onComplete?: () => void }> = ({ inviteData, onComplete }) => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [, navigate] = useLocation();
 
   // Initialize form
-  const form = useForm<ProfileFormValues>({
+  const form = useForm({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      username: '',
+      fullName: inviteData.name || '',
+      jobTitle: '',
+      externalEmail: inviteData.email || '',
+      organization: inviteData.organization || '',
       password: '',
       confirmPassword: '',
-      name: inviteData.name || '',
-      organization: '',
-      jobTitle: '',
-      profilePicture: '',
     },
   });
 
+  useEffect(() => {
+    form.setValue('fullName', inviteData.name || '');
+    form.setValue('externalEmail', inviteData.email || '');
+    form.setValue('organization', inviteData.organization || '');
+  }, [inviteData, form]);
+
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   // Handle form submission
-  const onSubmit = async (data: ProfileFormValues) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
-    
     try {
-      // Register the user with the API
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          inviteCode: inviteData.inviteCode,
-          username: data.username,
-          password: data.password,
-          name: data.name,
-          email: inviteData.email,
-          role: inviteData.role,
-          organization: data.organization || null,
-          jobTitle: data.jobTitle || null,
-          profilePicture: data.profilePicture || null,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      const result = await response.json();
-      
-      if (!result.success) {
-        toast({
-          variant: 'destructive',
-          title: 'Registration failed',
-          description: result.error || 'Failed to create your account',
-        });
-        setIsSubmitting(false);
-        return;
+      // Convert profile picture to base64 if selected
+      let profilePictureBase64 = null;
+      if (profilePicture) {
+        try {
+          profilePictureBase64 = await fileToBase64(profilePicture);
+          console.log('🔍 Profile picture converted to base64, length:', profilePictureBase64.length);
+        } catch (error) {
+          console.error('Error converting profile picture to base64:', error);
+          // Continue without profile picture if conversion fails
+        }
       }
-      
-      // Show success message and call the onComplete callback
-      toast({
-        title: 'Account created',
-        description: 'Your account has been successfully created.',
+
+      const payload = {
+        inviteCode: (inviteData as any).inviteCode,
+        username: (data.externalEmail || inviteData.email),
+        password: data.password,
+        name: data.fullName,
+        email: (data.externalEmail || inviteData.email),
+        organization: data.organization || inviteData.organization || '',
+        jobTitle: data.jobTitle || '',
+        profilePicture: profilePictureBase64
+      };
+
+      console.log('🔍 Registration payload:', payload);
+
+      const resp = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
       });
-      
-      onComplete();
+
+      console.log('🔍 Registration response status:', resp.status);
+      const result = await resp.json();
+      console.log('🔍 Registration response:', result);
+
+      if (!resp.ok || result.success === false) {
+        throw new Error(result.error || 'Registration failed');
+      }
+
+      toast({ title: 'Profile created', description: 'Your account has been created.' });
+      if (onComplete) onComplete();
+      // Optionally route now that session is established
+      // navigate('/dashboard');
     } catch (error) {
-      console.error('Error creating account:', error);
+      console.error('Error creating profile:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         variant: 'destructive',
-        title: 'Registration failed',
-        description: 'There was a problem creating your account. Please try again.',
+        title: 'Profile creation failed',
+        description: `There was a problem creating your profile: ${errorMessage}`,
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Check if a username is available
-  const checkUsernameAvailability = async (username: string) => {
-    if (username.length < 3) return;
-    
-    try {
-      const response = await fetch('/api/auth/check-username', {
-        method: 'POST',
-        body: JSON.stringify({ username }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      const result = await response.json();
-      
-      if (!result.success) {
-        form.setError('username', {
-          type: 'manual',
-          message: 'Error checking username availability',
-        });
-        return;
-      }
-      
-      if (!result.available) {
-        form.setError('username', {
-          type: 'manual',
-          message: 'Username is already taken',
-        });
-      }
-    } catch (error) {
-      console.error('Error checking username availability:', error);
+  // Handle profile picture change
+  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfilePicture(e.target.files[0]);
     }
   };
 
-  // Handle avatar change from AvatarUploader
-  const handleAvatarChange = (base64Image: string) => {
-    form.setValue('profilePicture', base64Image);
-  };
-
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl text-center">Create Your Profile</CardTitle>
         <CardDescription className="text-center">
@@ -171,154 +142,173 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) =
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Profile Picture Section */}
-            <div className="flex flex-col items-center space-y-2">
-              <FormField
-                control={form.control}
-                name="profilePicture"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col items-center">
-                    <FormLabel className="text-base font-semibold">Profile Picture</FormLabel>
-                    <FormControl>
-                      <AvatarUploader
-                        currentAvatar={field.value}
-                        onAvatarChange={handleAvatarChange}
-                      />
-                    </FormControl>
-                    <p className="text-sm text-muted-foreground text-center">
-                      Upload a profile picture (optional)
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Profile Picture Section - Moved to top */}
+            <div className="flex flex-col items-center mb-6">
+              <label htmlFor="profilePicture" className="cursor-pointer">
+                <div className="relative">
+                  {profilePicture ? (
+                    <img
+                      src={URL.createObjectURL(profilePicture)}
+                      alt="Profile"
+                      className="h-24 w-24 object-cover rounded-full border-4 border-blue-100 hover:border-blue-300 transition-colors"
+                    />
+                  ) : (
+                    <div className="h-24 w-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center border-4 border-blue-100 hover:border-blue-300 transition-colors">
+                      <span className="text-xs text-blue-600 font-medium text-center px-2">Click to add avatar</span>
+                    </div>
+                  )}
+                  <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white rounded-full p-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                </div>
+              </label>
+              <input
+                id="profilePicture"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="hidden"
               />
+              <div className="text-sm text-gray-500 mt-2 text-center">Upload a profile picture (optional)</div>
             </div>
 
-            {/* Form Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Full Name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="jobTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Job Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Your position" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="externalEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
                       <Input
+                        type={showPassword ? "text" : "password"}
                         {...field}
-                        placeholder="username"
-                        disabled={isSubmitting}
-                        onBlur={(e) => {
-                          field.onBlur();
-                          checkUsernameAvailability(e.target.value);
-                        }}
+                        placeholder="Create a secure password"
+                        className="pr-10"
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="John Doe" disabled={isSubmitting} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        {...field}
-                        placeholder="••••••••"
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        {...field}
-                        placeholder="••••••••"
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="organization"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Organization</FormLabel>
-                    <FormControl>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
                       <Input
+                        type={showConfirmPassword ? "text" : "password"}
                         {...field}
-                        placeholder="Company or Organization"
-                        disabled={isSubmitting}
+                        placeholder="Confirm your password"
+                        className="pr-10"
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="jobTitle"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Title</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Your position"
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="mt-6">
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Account...
-                  </>
-                ) : (
-                  'Create Account'
-                )}
-              </Button>
-            </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="organization"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Organization</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Company or Organization" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
+            </Button>
           </form>
         </Form>
       </CardContent>
       <CardFooter className="flex justify-center text-sm text-muted-foreground">
         <p>
-          You're registering with email: <strong>{inviteData.email}</strong>
+          If you have any questions, please contact support.
         </p>
       </CardFooter>
     </Card>

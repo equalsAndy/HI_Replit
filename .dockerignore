@@ -74,6 +74,9 @@ docker-compose.yml
 # AWS and deployment files
 .aws/
 *.pem
+# Allow CA certs in build context for Dockerfile.production
+!certs/*.pem
+!certs/*.crt
 vite.config.ts
 vite.config.js
 server/vite.ts

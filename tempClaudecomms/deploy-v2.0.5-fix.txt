@@ -1,0 +1,29 @@
+====================================
+DEPLOY v2.0.5 NAVBAR FIX
+Date: 2025-07-25
+Time: 10:28 PDT
+====================================
+
+STAGING VM COMMANDS:
+--------------------
+
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.5
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.5
+
+curl http://localhost/version.json
+
+AFTER STAGING TEST - PRODUCTION COMMAND:
+----------------------------------------
+
+aws lightsail create-container-service-deployment --region us-west-2 --service-name hi-replit-v2 --containers '{"allstarteams-app":{"image":"962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.5","ports":{"8080":"HTTP"},"environment":{"NODE_ENV":"production","DATABASE_URL":"postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require","SESSION_SECRET":"dev-secret-key-2025-heliotrope-imaginal","NODE_TLS_REJECT_UNAUTHORIZED":"0"}}}' --public-endpoint '{"containerName":"allstarteams-app","containerPort":8080,"healthCheck":{"healthyThreshold":5,"unhealthyThreshold":5,"timeoutSeconds":60,"intervalSeconds":90,"path":"/health","successCodes":"200-499"}}'
+
+EXPECTED RESULTS:
+-----------------
+- Staging: Shows "STAGING v2.0.5.0725.1024" badge
+- Production: NO navbar badge (clean production UI)
+- Admin dashboards: Show version info properly

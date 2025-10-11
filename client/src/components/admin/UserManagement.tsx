@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { forceAssessmentCacheDump } from '../../utils/forceRefresh';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon } from 'lucide-react';
+import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage, RotateCcw, FileText, FileCode } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -30,6 +31,8 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { formatDistanceToNow } from 'date-fns';
+import { WorkshopDataView } from './WorkshopDataView';
+import VersionInfo from '@/components/ui/VersionInfo';
 
 // Types
 interface User {
@@ -42,6 +45,9 @@ interface User {
   profilePicture?: string;
   role: 'admin' | 'facilitator' | 'participant' | 'student';
   isTestUser: boolean;
+  isBetaTester: boolean;
+  showDemoDataButtons: boolean;
+  canTrainTalia: boolean;
   // Access control fields
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;
@@ -66,11 +72,15 @@ const createUserSchema = z.object({
     .max(20, 'Username cannot exceed 20 characters')
     .regex(/^[a-z0-9][a-z0-9_\-]*[a-z0-9]$/i, 'Username must start and end with letter or number, and contain only letters, numbers, underscores, and hyphens'),
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Please enter a valid email').optional(),
+  email: z.string().email('Please enter a valid email'),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
   role: z.enum(['admin', 'facilitator', 'participant', 'student']),
-  generatePassword: z.boolean().default(true),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  isTestUser: z.boolean().default(false),
+  isBetaTester: z.boolean().default(false),
+  showDemoDataButtons: z.boolean().default(false),
+  canTrainTalia: z.boolean().default(false),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -86,16 +96,19 @@ const editUserSchema = z.object({
   contentAccess: z.enum(['student', 'professional', 'both']),
   astAccess: z.boolean(),
   iaAccess: z.boolean(),
-  resetPassword: z.boolean().default(false),
+  isTestUser: z.boolean(),
+  isBetaTester: z.boolean().default(false),
+  showDemoDataButtons: z.boolean().default(false),
+  canTrainTalia: z.boolean().default(false),
+  changePassword: z.boolean().default(false),
   newPassword: z.string().optional(),
-  setCustomPassword: z.boolean().default(false),
 }).refine((data) => {
-  if (data.setCustomPassword && (!data.newPassword || data.newPassword.length < 6)) {
+  if (data.changePassword && (!data.newPassword || data.newPassword.length < 6)) {
     return false;
   }
   return true;
 }, {
-  message: "Password must be at least 6 characters when setting custom password",
+  message: "Password must be at least 6 characters",
   path: ["newPassword"],
 });
 
@@ -165,7 +178,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [dataViewOpen, setDataViewOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-  const [localTestUserStatus, setLocalTestUserStatus] = useState<boolean>(false);
 
   // Query for current user profile to get role information
   const { data: userProfile } = useQuery({
@@ -185,9 +197,94 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
         method: 'GET',
       });
       console.log('User data response:', data);
+      // Debug logging for user 8 (Barney)
+      const barney = data.users?.find((u: any) => u.id === 8);
+      if (barney) {
+        console.log('🔍 DEBUG: User 8 (Barney) data from API:', {
+          id: barney.id,
+          name: barney.name,
+          isBetaTester: barney.isBetaTester,
+          isTestUser: barney.isTestUser,
+          showDemoDataButtons: barney.showDemoDataButtons
+        });
+      }
       return data.users || [];
     },
   });
+
+  // Query for fetching beta testers
+  const { data: betaTesters = [], isLoading: isLoadingBetaTesters, refetch: refetchBetaTesters } = useQuery({
+    queryKey: ['/api/admin/beta-testers'],
+    queryFn: async () => {
+      const data = await apiRequest('/api/admin/beta-testers', {
+        method: 'GET',
+      });
+      return data.users || [];
+    },
+  });
+
+  // Query for fetching beta tester ticket counts
+  const { data: betaTesterCounts = [], isLoading: isLoadingCounts } = useQuery({
+    queryKey: ['/api/feedback/beta-tester-counts'],
+    queryFn: async () => {
+      const data = await apiRequest('/api/feedback/beta-tester-counts', {
+        method: 'GET',
+      });
+      return data.betaTesters || [];
+    },
+    enabled: betaTesters.length > 0, // Only fetch if we have beta testers
+  });
+
+  // Sorting and filtering state
+  const [sortField, setSortField] = useState<string>('id');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Handle sorting
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Filter and sort users
+  const filteredAndSortedUsers = React.useMemo(() => {
+    let filtered = users.filter((user: User) => {
+      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+      const matchesSearch = !searchTerm || 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.organization && user.organization.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      return matchesRole && matchesSearch;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a: User, b: User) => {
+      let aValue: any = a[sortField as keyof User];
+      let bValue: any = b[sortField as keyof User];
+
+      // Handle special cases
+      if (sortField === 'name' || sortField === 'username') {
+        aValue = aValue?.toLowerCase() || '';
+        bValue = bValue?.toLowerCase() || '';
+      } else if (sortField === 'id') {
+        aValue = Number(aValue) || 0;
+        bValue = Number(bValue) || 0;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [users, sortField, sortDirection, roleFilter, searchTerm]);
 
   // Form for creating new users
   const createForm = useForm<CreateUserFormValues>({
@@ -199,7 +296,10 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       organization: '',
       jobTitle: '',
       role: 'participant',
-      generatePassword: true,
+      password: '',
+      isTestUser: false,
+      isBetaTester: false,
+      showDemoDataButtons: false,
     },
   });
 
@@ -215,9 +315,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       contentAccess: 'professional',
       astAccess: true,
       iaAccess: true,
-      resetPassword: false,
+      isTestUser: false,
+      isBetaTester: false,
+      showDemoDataButtons: false,
+      canTrainTalia: false,
+      changePassword: false,
       newPassword: '',
-      setCustomPassword: false,
     },
   });
 
@@ -257,13 +360,37 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   // Mutation for creating a new user
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormValues) => {
-      return await apiRequest('/api/admin/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      console.log('🌐 Making POST request to:', `/api/admin/users`);
+      console.log('🌐 Request body:', JSON.stringify(data, null, 2));
+      
+      // Enhanced error handling
+      try {
+        const response = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          credentials: 'include',
+        });
+        
+        console.log('🌐 Response status:', response.status);
+        console.log('🌐 Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          console.log('🌐 Response data:', responseData);
+          return responseData;
+        } else {
+          const text = await response.text();
+          console.error('🌐 Non-JSON response:', text.substring(0, 500));
+          throw new Error('Server returned non-JSON response');
+        }
+      } catch (error) {
+        console.error('🌐 Fetch error:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({
@@ -278,6 +405,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
       toast({
@@ -291,15 +419,40 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   // Mutation for updating a user
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: EditUserFormValues }) => {
-      return await apiRequest(`/api/admin/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      console.log('🌐 Making PUT request to:', `/api/admin/users/${id}`);
+      console.log('🌐 Request body:', JSON.stringify(data, null, 2));
+      
+      // Enhanced error handling
+      try {
+        const response = await fetch(`/api/admin/users/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          credentials: 'include',
+        });
+        
+        console.log('🌐 Response status:', response.status);
+        console.log('🌐 Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          console.log('🌐 Response data:', responseData);
+          return responseData;
+        } else {
+          const text = await response.text();
+          console.error('🌐 Non-JSON response:', text.substring(0, 500));
+          throw new Error('Server returned non-JSON response');
+        }
+      } catch (error) {
+        console.error('🌐 Fetch error:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log('✅ Update successful:', data);
       toast({
         title: 'User updated successfully',
         description: data.temporaryPassword 
@@ -313,8 +466,16 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
+      console.error('❌ Update failed:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
+      
       toast({
         title: 'Error updating user',
         description: error.message || 'Failed to update user. Please try again.',
@@ -342,6 +503,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
       toast({
@@ -371,6 +533,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
+      
+      // FORCE CACHE DUMP: Clear all assessment-related cached data
+      // This ensures that when the user navigates back to workshop pages,
+      // they won't see stale cached data showing completed assessments
+      forceAssessmentCacheDump(queryClient);
     },
     onError: (error: any) => {
       toast({
@@ -396,6 +564,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
       toast({
@@ -476,48 +645,201 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
-  // Mutation for toggling test user status
-  const toggleTestUserMutation = useMutation({
-    mutationFn: async ({ userId, isTestUser }: { userId: number; isTestUser: boolean }) => {
-      return await apiRequest(`/api/admin/users/${userId}/test-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ isTestUser }),
+  // Reset holistic reports mutation
+  const resetReportsMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await apiRequest(`/api/admin/users/${userId}/reports`, {
+        method: 'DELETE',
       });
+
+      return { userId, response };
     },
-    onSuccess: (_data, variables) => {
-      // Persist the intended value
-      setLocalTestUserStatus(variables.isTestUser);
-      // Optimistically update user in cache
-      queryClient.setQueryData(['/api/admin/users'], (oldData: any) => {
-        if (!oldData?.users) return oldData;
-        return {
-          ...oldData,
-          users: oldData.users.map((u: any) =>
-            u.id === variables.userId ? { ...u, isTestUser: variables.isTestUser } : u
-          ),
-        };
+    onSuccess: (data) => {
+      const { userId, response } = data;
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
       });
       toast({
-        title: 'Test user status updated',
-        description: variables.isTestUser
-          ? 'User is now a test user.'
-          : 'User is no longer a test user.',
+        title: 'Reports reset successfully',
+        description: `Holistic reports for ${users.find(user => user.id === userId)?.username} have been reset. They can now regenerate their report.`,
       });
-      // Invalidate all user-related queries to ensure fresh data everywhere
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      // Add more if you have other user-related queries
     },
-    onError: (error: any, _variables) => {
-      // Revert local state on error
-      setLocalTestUserStatus(!localTestUserStatus);
+    onError: (error: any, userId: number) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
       toast({
-        title: 'Error updating test user status',
-        description: error.message || 'Failed to update test user status. Please try again.',
+        title: 'Reset failed',
+        description: error.message || 'Failed to reset holistic reports. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Download AI request payloads mutation
+  const downloadAIPayloadsMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await fetch(`/api/admin/users/${userId}/reports/ai-payloads`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to download AI payloads');
+      }
+
+      // Get the blob and trigger download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `user-${userId}-ai-payloads-${new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      return { userId };
+    },
+    onSuccess: (data) => {
+      const { userId } = data;
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'AI payloads downloaded',
+        description: `Downloaded complete AI request payloads for all report sections.`,
+      });
+    },
+    onError: (error: any, userId: number) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'Download failed',
+        description: error.message || 'No AI payloads found for this user or payloads not available.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Generate holistic report mutation
+  const generateReportMutation = useMutation({
+    mutationFn: async ({ userId, reportType }: { userId: number; reportType: 'personal' | 'standard' }) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await apiRequest(`/api/admin/users/${userId}/reports/generate`, {
+        method: 'POST',
+        body: { reportType },
+      });
+
+      return { userId, response };
+    },
+    onSuccess: (data) => {
+      const { userId, response } = data;
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+
+      const user = users.find(user => user.id === userId);
+      toast({
+        title: 'Report generated successfully',
+        description: `Personal holistic report for ${user?.username} has been generated and is ready to view.`,
+      });
+
+      // Open the report in a new tab
+      if (response.reportUrl) {
+        const reportUrl = `${response.reportUrl}`;
+        window.open(reportUrl, '_blank');
+      }
+    },
+    onError: (error: any, { userId }: { userId: number; reportType: 'personal' | 'standard' }) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'Report generation failed',
+        description: error.message || 'Failed to generate holistic report. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // StarCard download mutation
+  const downloadStarCardMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await fetch(`/api/starcard/admin/download/${userId}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'No StarCard found for this user');
+        }
+        throw new Error('Failed to download StarCard');
+      }
+
+      // Get the filename from the Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+        : `user-${userId}-starcard.png`;
+
+      // Get the image data
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      return userId;
+    },
+    onSuccess: (userId) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'StarCard downloaded',
+        description: `StarCard PNG for ${users.find(user => user.id === userId)?.username} has been downloaded.`,
+      });
+    },
+    onError: (error: any, userId) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'StarCard download failed',
+        description: error.message || 'Failed to download StarCard. Please try again.',
         variant: 'destructive',
       });
     },
@@ -530,15 +852,19 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
   // Handler for editing a user
   const onEditSubmit = (values: EditUserFormValues) => {
+    console.log('🔍 onEditSubmit called with values:', values);
+    console.log('🔍 selectedUser:', selectedUser);
+    
     if (selectedUser) {
-      updateUserMutation.mutate({ id: selectedUser.id, data: values });
+      const payload = { id: selectedUser.id, data: values };
+      console.log('🔍 About to send mutation payload:', payload);
+      updateUserMutation.mutate(payload);
     }
   };
 
   // Open edit dialog and populate form with user data
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
-    setLocalTestUserStatus(user.isTestUser || false);
 
     editForm.reset({
       name: user.name,
@@ -549,43 +875,15 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       contentAccess: user.contentAccess || 'professional',
       astAccess: user.astAccess !== undefined ? user.astAccess : true,
       iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
-      resetPassword: false,
+      isTestUser: user.isTestUser || false,
+      isBetaTester: user.isBetaTester || false,
+      showDemoDataButtons: user.showDemoDataButtons !== undefined ? user.showDemoDataButtons : false,
+      canTrainTalia: user.canTrainTalia || false,
+      changePassword: false,
       newPassword: '',
-      setCustomPassword: false,
     });
 
     setEditDialogOpen(true);
-  };
-
-  // --- Test User Toggle Handler ---
-  const handleToggleTestUser = (userId: number) => {
-    if (!selectedUser) return;
-    // Determine intended new value
-    const intendedStatus = !localTestUserStatus;
-    // Optimistically update local state
-    setLocalTestUserStatus(intendedStatus);
-    // Call mutation with intended value
-    toggleTestUserMutation.mutate(
-      { userId, isTestUser: intendedStatus },
-      {
-        onSuccess: () => {
-          toast({
-            title: intendedStatus
-              ? 'User is now a test user'
-              : 'User is no longer a test user',
-            status: 'success',
-          });
-        },
-        onError: () => {
-          // Revert local state on error
-          setLocalTestUserStatus(!intendedStatus);
-          toast({
-            title: 'Failed to update test user status',
-            status: 'error',
-          });
-        },
-      }
-    );
   };
 
   // Handler for viewing user data
@@ -631,6 +929,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       .substring(0, 2);
   };
 
+  // Get ticket count for a beta tester
+  const getTicketCount = (userId: number) => {
+    const userCount = betaTesterCounts.find((u: any) => u.userId === userId);
+    return userCount ? userCount.ticketCount : 0;
+  };
+
   return (
     <div className="space-y-6">
       {/* Role-aware UI Banner */}
@@ -651,8 +955,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       )}
 
       <Tabs defaultValue="existing" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="existing">Manage Users</TabsTrigger>
+          <TabsTrigger value="beta-testers">Beta Testers</TabsTrigger>
           <TabsTrigger value="create">Create New User</TabsTrigger>
         </TabsList>
 
@@ -666,6 +971,33 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Filter Controls */}
+              {!isLoadingUsers && users.length > 0 && (
+                <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
+                  <Input
+                    placeholder="Search by name, username, email, or organization..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter by role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="facilitator">Facilitator</SelectItem>
+                      <SelectItem value="participant">Participant</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="text-sm text-muted-foreground">
+                    {filteredAndSortedUsers.length} of {users.length} users
+                  </div>
+                </div>
+              )}
+
               {isLoadingUsers ? (
                 <div className="flex justify-center py-10">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -674,24 +1006,56 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 <div className="text-center py-10 text-muted-foreground">
                   <p>No users found. Create a new user to get started.</p>
                 </div>
+              ) : filteredAndSortedUsers.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <p>No users match your filters. Try adjusting your search or role filter.</p>
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <div className="min-w-[1200px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[50px]">ID</TableHead>
+                          <TableHead 
+                            className="w-[50px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('id')}
+                          >
+                            <div className="flex items-center gap-1">
+                              ID {sortField === 'id' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
                           <TableHead className="min-w-[160px]">User</TableHead>
-                          <TableHead className="w-[90px]">Username</TableHead>
-                          <TableHead className="w-[70px]">Role</TableHead>
+                          <TableHead 
+                            className="w-[90px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('username')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Username {sortField === 'username' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
+                          <TableHead 
+                            className="w-[70px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('role')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Role {sortField === 'role' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
                           <TableHead className="w-[50px]">Test</TableHead>
+                          <TableHead className="w-[50px]">Beta</TableHead>
                           <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
-                          <TableHead className="min-w-[160px] sticky right-0 bg-white border-l">Actions</TableHead>
+                          <TableHead className="min-w-[240px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                     <TableBody>
-                      {users.map((user: User) => (
+                      {filteredAndSortedUsers.map((user: User) => (
                         <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
                           <TableCell className="w-[50px]">
                             <span className="font-mono text-xs text-muted-foreground">#{user.id}</span>
@@ -728,6 +1092,22 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>Test User</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <div className="w-3 h-3 bg-gray-200 rounded-full mx-auto"></div>
+                            )}
+                          </TableCell>
+                          <TableCell className="w-[50px]">
+                            {user.isBetaTester ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="w-3 h-3 bg-purple-500 rounded-full mx-auto"></div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Beta Tester</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -843,11 +1223,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                   // Filter IA steps (those with "ia-" prefix)
                                   const iaSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
                                   
-                                  console.log(`Debug IA Progress for user ${user.id}:`, {
-                                    allCompletedSteps: completedSteps,
-                                    iaSteps: iaSteps,
-                                    currentStepId: currentStepId
-                                  });
                                   
                                   if (iaSteps.includes('ia-8-1')) {
                                     iaStep = 'Complete';
@@ -881,7 +1256,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                               );
                             })()}
                           </TableCell>
-                          <TableCell className="min-w-[200px] sticky right-0 bg-white border-l">
+                          <TableCell className="min-w-[240px] sticky right-0 bg-white border-l">
                             <TooltipProvider>
                               <div className="flex items-center gap-1 justify-start">
                                 {!user.isDeleted && (
@@ -936,6 +1311,90 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Download all user data as JSON file</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-purple-600 hover:text-purple-800 hover:bg-purple-50 border-purple-200"
+                                          onClick={() => downloadStarCardMutation.mutate(user.id)}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && downloadStarCardMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <FileImage className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Download user's StarCard PNG (if available)</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
+                                          onClick={() => downloadAIPayloadsMutation.mutate(user.id)}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && downloadAIPayloadsMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <FileCode className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Download AI request payloads (all sections with prompts sent to OpenAI)</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 border-indigo-200"
+                                          onClick={() => resetReportsMutation.mutate(user.id)}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && resetReportsMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <RotateCcw className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Reset holistic report generation (allows user to regenerate)</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200"
+                                          onClick={() => generateReportMutation.mutate({ userId: user.id, reportType: 'personal' })}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && generateReportMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <FileText className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Generate personal (2nd person) holistic report and open in new tab</p>
                                       </TooltipContent>
                                     </Tooltip>
 
@@ -1069,10 +1528,13 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email (Optional)</FormLabel>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input placeholder="user@example.com" {...field} value={field.value || ''} />
                         </FormControl>
+                        <FormDescription>
+                          Email is required for user authentication
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1138,25 +1600,105 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
                     <FormField
                       control={createForm.control}
-                      name="generatePassword"
+                      name="password"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-end space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <Input 
+                              {...field} 
+                              type="password" 
+                              placeholder="Enter password (minimum 6 characters)"
                             />
                           </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Generate temporary password</FormLabel>
-                            <FormDescription>
-                              System will generate a secure random password
-                            </FormDescription>
-                          </div>
+                          <FormDescription>
+                            Set a password for this user (minimum 6 characters)
+                          </FormDescription>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
+                  
+                  <FormField
+                    control={createForm.control}
+                    name="isTestUser"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center space-x-3 rounded-md border p-3">
+                          <FormControl>
+                            <Switch 
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              aria-label="Toggle test user status"
+                              className="data-[state=checked]:bg-amber-500"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-medium">Test User</FormLabel>
+                            <FormDescription className="text-xs text-muted-foreground">
+                              Mark as test account
+                            </FormDescription>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={createForm.control}
+                    name="isBetaTester"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center space-x-3 rounded-md border p-3">
+                          <FormControl>
+                            <Switch 
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              aria-label="Toggle beta tester status"
+                              className="data-[state=checked]:bg-purple-500"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-medium">Beta Tester</FormLabel>
+                            <FormDescription className="text-xs text-muted-foreground">
+                              Mark as beta tester account
+                            </FormDescription>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {(createForm.watch('isTestUser') || createForm.watch('isBetaTester')) && (
+                    <FormField
+                      control={createForm.control}
+                      name="showDemoDataButtons"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-3 rounded-md border p-3">
+                            <FormControl>
+                              <Switch 
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                aria-label="Toggle demo data buttons visibility"
+                                className="data-[state=checked]:bg-blue-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium">Show Demo Data Buttons</FormLabel>
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Grant demo data access to this user (admin-controlled permission)
+                              </FormDescription>
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <Button 
                     type="submit" 
@@ -1178,12 +1720,90 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
             </CardFooter>
           </Card>
         </TabsContent>
+
+        {/* Tab for beta testers */}
+        <TabsContent value="beta-testers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Beta Testers</CardTitle>
+              <CardDescription>
+                Users marked as beta testers who don't see demo data buttons unless they're also test users.
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              {isLoadingBetaTesters ? (
+                <div className="flex justify-center p-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : betaTesters.length === 0 ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <p>No beta testers found.</p>
+                  <p className="text-sm mt-2">Mark users as beta testers in the user edit modal to see them here.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    {betaTesters.map((user: User) => (
+                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.profilePicture || undefined} />
+                            <AvatarFallback>
+                              {user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <p className="font-medium">{user.name}</p>
+                              <Badge variant="outline" className="text-xs">
+                                {user.role}
+                              </Badge>
+                              {user.isTestUser && (
+                                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                                  Test User
+                                </Badge>
+                              )}
+                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                                Beta Tester
+                              </Badge>
+                              {!isLoadingCounts && (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                                  {getTicketCount(user.id)} ticket{getTicketCount(user.id) !== 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              <p>{user.email}</p>
+                              {user.organization && <p>{user.organization}</p>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <PencilIcon className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
       </Tabs>
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[95vh] h-[95vh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden p-6">
-          <DialogHeader className="flex-shrink-0 pb-4">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
               Update user information and role.
@@ -1192,9 +1812,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
           {selectedUser && (
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col h-full">
-                {/* Make this div scrollable and flex-1 */}
-                <div className="flex-1 min-h-0 overflow-y-auto space-y-6 px-1 pb-2">
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col h-full overflow-y-auto">
+                {/* Scrollable content area */}
+                <div className="px-6 space-y-6 pb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={editForm.control}
@@ -1298,20 +1918,114 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   />
 
                   <div className="flex flex-col justify-end">
-                    <div className="flex items-center space-x-3 rounded-md border p-3">
-                      <Switch 
-                        checked={localTestUserStatus}
-                        onCheckedChange={() => selectedUser && handleToggleTestUser(selectedUser.id)}
-                        aria-label="Toggle test user status"
-                        className="data-[state=checked]:bg-amber-500"
+                    <FormField
+                      control={editForm.control}
+                      name="isTestUser"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-3 rounded-md border p-3">
+                            <FormControl>
+                              <Switch 
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                aria-label="Toggle test user status"
+                                className="data-[state=checked]:bg-amber-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium">Test User</FormLabel>
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Mark as test account
+                              </FormDescription>
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={editForm.control}
+                      name="isBetaTester"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-3 rounded-md border p-3">
+                            <FormControl>
+                              <Switch 
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                aria-label="Toggle beta tester status"
+                                className="data-[state=checked]:bg-purple-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium">Beta Tester</FormLabel>
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Mark as beta tester (won't see demo data buttons unless also Test User)
+                              </FormDescription>
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {(editForm.watch('isTestUser') || editForm.watch('isBetaTester')) && (
+                      <FormField
+                        control={editForm.control}
+                        name="showDemoDataButtons"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center space-x-3 rounded-md border p-3">
+                              <FormControl>
+                                <Switch 
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  aria-label="Toggle demo data buttons visibility"
+                                  className="data-[state=checked]:bg-blue-500"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-medium">Show Demo Data Buttons</FormLabel>
+                                <FormDescription className="text-xs text-muted-foreground">
+                                  Grant demo data access to this user (admin-controlled permission)
+                                </FormDescription>
+                              </div>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                      <div className="space-y-1 leading-none">
-                        <label className="text-sm font-medium">Test User</label>
-                        <p className="text-xs text-muted-foreground">
-                          Mark as test account
-                        </p>
-                      </div>
-                    </div>
+                    )}
+
+                    {/* Talia Training Access - Admin Only */}
+                    {watchedRole === 'admin' && (
+                      <FormField
+                        control={editForm.control}
+                        name="canTrainTalia"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center space-x-3 rounded-md border p-3">
+                              <FormControl>
+                                <Switch 
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  aria-label="Toggle Talia training access"
+                                  className="data-[state=checked]:bg-purple-500"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-medium">Talia Training Access</FormLabel>
+                                <FormDescription className="text-xs text-muted-foreground">
+                                  Allow user to access TRAIN command and train Talia personas
+                                </FormDescription>
+                              </div>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -1481,7 +2195,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                     <div className="space-y-4">
                       <FormField
                         control={editForm.control}
-                        name="resetPassword"
+                        name="changePassword"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
                             <FormControl>
@@ -1489,52 +2203,23 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 checked={field.value}
                                 onCheckedChange={(checked) => {
                                   field.onChange(checked);
-                                  if (checked) {
-                                    editForm.setValue('setCustomPassword', false);
+                                  if (!checked) {
                                     editForm.setValue('newPassword', '');
                                   }
                                 }}
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>Reset password</FormLabel>
+                              <FormLabel>Change password</FormLabel>
                               <FormDescription>
-                                Generate a new temporary password for this user
+                                Set a new password for this user
                               </FormDescription>
                             </div>
                           </FormItem>
                         )}
                       />
 
-                      <FormField
-                        control={editForm.control}
-                        name="setCustomPassword"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={(checked) => {
-                                  field.onChange(checked);
-                                  if (checked) {
-                                    editForm.setValue('resetPassword', false);
-                                  } else {
-                                    editForm.setValue('newPassword', '');
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>Set custom password</FormLabel>
-                              <FormDescription>
-                                Manually set a specific password for this user
-                              </FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-
-                      {editForm.watch('setCustomPassword') && (
+                      {editForm.watch('changePassword') && (
                         <FormField
                           control={editForm.control}
                           name="newPassword"
@@ -1542,13 +2227,14 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                             <FormItem>
                               <FormLabel>New Password</FormLabel>
                               <FormControl>
-                                <PasswordInput
+                                <Input
                                   {...field}
-                                  placeholder="Enter new password"
+                                  type="password"
+                                  placeholder="Enter new password (minimum 6 characters)"
                                 />
                               </FormControl>
                               <FormDescription>
-                                Enter a custom password for this user
+                                Enter a new password for this user (minimum 6 characters)
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -1560,7 +2246,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 </div>
 
                 {/* Fixed footer stays at the bottom */}
-                <DialogFooter className="flex-shrink-0 pt-4 mt-auto border-t bg-background">
+                <DialogFooter className="flex-shrink-0 px-6 pb-6 pt-4 border-t bg-background">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
                     Cancel
                   </Button>
@@ -1692,15 +2378,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       {/* Data Viewing Modal */}
       <Dialog open={dataViewOpen} onOpenChange={setDataViewOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>User Data - {selectedUser?.name}</DialogTitle>
-            <DialogDescription>
-              Quick review of all data associated with this user account
-            </DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[85vh]">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-lg">Export Data - {selectedUser?.name}</DialogTitle>
           </DialogHeader>
 
-          <div className="h-[60vh] w-full border rounded-md p-4 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {userData === null ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -1711,122 +2394,27 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 <p>{userData.error}</p>
               </div>
             ) : (
-              <div className="space-y-6">
-                {/* User Profile */}
-                {userData?.profile && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">User Profile</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><strong>Name:</strong> {userData.profile.name}</div>
-                      <div><strong>Email:</strong> {userData.profile.email}</div>
-                      <div><strong>Username:</strong> {userData.profile.username}</div>
-                      <div><strong>Role:</strong> {userData.profile.role}</div>
-                      <div><strong>Organization:</strong> {userData.profile.organization || 'N/A'}</div>
-                      <div><strong>Job Title:</strong> {userData.profile.jobTitle || 'N/A'}</div>
-                      <div><strong>Test User:</strong> {userData.profile.isTestUser ? 'Yes' : 'No'}</div>
-                      <div><strong>Created:</strong> {new Date(userData.profile.createdAt).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Navigation Progress */}
-                {userData?.navigationProgress && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Navigation Progress</h3>
-                    <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto">
-                      {JSON.stringify(userData.navigationProgress, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {/* Assessment Data */}
-                {userData?.assessments && userData.assessments.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Assessment Data ({userData.assessments.length} records)</h3>
-                    {userData.assessments.map((assessment: any, index: number) => (
-                      <div key={index} className="bg-blue-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Created:</strong> {new Date(assessment.createdAt).toLocaleString()}
-                        </div>
-                        <pre className="text-xs overflow-x-auto">
-                          {JSON.stringify(assessment, null, 2)}
-                        </pre>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Star Cards */}
-                {userData?.starCards && userData.starCards.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Star Cards ({userData.starCards.length} records)</h3>
-                    {userData.starCards.map((starCard: any, index: number) => (
-                      <div key={index} className="bg-yellow-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Created:</strong> {new Date(starCard.createdAt).toLocaleString()}
-                        </div>
-                        <div className="grid grid-cols-4 gap-2 text-sm mb-2">
-                          <div><strong>Thinking:</strong> {starCard.thinking}</div>
-                          <div><strong>Acting:</strong> {starCard.acting}</div>
-                          <div><strong>Feeling:</strong> {starCard.feeling}</div>
-                          <div><strong>Planning:</strong> {starCard.planning}</div>
-                        </div>
-                        {starCard.imageUrl && (
-                          <div className="text-sm"><strong>Has Image:</strong> Yes</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Flow Attributes */}
-                {userData?.flowAttributes && userData.flowAttributes.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Flow Attributes ({userData.flowAttributes.length} records)</h3>
-                    {userData.flowAttributes.map((flow: any, index: number) => (
-                      <div key={index} className="bg-purple-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Created:</strong> {new Date(flow.createdAt).toLocaleString()}
-                        </div>
-                        <pre className="text-xs overflow-x-auto">
-                          {JSON.stringify(flow, null, 2)}
-                        </pre>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Reflections */}
-                {userData?.reflections && userData.reflections.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Reflections ({userData.reflections.length} records)</h3>
-                    {userData.reflections.map((reflection: any, index: number) => (
-                      <div key={index} className="bg-green-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Step:</strong> {reflection.stepId} | <strong>Created:</strong> {new Date(reflection.createdAt).toLocaleString()}
-                        </div>
-                        <div className="text-sm">
-                          <strong>Content:</strong> {reflection.content}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Raw Data Fallback */}
-                {userData && !userData.profile && !userData.error && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Raw Data</h3>
-                    <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto">
-                      {JSON.stringify(userData, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {/* No Data Message */}
-                {userData && Object.keys(userData).length === 0 && (
-                  <div className="text-center text-gray-500 p-8">
-                    <p>No data found for this user</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm font-medium text-gray-700">JSON Export Data</span>
+                  {selectedUser && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => exportUserDataMutation.mutate(selectedUser.id)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Export
+                    </Button>
+                  )}
+                </div>
+                {userData ? (
+                  <pre className="bg-gray-50 p-3 rounded text-xs overflow-auto h-[60vh] font-mono border">
+                    {JSON.stringify(userData, null, 2)}
+                  </pre>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <p>No data found</p>
                   </div>
                 )}
               </div>
@@ -1842,4 +2430,4 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       </Dialog>
     </div>
   );
-}
+};

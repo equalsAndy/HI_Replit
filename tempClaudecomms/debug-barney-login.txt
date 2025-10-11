@@ -1,0 +1,34 @@
+# Debug Barney login crash - Run these on staging VM
+
+# Check container logs for authentication attempts
+sudo docker logs staging-app --tail 100 | grep -i "barney\|user.*8"
+
+# Check for any errors during login
+sudo docker logs staging-app --tail 100 | grep -i "error\|Error\|ERROR"
+
+# Check database connection and user data
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('SELECT id, username, name, email, role, is_test_user, is_beta_tester FROM users WHERE id = 8')
+  .then(result => console.log('Barney data:', JSON.stringify(result.rows[0], null, 2)))
+  .catch(err => console.error('DB Error:', err))
+  .finally(() => pool.end());
+"
+
+# Check if there are navigation progress issues
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('SELECT * FROM navigation_progress WHERE user_id = 8')
+  .then(result => console.log('Barney nav progress:', JSON.stringify(result.rows, null, 2)))
+  .catch(err => console.error('Nav Progress Error:', err))
+  .finally(() => pool.end());
+"
+
+# Monitor real-time logs while attempting login
+sudo docker logs staging-app -f

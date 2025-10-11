@@ -35,6 +35,14 @@
 
 **Give Brad:** `Run: git status` or `cd /Users/bradtopliff/Desktop/HI_Replit`
 
+### **Use Claude Code (File-Focused Development):**
+- Single-file focused coding tasks
+- File exploration and analysis
+- Precise code modifications
+- Learning new codebase patterns
+
+**Give Brad:** Structured prompt saved to `/Claude Code Prompts/` folder
+
 ### **Use Claude Direct (Simple Changes):**
 - 1-2 file modifications
 - Text/config updates
@@ -75,6 +83,16 @@ Here's the precision prompt for Replit Agent:
 [Detailed prompt with constraints]
 
 Copy this exactly and give it to Replit Agent.
+```
+
+**For File-Focused Work:**
+```
+I'll create a Claude Code prompt for this task.
+
+[Create structured prompt in Claude Code Prompts folder]
+
+Brad, use this prompt with Claude Code:
+"Apply the prompt from /Claude Code Prompts/[filename]"
 ```
 
 ### **4. Verification Steps**
@@ -148,6 +166,62 @@ Creating handoff document now. This will preserve our progress for a new chat.
 - Clear explanation of what each command does
 - Ask before complex technical decisions
 - Simple explanations when needed
+
+## 🖥️ Claude Code Prompt Structure
+
+### **When to Create Claude Code Prompts:**
+- File-specific analysis or modifications
+- Learning new code patterns
+- Precise component development
+- Code exploration and understanding
+
+**File Format:** Always save as `.md` or `.txt` - Claude Code cannot read RTF files.
+
+### **Prompt Template:**
+```markdown
+# CLAUDE CODE: [Task Name]
+## 🎯 Objective
+[Specific what needs to be accomplished]
+
+## 📁 Focus Files
+- Primary: [main file to work with]
+- Context: [related files to understand]
+
+## ⚠️ Constraints
+- Workshop: AST/IA/Shared
+- [Any specific limitations]
+
+## 🔧 Technical Requirements
+[Specific technical details]
+
+## ✅ Success Criteria
+[How to know it's complete]
+
+## 📋 Steps
+1. [Specific step-by-step process]
+2. [Expected action]
+3. [Verification step]
+```
+
+### **Save Location:**
+`/Users/bradtopliff/Desktop/HI_Replit/Claude Code Prompts/[descriptive-filename].md`
+
+**⚠️ Important:** Save prompts as `.md` or `.txt` files only - Claude Code cannot read RTF files properly.
+
+### **Usage Instructions for Brad:**
+```
+Brad, I've created a Claude Code prompt for this task:
+
+1. Open Claude Code
+2. Navigate to: /Users/bradtopliff/Desktop/HI_Replit/Claude Code Prompts/
+3. Use the prompt in: [filename].md
+4. Report back the results
+```
+
+### **Example Prompt:**
+See `/Claude Code Prompts/EXAMPLE-navigation-component-analysis.md` for structure reference.
+
+**Note:** Any existing `.rtf` files in the folder should be converted to `.md` format for Claude Code compatibility.
 
 ## 📁 Project Structure (Essential)
 

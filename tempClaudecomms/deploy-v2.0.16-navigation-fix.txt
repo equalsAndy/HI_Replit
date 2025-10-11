@@ -1,0 +1,44 @@
+# Deploy v2.0.16 - Navigation Loop Fix
+
+echo 'NODE_ENV=staging' > staging.env
+echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
+echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
+echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
+echo 'ENVIRONMENT=staging' >> staging.env
+
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-2245
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-2245
+
+# Fix Barney's user state after deployment
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+
+async function fixBarney() {
+  try {
+    await pool.query('UPDATE users SET role = \\'participant\\' WHERE id = 8');
+    await pool.query('DELETE FROM navigation_progress WHERE user_id = 8');
+    await pool.query(\`
+      INSERT INTO navigation_progress 
+      (user_id, app_type, current_step_id, completed_steps, unlocked_steps, video_progress, created_at, updated_at)
+      VALUES 
+      (8, 'ast', '1-1', '[]', '[\"1-1\"]', '{}', NOW(), NOW()),
+      (8, 'ia', 'ia-1-1', '[]', '[\"ia-1-1\"]', '{}', NOW(), NOW())
+    \`);
+    await pool.query('DELETE FROM sessions WHERE data LIKE \\'%\"userId\":8%\\'');
+    console.log('✅ Fixed Barney with clean navigation state');
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    pool.end();
+  }
+}
+fixBarney();
+"
+
+sudo docker ps -a | grep staging-app
+sudo docker logs staging-app --tail 20

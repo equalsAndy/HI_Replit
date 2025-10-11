@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, ClipboardCheck, CheckCircle, ArrowRight } from 'lucide-react';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useStarCardData } from '@/hooks/useStarCardData';
+import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 
 interface AssessmentViewProps {
   navigate: (to: string) => void;
@@ -20,136 +22,82 @@ interface StarCard {
   planning?: number;
 }
 
-const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = ({
+const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = React.memo(({
   navigate,
   markStepCompleted,
   setCurrentContent,
   setIsAssessmentModalOpen,
   starCard
 }) => {
-  // Fetch the latest assessment data from server using fetch instead of relying on passed props
-  const [assessmentData, setAssessmentData] = React.useState<any>(null);
-  const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
-  const [lastResetCheck, setLastResetCheck] = React.useState<number>(0);
+  // console.log('🔄 AssessmentView: Component rendered');
 
-  // Add function to refresh assessment data
-  const refreshAssessmentData = React.useCallback(async (forceRefresh = false) => {
-    if (isLoadingAssessment) return;
-    
-    setIsLoadingAssessment(true);
-    try {
-      // Add cache-busting timestamp to ensure fresh data after reset
-      const timestamp = Date.now();
-      const response = await fetch(`/api/workshop-data/starcard?t=${timestamp}`, {
-        credentials: 'include',
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      });
+  // Use the shared StarCard data hook instead of custom fetching
+  const { data: starCardData, isLoading: isLoadingAssessment, refetch } = useStarCardData();
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("StarCard API response:", data);
+  // console.log('🔄 AssessmentView: StarCard data from hook:', { starCardData, isLoadingAssessment });
 
-        // Clear any cached data if we get an empty response
-        if (data && data.success === false) {
-          setAssessmentData(null);
-          console.log("No assessment data available, clearing cache");
-          return;
-        }
+  // REMOVED: All the custom refreshAssessmentData logic that was causing infinite loops
 
-        // Check if we have valid assessment data
-        if (data && data.success && (data.thinking > 0 || data.acting > 0 || data.feeling > 0 || data.planning > 0)) {
-          setAssessmentData({
-            formattedResults: data
-          });
-          console.log("✅ Assessment data detected, switching to results view");
-        } else {
-          // Clear assessment data if no valid scores
-          setAssessmentData(null);
-          console.log("No valid assessment scores found, clearing state");
-        }
-      } else {
-        console.log("No assessment data available yet");
-        setAssessmentData(null);
-      }
-    } catch (error) {
-      console.error("Error fetching assessment data:", error);
-      setAssessmentData(null);
-    } finally {
-      setIsLoadingAssessment(false);
-    }
-  }, [isLoadingAssessment]);
+  // Listen for assessment completion events - stabilize with useCallback
+  const handleAssessmentComplete = React.useCallback(() => {
+    // console.log("Assessment completion event detected, refetching data...");
+    setTimeout(() => refetch(), 500); // Small delay to ensure data is saved
+  }, [refetch]);
 
-  // Load assessment data when component mounts
   React.useEffect(() => {
-    refreshAssessmentData();
-  }, [refreshAssessmentData]);
-
-  // Listen for assessment completion events
-  React.useEffect(() => {
-    const handleAssessmentComplete = () => {
-      console.log("Assessment completion event detected, refreshing data...");
-      setTimeout(() => refreshAssessmentData(), 500); // Small delay to ensure data is saved
-    };
-
     window.addEventListener('assessmentCompleted', handleAssessmentComplete);
     return () => window.removeEventListener('assessmentCompleted', handleAssessmentComplete);
-  }, [refreshAssessmentData]);
+  }, [handleAssessmentComplete]);
 
-  // Monitor starCard prop changes - if it becomes empty/null, clear our cached data too
-  React.useEffect(() => {
-    const starCardIsEmpty = !starCard || (
-      (!starCard.thinking || starCard.thinking === 0) &&
-      (!starCard.acting || starCard.acting === 0) &&
-      (!starCard.feeling || starCard.feeling === 0) &&
-      (!starCard.planning || starCard.planning === 0)
+  // Use the starCardData directly to determine completion status - memoized to prevent loops
+  const hasValidAssessmentData = React.useMemo(() => {
+    return starCardData && starCardData.success !== false && (
+      Number(starCardData.thinking) > 0 || 
+      Number(starCardData.acting) > 0 || 
+      Number(starCardData.feeling) > 0 || 
+      Number(starCardData.planning) > 0
     );
+  }, [starCardData]);
 
-    if (starCardIsEmpty) {
-      console.log("StarCard prop is empty, clearing assessment data cache");
-      setAssessmentData(null);
-    }
-  }, [starCard]);
-
-  // Use the fetched data only if it has valid scores, ignore the prop to avoid stale data
-  const assessmentResults = assessmentData?.formattedResults;
-
-  // Check if the assessment data we fetched has valid scores
-  const hasValidAssessmentData = assessmentData && assessmentData.formattedResults && (
-    Number(assessmentData.formattedResults.thinking) > 0 || 
-    Number(assessmentData.formattedResults.acting) > 0 || 
-    Number(assessmentData.formattedResults.feeling) > 0 || 
-    Number(assessmentData.formattedResults.planning) > 0
-  );
-
-  // Use only the fresh API data to determine completion status
+  // Use the fresh API data to determine completion status
   const isAssessmentComplete = hasValidAssessmentData;
 
-  // Debug log to check assessment completion status                              
-  console.log("Assessment completion check:", {
-    hasStarCard: !!starCard,
-    hasAssessmentData: !!assessmentData,
-    hasValidAssessmentData,
-    isComplete: isAssessmentComplete
-  });
+  // Debug log to check assessment completion status (disabled to prevent spam)                              
+  // console.log("Assessment completion check:", {
+  //   hasStarCard: !!starCard,
+  //   hasStarCardData: !!starCardData,
+  //   hasValidAssessmentData,
+  //   isComplete: isAssessmentComplete
+  // });
 
   // Use the navigation hook for reliable navigation
   const { setCurrentStep, handleNextButtonClick, progress } = useNavigationProgress();
   
   // Get current step from progress state
   const currentStepId = progress.currentStepId || '1-1';
+
+  // Use FloatingAI context to properly set step and disable AI for assessment step
+  const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
+
+  // Set FloatingAI context for step 1-1 (assessment) with AI disabled
+  React.useEffect(() => {
+    setFloatingAIStep('1-1');
+    updateContext({
+      stepName: 'Initial Assessment',
+      strengthLabel: undefined,
+      questionText: 'Complete your strengths assessment to discover your top strengths.',
+      aiEnabled: false // Explicitly disable AI for assessment step
+    });
+  }, []); // Empty dependency array - only run once on mount
   
   const continueToNextStep = async () => {
-    console.log(`🎯 AssessmentView: Assessment complete, advancing from step ${currentStepId}`);
-    console.log(`🎯 AssessmentView: Current step is 2-2, should navigate to 2-3`);
+    // console.log(`🎯 AssessmentView: Assessment complete, advancing from step ${currentStepId}`);
+    // console.log(`🎯 AssessmentView: Current step is 2-2, should navigate to 2-3`);
     
     // Use the navigation hook's handleNextButtonClick for proper navigation
     const result = await handleNextButtonClick(currentStepId);
     if (result.success) {
-      console.log("✅ Successfully navigated to next step:", result.nextStepId);
+      // console.log("✅ Successfully navigated to next step:", result.nextStepId);
       // Also manually set the current step to ensure navigation
       if (result.nextStepId) {
         setCurrentStep(result.nextStepId);
@@ -254,10 +202,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             <div className="flex justify-center items-center w-full px-4">
               <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
                 <AssessmentPieChart
-                  thinking={assessmentResults?.thinking || 0}
-                  acting={assessmentResults?.acting || 0}
-                  feeling={assessmentResults?.feeling || 0}
-                  planning={assessmentResults?.planning || 0}
+                  thinking={starCardData?.thinking}
+                  acting={starCardData?.acting}
+                  feeling={starCardData?.feeling}
+                  planning={starCardData?.planning}
                 />
               </div>
             </div>
@@ -279,10 +227,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               <div className="space-y-3">
                 {(() => {
                   // Use the assessment results directly (they are already percentages)
-                  const thinking = Number(assessmentResults?.thinking) || 0;
-                  const planning = Number(assessmentResults?.planning) || 0;
-                  const feeling = Number(assessmentResults?.feeling) || 0;
-                  const acting = Number(assessmentResults?.acting) || 0;
+                  const thinking = Number(starCardData?.thinking);
+                  const planning = Number(starCardData?.planning);
+                  const feeling = Number(starCardData?.feeling);
+                  const acting = Number(starCardData?.acting);
 
                   // Create and sort data using the percentage values directly
                   return [
@@ -307,20 +255,20 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             <div className="flex justify-end">
               <Button 
                 onClick={async () => {
-                  console.log("🔥 NAVIGATION BUTTON CLICKED!");
-                  console.log("🔥 Current step ID:", currentStepId);
+                  // console.log("🔥 NAVIGATION BUTTON CLICKED!");
+                  // console.log("🔥 Current step ID:", currentStepId);
                   
                   try {
                     // Mark step 2-2 as completed first
-                    console.log("📝 Marking step 2-2 as completed...");
+                    // console.log("📝 Marking step 2-2 as completed...");
                     await markStepCompleted('2-2');
-                    console.log("✅ Step 2-2 marked as completed");
+                    // console.log("✅ Step 2-2 marked as completed");
                     
                     // Wait a moment for the state to update
                     setTimeout(() => {
-                      console.log("🎯 Setting content to star-card-preview");
+                      // console.log("🎯 Setting content to star-card-preview");
                       setCurrentContent('star-card-preview');
-                      console.log("✅ Navigation complete");
+                      // console.log("✅ Navigation complete");
                     }, 100);
                   } catch (error) {
                     console.error("❌ Error in navigation:", error);
@@ -339,6 +287,6 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
       )}
     </>
   );
-};
+});
 
 export default AssessmentView;

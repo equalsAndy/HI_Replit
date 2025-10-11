@@ -10,6 +10,31 @@ export interface QuadrantData {
   planning: number;
 }
 
+// Define ProfileData interface for StarCard components
+export interface ProfileData {
+  name: string;
+  title: string;
+  organization: string;
+  avatarUrl?: string;
+  profilePictureUrl?: string; // New field for photo storage system
+}
+
+/**
+ * User reflection responses for various reflection sets (e.g., strength reflections)
+ */
+export const reflectionResponses = pgTable('reflection_responses', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  reflectionSetId: varchar('reflection_set_id', { length: 100 }).notNull(),
+  reflectionId: varchar('reflection_id', { length: 100 }).notNull(),
+  response: text('response'),
+  completed: boolean('completed').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  uniqueUserReflection: unique().on(table.userId, table.reflectionSetId, table.reflectionId),
+}));
+
 // Define valid user roles
 export const UserRoles = ['admin', 'facilitator', 'participant', 'student'] as const;
 export type UserRole = typeof UserRoles[number];
@@ -68,7 +93,12 @@ export const users: any = pgTable('users', {
   organization: text('organization'),
   jobTitle: text('job_title'),
   profilePicture: text('profile_picture'),
+  profilePictureId: integer('profile_picture_id'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
+  isBetaTester: boolean('is_beta_tester').default(false).notNull(),
+  hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
+  hasSeenWelcomeVideo: boolean('has_seen_welcome_video').default(false).notNull(),
+  showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(), // Admin-granted permission for demo data access
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields
   contentAccess: varchar('content_access', { length: 20 }).notNull().default('professional'), // student, professional, both
@@ -85,6 +115,11 @@ export const users: any = pgTable('users', {
   teamId: integer('team_id'),
   // Invite tracking field
   invitedBy: integer('invited_by'),
+  // Talia training access control
+  canTrainTalia: boolean('can_train_talia').default(false).notNull(),
+  // Auth0 integration
+  auth0Sub: varchar('auth0_sub', { length: 255 }),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -100,7 +135,8 @@ export const insertUserSchema = createInsertSchema(users).extend({
   astAccess: z.boolean().default(true),
   iaAccess: z.boolean().default(true),
   astWorkshopCompleted: z.boolean().default(false),
-  iaWorkshopCompleted: z.boolean().default(false)
+  iaWorkshopCompleted: z.boolean().default(false),
+  canTrainTalia: z.boolean().default(false)
 });
 
 // Type definitions for TypeScript
@@ -127,6 +163,12 @@ export const videos = pgTable('videos', {
   stepId: varchar('step_id', { length: 20 }), // For navigation step identifiers like "1-1", "2-3"
   autoplay: boolean('autoplay').default(false).notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
+  // Video management enhancements
+  contentMode: varchar('content_mode', { length: 20 }).default('both').notNull(), // 'student', 'professional', 'both'
+  requiredWatchPercentage: integer('required_watch_percentage').default(75).notNull(), // Percentage required to unlock next step
+  // Content fields for transcript and glossary
+  transcriptMd: text('transcript_md').notNull().default(''),
+  glossary: jsonb('glossary').notNull().default('[]'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -181,6 +223,9 @@ export const invites = pgTable('invites', {
   expiresAt: timestamp('expires_at'),
   usedAt: timestamp('used_at'),
   usedBy: integer('used_by'),
+  cohortId: integer('cohort_id'),
+  organizationId: varchar('organization_id', { length: 255 }),
+  isBetaTester: boolean('is_beta_tester').default(false).notNull(),
 });
 
 // Create insert schema for invites with role validation
@@ -315,11 +360,32 @@ export const navigationProgress = pgTable('navigation_progress', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Create insert schema for navigation progress
-export const insertNavigationProgressSchema = createInsertSchema(navigationProgress);
+// Workshop step data table for storing all workshop input data
+export const workshopStepData = pgTable('workshop_step_data', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workshopType: varchar('workshop_type', { length: 10 }).notNull(), // 'ast' or 'ia'
+  stepId: varchar('step_id', { length: 20 }).notNull(), // e.g., 'ia-3-4', '2-1'
+  data: jsonb('data').notNull(), // Flexible JSON storage for any step data
+  version: integer('version').default(1).notNull(), // For future versioning support
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'), // NULL = active, timestamp = soft deleted
+}, (table) => ({
+  // Unique constraint ensures one record per user/workshop/step
+  userWorkshopStepIdx: unique('workshop_step_data_user_workshop_step_unique').on(table.userId, table.workshopType, table.stepId),
+  // Index for fast lookups
+  userWorkshopIdx: index('idx_workshop_step_data_user_workshop').on(table.userId, table.workshopType),
+}));
 
-// Type definitions for navigation progress
+// Create insert schemas
+export const insertNavigationProgressSchema = createInsertSchema(navigationProgress);
+export const insertWorkshopStepDataSchema = createInsertSchema(workshopStepData);
+
+// Type definitions
 export type NavigationProgress = typeof navigationProgress.$inferSelect;
+export type WorkshopStepData = typeof workshopStepData.$inferSelect;
+export type InsertWorkshopStepData = typeof workshopStepData.$inferInsert;
 export type InsertNavigationProgress = z.infer<typeof insertNavigationProgressSchema>;
 
 // Final reflections table for storing user insights
@@ -361,12 +427,226 @@ export const flowAttributes = pgTable('flow_attributes', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Knowledge Base for the Coach
+export const coachKnowledgeBase = pgTable('coach_knowledge_base', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    title: varchar('title', { length: 255 }).notNull(),
+    content: text('content').notNull(),
+    source: varchar('source', { length: 255 }),
+    category: varchar('category', { length: 100 }),
+    metadata: jsonb('metadata'), // For storing section_title, key_concepts, etc.
+    searchVector: text('search_vector'), // This will be a tsvector type in the DB
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+    return {
+        categoryIndex: index('knowledge_category_idx').on(table.category),
+        // A GIN index for full-text search will be created manually in a migration
+    };
+});
+
+// Extended user profiles for team connections and collaboration
+export const userProfilesExtended = pgTable('user_profiles_extended', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Company/Team Info
+  company: varchar('company', { length: 255 }),
+  department: varchar('department', { length: 255 }),
+  role: varchar('role', { length: 255 }),
+  
+  // AST Profile Summary (derived from workshop data)
+  astProfileSummary: jsonb('ast_profile_summary'), // processed Star Card + flow data
+  
+  // Expertise and Experience
+  expertiseAreas: jsonb('expertise_areas'), // array of skills/domains
+  projectExperience: jsonb('project_experience'), // past projects and roles
+  collaborationPreferences: jsonb('collaboration_preferences'), // work style preferences
+  
+  // Team Connection Data
+  availabilityStatus: varchar('availability_status', { length: 50 }).default('available'),
+  connectionOptIn: boolean('connection_opt_in').default(true),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Coaching conversation sessions
+export const coachingSessions = pgTable('coaching_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Conversation Data
+  conversation: jsonb('conversation').notNull(), // full message history
+  sessionSummary: text('session_summary'), // AI-generated summary of key topics
+  contextUsed: jsonb('context_used'), // what knowledge base content was referenced
+  
+  // Session Metadata
+  sessionType: varchar('session_type', { length: 50 }).default('general'),
+  sessionLength: varchar('session_length', { length: 50 }),
+  userSatisfaction: varchar('user_satisfaction', { length: 20 }),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Team connection suggestions and tracking
+export const connectionSuggestions = pgTable('connection_suggestions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  requestorId: integer('requestor_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  suggestedCollaboratorId: integer('suggested_collaborator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Connection Logic
+  reasonType: varchar('reason_type', { length: 100 }).notNull(),
+  reasonExplanation: text('reason_explanation').notNull(),
+  context: text('context'),
+  
+  // Status Tracking
+  status: varchar('status', { length: 50 }).default('suggested'),
+  responseAt: timestamp('response_at'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Vector embeddings references (for linking to external vector DB)
+export const vectorEmbeddings = pgTable('vector_embeddings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceTable: varchar('source_table', { length: 100 }).notNull(),
+  sourceId: varchar('source_id', { length: 255 }).notNull(),
+  vectorId: varchar('vector_id', { length: 255 }).notNull(),
+  embeddingType: varchar('embedding_type', { length: 100 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Create insert schemas for star cards and flow attributes
 export const insertStarCardSchema = createInsertSchema(starCards);
 export const insertFlowAttributesSchema = createInsertSchema(flowAttributes);
+
+// Create insert schemas for new coaching tables
+export const insertCoachKnowledgeBaseSchema = createInsertSchema(coachKnowledgeBase);
+export const insertUserProfilesExtendedSchema = createInsertSchema(userProfilesExtended);
+export const insertCoachingSessionsSchema = createInsertSchema(coachingSessions);
+export const insertConnectionSuggestionsSchema = createInsertSchema(connectionSuggestions);
+export const insertVectorEmbeddingsSchema = createInsertSchema(vectorEmbeddings);
 
 // Type definitions for star cards and flow attributes
 export type StarCard = typeof starCards.$inferSelect;
 export type InsertStarCard = z.infer<typeof insertStarCardSchema>;
 export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
 export type InsertFlowAttributes = z.infer<typeof insertFlowAttributesSchema>;
+
+// AST AI Coaching Chatbot Tables
+export const coachingConversations = pgTable('coaching_conversations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  personaType: varchar('persona_type', { length: 50 }).notNull(), // 'workshop_assistant', 'talia_coach', 'team_advisor'
+  workshopStep: varchar('workshop_step', { length: 100 }),
+  title: varchar('title', { length: 255 }),
+  contextData: jsonb('context_data'), // Store workshop context, team context, etc.
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const coachingMessages = pgTable('coaching_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  conversationId: uuid('conversation_id').references(() => coachingConversations.id, { onDelete: 'cascade' }).notNull(),
+  senderType: varchar('sender_type', { length: 20 }).notNull(), // 'user' or 'ai'
+  messageContent: text('message_content').notNull(),
+// //   bedrockRequestId: varchar('bedrock_request_id', { length: 255 }), // Track AWS Bedrock requests
+  attachments: jsonb('attachments'), // File attachments, images, etc.
+  messageMetadata: jsonb('message_metadata'), // Additional context, tokens used, etc.
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const userCoachingPreferences = pgTable('user_coaching_preferences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  preferredPersona: varchar('preferred_persona', { length: 50 }).default('workshop_assistant'),
+  coachingStyle: varchar('coaching_style', { length: 50 }).default('supportive'), // 'supportive', 'direct', 'exploratory'
+  workshopProgress: jsonb('workshop_progress'), // Track progress through AST workshops
+  notificationSettings: jsonb('notification_settings'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const coachingPrompts = pgTable('coaching_prompts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  promptKey: varchar('prompt_key', { length: 100 }).notNull().unique(),
+  personaType: varchar('persona_type', { length: 50 }).notNull(),
+  systemInstructions: text('system_instructions').notNull(),
+  contextTemplate: text('context_template'), // Template for injecting dynamic context
+  isActive: boolean('is_active').default(true).notNull(),
+  version: integer('version').default(1).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schemas for chatbot tables
+export const insertCoachingConversationSchema = createInsertSchema(coachingConversations);
+export const insertCoachingMessageSchema = createInsertSchema(coachingMessages);
+export const insertUserCoachingPreferencesSchema = createInsertSchema(userCoachingPreferences);
+export const insertCoachingPromptSchema = createInsertSchema(coachingPrompts);
+
+// Type definitions for new coaching tables
+export type CoachKnowledgeBase = typeof coachKnowledgeBase.$inferSelect;
+export type InsertCoachKnowledgeBase = z.infer<typeof insertCoachKnowledgeBaseSchema>;
+export type UserProfileExtended = typeof userProfilesExtended.$inferSelect;
+export type InsertUserProfileExtended = z.infer<typeof insertUserProfilesExtendedSchema>;
+export type CoachingSession = typeof coachingSessions.$inferSelect;
+export type InsertCoachingSession = z.infer<typeof insertCoachingSessionsSchema>;
+export type ConnectionSuggestion = typeof connectionSuggestions.$inferSelect;
+export type InsertConnectionSuggestion = z.infer<typeof insertConnectionSuggestionsSchema>;
+export type VectorEmbedding = typeof vectorEmbeddings.$inferSelect;
+export type InsertVectorEmbedding = z.infer<typeof insertVectorEmbeddingsSchema>;
+
+// Type definitions for chatbot tables
+export type CoachingConversation = typeof coachingConversations.$inferSelect;
+export type InsertCoachingConversation = z.infer<typeof insertCoachingConversationSchema>;
+export type CoachingMessage = typeof coachingMessages.$inferSelect;
+export type InsertCoachingMessage = z.infer<typeof insertCoachingMessageSchema>;
+export type UserCoachingPreferences = typeof userCoachingPreferences.$inferSelect;
+export type InsertUserCoachingPreferences = z.infer<typeof insertUserCoachingPreferencesSchema>;
+export type CoachingPrompt = typeof coachingPrompts.$inferSelect;
+export type InsertCoachingPrompt = z.infer<typeof insertCoachingPromptSchema>;
+
+// Feedback System Tables
+export const feedback = pgTable('feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }), // Allow anonymous feedback
+  workshopType: varchar('workshop_type', { length: 20 }).notNull(), // 'ast' or 'ia'
+  pageContext: varchar('page_context', { length: 20 }).notNull(), // 'current', 'other', 'general'
+  targetPage: varchar('target_page', { length: 100 }), // Specific page name or null for general
+  feedbackType: varchar('feedback_type', { length: 20 }).notNull(), // 'bug', 'feature', 'content', 'general'
+  priority: varchar('priority', { length: 10 }).notNull().default('low'), // 'low', 'medium', 'high', 'blocker'
+  message: text('message').notNull(),
+  experienceRating: integer('experience_rating'), // 1-5 rating
+  status: varchar('status', { length: 20 }).notNull().default('new'), // 'new', 'read', 'in_progress', 'resolved', 'archived'
+  tags: jsonb('tags').default('[]'), // Array of tags
+  systemInfo: jsonb('system_info').notNull(), // Browser, OS, screen size, etc.
+  adminNotes: text('admin_notes'), // Admin notes and comments
+  jiraTicketId: varchar('jira_ticket_id', { length: 50 }), // Reference to created Jira ticket
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('idx_feedback_user_id').on(table.userId),
+  workshopTypeIdx: index('idx_feedback_workshop_type').on(table.workshopType),
+  statusIdx: index('idx_feedback_status').on(table.status),
+  createdAtIdx: index('idx_feedback_created_at').on(table.createdAt),
+}));
+
+// Create insert schema for feedback
+export const insertFeedbackSchema = createInsertSchema(feedback).extend({
+  workshopType: z.enum(['ast', 'ia']),
+  pageContext: z.enum(['current', 'other', 'general']),
+  feedbackType: z.enum(['bug', 'feature', 'content', 'general']),
+  priority: z.enum(['low', 'medium', 'high', 'blocker']).default('low'),
+  status: z.enum(['new', 'in_progress', 'resolved', 'archived']).default('new'),
+  experienceRating: z.number().min(1).max(5).optional(),
+});
+
+// Type definitions for feedback
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;

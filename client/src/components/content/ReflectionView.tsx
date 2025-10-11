@@ -7,6 +7,7 @@ import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import StepByStepReflection from '@/components/reflection/StepByStepReflection';
+import { ContentViewProps } from '@/shared/types';
 
 const ReflectionView: React.FC<ContentViewProps> = ({
   navigate,
@@ -14,14 +15,14 @@ const ReflectionView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   const { completed: workshopLocked, loading: workshopLoading, isWorkshopLocked } = useWorkshopStatus();
 
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
 
   const handleDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }

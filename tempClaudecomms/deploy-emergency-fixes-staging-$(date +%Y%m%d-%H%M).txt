@@ -1,0 +1,32 @@
+# Emergency Fixes Staging Deployment - $(date +%Y-%m-%d_%H:%M)
+# Fixes: Infinite loop bug, IA navigation expansion, strength reflection examples
+
+# SSH into staging VM
+ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+
+# Once on the VM, run these commands:
+
+# Login to ECR
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+# Stop current container
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+
+# Deploy new container with emergency fixes
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250727-0507
+
+# Verify deployment
+curl -I http://34.220.143.127
+curl http://34.220.143.127/api/health
+
+# Exit SSH
+exit
+
+# Test the deployed fixes:
+# 1. Login as Barney (participant user) - should not crash browser
+# 2. Check IA navigation - sections 1-4 should be expanded, 5-8 collapsed
+# 3. Check strength reflections - should show examples instead of "I'm not sure what to write" links
+# 4. Test demo buttons in AST - may still need debugging if not functioning
+
+# Staging URL: http://34.220.143.127

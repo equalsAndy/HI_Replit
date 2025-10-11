@@ -1,19 +1,24 @@
 import express from 'express';
-import { attachUser } from './middleware/auth.js';
-import { db } from './db.js';
+import { attachUser } from './middleware/auth.ts';
+import { db } from './db.ts';
 import { eq, and, desc } from 'drizzle-orm';
-import * as schema from '../shared/schema.js';
+import * as schema from '../shared/schema.ts';
 
 // Import route modules
-import authRoutes from './routes/auth-routes.js';
-import inviteRoutes from './routes/invite-routes.js';
-import fixedInviteRoutes from './routes/fixed-invite-routes.js';
-import userRoutes from './routes/user-routes.js';
-import workshopDataRoutes from './routes/workshop-data-routes.js';
-import growthPlanRoutes from './routes/growth-plan-routes.js';
-import { resetRouter } from './reset-routes.js';
-import { adminRouter } from './routes/admin-routes.js';
-import { facilitatorRouter } from './routes/facilitator-routes.js';
+import authRoutes from './routes/auth-routes.ts';
+import inviteRoutes from './routes/invite-routes.ts';
+import fixedInviteRoutes from './routes/fixed-invite-routes.ts';
+import userRoutes from './routes/user-routes.ts';
+import workshopDataRoutes from './routes/workshop-data-routes.ts';
+import growthPlanRoutes from './routes/growth-plan-routes.ts';
+// import coachingChatRoutes from './routes/coaching-chat-routes.ts';
+import { resetRouter } from './reset-routes.ts';
+import { adminRouter } from './routes/admin-routes.ts';
+import { facilitatorRouter } from './routes/facilitator-routes.ts';
+import photoRoutes from './routes/photo-routes.ts';
+import starCardRoutes from './routes/starcard-routes.ts';
+import iaChatRoutes from './routes/ia-chat-routes.ts';
+import aiRoutes from './routes/ai.ts';
 
 // Create a router
 export const router = express.Router();
@@ -27,10 +32,18 @@ router.use('/invites', inviteRoutes);
 router.use('/admin/invites', fixedInviteRoutes);
 router.use('/admin', adminRouter);
 router.use('/facilitator', facilitatorRouter);
+// router.use('/coaching/chat', coachingChatRoutes);
 router.use('/user', userRoutes);
+// router.use('/coaching/chat', coachingChatRoutes);
 router.use('/test-users/reset', resetRouter);
 router.use('/workshop-data', workshopDataRoutes);
 router.use('/growth-plan', growthPlanRoutes);
+router.use('/photos', photoRoutes);
+router.use('/starcard', starCardRoutes);
+// AI training routes
+router.use('/ai', aiRoutes);
+// IA chat assistant routes
+router.use('/', iaChatRoutes);
 
 // Add visualization endpoints directly at the API root level
 router.use('/', workshopDataRoutes);
@@ -68,7 +81,12 @@ router.post('/assessments', async (req, res) => {
       message: 'Assessment saved successfully'
     });
   } catch (error) {
-    console.error('Error saving assessment:', error);
+    console.error('Error saving assessment:', {
+      userId,
+      assessmentType,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : 'UnknownError'
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to save assessment'
@@ -122,7 +140,12 @@ router.get('/assessments/:type', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching assessment:', error);
+    console.error('Error fetching assessment:', {
+      userId,
+      assessmentType: type,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : 'UnknownError'
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch assessment'
@@ -152,7 +175,11 @@ router.get('/final-reflection', async (req, res) => {
       insight: reflection[0]?.insight || ''
     });
   } catch (error) {
-    console.error('Error fetching final reflection:', error);
+    console.error('Error fetching final reflection:', {
+      userId,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : 'UnknownError'
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch final reflection'
@@ -206,7 +233,11 @@ router.post('/final-reflection', async (req, res) => {
       message: 'Final reflection saved successfully'
     });
   } catch (error) {
-    console.error('Error saving final reflection:', error);
+    console.error('Error saving final reflection:', {
+      userId,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : 'UnknownError'
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to save final reflection'

@@ -1,25 +1,30 @@
 import React from 'react';
 import { ContentViewProps } from '../../../shared/types';
 import WelcomeView from '../WelcomeView';
-import IntroStrengthsView from '../IntroStrengthsView';
+import StrengthsView from '../StrengthsView';
 import AssessmentView from '../AssessmentView';
 import StarCardPreviewView from '../StarCardPreviewView';
 import ReflectionView from '../ReflectionView';
 import FlowIntroView from '../FlowIntroView';
 import IntroToFlowView from '../IntroToFlowView';
-import FlowAssessmentView from '../FlowAssessmentView';
-import FlowRoundingOutView from '../FlowRoundingOutView';
 import FlowStarCardView from '../FlowStarCardView';
+import { ProtectedFlowPatternsView } from '../ProtectedFlowPatternsView';
+import { ProtectedFutureSelfView } from '../ProtectedFutureSelfView';
+
+import FlowRoundingOutView from '../FlowRoundingOutView';
 import WellBeingView from '../WellBeingView';
 import CantrilLadderView from '../CantrilLadderView';
 import VisualizingYouView from '../VisualizingYouView';
 import FutureSelfView from '../FutureSelfView';
 import FinalReflectionView from '../FinalReflectionView';
+import FinishWorkshopView from '../FinishWorkshopView';
 import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
+import IntroIAView from './IntroIAView';
 import PlaceholderView from '../PlaceholderView';
+import Mod2RecapView from '../Mod2RecapView';
 import DownloadStarCardView from './DownloadStarCardView';
-import HolisticReportView from './HolisticReportView';
+import GeneralHolisticReportView from '../HolisticReportView';
 import GrowthPlanView from './GrowthPlanView';
 import QuarterlyReportView from './QuarterlyReportView';
 import TeamWorkshopPrepView from './TeamWorkshopPrepView';
@@ -28,6 +33,12 @@ import NeuroscienceView from './NeuroscienceView';
 import CompendiumView from './CompendiumView';
 import BackgroundView from './BackgroundView';
 import WorkshopResourcesView from './WorkshopResourcesView';
+import WorkshopRecap from '../WorkshopRecap';
+import AstLessonContent from '@/components/ast/AstLessonContentPilot';
+import SelfAwarenessOpportunityView from '../SelfAwarenessOpportunityView';
+import AboutCourseView from '../AboutCourseView';
+import ComprehensiveAssessmentsView from '../ComprehensiveAssessmentsView';
+import PersonalProfileContainer from './PersonalProfileContainer';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -37,6 +48,7 @@ interface AllStarTeamsContentProps extends ContentViewProps {
   starCard?: any;
   user?: any;
   flowAttributesData?: any;
+  triggerWelcomeVideo?: () => void;
 }
 
 const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
@@ -47,29 +59,111 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
   starCard,
   user,
   flowAttributesData,
-  setIsAssessmentModalOpen
+  setIsAssessmentModalOpen,
+  triggerWelcomeVideo
 }) => {
+  // Phase 0: guard V2 layout on AST 1‑1
+  const AST_V2_LAYOUT = process.env.NEXT_PUBLIC_AST_V2_LAYOUT === '1';
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const optIn = AST_V2_LAYOUT || urlParams?.get('v2') === '1';
+  const isAst1_1 = currentContent === 'welcome';
+  if (optIn && isAst1_1) {
+    return <AstLessonContent />;
+  }
+
+  console.log('🔍 AllStarTeamsContent: currentContent =', currentContent);
   switch (currentContent) {
     // Introduction View
     case 'welcome':
       return (
-        <WelcomeView 
+        <WelcomeView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
           isImaginalAgility={false}
+          triggerWelcomeVideo={triggerWelcomeVideo}
+        />
+      );  
+
+    case 'self-awareness-opp':
+      return (
+        <SelfAwarenessOpportunityView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
         />
       );
 
-    // Discover your Strengths
-    case 'intro-strengths':
+    case 'star-strengths-assessment':
       return (
-        <IntroStrengthsView 
+        <StrengthsView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
+          setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+        />
+      );
+
+    case 'flow-patterns':
+      return (
+        <ProtectedFlowPatternsView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+
+    case 'wellbeing-ladder':
+      return (
+        <WellBeingView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+
+    case 'rounding-out':
+      return (
+        <FlowRoundingOutView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+
+    case 'about-course':
+      return (
+        <AboutCourseView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'module-2-recap':
+      return (
+        <Mod2RecapView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+
+    // Discover your Strengths
+    case 'intro-strengths':
+      return (
+        <StrengthsView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          setIsAssessmentModalOpen={setIsAssessmentModalOpen}
         />
       );
 
@@ -125,16 +219,6 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );
 
-    case 'flow-assessment':
-      return (
-        <FlowAssessmentView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-        />
-      );
-
     case 'flow-rounding-out':
       return (
         <FlowRoundingOutView 
@@ -147,13 +231,11 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'flow-star-card':
       return (
-        <FlowStarCardView 
+        <FlowStarCardView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
-          user={user}
-          flowAttributesData={flowAttributesData}
         />
       );
 
@@ -190,7 +272,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'future-self':
       return (
-        <FutureSelfView 
+        <ProtectedFutureSelfView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -206,6 +288,24 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
       return (
         <FinalReflectionView 
           currentContent={currentContent}
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'workshop-recap':
+      return (
+        <WorkshopRecap 
+          setCurrentContent={setCurrentContent}
+          markStepCompleted={markStepCompleted}
+        />
+      );
+
+    case 'finish-workshop':
+    case '3-4':
+      return (
+        <FinishWorkshopView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -243,7 +343,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'holistic-report':
       return (
-        <HolisticReportView 
+        <GeneralHolisticReportView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -316,6 +416,36 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     case 'workshop-resources':
       return (
         <WorkshopResourcesView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'module-3-recap':
+      return (
+        <PlaceholderView 
+          title="Module 3 Recap"
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'extra-stuff':
+    case 'more-fun-stuff':
+    case 'personal-profile':
+      return (
+        <PersonalProfileContainer
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'more-imaginal-agility':
+      return (
+        <IntroIAView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

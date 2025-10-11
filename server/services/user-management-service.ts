@@ -1,7 +1,8 @@
-import { db } from '../db.js';
-import { users } from '../../shared/schema.js';
+import { db } from '../db.ts';
+import { users } from '../../shared/schema.ts';
 import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { convertUserToPhotoReference, processProfilePicture, sanitizeUserForNetwork } from '../utils/user-photo-utils.ts';
 
 class UserManagementService {
   /**
@@ -33,48 +34,67 @@ class UserManagementService {
     jobTitle?: string | null;
     profilePicture?: string | null;
     invitedBy?: number | null;
+    isBetaTester?: boolean;
   }) {
     try {
       // Hash the password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(data.password, salt);
-      
-      // Insert the user into the database using raw SQL to avoid schema conflicts
+
+      // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, profile_picture, is_test_user, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
-        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${data.profilePicture || null}, ${(data as any).isTestUser || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
+        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
+        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${(data as any).isTestUser || false}, ${data.isBetaTester || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
         RETURNING *
       `);
-      
-      // Return the user without the password
+
       const userData = (result as any)[0] || (result as any).rows?.[0];
-      if (userData) {
-        const { password, ...userWithoutPassword } = userData;
-        return {
-          success: true,
-          user: {
-            id: userData.id,
-            username: userData.username,
-            name: userData.name,
-            email: userData.email,
-            role: userData.role,
-            organization: userData.organization,
-            jobTitle: userData.job_title,
-            profilePicture: userData.profile_picture,
-            isTestUser: userData.is_test_user,
-            contentAccess: userData.content_access,
-            astAccess: userData.ast_access,
-            iaAccess: userData.ia_access,
-            invitedBy: userData.invited_by,
-            createdAt: userData.created_at,
-            updatedAt: userData.updated_at
-          }
-        };
+      if (!userData) {
+        return { success: false, error: 'Failed to create user' };
       }
-      
+
+      // Process profile picture if provided
+      let profilePictureId = null;
+      if (data.profilePicture) {
+        try {
+          profilePictureId = await processProfilePicture(data.profilePicture, userData.id);
+          if (profilePictureId) {
+            // Update the user with profile picture ID
+            await db.execute(sql`
+              UPDATE users SET profile_picture_id = ${profilePictureId} WHERE id = ${userData.id}
+            `);
+            console.log(`✅ Profile picture stored with ID ${profilePictureId} for user ${userData.id}`);
+          }
+        } catch (error) {
+          console.warn('⚠️ Failed to process profile picture during registration:', error);
+          // Continue without profile picture - don't fail the registration
+        }
+      }
+
+      // Return the user without the password, including profile picture info
+      const { password, ...userWithoutPassword } = userData;
       return {
-        success: false,
-        error: 'Failed to create user'
+        success: true,
+        user: {
+          id: userData.id,
+          username: userData.username,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          organization: userData.organization,
+          jobTitle: userData.job_title,
+          profilePictureId: profilePictureId,
+          profilePicture: null, // Legacy field, set to null
+          isTestUser: userData.is_test_user,
+          isBetaTester: userData.is_beta_tester,
+          showDemoDataButtons: userData.show_demo_data_buttons,
+          contentAccess: userData.content_access,
+          astAccess: userData.ast_access,
+          iaAccess: userData.ia_access,
+          invitedBy: userData.invited_by,
+          createdAt: userData.created_at,
+          updatedAt: userData.updated_at
+        }
       };
     } catch (error) {
       console.error('Error creating user:', error);
@@ -90,19 +110,28 @@ class UserManagementService {
    */
   async authenticateUser(username: string, password: string) {
     try {
-      // Find the user by username
-      const result = await db.select()
-        .from(users)
-        .where(eq(users.username, username));
+      // TEMPORARY FIX: Use raw SQL to bypass Drizzle schema issues
+      const result = await db.execute(sql`
+        SELECT * FROM users WHERE username = ${username} LIMIT 1
+      `);
+      
+      console.log('🔍 Raw SQL result:', result);
+      console.log('🔍 Result type:', typeof result);
+      console.log('🔍 Result length:', result?.length);
+      console.log('🔍 First item:', result?.[0]);
       
       if (!result || result.length === 0) {
+        console.log('❌ No user found for username:', username);
         return {
           success: false,
           error: 'Invalid username or password'
         };
       }
       
-      const user = result[0];
+      // Handle different result formats from raw SQL
+      const user = result[0] || (result as any).rows?.[0];
+      console.log('🔍 Selected user:', user ? 'Found' : 'Not found');
+      console.log('🔍 User object keys:', user ? Object.keys(user) : 'None');
       
       // Verify the password
       const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -114,11 +143,13 @@ class UserManagementService {
         };
       }
       
-      // Return the user without the password
-      const { password: _, ...userWithoutPassword } = user;
+      // Return the user without the password and convert to photo reference format
+      const { password: _, ...rawUser } = user;
+      const userWithPhotoReference = convertUserToPhotoReference(rawUser);
+
       return {
         success: true,
-        user: userWithoutPassword
+        user: userWithPhotoReference
       };
     } catch (error) {
       console.error('Error authenticating user:', error);
@@ -147,11 +178,13 @@ class UserManagementService {
       
       const user = result[0];
       
-      // Return the user without the password
-      const { password, ...userWithoutPassword } = user;
+      // Return the user without the password and convert to photo reference format
+      const { password: _, ...rawUser } = user;
+      const userWithPhotoReference = convertUserToPhotoReference(rawUser);
+
       return {
         success: true,
-        user: userWithoutPassword
+        user: userWithPhotoReference
       };
     } catch (error) {
       console.error('Error getting user by ID:', error);
@@ -206,12 +239,15 @@ class UserManagementService {
     title?: string | null; // For admin route compatibility
     profilePicture?: string | null;
     isTestUser?: boolean;
+    isBetaTester?: boolean;
+    showDemoDataButtons?: boolean;
     role?: 'admin' | 'facilitator' | 'participant' | 'student';
     navigationProgress?: string | null;
     contentAccess?: 'student' | 'professional' | 'both';
     astAccess?: boolean;
     iaAccess?: boolean;
     password?: string | null;
+    auth0Sub?: string | null;
   }) {
     try {
       const updateData: any = {};
@@ -224,8 +260,14 @@ class UserManagementService {
       if (data.title !== undefined) updateData.jobTitle = data.title; // Map title to jobTitle
       if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
       if (data.isTestUser !== undefined) updateData.isTestUser = data.isTestUser;
+      if (data.isBetaTester !== undefined) {
+        console.log(`🔍 DEBUG: Updating isBetaTester for user ${id} from ${data.isBetaTester}`);
+        updateData.isBetaTester = data.isBetaTester;
+      }
+      if (data.showDemoDataButtons !== undefined) updateData.showDemoDataButtons = data.showDemoDataButtons;
       if (data.role !== undefined) updateData.role = data.role;
       if (data.navigationProgress !== undefined) updateData.navigationProgress = data.navigationProgress;
+      if (data.auth0Sub !== undefined) (updateData as any).auth0Sub = data.auth0Sub;
       
       // Handle access control fields
       if (data.contentAccess !== undefined) updateData.contentAccess = data.contentAccess;
@@ -250,6 +292,9 @@ class UserManagementService {
       
       updateData.updatedAt = new Date();
       
+      // Debug log the update data
+      console.log(`🔍 DEBUG: About to update user ${id} with data:`, JSON.stringify(updateData, null, 2));
+      
       // Update the user in the database
       const result = await db.update(users)
         .set(updateData)
@@ -265,11 +310,16 @@ class UserManagementService {
       
       const user = result[0];
       
-      // Return the user without the password
-      const { password, ...userWithoutPassword } = user;
+      // Debug log the returned user
+      console.log(`🔍 DEBUG: User ${id} updated successfully. isBetaTester in result:`, user.isBetaTester || user.is_beta_tester);
+      
+      // Return the user without the password and convert to photo reference format
+      const { password, ...rawUser } = user;
+      const userWithPhotoReference = convertUserToPhotoReference(rawUser);
+
       return {
         success: true,
-        user: userWithoutPassword,
+        user: userWithPhotoReference,
         temporaryPassword
       };
     } catch (error) {
@@ -280,7 +330,40 @@ class UserManagementService {
       };
     }
   }
-  
+
+  /**
+   * Update user's profile picture ID (for photo storage system)
+   */
+  async updateUserProfilePictureId(userId: number, profilePictureId: number | null) {
+    try {
+      const result = await db.update(users)
+        .set({
+          profilePictureId: profilePictureId,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      return {
+        success: true,
+        user: result[0]
+      };
+    } catch (error) {
+      console.error('Error updating user profile picture ID:', error);
+      return {
+        success: false,
+        error: 'Failed to update profile picture'
+      };
+    }
+  }
+
   /**
    * Toggle a user's test status
    */
@@ -381,6 +464,16 @@ class UserManagementService {
       const usersWithoutPasswords = result.map(user => {
         const { password, ...userWithoutPassword } = user;
         
+        // Debug logging for beta tester fields
+        if (user.id === 8) {
+          console.log(`🔍 DEBUG: User ${user.id} raw data:`, {
+            isBetaTester: user.isBetaTester,
+            is_beta_tester: (user as any).is_beta_tester,
+            showDemoDataButtons: user.showDemoDataButtons,
+            show_demo_data_buttons: (user as any).show_demo_data_buttons
+          });
+        }
+        
         // Check for real assessment data
         const hasStarCard = starCardAssessments.some(assessment => assessment.userId === user.id);
         const hasFlowAttributes = flowAssessments.some(assessment => assessment.userId === user.id);
@@ -451,6 +544,46 @@ class UserManagementService {
   }
 
   /**
+   * Get all beta testers - TEMPORARILY DISABLED
+   */
+  async getAllBetaTesters() {
+    try {
+      const result = await db.select()
+        .from(users)
+        .where(eq(users.isBetaTester, true));
+      
+      return {
+        success: true,
+        users: result.map(user => ({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          organization: user.organization,
+          jobTitle: user.jobTitle,
+          profilePicture: user.profilePicture,
+          isTestUser: user.isTestUser,
+          isBetaTester: user.isBetaTester,
+          showDemoDataButtons: user.showDemoDataButtons,
+          contentAccess: user.contentAccess,
+          astAccess: user.astAccess,
+          iaAccess: user.iaAccess,
+          invitedBy: user.invitedBy,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        }))
+      };
+    } catch (error) {
+      console.error('Error getting beta testers:', error);
+      return {
+        success: false,
+        error: 'Failed to get beta testers'
+      };
+    }
+  }
+
+  /**
    * Get all test users
    */
   async getAllTestUsers() {
@@ -484,7 +617,7 @@ class UserManagementService {
   async getVideos() {
     try {
       // Import videos table from schema
-      const { videos } = await import('../../shared/schema.js');
+      const { videos } = await import('../../shared/schema.ts');
       
       // Query the actual database for videos
       const result = await db.select().from(videos).orderBy(videos.sortOrder);
@@ -500,7 +633,11 @@ class UserManagementService {
         section: video.section,
         step_id: video.stepId,
         autoplay: video.autoplay,
-        sortOrder: video.sortOrder
+        sortOrder: video.sortOrder,
+        contentMode: video.contentMode,
+        requiredWatchPercentage: video.requiredWatchPercentage,
+        transcriptMd: video.transcriptMd,
+        glossary: video.glossary
       }));
     } catch (error) {
       console.error('Error getting videos from database:', error);
@@ -511,7 +648,7 @@ class UserManagementService {
   async getVideosByWorkshop(workshopType: string) {
     try {
       // Import videos table from schema
-      const { videos } = await import('../../shared/schema.js');
+      const { videos } = await import('../../shared/schema.ts');
       const { eq } = await import('drizzle-orm');
       
       // Query the actual database for videos by workshop type
@@ -531,7 +668,11 @@ class UserManagementService {
         section: video.section,
         step_id: video.stepId,
         autoplay: video.autoplay,
-        sortOrder: video.sortOrder
+        sortOrder: video.sortOrder,
+        contentMode: video.contentMode,
+        requiredWatchPercentage: video.requiredWatchPercentage,
+        transcriptMd: video.transcriptMd,
+        glossary: video.glossary
       }));
     } catch (error) {
       console.error('Error getting videos by workshop from database:', error);
@@ -540,12 +681,70 @@ class UserManagementService {
   }
   
   /**
+   * Create a new video
+   */
+  async createVideo(data: {
+    title: string;
+    description?: string;
+    url: string;
+    editableId?: string;
+    workshopType: string;
+    section: string;
+    stepId?: string | null;
+    sortOrder?: number;
+    autoplay?: boolean;
+    contentMode?: string;
+    requiredWatchPercentage?: number;
+    transcriptMd?: string;
+    glossary?: Array<{ term: string; definition: string; }>;
+  }) {
+    try {
+      // Import videos table from schema
+      const { videos } = await import('../../shared/schema.ts');
+      const { db } = await import('../db.ts');
+
+      // Insert new video
+      const newVideo = await db.insert(videos).values({
+        title: data.title,
+        description: data.description || '',
+        url: data.url,
+        editableId: data.editableId || '',
+        workshopType: data.workshopType,
+        section: data.section,
+        stepId: data.stepId || null,
+        sortOrder: data.sortOrder || 0,
+        autoplay: data.autoplay || false,
+        contentMode: (data.contentMode as any) || 'both',
+        requiredWatchPercentage: data.requiredWatchPercentage || 75,
+        transcriptMd: data.transcriptMd || '',
+        glossary: data.glossary || []
+      }).returning();
+
+      const createdVideo = newVideo[0];
+      console.log('✅ Video created:', createdVideo?.id);
+
+      return {
+        success: true,
+        video: createdVideo,
+        message: 'Video created successfully'
+      };
+    } catch (error) {
+      console.error('❌ Error creating video:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create video',
+        video: null
+      };
+    }
+  }
+
+  /**
    * Update a video
    */
   async updateVideo(id: number, data: any) {
     try {
       // Import videos table from schema
-      const { videos } = await import('../../shared/schema.js');
+      const { videos } = await import('../../shared/schema.ts');
       const { eq } = await import('drizzle-orm');
       
       // Prepare update data - only update provided fields
@@ -565,6 +764,10 @@ class UserManagementService {
       if (data.autoplay !== undefined) updateData.autoplay = data.autoplay;
       if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
       if (data.sort_order !== undefined) updateData.sortOrder = data.sort_order;
+      if (data.requiredWatchPercentage !== undefined) updateData.requiredWatchPercentage = data.requiredWatchPercentage;
+      if (data.required_watch_percentage !== undefined) updateData.requiredWatchPercentage = data.required_watch_percentage;
+      if (data.transcriptMd !== undefined)             updateData.transcriptMd            = data.transcriptMd;
+      if (data.glossary !== undefined)                updateData.glossary               = data.glossary;
       
       console.log(`Updating video ${id} with data:`, updateData);
       
@@ -596,7 +799,10 @@ class UserManagementService {
           section: updatedVideo.section,
           step_id: updatedVideo.stepId,
           autoplay: updatedVideo.autoplay,
-          sortOrder: updatedVideo.sortOrder
+          sortOrder: updatedVideo.sortOrder,
+          requiredWatchPercentage: updatedVideo.requiredWatchPercentage,
+          transcriptMd:        updatedVideo.transcriptMd,
+          glossary:            updatedVideo.glossary
         }
       };
     } catch (error) {
@@ -609,14 +815,62 @@ class UserManagementService {
   }
 
   /**
+   * Delete a video
+   */
+  async deleteVideo(id: number) {
+    try {
+      console.log(`Attempting to delete video ${id}`);
+      
+      const { sql } = await import('drizzle-orm');
+      
+      // First check if video exists
+      const existingVideo = await db.execute(sql`SELECT id FROM videos WHERE id = ${id}`);
+      
+      if (existingVideo.length === 0) {
+        console.log(`Video ${id} not found`);
+        return {
+          success: false,
+          error: 'Video not found'
+        };
+      }
+      
+      // Delete the video
+      const result = await db.execute(sql`DELETE FROM videos WHERE id = ${id}`);
+      
+      console.log(`Successfully deleted video ${id}`);
+      
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      return {
+        success: false,
+        error: 'Failed to delete video: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
+      };
+    }
+  }
+
+  /**
    * Delete all user data except profile and password
    */
   async deleteUserData(userId: number) {
     try {
       console.log(`Starting complete data deletion for user ${userId}`);
-      
+
       const { sql } = await import('drizzle-orm');
-      
+
+      // First, verify user exists
+      const userCheck = await db.execute(sql`SELECT id, email FROM users WHERE id = ${userId}`);
+      if (!userCheck || userCheck.length === 0) {
+        const error = new Error(`User ${userId} does not exist in the database`);
+        console.error(`❌ ${error.message}`);
+        throw error;
+      }
+
+      const userEmail = userCheck[0].email;
+      console.log(`✅ User ${userId} (${userEmail}) found - proceeding with data deletion`);
+
       let deletedData = {
         userAssessments: 0,
         navigationProgressTable: 0,
@@ -624,7 +878,12 @@ class UserManagementService {
         workshopParticipation: 0,
         growthPlans: 0,
         finalReflections: 0,
-        discernmentProgress: 0
+        discernmentProgress: 0,
+        workshopStepData: 0,
+        photos: 0,
+        holisticReports: 0,
+        sectionalReports: 0,
+        holisticReportFiles: 0
       };
 
       // 1. Delete ALL user assessments (includes star cards, flow data, reflections, etc.)
@@ -696,12 +955,103 @@ class UserManagementService {
         console.log(`No discernment progress found for user ${userId}`);
       }
 
-      const totalRecordsDeleted = deletedData.userAssessments + 
-        deletedData.navigationProgressTable + 
-        deletedData.workshopParticipation + 
-        deletedData.growthPlans + 
-        deletedData.finalReflections + 
-        deletedData.discernmentProgress;
+      // 8. Delete workshop step data (hybrid approach: hard delete for test users, soft delete for production)
+      let workshopStepDataDeleted = 0;
+      try {
+        console.log(`=== STARTING HYBRID WORKSHOP RESET for user ${userId} ===`);
+        
+        // Get user info to determine reset strategy
+        const userResult = await db.execute(sql`SELECT is_test_user FROM users WHERE id = ${userId}`);
+        
+        if (userResult.length > 0) {
+          const isTestUser = userResult[0].is_test_user;
+          console.log(`=== RESET STRATEGY: User ${userId} isTestUser: ${isTestUser} ===`);
+          
+          if (isTestUser) {
+            // Hard delete for test users (no recovery needed)
+            console.log(`=== ATTEMPTING HARD DELETE for test user ${userId} ===`);
+            const workshopResult = await db.execute(sql`DELETE FROM workshop_step_data WHERE user_id = ${userId}`);
+            workshopStepDataDeleted = Array.isArray(workshopResult) ? workshopResult.length : (workshopResult as any).changes || 0;
+            console.log(`=== HARD DELETE: Permanently deleted ${workshopStepDataDeleted} workshop records for test user ${userId} ===`);
+          } else {
+            // Soft delete for production users (recovery possible)
+            console.log(`=== ATTEMPTING SOFT DELETE for production user ${userId} ===`);
+            const workshopResult = await db.execute(sql`UPDATE workshop_step_data SET deleted_at = NOW(), updated_at = NOW() WHERE user_id = ${userId} AND deleted_at IS NULL`);
+            workshopStepDataDeleted = Array.isArray(workshopResult) ? workshopResult.length : (workshopResult as any).changes || 0;
+            console.log(`=== SOFT DELETE: Marked ${workshopStepDataDeleted} workshop records as deleted for production user ${userId} ===`);
+          }
+        }
+      } catch (error) {
+        console.error(`ERROR resetting workshop step data for user ${userId}:`, error);
+      }
+
+      // Add workshop step data to deleted data tracking
+      deletedData.workshopStepData = workshopStepDataDeleted;
+
+      // 9. Delete user photos from photo_storage
+      try {
+        const photoResult = await db.execute(sql`DELETE FROM photo_storage WHERE uploaded_by = ${userId}`);
+        const deletedPhotos = photoResult.length || 0;
+        console.log(`Deleted ${deletedPhotos} photos for user ${userId}`);
+        deletedData.photos = deletedPhotos;
+      } catch (error) {
+        console.error(`ERROR deleting photos for user ${userId}:`, error);
+        deletedData.photos = 0;
+      }
+
+      // 10. Delete holistic report DB records
+      try {
+        const holisticResult = await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+        deletedData.holisticReports = holisticResult.length || 0;
+        console.log(`Deleted ${deletedData.holisticReports} holistic report DB records for user ${userId}`);
+      } catch (error) {
+        console.log(`No holistic reports found for user ${userId}`);
+      }
+
+      // 11. Delete sectional report sections (critical for canGenerate logic)
+      try {
+        const sectionalResult = await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
+        deletedData.sectionalReports = sectionalResult.length || 0;
+        console.log(`Deleted ${deletedData.sectionalReports} sectional report sections for user ${userId}`);
+      } catch (error) {
+        console.log(`No sectional report sections found for user ${userId}`);
+      }
+
+      // 10. Delete holistic report PDF files from /uploads
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const uploadsDir = path.resolve(process.cwd(), 'uploads');
+        const files = fs.readdirSync(uploadsDir);
+        const userPattern = new RegExp(`HI-Report-.*${userId}.*\\.pdf$`);
+        let deletedFiles = 0;
+        for (const file of files) {
+          if (userPattern.test(file)) {
+            try {
+              fs.unlinkSync(path.join(uploadsDir, file));
+              deletedFiles++;
+              console.log(`Deleted holistic report file: ${file}`);
+            } catch (err) {
+              console.error(`Error deleting file ${file}:`, err);
+            }
+          }
+        }
+        deletedData.holisticReportFiles = deletedFiles;
+        console.log(`Deleted ${deletedFiles} holistic report PDF files for user ${userId}`);
+      } catch (error) {
+        console.error(`Error deleting holistic report files for user ${userId}:`, error);
+      }
+
+      const totalRecordsDeleted = deletedData.userAssessments +
+        deletedData.navigationProgressTable +
+        deletedData.workshopParticipation +
+        deletedData.growthPlans +
+        deletedData.finalReflections +
+        deletedData.discernmentProgress +
+        deletedData.workshopStepData +
+        deletedData.holisticReports +
+        deletedData.sectionalReports +
+        deletedData.holisticReportFiles;
 
       console.log(`Completed data deletion for user ${userId}:`, deletedData);
 
@@ -720,25 +1070,225 @@ class UserManagementService {
     }
   }
 
+  /**
+   * Reset user holistic reports (allows regeneration)
+   * Deletes both holistic_reports and report_sections to fully reset
+   */
+  async resetUserHolisticReports(userId: number) {
+    try {
+      console.log(`🗑️ Starting report reset for user ${userId} (deletes all report data, preserves user assessments)`);
+
+      const { sql } = await import('drizzle-orm');
+
+      let deletedSections = 0;
+      let deletedReports = 0;
+
+      // Delete sectional report sections (report_sections table)
+      try {
+        // First count how many exist
+        const countSections = await db.execute(sql`SELECT COUNT(*) as count FROM report_sections WHERE user_id = ${userId}`);
+        deletedSections = countSections[0]?.count || 0;
+
+        if (deletedSections > 0) {
+          await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
+          console.log(`✅ Deleted ${deletedSections} report section(s) from report_sections table`);
+        } else {
+          console.log(`ℹ️ No report sections found in report_sections table`);
+        }
+      } catch (error) {
+        console.log(`ℹ️ No report sections found in report_sections table`);
+      }
+
+      // Delete final assembled reports (holistic_reports table)
+      try {
+        // First count how many exist
+        const countReports = await db.execute(sql`SELECT COUNT(*) as count FROM holistic_reports WHERE user_id = ${userId}`);
+        deletedReports = countReports[0]?.count || 0;
+
+        if (deletedReports > 0) {
+          await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+          console.log(`✅ Deleted ${deletedReports} final report(s) from holistic_reports table`);
+        } else {
+          console.log(`ℹ️ No final reports found in holistic_reports table`);
+        }
+      } catch (error) {
+        console.log(`ℹ️ No final reports found in holistic_reports table`);
+      }
+
+      const totalDeleted = deletedSections + deletedReports;
+      console.log(`✅ Report reset complete for user ${userId}: ${totalDeleted} total records deleted (${deletedReports} final reports, ${deletedSections} sections)`);
+      console.log(`ℹ️ User assessments and workshop data preserved - user can regenerate reports`);
+
+      return {
+        success: true,
+        message: 'User reports reset successfully',
+        deletedCount: totalDeleted,
+        deletedReports,
+        deletedSections
+      };
+    } catch (error) {
+      console.error('❌ Error resetting user reports:', error);
+      return {
+        success: false,
+        error: 'Failed to reset user reports: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
+      };
+    }
+  }
+
+  /**
+   * Generate holistic report for a user (admin functionality)
+   */
+  async generateHolisticReportForUser(userId: number, reportType: 'personal' | 'standard') {
+    try {
+      console.log(`Generating ${reportType} holistic report for user ${userId} via admin interface`);
+
+      // Import the holistic report generation function
+      const { Pool } = await import('pg');
+
+      // Create a database pool for the holistic report generation
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      });
+
+      // Check if user has already generated this type of report
+      const existingReport = await pool.query(
+        'SELECT id, generation_status FROM holistic_reports WHERE user_id = $1 AND report_type = $2 ORDER BY generated_at DESC LIMIT 1',
+        [userId, reportType]
+      );
+
+      if (existingReport.rows.length > 0) {
+        const existing = existingReport.rows[0];
+        if (existing.generation_status === 'generating') {
+          return {
+            success: false,
+            error: `A ${reportType} report is currently being generated for this user. Please wait.`
+          };
+        }
+      }
+
+      // Get user data to validate
+      const userResult = await pool.query(
+        'SELECT id, username, name, email FROM users WHERE id = $1',
+        [userId]
+      );
+
+      if (userResult.rows.length === 0) {
+        await pool.end();
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      const user = userResult.rows[0];
+
+      // Create new report record
+      const newReport = await pool.query(
+        `INSERT INTO holistic_reports (user_id, report_type, report_data, generation_status, generated_by_user_id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [userId, reportType, JSON.stringify({}), 'generating', userId]
+      );
+      const reportId = newReport.rows[0].id;
+
+      // Generate the report by making an internal API call to the holistic report service
+      try {
+        // Import the request module to make internal API call
+        const response = await fetch(`http://localhost:${process.env.PORT || 8080}/api/reports/holistic/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `userId=${userId}; userRole=admin` // Simulate session
+          },
+          body: JSON.stringify({ reportType })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Report generation failed');
+        }
+
+        const result = await response.json();
+
+        await pool.end();
+        return {
+          success: true,
+          reportId: result.reportId,
+          message: result.message,
+          reportUrl: `/api/reports/holistic/${reportType}/html`,
+          downloadUrl: `/api/reports/holistic/${reportType}/download?download=true`
+        };
+
+      } catch (generationError) {
+        console.error('Report generation failed:', generationError);
+
+        // Update report status to failed
+        await pool.query(
+          'UPDATE holistic_reports SET generation_status = $1, error_message = $2, updated_at = NOW() WHERE id = $3',
+          ['failed', generationError.message, reportId]
+        );
+
+        await pool.end();
+        return {
+          success: false,
+          error: 'Report generation failed: ' + generationError.message
+        };
+      }
+
+    } catch (error) {
+      console.error('Error generating holistic report for user:', error);
+      return {
+        success: false,
+        error: 'Failed to generate holistic report: ' + (error instanceof Error ? error.message : 'Unknown error')
+      };
+    }
+  }
+
   async deleteUser(userId: number) {
     try {
       console.log(`Starting complete user deletion for user ${userId}`);
-      
+
       // Import required modules
       const { eq } = await import('drizzle-orm');
       const { sql } = await import('drizzle-orm');
-      
+
+      // Get user's Auth0 ID before deletion
+      const userResult = await db.execute(sql`SELECT auth0_sub FROM users WHERE id = ${userId}`);
+      const auth0Sub = userResult[0]?.auth0_sub;
+
       // First delete all related data
       await this.deleteUserData(userId);
-      
-      // Then delete the user account itself
+
+      // Delete from Auth0 if user has Auth0 ID
+      if (auth0Sub) {
+        try {
+          const { deleteAuth0User } = await import('../src/auth0/management.js');
+          console.log(`Deleting Auth0 user: ${auth0Sub}`);
+          const auth0Response = await deleteAuth0User(auth0Sub);
+
+          if (!auth0Response.ok) {
+            const errorText = await auth0Response.text();
+            console.warn(`Auth0 deletion failed for ${auth0Sub}: ${errorText}`);
+            // Continue with local deletion even if Auth0 deletion fails
+          } else {
+            console.log(`Successfully deleted Auth0 user: ${auth0Sub}`);
+          }
+        } catch (auth0Error) {
+          console.warn(`Auth0 deletion error for ${auth0Sub}:`, auth0Error);
+          // Continue with local deletion even if Auth0 deletion fails
+        }
+      } else {
+        console.log(`No Auth0 ID found for user ${userId}, skipping Auth0 deletion`);
+      }
+
+      // Then delete the user account itself from local database
       try {
         await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
         console.log(`Deleted user account for user ${userId}`);
-        
+
         return {
           success: true,
-          message: 'User deleted successfully'
+          message: 'User deleted successfully from both Auth0 and local database'
         };
       } catch (error) {
         console.error(`Error deleting user account ${userId}:`, error);
@@ -891,6 +1441,104 @@ class UserManagementService {
       return {
         success: false,
         error: 'Failed to get users for facilitator'
+      };
+    }
+  }
+
+  /**
+   * Update user password
+   */
+  async updateUserPassword(userId: number, hashedPassword: string) {
+    try {
+      const result = await db.execute(sql`
+        UPDATE users 
+        SET password = ${hashedPassword}, updated_at = NOW()
+        WHERE id = ${userId}
+        RETURNING id
+      `);
+
+      const updatedUser = (result as any)[0] || (result as any).rows?.[0];
+      
+      if (!updatedUser) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Password updated successfully'
+      };
+    } catch (error) {
+      console.error('Error updating user password:', error);
+      return {
+        success: false,
+        error: 'Failed to update password'
+      };
+    }
+  }
+
+  /**
+   * Mark beta welcome as seen for a user
+   */
+  async markBetaWelcomeAsSeen(userId: number) {
+    try {
+      const result = await db.execute(sql`
+        UPDATE users 
+        SET has_seen_beta_welcome = true, updated_at = NOW()
+        WHERE id = ${userId} AND is_beta_tester = true
+        RETURNING id, username, name, email, is_beta_tester, has_seen_beta_welcome
+      `);
+      
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'User not found or not a beta tester'
+        };
+      }
+      
+      return {
+        success: true,
+        user: result[0]
+      };
+    } catch (error) {
+      console.error('Error marking beta welcome as seen:', error);
+      return {
+        success: false,
+        error: 'Failed to update beta welcome status'
+      };
+    }
+  }
+
+  /**
+   * Mark welcome video as seen for a user
+   */
+  async markWelcomeVideoAsSeen(userId: number) {
+    try {
+      const result = await db.execute(sql`
+        UPDATE users
+        SET has_seen_welcome_video = true, updated_at = NOW()
+        WHERE id = ${userId}
+        RETURNING id, username, name, email, has_seen_welcome_video
+      `);
+
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      return {
+        success: true,
+        user: result[0]
+      };
+    } catch (error) {
+      console.error('Error marking welcome video as seen:', error);
+      return {
+        success: false,
+        error: 'Failed to update welcome video status'
       };
     }
   }

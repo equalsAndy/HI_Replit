@@ -1,0 +1,33 @@
+====================================
+DEPLOY AMD64 VERSIONINFO FIX
+Date: 2025-07-25
+Time: 10:50 PDT
+====================================
+
+ISSUE: ARM64/AMD64 architecture mismatch resolved
+- Original image was built for ARM64 (Apple Silicon)
+- VM needs AMD64 compatible image
+- Rebuilt with --platform linux/amd64
+
+NEW IMAGE: staging-v2.0.9-amd64
+ECR URI: 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.9-amd64
+
+DEPLOY COMMANDS FOR VM:
+-----------------------
+
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.9-amd64
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.9-amd64
+
+VERIFICATION STEPS:
+------------------
+1. Visit admin dashboard in staging
+2. Check for version info in top-right corner: "Version: v2.0.9.0725.1048"
+3. Look for debug message: "🔍 VersionInfo: Rendering detailed variant"
+4. Verify styling works with inline styles instead of Tailwind
+
+This AMD64 image should pull successfully on the Ubuntu VM.

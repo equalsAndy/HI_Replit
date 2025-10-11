@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useTestUser } from '@/hooks/useTestUser';
+import { forceWorkshopCacheDump } from '@/utils/forceRefresh';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +35,7 @@ export function ResetDataButton({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const isTestUser = useTestUser();
+  const { isTestUser } = useTestUser();
 
   // SECURE: Only show reset button for test users
   if (!isTestUser) {
@@ -85,13 +86,19 @@ export function ResetDataButton({
         variant: 'default',
       });
       
-      // Clear localStorage data related to workshops
+      // Use comprehensive workshop cache dump - clears ALL workshop data
+      forceWorkshopCacheDump(queryClient);
+      
+      // Clear localStorage data related to workshops (done by forceWorkshopCacheDump but also clear here)
       clearLocalStorageData();
       
-      // Invalidate queries to refetch data
-      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      // Dispatch events to notify components about data clearing
+      window.dispatchEvent(new CustomEvent('userDataCleared'));
+      window.dispatchEvent(new CustomEvent('assessmentDataCleared'));
+      window.dispatchEvent(new CustomEvent('workshopDataReset'));
+      window.dispatchEvent(new CustomEvent('reflectionDataCleared')); // New specific event for reflections
+      
+      console.log('🔄 Data reset complete, dispatched clearing events including reflectionDataCleared');
       
       if (onResetComplete) {
         onResetComplete();
@@ -106,7 +113,7 @@ export function ResetDataButton({
     },
   });
 
-  // Function to clear all workshop-related data from localStorage
+  // Function to clear all workshop-related data from localStorage and sessionStorage
   const clearLocalStorageData = () => {
     const keysToRemove = [
       'allstarteams-navigation-progress',
@@ -121,11 +128,33 @@ export function ResetDataButton({
       'allstarteams_passions',
       'allstarteams_growthAreas',
       'workshop-progress',
-      'assessment-data'
+      'assessment-data',
+      // Navigation progress cache keys
+      'app_navigation_progress_ast',
+      'app_navigation_progress_ia',
+      'navigation_last_sync_ast',
+      'navigation_last_sync_ia'
     ];
     
+    // Clear from both localStorage and sessionStorage
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    
+    // Clear any dynamic keys with workshop data patterns
+    const allLocalKeys = Object.keys(localStorage);
+    const allSessionKeys = Object.keys(sessionStorage);
+    
+    [...allLocalKeys, ...allSessionKeys].forEach(key => {
+      if (key.includes('workshop') || 
+          key.includes('navigation') || 
+          key.includes('step-data') ||
+          key.startsWith('app_navigation_progress_') ||
+          key.startsWith('navigation_last_sync_')) {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      }
     });
   };
 

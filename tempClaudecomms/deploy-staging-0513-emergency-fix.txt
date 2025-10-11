@@ -1,0 +1,10 @@
+# Emergency Fix Deployment - staging-20250727-0513
+# SSH into staging VM
+ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+
+# Commands to run on VM:
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250727-0513
+curl -I http://34.220.143.127

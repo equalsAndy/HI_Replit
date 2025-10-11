@@ -222,7 +222,6 @@ When implementing new features, test:
 
 ### 🔧 Technical Implementation:
 - Database URL: AWS Lightsail PostgreSQL with SSL bypass for development
-- Environment: .env file with DATABASE_URL, SESSION_DATABASE_URL, NODE_TLS_REJECT_UNAUTHORIZED
 - Session Store: Modified to use SESSION_DATABASE_URL for compatibility
 - Admin Creation: create-admin.ts script working with environment variables
 

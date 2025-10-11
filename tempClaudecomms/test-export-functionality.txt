@@ -1,0 +1,47 @@
+# Test Export Functionality with IA Workshop Data
+# Date: 2025-07-26
+# Issue: IA workshop step data was missing from user exports
+
+## WHAT WAS FIXED:
+1. Added workshopStepData import to export-service.ts
+2. Updated ExportData interface to include workshopStepData field
+3. Added code to fetch and organize workshop step data by type (AST/IA)
+4. Updated export metadata to include workshop step counts
+5. Enhanced validation to show workshop step data counts
+
+## NEW EXPORT STRUCTURE:
+The exported JSON now includes:
+```json
+{
+  "userInfo": { ... },
+  "navigationProgress": { ... },
+  "assessments": { ... },
+  "workshopStepData": {
+    "ast": {
+      "2-1": { "data": {...}, "version": 1, "createdAt": "...", "updatedAt": "..." },
+      "2-2": { "data": {...}, "version": 1, "createdAt": "...", "updatedAt": "..." }
+    },
+    "ia": {
+      "ia-3-4": { "data": {...}, "version": 1, "createdAt": "...", "updatedAt": "..." },
+      "ia-3-5": { "data": {...}, "version": 1, "createdAt": "...", "updatedAt": "..." }
+    }
+  },
+  "workshopParticipation": [ ... ],
+  "exportMetadata": {
+    "dataVersion": "2.1",
+    "totalWorkshopSteps": 5,
+    "workshopSteps": "AST: 2-1 through 4-5, IA: ia-1-1 through ia-4-6"
+  }
+}
+```
+
+## TO TEST:
+1. Go to an IA workshop step (e.g., ia-3-4) and enter some data
+2. Refresh to ensure it persists
+3. Go to admin panel and export user data
+4. Check that the exported JSON contains the IA data in the workshopStepData.ia section
+
+## FILES MODIFIED:
+- server/services/export-service.ts (updated to include workshop step data)
+
+The IA workshop data should now be included in all user data exports!

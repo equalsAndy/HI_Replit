@@ -159,7 +159,7 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { id: '15a', text: 'Try to adapt quickly and embrace the change', category: 'acting' },
       { id: '15b', text: 'Try to understand the reasons behind the change', category: 'thinking' },
       { id: '15c', text: 'Create a plan to adapt while staying productive', category: 'planning' },
-      { id: '15d', text: 'Quickly adjust and look for new opportunities', category: 'acting' }
+      { id: '15d', text: 'Consider how the change affects my colleagues and team', category: 'feeling' }
     ]
   },
   {
