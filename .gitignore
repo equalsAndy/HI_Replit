@@ -206,6 +206,8 @@ WOO-*.md
 STAGING-*.md
 REPORT-*.md
 phase*_developer_ai_prompt_*.md
+AST_Report_Payload_Spec_*.md
+AST_Workshop_Questions_with_Field_IDs\ 2.md
 
 # Archive directories
 archive-*/
