@@ -179,8 +179,11 @@ export default function HolisticReportView({
     // Special overtime messages when we go over time
     if (countdown <= 0) {
       const overtimeMessages = [
+        "The AI is taking a cyber break... hold on a little longer...",
+        "Looks like the AI needs a coffee refill... brewing patience...",
         "I'm collecting overtime now...",
         "Walking down the hall to AI's office...",
+        "The algorithms are taking their sweet time...",
         "Banging my virtual head on my virtual desk..."
       ];
 
@@ -683,40 +686,7 @@ export default function HolisticReportView({
                   </div>
                 )}
 
-                {/* Check Status button - also restores timer if in progress */}
-                {(!canGenerate && !isDisabledDueToMaintenance && !isCompleted && !isActivelyGenerating) && (
-                  <Button
-                    onClick={() => {
-                      // Refresh status
-                      const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
-                      queryClient.invalidateQueries({
-                        queryKey: [`/api/ast-sectional-reports/progress/${user?.id}/${astReportType}`]
-                      });
-
-                      // If report is in progress, restore the timer
-                      if (isInProgress && !isActivelyGenerating) {
-                        setActiveTimer(reportType);
-                        if (progress?.startedAt) {
-                          const startTime = new Date(progress.startedAt).getTime();
-                          const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                          const estimatedTotal = 210;
-                          const remaining = estimatedTotal - elapsed;
-                          setCountdown(remaining); // Can be negative for overtime
-                        } else {
-                          // Estimate based on progress
-                          const estimatedTotal = 210;
-                          const remaining = Math.max(30, estimatedTotal - (progress.progressPercentage * estimatedTotal / 100));
-                          setCountdown(Math.floor(remaining));
-                        }
-                      }
-                    }}
-                    variant="outline"
-                    className="border-gray-200 hover:bg-gray-50 text-gray-700"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    {isInProgress ? 'Resume Tracking' : 'Check Status'}
-                  </Button>
-                )}
+                {/* Removed Check Status button - progress now shows automatically on page load */}
               </div>
             </div>
           )}

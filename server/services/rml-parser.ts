@@ -21,6 +21,10 @@ export interface RMLVisualDeclaration {
   future_level?: number;
   user_id?: number;
   pattern_number?: number;
+  quote?: string;      // For reflection blockquotes
+  author?: string;     // Optional attribution for quotes
+  photo_id?: number;   // Database photo ID (for stored images)
+  image_url?: string;  // External image URL (for Unsplash, etc.)
 }
 
 export class RMLParser {
@@ -113,6 +117,18 @@ export class RMLParser {
       const futureLevelMatch = attributesString.match(/future_level="(\d+)"/);
       if (futureLevelMatch) {
         declaration.future_level = parseInt(futureLevelMatch[1]);
+      }
+
+      // Extract quote text (for reflection blockquotes)
+      const quoteMatch = attributesString.match(/quote="([^"]+)"/);
+      if (quoteMatch) {
+        declaration.quote = quoteMatch[1];
+      }
+
+      // Extract author/attribution (optional for quotes)
+      const authorMatch = attributesString.match(/author="([^"]+)"/);
+      if (authorMatch) {
+        declaration.author = authorMatch[1];
       }
 
       return declaration as RMLVisualDeclaration;

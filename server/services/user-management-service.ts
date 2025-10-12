@@ -1085,13 +1085,20 @@ class UserManagementService {
 
       // Delete sectional report sections (report_sections table)
       try {
-        // First count how many exist
-        const countSections = await db.execute(sql`SELECT COUNT(*) as count FROM report_sections WHERE user_id = ${userId}`);
-        deletedSections = countSections[0]?.count || 0;
+        // First count how many exist and check for payloads
+        const countResult = await db.execute(sql`
+          SELECT
+            COUNT(*) as count,
+            COUNT(ai_request_payload) as payload_count
+          FROM report_sections
+          WHERE user_id = ${userId}
+        `);
+        deletedSections = countResult[0]?.count || 0;
+        const payloadCount = countResult[0]?.payload_count || 0;
 
         if (deletedSections > 0) {
           await db.execute(sql`DELETE FROM report_sections WHERE user_id = ${userId}`);
-          console.log(`✅ Deleted ${deletedSections} report section(s) from report_sections table`);
+          console.log(`✅ Deleted ${deletedSections} report section(s) from report_sections table (including ${payloadCount} AI request payloads)`);
         } else {
           console.log(`ℹ️ No report sections found in report_sections table`);
         }

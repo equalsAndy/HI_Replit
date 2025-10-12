@@ -31,14 +31,14 @@ export class RMLRenderer {
     switch (type) {
       case 'starcard':
         return this.renderStarCard(declaration);
+      case 'vision':
+        return this.renderVisionImage(declaration);
       case 'vision1':
-        return this.renderVisionImage(declaration, 1);
       case 'vision2':
-        return this.renderVisionImage(declaration, 2);
       case 'vision3':
-        return this.renderVisionImage(declaration, 3);
       case 'vision4':
-        return this.renderVisionImage(declaration, 4);
+        // Legacy support for numbered types
+        return this.renderVisionImage(declaration);
       case 'starcard_img':
         return this.renderStarCard(declaration);
       case 'strength_squares':
@@ -71,6 +71,8 @@ export class RMLRenderer {
         return this.renderActingSquare(declaration);
       case 'planning_square':
         return this.renderPlanningSquare(declaration);
+      case 'quote':
+        return this.renderReflectionQuote(declaration);
       default:
         console.warn(`⚠️ Unknown visual type: ${type}`);
         return `<div class="rml-unknown">Unknown visual type: ${type}</div>`;
@@ -729,23 +731,31 @@ export class RMLRenderer {
   }
 
   /**
-   * Renders a vision image (vision1 or vision2) from the user's future self data
-   * Photo ID comes from user data's futureSelfImages array
+   * Renders a vision image from the user's future self data
+   * Supports both database photos (photo_id) and external URLs (image_url)
+   * Image number is extracted from the ID (e.g., "vision1" -> 1)
    */
-  private renderVisionImage(decl: RMLVisualDeclaration, imageNumber: number): string {
-    const { photo_id } = decl;
+  private renderVisionImage(decl: RMLVisualDeclaration): string {
+    const { photo_id, image_url, id } = decl;
 
-    if (!photo_id) {
-      return `<div class="rml-error">Missing photo_id for vision${imageNumber}</div>`;
+    // Check if we have either a photo_id or image_url
+    if (!photo_id && !image_url) {
+      return `<div class="rml-error">Missing photo_id or image_url for ${id || 'vision image'}</div>`;
     }
 
-    const photoUrl = `/api/photos/${photo_id}`;
+    // Extract image number from ID (e.g., "vision1" -> "1", "vision2" -> "2")
+    // If no number found, use the ID itself for alt text
+    const imageNumberMatch = id?.match(/\d+/);
+    const imageLabel = imageNumberMatch ? `Vision ${imageNumberMatch[0]}` : (id || 'Vision');
+
+    // Use photo_id if available (database photo), otherwise use external image_url
+    const imageSource = photo_id ? `/api/photos/${photo_id}` : image_url;
 
     return `
       <div class="rml-vision-image">
         <img
-          src="${photoUrl}"
-          alt="Vision ${imageNumber}"
+          src="${imageSource}"
+          alt="${imageLabel}"
           class="rml-vision-img"
           onerror="this.style.display='none'; this.parentElement.innerHTML='<p class=\\'rml-error\\'>Image not available</p>';"
         />
@@ -786,28 +796,32 @@ export class RMLRenderer {
   private getFlowAttributeColor(attribute: string): string {
     const lowerAttribute = attribute.toLowerCase();
 
-    // Green (Thinking/Strategic)
+    // Blue (Thinking/Strategic)
     const thinkingAttributes = [
-      'analytic', 'strategic', 'insightful', 'investigative',
-      'logical', 'rational', 'reflective'
+      'abstract', 'analytic', 'astute', 'big picture', 'curious',
+      'focused', 'insightful', 'logical', 'investigative', 'rational',
+      'reflective', 'sensible', 'strategic', 'thoughtful'
     ];
 
-    // Yellow (Structured/Organized)
-    const planningAttributes = [
-      'methodical', 'organized', 'precise', 'reliable',
-      'thorough', 'systemic', 'diligent'
-    ];
-
-    // Red (Action/Dynamic)
-    const actingAttributes = [
-      'dynamic', 'energetic', 'practical', 'resilient',
-      'optimistic', 'competitive', 'vigorous'
-    ];
-
-    // Blue (Feeling/People)
+    // Green (Feeling/People)
     const feelingAttributes = [
-      'collaborative', 'empathic', 'creative', 'supportive',
-      'inspiring', 'passionate', 'intuitive'
+      'collaborative', 'creative', 'encouraging', 'expressive',
+      'empathic', 'intuitive', 'inspiring', 'objective', 'passionate',
+      'positive', 'receptive', 'supportive'
+    ];
+
+    // Yellow (Planning/Organized)
+    const planningAttributes = [
+      'detail-oriented', 'diligent', 'immersed', 'industrious', 'methodical',
+      'organized', 'precise', 'punctual', 'reliable', 'responsible',
+      'straightforward', 'tidy', 'systematic', 'thorough'
+    ];
+
+    // Red (Acting/Dynamic)
+    const actingAttributes = [
+      'adventuresome', 'competitive', 'dynamic', 'effortless', 'energetic',
+      'engaged', 'funny', 'persuasive', 'open-minded', 'optimistic',
+      'practical', 'resilient', 'spontaneous', 'vigorous'
     ];
 
     if (thinkingAttributes.includes(lowerAttribute)) return 'thinking';
@@ -888,6 +902,26 @@ export class RMLRenderer {
           ` : ''}
         </svg>
       </div>
+    `;
+  }
+
+  /**
+   * Render a reflection quote as an elegant blockquote
+   */
+  private renderReflectionQuote(decl: RMLVisualDeclaration): string {
+    const { quote, author } = decl;
+
+    if (!quote) {
+      return '<div class="rml-error">Missing quote text for reflection blockquote</div>';
+    }
+
+    const authorHtml = author ? `<footer>${author}</footer>` : '';
+
+    return `
+      <blockquote class="rml-reflection-quote">
+        ${quote}
+        ${authorHtml}
+      </blockquote>
     `;
   }
 
@@ -1463,13 +1497,12 @@ export class RMLRenderer {
           height: auto;
         }
 
-        /* Vision Image Styles (vision1, vision2) */
+        /* Vision Image Styles (vision1, vision2, etc.) */
         .rml-vision-image {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 25px auto;
+          display: inline-block;
+          margin: 15px 10px;
           width: fit-content;
+          vertical-align: top;
         }
 
         .rml-vision-img {
@@ -1484,6 +1517,35 @@ export class RMLRenderer {
         .rml-vision-img:hover {
           transform: scale(1.02);
           box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Vision Group - Horizontal layout for consecutive images */
+        .rml-vision-group {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: flex-start;
+          gap: 20px;
+          margin: 30px auto;
+          max-width: 100%;
+        }
+
+        .rml-vision-group .rml-vision-image {
+          margin: 0;
+          flex: 0 1 auto;
+        }
+
+        /* Responsive: Stack on small screens */
+        @media (max-width: 768px) {
+          .rml-vision-group {
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .rml-vision-group .rml-vision-image {
+            width: 100%;
+            max-width: 300px;
+          }
         }
 
         /* Future Self Image Styles */
@@ -1556,6 +1618,59 @@ export class RMLRenderer {
 
           .rml-flow-attribute-text {
             font-size: 11px;
+          }
+        }
+
+        /* Reflection Quote Styles */
+        .rml-reflection-quote {
+          position: relative;
+          font-family: Georgia, 'Times New Roman', serif;
+          font-size: 1.3em;
+          line-height: 1.6em;
+          font-style: italic;
+          margin: 30px 0;
+          padding: 25px 30px 25px 45px;
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-left: 5px solid #667eea;
+          border-radius: 8px;
+          color: #2c3e50;
+        }
+
+        .rml-reflection-quote:before {
+          content: '\\201C';
+          position: absolute;
+          top: 10px;
+          left: 15px;
+          color: rgba(102, 126, 234, 0.2);
+          font-size: 5em;
+          font-family: Georgia, serif;
+          z-index: 0;
+        }
+
+        .rml-reflection-quote footer {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+          font-size: 0.7em;
+          font-weight: 600;
+          font-style: normal;
+          color: #64748b;
+          margin-top: 15px;
+          text-align: right;
+        }
+
+        .rml-reflection-quote footer:before {
+          content: '— ';
+        }
+
+        /* Responsive adjustments for quotes */
+        @media (max-width: 768px) {
+          .rml-reflection-quote {
+            font-size: 1.1em;
+            padding: 20px 20px 20px 35px;
+          }
+
+          .rml-reflection-quote:before {
+            font-size: 3.5em;
+            left: 10px;
           }
         }
       </style>

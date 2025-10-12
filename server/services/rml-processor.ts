@@ -54,19 +54,27 @@ export class RMLProcessor {
       // Step 3: Create a lookup using PLAIN OBJECT (Map was corrupted)
       const visualLookup: Record<string, string> = {};
       declarations.forEach(decl => {
-        // Auto-inject photo_id for vision1, vision2, vision3, vision4, starcard tags from user data
-        if (decl.type === 'vision1' && options?.futureSelfImages && options.futureSelfImages.length >= 1) {
-          decl.photo_id = options.futureSelfImages[0].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision1: ${decl.photo_id}`);
-        } else if (decl.type === 'vision2' && options?.futureSelfImages && options.futureSelfImages.length >= 2) {
-          decl.photo_id = options.futureSelfImages[1].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision2: ${decl.photo_id}`);
-        } else if (decl.type === 'vision3' && options?.futureSelfImages && options.futureSelfImages.length >= 3) {
-          decl.photo_id = options.futureSelfImages[2].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision3: ${decl.photo_id}`);
-        } else if (decl.type === 'vision4' && options?.futureSelfImages && options.futureSelfImages.length >= 4) {
-          decl.photo_id = options.futureSelfImages[3].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision4: ${decl.photo_id}`);
+        // Auto-inject photo_id for vision tags from user data
+        // Supports both type="vision" with id="vision1" OR legacy type="vision1"
+        const isVisionTag = decl.type === 'vision' || decl.type === 'vision1' || decl.type === 'vision2' || decl.type === 'vision3' || decl.type === 'vision4';
+
+        if (isVisionTag && options?.futureSelfImages) {
+          // Extract image number from ID (e.g., "vision1" -> 1) or from type (legacy)
+          const imageNumberMatch = decl.id?.match(/vision(\d+)/) || decl.type?.match(/vision(\d+)/);
+          const imageNumber = imageNumberMatch ? parseInt(imageNumberMatch[1]) : null;
+
+          if (imageNumber && imageNumber >= 1 && imageNumber <= options.futureSelfImages.length) {
+            const imageData = options.futureSelfImages[imageNumber - 1];
+
+            // Support both database photos (photoId) and external URLs (url)
+            if (imageData.photoId) {
+              decl.photo_id = imageData.photoId;
+              console.log(`🎯 Auto-injected photo_id for ${decl.id} (image ${imageNumber}): ${decl.photo_id}`);
+            } else if (imageData.url) {
+              decl.image_url = imageData.url;
+              console.log(`🎯 Auto-injected image_url for ${decl.id} (image ${imageNumber}): ${imageData.url.substring(0, 50)}...`);
+            }
+          }
         } else if (decl.type === 'starcard' && options?.userId) {
           decl.user_id = options.userId;
           console.log(`🎯 Auto-injected user_id for starcard: ${decl.user_id}`);
@@ -88,7 +96,10 @@ export class RMLProcessor {
         console.log(`✅ Rendered visual: ${decl.id} (${decl.type})`);
       });
 
-      // Step 4: Replace all [[visual:id]] placeholders with rendered HTML
+      // Step 4: Group consecutive vision image placeholders for horizontal display
+      processedContent = this.groupConsecutiveVisionImages(processedContent, visualLookup);
+
+      // Step 5: Replace all remaining [[visual:id]] placeholders with rendered HTML
       const placeholders = rmlParser.findVisualPlaceholders(processedContent);
       
       console.log('🔍 Debug placeholder matching (FIXED - Plain Object):');
@@ -175,6 +186,45 @@ export class RMLProcessor {
     // Remove first heading if it appears at the start (after optional whitespace)
     // Matches: # Title, ## Title, or ### Title
     return content.replace(/^\s*#{1,3}\s+[^\n]+\n/, '');
+  }
+
+  /**
+   * Group consecutive vision image placeholders into horizontal rows
+   * Detects sequences like [[visual:vision1]]\n[[visual:vision2]] and wraps them in a centered container
+   */
+  private groupConsecutiveVisionImages(content: string, visualLookup: Record<string, string>): string {
+    // Pattern: consecutive vision image placeholders separated by whitespace/newlines
+    // Matches: [[visual:vision1]]\n[[visual:vision2]]\n[[visual:vision3]]
+    const consecutivePattern = /(\[\[visual:vision\d+\]\](?:\s*\n\s*\[\[visual:vision\d+\]\])+)/g;
+
+    return content.replace(consecutivePattern, (match) => {
+      console.log('🖼️ Found consecutive vision images:', match);
+
+      // Extract all vision IDs from this group
+      const visionIds: string[] = [];
+      const placeholderPattern = /\[\[visual:(vision\d+)\]\]/g;
+      let placeholderMatch;
+
+      while ((placeholderMatch = placeholderPattern.exec(match)) !== null) {
+        visionIds.push(placeholderMatch[1]);
+      }
+
+      console.log(`🖼️ Grouping ${visionIds.length} vision images:`, visionIds);
+
+      // Render each image
+      const images = visionIds
+        .map(id => {
+          const html = visualLookup[id] || visualLookup[id.trim()] || visualLookup[id.toLowerCase()];
+          return html || `<div class="rml-error">Missing visual: ${id}</div>`;
+        })
+        .join('\n');
+
+      // Wrap in centered horizontal container
+      return `
+<div class="rml-vision-group">
+  ${images}
+</div>`;
+    });
   }
 
   /**
