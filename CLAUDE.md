@@ -36,16 +36,17 @@ npm test                      # Run tests
 
 | Environment | Database | URL | Purpose | Commands |
 |-------------|----------|-----|---------|----------|
-| Development | RDS Dev | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
-| Production | RDS Prod | app2.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
+| Development | AWS RDS (Dev) | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
+| Production | AWS RDS (Prod) | app2.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
 | ~~Staging~~ | ~~Not in use~~ | ~~app.heliotropeimaginal.com~~ | ~~Deprecated~~ | ~~Not in use~~ |
 
 **Deployment Flow**: Local development → Production release
-**Database Strategy**: RDS Development → RDS Production
+**Database Strategy**: Both environments use AWS RDS PostgreSQL (separate dev/prod databases)
 **Version Flow**: DEV builds → PRODUCTION semantic release
 **Testing Rule**: Test thoroughly in development before production deployment
 
 **Note**: Staging environment (app.heliotropeimaginal.com) is deprecated and not currently in use. Production is at app2.heliotropeimaginal.com.
+**Database Note**: Both development and production use AWS RDS databases. NO local PostgreSQL needed.
 
 ## 🚨 Workshop Separation
 
