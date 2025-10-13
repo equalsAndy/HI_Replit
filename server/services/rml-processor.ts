@@ -200,13 +200,14 @@ export class RMLProcessor {
     if (decl.type === 'flow_attribute' && decl.value) {
       const value = String(decl.value).toUpperCase();
       const strengthType = this.getFlowAttributeColor(value);
+      // AST brand colors (matching rml-renderer.ts)
       const colors: Record<string, string> = {
-        thinking: '#f59e0b',
-        acting: '#ef4444',
-        feeling: '#3b82f6',
-        planning: '#10b981'
+        thinking: 'rgb(1, 162, 82)',    // Green
+        acting: 'rgb(241, 64, 64)',      // Red
+        feeling: 'rgb(22, 126, 253)',    // Blue
+        planning: 'rgb(255, 203, 47)'    // Yellow
       };
-      const color = colors[strengthType as keyof typeof colors] || '#6b7280';
+      const color = colors[strengthType as keyof typeof colors] || 'rgb(107, 114, 128)';
 
       return `<strong style="color: ${color}; font-weight: 700;">${value}</strong>`;
     }
