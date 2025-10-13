@@ -25,7 +25,7 @@ interface ReportStatus {
 }
 
 interface SectionalProgress {
-  overallStatus: 'pending' | 'in_progress' | 'completed' | 'failed' | 'partial_failure';
+  overallStatus: 'pending' | 'generating' | 'in_progress' | 'completed' | 'failed' | 'partial_failure';
   progressPercentage: number;
   sectionsCompleted: number;
   sectionsFailed: number;
@@ -308,7 +308,10 @@ export default function HolisticReportView({
     }
 
     // Auto-start timer if personal report is in progress (e.g., after page refresh or navigation)
-    if (personalProgress?.overallStatus === 'in_progress' && activeTimer !== 'personal') {
+    if (
+      (personalProgress?.overallStatus === 'in_progress' || personalProgress?.overallStatus === 'generating') &&
+      activeTimer !== 'personal'
+    ) {
       console.log('🔄 Detected in-progress personal report - resuming timer');
       setActiveTimer('personal');
 
@@ -378,7 +381,7 @@ export default function HolisticReportView({
     const canGenerate = (!progress || progress.overallStatus === 'pending' || progress.overallStatus === 'failed') && reportsWorking && !isActivelyGenerating;
     const isCompleted = progress?.overallStatus === 'completed';
     const isFailed = progress?.overallStatus === 'failed';
-    const isInProgress = progress?.overallStatus === 'in_progress';
+    const isInProgress = progress?.overallStatus === 'in_progress' || progress?.overallStatus === 'generating';
     const isDisabledDueToMaintenance = !reportsWorking;
 
     // Stall detection: if in overtime for more than 3 minutes (180 seconds), consider it stalled

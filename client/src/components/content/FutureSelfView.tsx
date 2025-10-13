@@ -361,7 +361,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           <ul className="text-blue-700 space-y-2 mb-4">
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-1">•</span>
-              <span>Select 1–2 images that capture who you imagine becoming.</span>
+              <span>Select 1–4 images that speak to your future vision or even your recent past to consider what might change. After you select, you will be asked to describe what the images mean to you. Mention each image with a sentence or three.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-1">•</span>
