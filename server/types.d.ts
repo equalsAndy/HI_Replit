@@ -13,6 +13,7 @@ declare global {
       userId?: number;
       username?: string;
       userRole?: 'admin' | 'facilitator' | 'participant';
+      user?: User & { profilePicture?: string | null };
     }
   }
 }

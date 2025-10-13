@@ -50,8 +50,10 @@ router.use('/', workshopDataRoutes);
 
 // Assessment API routes
 router.post('/assessments', async (req, res) => {
+  let userId: number | null = null;
+  let assessmentType: string | undefined;
   try {
-    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -60,7 +62,8 @@ router.post('/assessments', async (req, res) => {
       });
     }
 
-    const { assessmentType, results } = req.body;
+    const { assessmentType: incomingAssessmentType, results } = req.body;
+    assessmentType = incomingAssessmentType;
 
     if (!assessmentType || !results) {
       return res.status(400).json({
@@ -95,8 +98,10 @@ router.post('/assessments', async (req, res) => {
 });
 
 router.get('/assessments/:type', async (req, res) => {
+  let userId: number | null = null;
+  const { type } = req.params;
   try {
-    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -105,8 +110,6 @@ router.get('/assessments/:type', async (req, res) => {
       });
     }
 
-    const { type } = req.params;
-    
     // Get assessment from database
     const assessment = await db
       .select()
@@ -155,8 +158,9 @@ router.get('/assessments/:type', async (req, res) => {
 
 // Final Reflection API routes
 router.get('/final-reflection', async (req, res) => {
+  let userId: number | null = null;
   try {
-    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -188,8 +192,9 @@ router.get('/final-reflection', async (req, res) => {
 });
 
 router.post('/final-reflection', async (req, res) => {
+  let userId: number | null = null;
   try {
-    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({

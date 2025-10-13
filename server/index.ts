@@ -59,11 +59,9 @@ import astSectionalReportRoutes from './routes/ast-sectional-reports-routes.ts';
 import { resetRouter } from './routes/reset-routes.ts';
 import starCardRoutes from './routes/starcard-routes.ts';
 import workshopResponsesRoutes from './routes/workshop-responses-routes.ts';
-import { initializeDatabase } from './db.ts';
-import { db } from './db.ts';
+import { initializeDatabase, db, queryClient } from './db.ts';
 import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
 import { AuthEnvironmentManager } from './config/auth-environment.ts';
-import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
@@ -1103,8 +1101,8 @@ const shutdown = async (signal: string) => {
 
     // Close database connections
     console.log('🗄️  Closing database connections...');
-    if (db && typeof db.end === 'function') {
-      await db.end();
+    if (queryClient && typeof queryClient.end === 'function') {
+      await queryClient.end();
       console.log('✅ Database connections closed');
     }
 
