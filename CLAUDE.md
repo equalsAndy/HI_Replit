@@ -36,14 +36,16 @@ npm test                      # Run tests
 
 | Environment | Database | URL | Purpose | Commands |
 |-------------|----------|-----|---------|----------|
-| Development | RDS | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
-| Staging | RDS | app2.heliotropeimaginal.com | Pre-production testing | See `DEPLOYMENT-QUICK-REFERENCE.md` |
-| Production | RDS | app.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
+| Development | RDS Dev | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
+| Production | RDS Prod | app2.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
+| ~~Staging~~ | ~~Not in use~~ | ~~app.heliotropeimaginal.com~~ | ~~Deprecated~~ | ~~Not in use~~ |
 
-**Deployment Flow**: Local development → Staging validation → Production release
-**Database Strategy**: RDS Development → RDS Staging → RDS Production  
-**Version Flow**: DEV builds → STAGING semantic → PRODUCTION release  
-**Testing Rule**: Always validate in staging before production deployment
+**Deployment Flow**: Local development → Production release
+**Database Strategy**: RDS Development → RDS Production
+**Version Flow**: DEV builds → PRODUCTION semantic release
+**Testing Rule**: Test thoroughly in development before production deployment
+
+**Note**: Staging environment (app.heliotropeimaginal.com) is deprecated and not currently in use. Production is at app2.heliotropeimaginal.com.
 
 ## 🚨 Workshop Separation
 
