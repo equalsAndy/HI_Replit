@@ -146,16 +146,30 @@ export class RMLProcessor {
         console.log(`   Final result: ${html ? 'FOUND' : 'NOT FOUND'}`);
         console.log(`   Available keys: [${Object.keys(visualLookup).join(', ')}]`);
         
+        // Escape special regex characters in the visualId
+        const escapedId = visualId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
         if (html) {
-          const placeholder = `[[visual:${visualId}]]`;
-          // Escape special regex characters in the visualId
-          const escapedId = visualId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`\\[\\[visual:${escapedId}\\]\\]`, 'g');
-          processedContent = processedContent.replace(regex, html);
-          console.log(`✅ FIXED: Replaced placeholder: [[visual:${visualId}]]`);
+          // Replace both [[visual:id]] and [[id]] formats
+          const longFormRegex = new RegExp(`\\[\\[visual:${escapedId}\\]\\]`, 'g');
+          const shortFormRegex = new RegExp(`\\[\\[${escapedId}\\]\\]`, 'g');
+
+          processedContent = processedContent.replace(longFormRegex, html);
+          processedContent = processedContent.replace(shortFormRegex, html);
+
+          console.log(`✅ Replaced placeholder: [[visual:${visualId}]] and [[${visualId}]]`);
         } else {
-          console.warn(`⚠️ STILL FAILED: No visual found for placeholder: [[visual:${visualId}]]`);
-          console.warn(`   Available visual keys: ${Object.keys(visualLookup).join(', ')}`);
+          // FALLBACK: Replace with graceful degradation text
+          console.warn(`⚠️ No visual found for placeholder: ${visualId}, using fallback`);
+
+          const fallback = this.generateFallbackForMissingVisual(visualId, declarations);
+          const longFormRegex = new RegExp(`\\[\\[visual:${escapedId}\\]\\]`, 'g');
+          const shortFormRegex = new RegExp(`\\[\\[${escapedId}\\]\\]`, 'g');
+
+          processedContent = processedContent.replace(longFormRegex, fallback);
+          processedContent = processedContent.replace(shortFormRegex, fallback);
+
+          console.log(`✅ Used fallback for: ${visualId}`);
         }
       });
 
@@ -167,6 +181,57 @@ export class RMLProcessor {
       // Return original content if processing fails
       return rawContent;
     }
+  }
+
+  /**
+   * Generate graceful fallback for missing visual
+   * Returns styled text instead of raw placeholder
+   */
+  private generateFallbackForMissingVisual(visualId: string, declarations: any[]): string {
+    // Find the declaration for this visual ID
+    const decl = declarations.find((d: any) => d.id === visualId);
+
+    if (!decl) {
+      // No declaration found - hide the placeholder completely
+      return '';
+    }
+
+    // For flow attributes, show styled text with appropriate color
+    if (decl.type === 'flow_attribute' && decl.value) {
+      const value = String(decl.value).toUpperCase();
+      const strengthType = this.getFlowAttributeColor(value);
+      const colors: Record<string, string> = {
+        thinking: '#f59e0b',
+        acting: '#ef4444',
+        feeling: '#3b82f6',
+        planning: '#10b981'
+      };
+      const color = colors[strengthType as keyof typeof colors] || '#6b7280';
+
+      return `<strong style="color: ${color}; font-weight: 700;">${value}</strong>`;
+    }
+
+    // For other visual types, return empty string (hide placeholder)
+    return '';
+  }
+
+  /**
+   * Get strength type color for flow attribute
+   */
+  private getFlowAttributeColor(attributeName: string): string {
+    const thinkingWords = ['analytical', 'logical', 'strategic', 'curious', 'focused', 'methodical', 'precise'];
+    const actingWords = ['dynamic', 'energetic', 'proactive', 'bold', 'adventurous', 'spontaneous', 'decisive'];
+    const feelingWords = ['empathetic', 'compassionate', 'collaborative', 'supportive', 'warm', 'intuitive', 'positive', 'expressive'];
+    const planningWords = ['organized', 'structured', 'systematic', 'thorough', 'diligent', 'reliable', 'sensible'];
+
+    const lowerName = attributeName.toLowerCase();
+
+    if (thinkingWords.some(w => lowerName.includes(w))) return 'thinking';
+    if (actingWords.some(w => lowerName.includes(w))) return 'acting';
+    if (feelingWords.some(w => lowerName.includes(w))) return 'feeling';
+    if (planningWords.some(w => lowerName.includes(w))) return 'planning';
+
+    return 'thinking'; // Default
   }
 
   /**
