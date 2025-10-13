@@ -118,9 +118,9 @@ export class RMLRenderer {
     return `
       <div class="rml-strength-squares">
         ${squares.map(s => `
-          <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white mr-3" style="background-color: ${s.color};">
-            <div class="relative flex items-center justify-center w-full h-full">
-              <span class="text-center leading-tight relative z-10">${s.label}</span>
+          <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${s.color}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+              <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">${s.label}</span>
             </div>
           </div>
         `).join('')}
@@ -690,9 +690,9 @@ export class RMLRenderer {
     }
 
     return `
-      <div class="w-20 h-20 rounded flex items-center justify-center font-bold text-white mr-3" style="background-color: ${color};">
-        <div class="relative flex items-center justify-center w-full h-full px-1">
-          <span class="text-center leading-tight relative z-10" style="font-size: ${fontSize};">${attributeValue.toUpperCase()}</span>
+      <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; background-color: ${color}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 0 0.25rem;">
+          <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10; font-size: ${fontSize};">${attributeValue.toUpperCase()}</span>
         </div>
       </div>
     `;
@@ -931,9 +931,9 @@ export class RMLRenderer {
   private renderThinkingSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.thinking};">
-          <div class="relative flex items-center justify-center w-full h-full">
-            <span class="text-center leading-tight relative z-10">THINKING</span>
+        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.thinking}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">THINKING</span>
           </div>
         </div>
       </div>
@@ -946,9 +946,9 @@ export class RMLRenderer {
   private renderFeelingSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.feeling};">
-          <div class="relative flex items-center justify-center w-full h-full">
-            <span class="text-center leading-tight relative z-10">FEELING</span>
+        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.feeling}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">FEELING</span>
           </div>
         </div>
       </div>
@@ -961,9 +961,9 @@ export class RMLRenderer {
   private renderActingSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.acting};">
-          <div class="relative flex items-center justify-center w-full h-full">
-            <span class="text-center leading-tight relative z-10">ACTING</span>
+        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.acting}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">ACTING</span>
           </div>
         </div>
       </div>
@@ -976,9 +976,9 @@ export class RMLRenderer {
   private renderPlanningSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div class="w-20 h-20 rounded flex items-center justify-center text-xs font-bold text-white" style="background-color: ${this.colors.planning};">
-          <div class="relative flex items-center justify-center w-full h-full">
-            <span class="text-center leading-tight relative z-10">PLANNING</span>
+        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.planning}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">PLANNING</span>
           </div>
         </div>
       </div>
