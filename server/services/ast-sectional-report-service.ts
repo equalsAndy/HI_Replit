@@ -286,6 +286,8 @@ class ASTSectionalReportService {
     userData: any,
     options: GenerationOptions
   ): Promise<void> {
+    const generationStartTime = Date.now();
+
     try {
       console.log(`📝 Starting async section generation for user ${userId}`);
 
@@ -319,10 +321,16 @@ class ASTSectionalReportService {
       const progress = await this.getReportProgress(userId, reportType);
 
       if (progress.progressPercentage === 100) {
+        // Calculate total generation time
+        const generationTimeSeconds = Math.round((Date.now() - generationStartTime) / 1000);
+
+        // Get assistant ID from environment or use default
+        const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_rIvBIJ3iCAlHizeuUK77gIiN';
+
         // Assemble final report
-        await this.assembleFinalReport(userId, reportType);
+        await this.assembleFinalReport(userId, reportType, generationTimeSeconds, assistantId);
         await this.updateReportStatus(userId, reportType, 'completed');
-        console.log(`✅ Report generation completed for user ${userId}`);
+        console.log(`✅ Report generation completed for user ${userId} in ${generationTimeSeconds}s`);
       } else if (progress.sectionsFailed > 0) {
         // Check if ALL sections failed (complete failure)
         if (progress.sectionsFailed === progress.totalSections && progress.sectionsCompleted === 0) {
@@ -537,7 +545,12 @@ class ASTSectionalReportService {
   async getAssembledReport(
     userId: string,
     reportType: 'ast_personal' | 'ast_professional',
-    format: 'html' | 'json' | 'text' = 'html'
+    format: 'html' | 'json' | 'text' = 'html',
+    generationMetadata?: {
+      generationTimeSeconds?: number;
+      assistantId?: string;
+      assistantModel?: string;
+    }
   ): Promise<{ success: boolean; content?: string; metadata?: any }> {
     try {
       // Check if report is complete
@@ -620,7 +633,7 @@ class ASTSectionalReportService {
       }
 
       // HTML format with rich visual integration
-      const htmlContent = await this.generateRichHtmlReport(userId, reportType, sections);
+      const htmlContent = await this.generateRichHtmlReport(userId, reportType, sections, generationMetadata);
 
       return { success: true, content: htmlContent };
 
@@ -1249,7 +1262,12 @@ class ASTSectionalReportService {
     `, [status, userId, holisticReportType]);
   }
 
-  private async assembleFinalReport(userId: string, reportType: 'ast_personal' | 'ast_professional'): Promise<void> {
+  private async assembleFinalReport(
+    userId: string,
+    reportType: 'ast_personal' | 'ast_professional',
+    generationTimeSeconds?: number,
+    assistantId?: string
+  ): Promise<void> {
     try {
       // Get all completed sections
       const sectionsResult = await pool.query(`
@@ -1264,11 +1282,26 @@ class ASTSectionalReportService {
         .map(row => row.section_content)
         .join('\n\n---\n\n');
 
-      // Get HTML version
-      const htmlResult = await this.getAssembledReport(userId, reportType, 'html');
+      // Query OpenAI API for assistant model details if assistantId provided
+      let assistantModel: string | undefined;
+      if (assistantId) {
+        try {
+          assistantModel = await this.getAssistantModel(assistantId);
+          console.log(`✅ Retrieved assistant model: ${assistantModel}`);
+        } catch (error) {
+          console.warn(`⚠️ Could not retrieve assistant model:`, error);
+        }
+      }
+
+      // Get HTML version with metadata
+      const htmlResult = await this.getAssembledReport(userId, reportType, 'html', {
+        generationTimeSeconds,
+        assistantId,
+        assistantModel
+      });
       const htmlContent = htmlResult.success ? htmlResult.content : '';
 
-      // Update holistic_reports with final content
+      // Update holistic_reports with final content and metadata
       const holisticReportType = this.mapToHolisticReportType(reportType);
       await pool.query(`
         UPDATE holistic_reports
@@ -1278,7 +1311,15 @@ class ASTSectionalReportService {
             updated_at = NOW()
         WHERE user_id = $3 AND report_type = $4 AND generation_mode = 'sectional'
       `, [
-        JSON.stringify({ content: finalContent, sections: sectionsResult.rows.length }),
+        JSON.stringify({
+          content: finalContent,
+          sections: sectionsResult.rows.length,
+          metadata: {
+            generationTimeSeconds,
+            assistantId,
+            assistantModel
+          }
+        }),
         htmlContent,
         userId,
         holisticReportType
@@ -1298,7 +1339,12 @@ class ASTSectionalReportService {
   private async generateRichHtmlReport(
     userId: string,
     reportType: 'ast_personal' | 'ast_professional',
-    sections: any[]
+    sections: any[],
+    generationMetadata?: {
+      generationTimeSeconds?: number;
+      assistantId?: string;
+      assistantModel?: string;
+    }
   ): Promise<string> {
     try {
       console.log(`🎨 Generating professional HTML report for user ${userId}, type: ${reportType}`);
@@ -1329,7 +1375,10 @@ class ASTSectionalReportService {
         subtitle: reportType === 'ast_personal'
           ? 'Personal Development Insights'
           : 'Professional Profile Analysis',
-        userId: userId
+        userId: userId,
+        generationTimeSeconds: generationMetadata?.generationTimeSeconds,
+        assistantId: generationMetadata?.assistantId,
+        assistantModel: generationMetadata?.assistantModel
       };
 
       // Generate professional HTML using template service
@@ -1444,6 +1493,39 @@ class ASTSectionalReportService {
     } catch (error) {
       console.error(`❌ Error cleaning up failed report for user ${userId}:`, error);
       // Don't throw - cleanup failure shouldn't block other operations
+    }
+  }
+
+  /**
+   * Query OpenAI API to get assistant model information
+   */
+  private async getAssistantModel(assistantId: string): Promise<string> {
+    try {
+      const OpenAI = (await import('openai')).default;
+
+      // Use robust API key resolution logic
+      let apiKey = process.env.OPENAI_API_KEY?.trim();
+
+      if (!apiKey || apiKey.startsWith('YOUR_') || apiKey === 'YOUR_KEY') {
+        apiKey = process.env.REPORT_OPENAI_API_KEY?.trim() ||
+                 process.env.OPENAI_KEY_TALIA_V1?.trim() ||
+                 process.env.OPENAI_KEY_TALIA_V2?.trim();
+      }
+
+      if (!apiKey || !apiKey.startsWith('sk-')) {
+        throw new Error('Invalid API key for assistant query');
+      }
+
+      const openai = new OpenAI({ apiKey });
+
+      // Query the assistant
+      const assistant = await openai.beta.assistants.retrieve(assistantId);
+
+      return assistant.model || 'unknown';
+
+    } catch (error) {
+      console.error(`❌ Error querying assistant ${assistantId}:`, error);
+      throw error;
     }
   }
 

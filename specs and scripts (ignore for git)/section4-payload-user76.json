@@ -1,0 +1,172 @@
+{
+  "section": {
+    "id": 4,
+    "name": "wellbeing_future_self",
+    "title": "Well-being & Future Self",
+    "workshop_steps": [
+      "3-1",
+      "3-2"
+    ]
+  },
+  "policies": {
+    "no_predictions": true,
+    "tone_integrity": true,
+    "forbid_shape_inference": true,
+    "avoid_clinical_phrasing": true,
+    "no_advice_or_checklists": true,
+    "use_speculative_language": true,
+    "imagination_as_integrator": true,
+    "forbid_attribute_fallbacks": true
+  },
+  "strengths": {
+    "shape": {
+      "label": "Balanced",
+      "roles": {
+        "quieter": [
+          "acting",
+          "planning",
+          "feeling"
+        ],
+        "dominant": [
+          "thinking",
+          "acting",
+          "planning"
+        ],
+        "supporting": []
+      },
+      "percent_equivalence_margin": 2
+    },
+    "acting": 25,
+    "ranked": [
+      "thinking",
+      "acting",
+      "planning",
+      "feeling"
+    ],
+    "feeling": 23,
+    "planning": 25,
+    "thinking": 27
+  },
+  "wellbeing": {
+    "reflections": {
+      "wellbeing-1": {
+        "answer": "Strong relationships and meaningful work keep me centered. What lowers it sometimes is taking on too much or not setting boundaries soon enough.\n",
+        "field_id": "wellbeing-1",
+        "question": "What factors shape your current well-being rating?"
+      },
+      "wellbeing-2": {
+        "answer": "More intentional rest and clearer priorities. I want to feel good about saying no when I need to.\n",
+        "field_id": "wellbeing-2",
+        "question": "What improvements do you envision in one year?"
+      },
+      "wellbeing-3": {
+        "answer": "A greater sense of ease. I'll be doing the same kind of work but with more calm and less rushing.\n",
+        "field_id": "wellbeing-3",
+        "question": "What will be noticeably different in your experience?"
+      },
+      "wellbeing-4": {
+        "answer": "Better daily routines and a few new habits that make life smoother. Small wins that add up to more balance.\n",
+        "field_id": "wellbeing-4",
+        "question": "What progress would you expect in 3 months?"
+      },
+      "wellbeing-5": {
+        "answer": "Scheduling downtime each week and keeping boundaries around it. I'll also practice checking in with myself before taking on new commitments.\n",
+        "field_id": "wellbeing-5",
+        "question": "What actions will you commit to this quarter?"
+      }
+    },
+    "future_level": 7,
+    "current_level": 6
+  },
+  "future_self": {
+    "images": [
+      {
+        "id": "QKUN1xjwDQA",
+        "url": "https://images.unsplash.com/photo-1563409236302-8442b5e644df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3ODUxNTZ8MHwxfHNlYXJjaHwyfHxkdWNrfGVufDB8fHx8MTc2MDA0OTEwMnww&ixlib=rb-4.1.0&q=80&w=1080",
+        "credit": {
+          "sourceUrl": "https://unsplash.com/photos/white-duck-on-grass-field-QKUN1xjwDQA",
+          "photographer": "Christian Bowen",
+          "photographerUrl": "https://unsplash.com/@chrishcush"
+        },
+        "source": "unsplash",
+        "searchTerm": "duck",
+        "description": "white duck on grass field"
+      },
+      {
+        "id": "9-OCsKoyQlk",
+        "url": "https://images.unsplash.com/photo-1562016600-ece13e8ba570?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3ODUxNTZ8MHwxfHNlYXJjaHwzfHx3YXRlcnxlbnwwfHx8fDE3NjAwNDkxMTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        "credit": {
+          "sourceUrl": "https://unsplash.com/photos/rippling-crystal-blue-water-9-OCsKoyQlk",
+          "photographer": "Wesley Tingey",
+          "photographerUrl": "https://unsplash.com/@wesleyphotography"
+        },
+        "source": "unsplash",
+        "searchTerm": "water",
+        "description": "rippling crystal blue water"
+      },
+      {
+        "id": "9Qwbfa_RM94",
+        "url": "https://images.unsplash.com/photo-1533577116850-9af94e1da2b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3ODUxNTZ8MHwxfHNlYXJjaHwxfHxmbG93ZXJ8ZW58MHx8fHwxNzYwMDQ5MTE2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        "credit": {
+          "sourceUrl": "https://unsplash.com/photos/red-rose-in-bloom-during-daytime-9Qwbfa_RM94",
+          "photographer": "zhan zhang",
+          "photographerUrl": "https://unsplash.com/@zhanzhang"
+        },
+        "source": "unsplash",
+        "searchTerm": "flower",
+        "description": "red rose in bloom during daytime"
+      },
+      {
+        "id": "LwAG_L8ByWo",
+        "url": "https://images.unsplash.com/photo-1540206395-68808572332f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3ODUxNTZ8MHwxfHNlYXJjaHwxfHxyb2Nrc3xlbnwwfHx8fDE3NjAwNDkxMjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        "credit": {
+          "sourceUrl": "https://unsplash.com/photos/body-of-water-between-green-leaf-trees-LwAG_L8ByWo",
+          "photographer": "Tyler Lastovich",
+          "photographerUrl": "https://unsplash.com/@lastly"
+        },
+        "source": "unsplash",
+        "searchTerm": "rocks",
+        "description": "body of water between green leaf trees"
+      }
+    ],
+    "reflections": {
+      "image-meaning": {
+        "answer": "These images remind me of calm, clarity, and natural beauty. I picked them because they help me imagine a more peaceful version of my life where things still happen but with less chaos.",
+        "field_id": "image-meaning",
+        "question": "What does your selected image mean to you?"
+      },
+      "future-self-1": {
+        "answer": "I'd be balancing work and life a lot better. Same goals, but I'd have clearer systems, healthier routines, and more confidence in my decisions. I'd feel lighter and more focused at the same time.",
+        "field_id": "future-self-1",
+        "question": "Describe Your Future Self"
+      }
+    }
+  },
+  "flow_state": {
+    "score": 55,
+    "category": "Flow Capable",
+    "attributes": [
+      "Diligent",
+      "Positive",
+      "Expressive",
+      "Sensible"
+    ],
+    "reflections": {
+      "rounding-out-1": {
+        "answer": "When I'm in flow, time feels different—it just passes. There's a rhythm to what I'm doing, and I don't notice distractions or feel drained. It's calm and energizing at once.\n",
+        "field_id": "rounding-out-1",
+        "question": "When do you experience flow?"
+      },
+      "rounding-out-2": {
+        "answer": "I'd like to bring more of that flow feeling into daily work. If I could structure my environment better and manage my energy, I could hit that zone more consistently.\n",
+        "field_id": "rounding-out-2",
+        "question": "How could you create more flow?"
+      },
+      "rounding-out-3": {
+        "answer": "Stronger boundaries, clearer priorities, and better rhythms. I'd also want to notice when I'm forcing something versus when I'm in the groove and adjust accordingly.\n",
+        "field_id": "rounding-out-3",
+        "question": "What support would help sustain flow?"
+      }
+    }
+  }
+}

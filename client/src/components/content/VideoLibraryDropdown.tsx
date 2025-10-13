@@ -116,9 +116,19 @@ export const VideoLibraryDropdown: React.FC<VideoLibraryDropdownProps> = ({
     );
   }
 
+  // Core AST video step IDs to show (the main 9 videos from the workshop)
+  const coreASTStepIds = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '3-1', '3-2', '5-1'];
+
   // Filter videos if filterByStepIds is provided
   let availableVideos = videos;
-  if (filterByStepIds && filterByStepIds.length > 0) {
+  
+  // For AllStarTeams workshop with no custom filter, only show core videos
+  if (workshopType === 'allstarteams' && (!filterByStepIds || filterByStepIds.length === 0)) {
+    availableVideos = videos.filter(v => 
+      v.stepId && coreASTStepIds.includes(v.stepId)
+    );
+  } else if (filterByStepIds && filterByStepIds.length > 0) {
+    // Custom filter provided
     availableVideos = videos.filter(v => 
       v.stepId && filterByStepIds.includes(v.stepId)
     );
