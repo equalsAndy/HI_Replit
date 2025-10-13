@@ -1027,6 +1027,17 @@ export class RMLRenderer {
           max-width: fit-content;
         }
 
+        /* Grouped consecutive squares (flow attributes, strength visuals) */
+        .rml-squares-row {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          gap: 12px;
+          margin: 20px auto;
+          max-width: fit-content;
+        }
+
         .rml-pie-chart {
           display: flex;
           align-items: center;

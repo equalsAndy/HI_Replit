@@ -99,6 +99,9 @@ export class RMLProcessor {
       // Step 4: Group consecutive vision image placeholders for horizontal display
       processedContent = this.groupConsecutiveVisionImages(processedContent, visualLookup);
 
+      // Step 4.5: Group consecutive square placeholders (flow attributes, strength squares)
+      processedContent = this.groupConsecutiveSquares(processedContent, visualLookup, declarations);
+
       // Step 5: Replace all remaining [[visual:id]] placeholders with rendered HTML
       const placeholders = rmlParser.findVisualPlaceholders(processedContent);
       
@@ -289,6 +292,88 @@ export class RMLProcessor {
       return `
 <div class="rml-vision-group">
   ${images}
+</div>`;
+    });
+  }
+
+  /**
+   * Group consecutive square placeholders (flow attributes, strength squares) into horizontal rows
+   * Detects sequences like [[attr1]]\n[[attr2]] or [[chart1]][[shapes1]] and wraps them in centered container
+   */
+  private groupConsecutiveSquares(content: string, visualLookup: Record<string, string>, declarations: any[]): string {
+    // Pattern: consecutive square-type placeholders separated by minimal whitespace
+    // Supports both [[visual:id]] and [[id]] formats
+    // Matches flow attributes (attr1, attr2) and strength visuals (chart1, shapes1, imagination1)
+    const consecutivePattern = /(\[\[(?:visual:)?([a-zA-Z0-9_-]+)\]\](?:\s*\n?\s*\[\[(?:visual:)?([a-zA-Z0-9_-]+)\]\])+)/g;
+
+    return content.replace(consecutivePattern, (match) => {
+      console.log('🔲 Found consecutive placeholders:', match);
+
+      // Extract all IDs from this group (both [[visual:id]] and [[id]] formats)
+      const ids: string[] = [];
+      const longFormPattern = /\[\[visual:([a-zA-Z0-9_-]+)\]\]/g;
+      const shortFormPattern = /\[\[([a-zA-Z0-9_-]+)\]\]/g;
+
+      let placeholderMatch;
+
+      // Extract from long form [[visual:id]]
+      while ((placeholderMatch = longFormPattern.exec(match)) !== null) {
+        if (!ids.includes(placeholderMatch[1])) {
+          ids.push(placeholderMatch[1]);
+        }
+      }
+
+      // Extract from short form [[id]] (avoid duplicates)
+      let tempMatch = match;
+      while ((placeholderMatch = shortFormPattern.exec(tempMatch)) !== null) {
+        const id = placeholderMatch[1];
+        // Only add if not already in list and not a "visual:" prefix
+        if (!ids.includes(id) && id !== 'visual') {
+          ids.push(id);
+        }
+      }
+
+      console.log(`🔲 Extracted IDs:`, ids);
+
+      // Filter to only square-type visuals (flow_attribute, strength-related)
+      const squareIds = ids.filter(id => {
+        const decl = declarations.find((d: any) => d.id === id);
+        if (!decl) return false;
+
+        const squareTypes = ['flow_attribute', 'strength_squares', 'user_strength_chart', 'imagination_circle', 'shapes_intro_content'];
+        return squareTypes.includes(decl.type);
+      });
+
+      // If no valid square types found, return original match unchanged
+      if (squareIds.length === 0) {
+        console.log('⚠️ No square-type visuals found in group, skipping grouping');
+        return match;
+      }
+
+      console.log(`🔲 Grouping ${squareIds.length} square visuals:`, squareIds);
+
+      // Render each square
+      const squares = squareIds
+        .map(id => {
+          let html = visualLookup[id] || visualLookup[id.trim()] || visualLookup[id.toLowerCase()];
+
+          // If not found, try fallback
+          if (!html) {
+            const decl = declarations.find((d: any) => d.id === id);
+            if (decl) {
+              html = this.generateFallbackForMissingVisual(id, declarations);
+            }
+          }
+
+          return html || '';
+        })
+        .filter(html => html.length > 0) // Remove empty strings
+        .join('\n');
+
+      // Wrap in centered horizontal container with proper spacing
+      return `
+<div class="rml-squares-row">
+  ${squares}
 </div>`;
     });
   }
