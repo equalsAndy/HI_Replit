@@ -551,7 +551,8 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
           fiveYear: '',
           flowOptimized: futureData.flowOptimizedLife || ''
         },
-        futureSelfImages: futureData.imageData?.selectedImages || []
+        // Support both imageData.selectedImages (new) and direct images array (legacy/payload)
+        futureSelfImages: futureData.imageData?.selectedImages || futureData.images || []
       };
 
     } catch (error) {

@@ -11,11 +11,11 @@ import { eq } from 'drizzle-orm';
 
 const router = express.Router();
 
-// Configure multer for photo uploads (1MB limit)
+// Configure multer for photo uploads (2.5MB limit)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 1024 * 1024, // 1MB limit
+    fileSize: 2.5 * 1024 * 1024, // 2.5MB limit
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {

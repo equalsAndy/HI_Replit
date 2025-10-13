@@ -20,6 +20,8 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
+    "allowImportingTsExtensions": true,
+    "useUnknownInCatchVariables": false,
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]

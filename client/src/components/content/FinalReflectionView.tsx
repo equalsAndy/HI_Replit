@@ -861,11 +861,11 @@ export default function FinalReflectionView({
         }
       `}</style>
 
-      {/* Beta Tester Workshop End Modal */}
-      <BetaFinalReflectionModal
+      {/* Beta Tester Workshop End Modal - COMMENTED OUT */}
+      {/* <BetaFinalReflectionModal
         isOpen={showBetaEndModal}
         onClose={() => setShowBetaEndModal(false)}
-      />
+      /> */}
     </>
   );
 }

@@ -10,6 +10,7 @@ import { astReportService } from './ast-report-service.js';
 import { generateOpenAICoachingResponse } from './openai-api-service.js';
 import { htmlTemplateService, type ReportSection, type ReportMetadata } from './html-template-service.js';
 import { rmlProcessor } from './rml-processor.js';
+import { astPayloadBuilderService } from './ast-payload-builder-service.js';
 
 // Database connection
 const pool = new Pool({
@@ -285,6 +286,8 @@ class ASTSectionalReportService {
     userData: any,
     options: GenerationOptions
   ): Promise<void> {
+    const generationStartTime = Date.now();
+
     try {
       console.log(`📝 Starting async section generation for user ${userId}`);
 
@@ -318,10 +321,16 @@ class ASTSectionalReportService {
       const progress = await this.getReportProgress(userId, reportType);
 
       if (progress.progressPercentage === 100) {
+        // Calculate total generation time
+        const generationTimeSeconds = Math.round((Date.now() - generationStartTime) / 1000);
+
+        // Get assistant ID from environment or use default
+        const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_rIvBIJ3iCAlHizeuUK77gIiN';
+
         // Assemble final report
-        await this.assembleFinalReport(userId, reportType);
+        await this.assembleFinalReport(userId, reportType, generationTimeSeconds, assistantId);
         await this.updateReportStatus(userId, reportType, 'completed');
-        console.log(`✅ Report generation completed for user ${userId}`);
+        console.log(`✅ Report generation completed for user ${userId} in ${generationTimeSeconds}s`);
       } else if (progress.sectionsFailed > 0) {
         // Check if ALL sections failed (complete failure)
         if (progress.sectionsFailed === progress.totalSections && progress.sectionsCompleted === 0) {
@@ -360,31 +369,45 @@ class ASTSectionalReportService {
       // Update section status to generating
       await this.updateSectionStatus(userId, reportType, sectionId, 'generating');
 
-      // Build section-specific prompt
-      const prompt = this.buildSectionPrompt(sectionDef, reportType, userData);
+      // BUILD STRUCTURED PAYLOAD (v2.3 spec)
+      console.log(`🔨 Building structured payload for section ${sectionId} (v2.3 spec)`);
+      const payload = await astPayloadBuilderService.buildSectionPayload(
+        userId,
+        reportType,
+        sectionId
+      );
 
-      // Generate content via OpenAI directly (simplified approach)
-      console.log(`🎯 Generating section content directly via OpenAI for section ${sectionId}`);
+      // Generate content via OpenAI with structured payload
+      console.log(`🎯 Generating section content with structured payload for section ${sectionId}`);
 
-      const { content: rawContent, aiRequestPayload } = await this.generateSectionContentDirectly(
-        prompt,
-        userData,
+      const { content: rawContent, aiRequestPayload } = await this.generateSectionContentWithPayload(
+        payload,
         sectionDef,
         reportType
       );
 
-      // Save raw content AND AI request payload
+      // Process RML immediately after generation
+      const processedContent = rmlProcessor.processContent(rawContent, {
+        sectionId: sectionId,
+        userId: userId,
+        attributes: payload.flow?.attributes,
+        futureSelfImages: payload.future_self?.images
+      });
+
+      console.log(`🎨 RML processed for section ${sectionId}: ${rawContent.includes('<RML>') ? 'RML block found' : 'no RML block'}`);
+
+      // Save both raw content (with RML tags) AND processed content (rendered HTML)
       await this.saveSectionContent(
         userId,
         reportType,
         sectionId,
         sectionDef.title,
         rawContent,
-        undefined, // processedContent (not used currently)
-        aiRequestPayload // NEW: Store the complete AI request payload
+        processedContent, // Now we store the processed content
+        aiRequestPayload // Store the complete AI request payload including structured data
       );
 
-      console.log(`✅ Section ${sectionId} generated, raw content and AI payload saved for user ${userId}`);
+      console.log(`✅ Section ${sectionId} generated with structured payload, saved for user ${userId}`);
       return { success: true, content: rawContent };
 
     } catch (error) {
@@ -522,7 +545,12 @@ class ASTSectionalReportService {
   async getAssembledReport(
     userId: string,
     reportType: 'ast_personal' | 'ast_professional',
-    format: 'html' | 'json' | 'text' = 'html'
+    format: 'html' | 'json' | 'text' = 'html',
+    generationMetadata?: {
+      generationTimeSeconds?: number;
+      assistantId?: string;
+      assistantModel?: string;
+    }
   ): Promise<{ success: boolean; content?: string; metadata?: any }> {
     try {
       // Check if report is complete
@@ -605,13 +633,231 @@ class ASTSectionalReportService {
       }
 
       // HTML format with rich visual integration
-      const htmlContent = await this.generateRichHtmlReport(userId, reportType, sections);
+      const htmlContent = await this.generateRichHtmlReport(userId, reportType, sections, generationMetadata);
 
       return { success: true, content: htmlContent };
 
     } catch (error) {
       console.error('❌ Error assembling final report:', error);
       return { success: false, content: 'Error assembling report' };
+    }
+  }
+
+  /**
+   * Extract wait time from OpenAI rate limit error message
+   */
+  private parseRateLimitWaitTime(errorMessage: string): number {
+    // Error format: "Please try again in 7.76s"
+    const match = errorMessage.match(/try again in ([\d.]+)s/i);
+    if (match) {
+      const seconds = parseFloat(match[1]);
+      // Return 150% of suggested wait time
+      return Math.ceil(seconds * 1.5 * 1000); // Convert to milliseconds
+    }
+    // Default to 10 seconds if we can't parse
+    return 10000;
+  }
+
+  /**
+   * Generate section content with structured JSON payload (v2.3 spec)
+   * Returns both content and the complete AI request payload for storage
+   * Automatically retries on rate limit errors
+   */
+  private async generateSectionContentWithPayload(
+    payload: any,
+    sectionDef: any,
+    reportType: string,
+    retryCount: number = 0
+  ): Promise<{ content: string; aiRequestPayload: any }> {
+    try {
+      // Capture timestamp before API call
+      const requestTimestamp = new Date().toISOString();
+
+      // Use the existing OpenAI assistant for AST reports
+      const OpenAI = (await import('openai')).default;
+
+      // Use robust API key resolution logic (same as openai-api-service.ts)
+      let apiKey = process.env.OPENAI_API_KEY?.trim();
+
+      // If OPENAI_API_KEY doesn't exist or is placeholder, try alternatives
+      if (!apiKey || apiKey.startsWith('YOUR_') || apiKey === 'YOUR_KEY') {
+        apiKey = process.env.REPORT_OPENAI_API_KEY?.trim() ||
+                 process.env.OPENAI_KEY_TALIA_V1?.trim() ||
+                 process.env.OPENAI_KEY_TALIA_V2?.trim();
+      }
+
+      // Final validation - ensure key exists and looks valid
+      if (!apiKey ||
+          apiKey.startsWith('YOUR_') ||
+          apiKey === 'YOUR_KEY' ||
+          apiKey.includes('YOUR_KEY') ||
+          !apiKey.startsWith('sk-')) {
+        throw new Error(
+          `Missing or invalid OpenAI API key for sectional reports. Checked: OPENAI_API_KEY${process.env.OPENAI_API_KEY ? ' (invalid format)' : ' (missing)'}, REPORT_OPENAI_API_KEY${process.env.REPORT_OPENAI_API_KEY ? ' (invalid format)' : ' (missing)'}, OPENAI_KEY_TALIA_V1, OPENAI_KEY_TALIA_V2`
+        );
+      }
+
+      const openai = new OpenAI({
+        apiKey: apiKey,
+      });
+
+      // Use the Star Report Talia assistant for AST reports
+      const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_rIvBIJ3iCAlHizeuUK77gIiN';
+
+      // Create a thread for this section generation
+      const thread = await openai.beta.threads.create();
+
+      // Convert structured payload to JSON string for message content
+      const payloadString = JSON.stringify(payload, null, 2);
+      console.log(`📦 Sending structured payload to OpenAI (${payloadString.length} characters)`);
+
+      // Add the user message with structured payload - assistant has its own instructions
+      await openai.beta.threads.messages.create(thread.id, {
+        role: 'user',
+        content: payloadString
+      });
+
+      // Run the assistant
+      const run = await openai.beta.threads.runs.create(thread.id, {
+        assistant_id: assistantId
+      });
+
+      // 📦 BUILD COMPLETE AI REQUEST PAYLOAD FOR STORAGE
+      const aiRequestPayload = {
+        threadId: thread.id,
+        runId: run.id,
+        assistantId: assistantId,
+        payloadVersion: '2.3',
+        structuredPayload: payload, // Store the complete structured payload
+        sectionDef: {
+          id: sectionDef.id,
+          name: sectionDef.name,
+          title: sectionDef.title,
+          description: sectionDef.description
+        },
+        reportType: reportType,
+        timestamp: requestTimestamp,
+        apiKeySource: apiKey.startsWith('sk-proj-') ? 'OPENAI_API_KEY' :
+                      process.env.REPORT_OPENAI_API_KEY ? 'REPORT_OPENAI_API_KEY' :
+                      process.env.OPENAI_KEY_TALIA_V1 ? 'OPENAI_KEY_TALIA_V1' : 'OPENAI_KEY_TALIA_V2'
+      };
+
+      // Wait for completion with timeout (10 minutes max)
+      const MAX_WAIT_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
+      const POLL_INTERVAL = 1000; // 1 second
+      const startTime = Date.now();
+
+      let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      while (runStatus.status === 'in_progress' || runStatus.status === 'queued') {
+        // Check if we've exceeded the timeout
+        const elapsed = Date.now() - startTime;
+        if (elapsed > MAX_WAIT_TIME) {
+          console.error(`❌ Timeout waiting for OpenAI assistant after ${elapsed}ms`);
+          // Attempt to cancel the run
+          try {
+            await openai.beta.threads.runs.cancel(thread.id, run.id);
+            console.log(`🛑 Cancelled stalled OpenAI run ${run.id}`);
+          } catch (cancelError) {
+            console.error(`⚠️ Could not cancel run:`, cancelError);
+          }
+          throw new Error(`Report generation timed out after ${Math.round(elapsed / 1000 / 60)} minutes. Please try again.`);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+        runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+
+        // Log progress every 30 seconds
+        if (elapsed % 30000 < POLL_INTERVAL) {
+          console.log(`⏳ Waiting for OpenAI response... ${Math.round(elapsed / 1000)}s elapsed, status: ${runStatus.status}`);
+        }
+      }
+
+      if (runStatus.status !== 'completed') {
+        console.error(`❌ Assistant run finished with non-completed status: ${runStatus.status}`);
+
+        // Log detailed error information
+        if (runStatus.last_error) {
+          console.error(`❌ OpenAI Error Code: ${runStatus.last_error.code}`);
+          console.error(`❌ OpenAI Error Message: ${runStatus.last_error.message}`);
+        }
+
+        // Log the full run status for debugging
+        console.error(`❌ Full run status:`, JSON.stringify(runStatus, null, 2));
+
+        const errorMessage = runStatus.last_error
+          ? `Assistant run failed: ${runStatus.last_error.code} - ${runStatus.last_error.message}`
+          : `Assistant run failed with status: ${runStatus.status}`;
+
+        throw new Error(errorMessage);
+      }
+
+      // Get the response
+      const messages = await openai.beta.threads.messages.list(thread.id);
+      const assistantMessage = messages.data.find(msg => msg.role === 'assistant');
+
+      if (!assistantMessage || !assistantMessage.content[0] || assistantMessage.content[0].type !== 'text') {
+        throw new Error('No text content generated from assistant');
+      }
+
+      const content = assistantMessage.content[0].text.value;
+
+      // Clean up the thread
+      await openai.beta.threads.del(thread.id);
+
+      console.log(`✅ Generated ${content.length} characters (raw content) for section ${sectionDef.id} using v2.3 payload`);
+      console.log(`📦 Captured AI request payload with structured data (${Object.keys(payload).length} top-level fields)`);
+
+      // 🎨 NOTE: RML processing is now deferred to report viewing time
+      // This allows us to store the raw OpenAI response in the database
+      // and process visuals only when the report is rendered
+      console.log('📦 Storing raw OpenAI content (RML processing deferred to viewing time)');
+
+      return { content, aiRequestPayload };
+
+    } catch (error) {
+      console.error(`❌ Error generating section content with payload:`, error);
+
+      // Check for rate limit error
+      const isRateLimitError = error?.message?.includes('rate_limit_exceeded') ||
+                               error?.message?.includes('Rate limit reached');
+
+      if (isRateLimitError && retryCount < 3) {
+        // Parse wait time from error message
+        const waitTime = this.parseRateLimitWaitTime(error.message);
+        console.log(`⏳ Rate limit hit. Waiting ${waitTime}ms (150% of suggested time) before retry ${retryCount + 1}/3...`);
+
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+
+        console.log(`🔄 Retrying section ${sectionDef.id} generation (attempt ${retryCount + 2}/4)...`);
+        return this.generateSectionContentWithPayload(payload, sectionDef, reportType, retryCount + 1);
+      }
+
+      // Check if this is an OpenAI 500 error (service temporarily unavailable)
+      const isOpenAI500Error = error?.status === 500 ||
+                                error?.message?.includes('500') ||
+                                error?.message?.includes('server had an error');
+
+      if (isOpenAI500Error) {
+        // Provide a friendly, specific error message for OpenAI service issues
+        const friendlyError = new Error("It looks like our AI Report Writer is taking a virtual break, check back again in a few minutes.");
+        friendlyError.isTemporary = true;
+        friendlyError.originalError = error.message;
+        throw friendlyError;
+      }
+
+      // Log additional details for other OpenAI errors
+      if (error?.response) {
+        console.error('OpenAI API Response:', JSON.stringify(error.response, null, 2));
+      }
+      if (error?.message) {
+        console.error('Error message:', error.message);
+      }
+      if (error?.code) {
+        console.error('Error code:', error.code);
+      }
+
+      throw error;
     }
   }
 
@@ -658,7 +904,7 @@ class ASTSectionalReportService {
       });
 
       // Use the Star Report Talia assistant for AST reports
-      const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_mTHLtTXri8cI1wtUwgDGsWhp';
+      const assistantId = process.env.OPENAI_ASSISTANT_ID || 'asst_rIvBIJ3iCAlHizeuUK77gIiN';
 
       // Create a thread for this section generation
       const thread = await openai.beta.threads.create();
@@ -726,7 +972,21 @@ class ASTSectionalReportService {
 
       if (runStatus.status !== 'completed') {
         console.error(`❌ Assistant run finished with non-completed status: ${runStatus.status}`);
-        throw new Error(`Assistant run failed with status: ${runStatus.status}`);
+
+        // Log detailed error information
+        if (runStatus.last_error) {
+          console.error(`❌ OpenAI Error Code: ${runStatus.last_error.code}`);
+          console.error(`❌ OpenAI Error Message: ${runStatus.last_error.message}`);
+        }
+
+        // Log the full run status for debugging
+        console.error(`❌ Full run status:`, JSON.stringify(runStatus, null, 2));
+
+        const errorMessage = runStatus.last_error
+          ? `Assistant run failed: ${runStatus.last_error.code} - ${runStatus.last_error.message}`
+          : `Assistant run failed with status: ${runStatus.status}`;
+
+        throw new Error(errorMessage);
       }
 
       // Get the response
@@ -1002,7 +1262,12 @@ class ASTSectionalReportService {
     `, [status, userId, holisticReportType]);
   }
 
-  private async assembleFinalReport(userId: string, reportType: 'ast_personal' | 'ast_professional'): Promise<void> {
+  private async assembleFinalReport(
+    userId: string,
+    reportType: 'ast_personal' | 'ast_professional',
+    generationTimeSeconds?: number,
+    assistantId?: string
+  ): Promise<void> {
     try {
       // Get all completed sections
       const sectionsResult = await pool.query(`
@@ -1017,11 +1282,26 @@ class ASTSectionalReportService {
         .map(row => row.section_content)
         .join('\n\n---\n\n');
 
-      // Get HTML version
-      const htmlResult = await this.getAssembledReport(userId, reportType, 'html');
+      // Query OpenAI API for assistant model details if assistantId provided
+      let assistantModel: string | undefined;
+      if (assistantId) {
+        try {
+          assistantModel = await this.getAssistantModel(assistantId);
+          console.log(`✅ Retrieved assistant model: ${assistantModel}`);
+        } catch (error) {
+          console.warn(`⚠️ Could not retrieve assistant model:`, error);
+        }
+      }
+
+      // Get HTML version with metadata
+      const htmlResult = await this.getAssembledReport(userId, reportType, 'html', {
+        generationTimeSeconds,
+        assistantId,
+        assistantModel
+      });
       const htmlContent = htmlResult.success ? htmlResult.content : '';
 
-      // Update holistic_reports with final content
+      // Update holistic_reports with final content and metadata
       const holisticReportType = this.mapToHolisticReportType(reportType);
       await pool.query(`
         UPDATE holistic_reports
@@ -1031,7 +1311,15 @@ class ASTSectionalReportService {
             updated_at = NOW()
         WHERE user_id = $3 AND report_type = $4 AND generation_mode = 'sectional'
       `, [
-        JSON.stringify({ content: finalContent, sections: sectionsResult.rows.length }),
+        JSON.stringify({
+          content: finalContent,
+          sections: sectionsResult.rows.length,
+          metadata: {
+            generationTimeSeconds,
+            assistantId,
+            assistantModel
+          }
+        }),
         htmlContent,
         userId,
         holisticReportType
@@ -1051,7 +1339,12 @@ class ASTSectionalReportService {
   private async generateRichHtmlReport(
     userId: string,
     reportType: 'ast_personal' | 'ast_professional',
-    sections: any[]
+    sections: any[],
+    generationMetadata?: {
+      generationTimeSeconds?: number;
+      assistantId?: string;
+      assistantModel?: string;
+    }
   ): Promise<string> {
     try {
       console.log(`🎨 Generating professional HTML report for user ${userId}, type: ${reportType}`);
@@ -1082,7 +1375,10 @@ class ASTSectionalReportService {
         subtitle: reportType === 'ast_personal'
           ? 'Personal Development Insights'
           : 'Professional Profile Analysis',
-        userId: userId
+        userId: userId,
+        generationTimeSeconds: generationMetadata?.generationTimeSeconds,
+        assistantId: generationMetadata?.assistantId,
+        assistantModel: generationMetadata?.assistantModel
       };
 
       // Generate professional HTML using template service
@@ -1197,6 +1493,39 @@ class ASTSectionalReportService {
     } catch (error) {
       console.error(`❌ Error cleaning up failed report for user ${userId}:`, error);
       // Don't throw - cleanup failure shouldn't block other operations
+    }
+  }
+
+  /**
+   * Query OpenAI API to get assistant model information
+   */
+  private async getAssistantModel(assistantId: string): Promise<string> {
+    try {
+      const OpenAI = (await import('openai')).default;
+
+      // Use robust API key resolution logic
+      let apiKey = process.env.OPENAI_API_KEY?.trim();
+
+      if (!apiKey || apiKey.startsWith('YOUR_') || apiKey === 'YOUR_KEY') {
+        apiKey = process.env.REPORT_OPENAI_API_KEY?.trim() ||
+                 process.env.OPENAI_KEY_TALIA_V1?.trim() ||
+                 process.env.OPENAI_KEY_TALIA_V2?.trim();
+      }
+
+      if (!apiKey || !apiKey.startsWith('sk-')) {
+        throw new Error('Invalid API key for assistant query');
+      }
+
+      const openai = new OpenAI({ apiKey });
+
+      // Query the assistant
+      const assistant = await openai.beta.assistants.retrieve(assistantId);
+
+      return assistant.model || 'unknown';
+
+    } catch (error) {
+      console.error(`❌ Error querying assistant ${assistantId}:`, error);
+      throw error;
     }
   }
 

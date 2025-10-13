@@ -21,6 +21,10 @@ export interface RMLVisualDeclaration {
   future_level?: number;
   user_id?: number;
   pattern_number?: number;
+  quote?: string;      // For reflection blockquotes
+  author?: string;     // Optional attribution for quotes
+  photo_id?: number;   // Database photo ID (for stored images)
+  image_url?: string;  // External image URL (for Unsplash, etc.)
 }
 
 export class RMLParser {
@@ -115,6 +119,18 @@ export class RMLParser {
         declaration.future_level = parseInt(futureLevelMatch[1]);
       }
 
+      // Extract quote text (for reflection blockquotes)
+      const quoteMatch = attributesString.match(/quote="([^"]+)"/);
+      if (quoteMatch) {
+        declaration.quote = quoteMatch[1];
+      }
+
+      // Extract author/attribution (optional for quotes)
+      const authorMatch = attributesString.match(/author="([^"]+)"/);
+      if (authorMatch) {
+        declaration.author = authorMatch[1];
+      }
+
       return declaration as RMLVisualDeclaration;
     } catch (error) {
       console.error('❌ Error parsing visual attributes:', error);
@@ -123,15 +139,29 @@ export class RMLParser {
   }
 
   /**
-   * Find all [[visual:id]] placeholders in content
+   * Find all [[visual:id]] or [[id]] placeholders in content
+   * Supports both formats:
+   * - [[visual:attr1]] (long form)
+   * - [[attr1]] (short form)
    */
   findVisualPlaceholders(content: string): string[] {
-    const placeholderPattern = /\[\[visual:([^\]]+)\]\]/g;
     const placeholders: string[] = [];
-    let match;
 
-    while ((match = placeholderPattern.exec(content)) !== null) {
+    // Pattern 1: [[visual:id]] format
+    const longFormPattern = /\[\[visual:([^\]]+)\]\]/g;
+    let match;
+    while ((match = longFormPattern.exec(content)) !== null) {
       placeholders.push(match[1]);
+    }
+
+    // Pattern 2: [[id]] format (short form without "visual:" prefix)
+    const shortFormPattern = /\[\[([a-zA-Z0-9_-]+)\]\]/g;
+    while ((match = shortFormPattern.exec(content)) !== null) {
+      const id = match[1];
+      // Avoid duplicates if same ID appears in both formats
+      if (!placeholders.includes(id)) {
+        placeholders.push(id);
+      }
     }
 
     return placeholders;

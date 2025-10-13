@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Download, Play } from 'lucide-react';
+import { VideoLibraryDropdown } from '@/components/content/VideoLibraryDropdown';
 
 interface WorkshopResourcesViewProps {
   navigate?: any;
@@ -41,10 +42,30 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
         </p>
       </div>
 
+      {/* Video Library Section */}
+      <div className="space-y-4">
+        <div className="bg-blue-50 border-l-4 border-blue-600 p-4 sm:p-6 rounded-r-lg">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
+            Workshop Video Library
+          </h2>
+          <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-2">
+            Review any video from your workshop journey. This library contains all the instructional 
+            videos you encountered throughout the AllStarTeams experience.
+          </p>
+          <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+            Use this to refresh your understanding of key concepts, revisit important insights, or 
+            prepare for your team workshop session.
+          </p>
+        </div>
+
+        {/* Video Library Dropdown Component */}
+        <VideoLibraryDropdown workshopType="allstarteams" />
+      </div>
+
       {/* What You'll Find Here */}
       <div className="space-y-4 sm:space-y-6">
         <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">
-          What You'll Find Here:
+          Additional Resources:
         </h2>
 
         {/* AllStarTeams Compendium */}

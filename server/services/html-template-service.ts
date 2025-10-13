@@ -19,6 +19,9 @@ export interface ReportMetadata {
   generatedAt?: Date;
   subtitle?: string;
   userId?: string;
+  generationTimeSeconds?: number;
+  assistantId?: string;
+  assistantModel?: string;
 }
 
 export class HtmlTemplateService {
@@ -43,7 +46,7 @@ export class HtmlTemplateService {
           <div class="report-container">
               ${this.generateHeader(title, metadata)}
               ${this.generateSectionsHTML(sections, isPersonal)}
-              ${this.generateFooter()}
+              ${this.generateFooter(metadata)}
           </div>
       </body>
       </html>
@@ -554,12 +557,32 @@ export class HtmlTemplateService {
     `;
   }
 
-  private generateFooter(): string {
+  private generateFooter(metadata?: ReportMetadata): string {
+    // Format generation time
+    let generationInfo = '';
+    if (metadata?.generationTimeSeconds) {
+      const minutes = Math.floor(metadata.generationTimeSeconds / 60);
+      const seconds = Math.round(metadata.generationTimeSeconds % 60);
+      if (minutes > 0) {
+        generationInfo = `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`;
+      } else {
+        generationInfo = `${seconds} second${seconds !== 1 ? 's' : ''}`;
+      }
+    }
+
     return `
       <div class="footer">
           <p><strong>AllStarTeams Report</strong></p>
           <p>Powered by Heliotrope Imaginal | Confidential Report</p>
           <p>This report contains personalized insights based on your unique strengths assessment.</p>
+          ${metadata?.generationTimeSeconds || metadata?.assistantId || metadata?.assistantModel ? `
+          <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb; font-size: 0.85rem; color: #9ca3af;">
+              <p style="margin: 3px 0; font-style: italic;">Report Generation Details</p>
+              ${generationInfo ? `<p style="margin: 3px 0;">Generation Time: ${generationInfo}</p>` : ''}
+              ${metadata?.assistantId ? `<p style="margin: 3px 0;">Assistant ID: ${metadata.assistantId}</p>` : ''}
+              ${metadata?.assistantModel ? `<p style="margin: 3px 0;">Model: ${metadata.assistantModel}</p>` : ''}
+          </div>
+          ` : ''}
       </div>
     `;
   }

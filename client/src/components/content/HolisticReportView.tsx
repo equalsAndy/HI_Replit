@@ -25,7 +25,7 @@ interface ReportStatus {
 }
 
 interface SectionalProgress {
-  overallStatus: 'pending' | 'in_progress' | 'completed' | 'failed' | 'partial_failure';
+  overallStatus: 'pending' | 'generating' | 'in_progress' | 'completed' | 'failed' | 'partial_failure';
   progressPercentage: number;
   sectionsCompleted: number;
   sectionsFailed: number;
@@ -179,8 +179,11 @@ export default function HolisticReportView({
     // Special overtime messages when we go over time
     if (countdown <= 0) {
       const overtimeMessages = [
+        "The AI is taking a cyber break... hold on a little longer...",
+        "Looks like the AI needs a coffee refill... brewing patience...",
         "I'm collecting overtime now...",
         "Walking down the hall to AI's office...",
+        "The algorithms are taking their sweet time...",
         "Banging my virtual head on my virtual desk..."
       ];
 
@@ -305,7 +308,10 @@ export default function HolisticReportView({
     }
 
     // Auto-start timer if personal report is in progress (e.g., after page refresh or navigation)
-    if (personalProgress?.overallStatus === 'in_progress' && activeTimer !== 'personal') {
+    if (
+      (personalProgress?.overallStatus === 'in_progress' || personalProgress?.overallStatus === 'generating') &&
+      activeTimer !== 'personal'
+    ) {
       console.log('🔄 Detected in-progress personal report - resuming timer');
       setActiveTimer('personal');
 
@@ -375,7 +381,7 @@ export default function HolisticReportView({
     const canGenerate = (!progress || progress.overallStatus === 'pending' || progress.overallStatus === 'failed') && reportsWorking && !isActivelyGenerating;
     const isCompleted = progress?.overallStatus === 'completed';
     const isFailed = progress?.overallStatus === 'failed';
-    const isInProgress = progress?.overallStatus === 'in_progress';
+    const isInProgress = progress?.overallStatus === 'in_progress' || progress?.overallStatus === 'generating';
     const isDisabledDueToMaintenance = !reportsWorking;
 
     // Stall detection: if in overtime for more than 3 minutes (180 seconds), consider it stalled
@@ -680,43 +686,24 @@ export default function HolisticReportView({
                       <Monitor className="h-4 w-4 mr-2" />
                       View Report
                     </Button>
+                    {/* Workshop Responses Button - Only for personal report */}
+                    {reportType === 'personal' && (
+                      <Button
+                        onClick={() => {
+                          if (!user?.id) return;
+                          window.open(`/api/workshop-responses/${user.id}`, '_blank');
+                        }}
+                        variant="outline"
+                        className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Your Workshop Answers
+                      </Button>
+                    )}
                   </div>
                 )}
 
-                {/* Check Status button - also restores timer if in progress */}
-                {(!canGenerate && !isDisabledDueToMaintenance && !isCompleted && !isActivelyGenerating) && (
-                  <Button
-                    onClick={() => {
-                      // Refresh status
-                      const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
-                      queryClient.invalidateQueries({
-                        queryKey: [`/api/ast-sectional-reports/progress/${user?.id}/${astReportType}`]
-                      });
-
-                      // If report is in progress, restore the timer
-                      if (isInProgress && !isActivelyGenerating) {
-                        setActiveTimer(reportType);
-                        if (progress?.startedAt) {
-                          const startTime = new Date(progress.startedAt).getTime();
-                          const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                          const estimatedTotal = 210;
-                          const remaining = estimatedTotal - elapsed;
-                          setCountdown(remaining); // Can be negative for overtime
-                        } else {
-                          // Estimate based on progress
-                          const estimatedTotal = 210;
-                          const remaining = Math.max(30, estimatedTotal - (progress.progressPercentage * estimatedTotal / 100));
-                          setCountdown(Math.floor(remaining));
-                        }
-                      }
-                    }}
-                    variant="outline"
-                    className="border-gray-200 hover:bg-gray-50 text-gray-700"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    {isInProgress ? 'Resume Tracking' : 'Check Status'}
-                  </Button>
-                )}
+                {/* Removed Check Status button - progress now shows automatically on page load */}
               </div>
             </div>
           )}

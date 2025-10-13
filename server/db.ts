@@ -11,7 +11,7 @@ if (!databaseUrl) {
 }
 
 // Create a Postgres client
-const queryClient = postgres(databaseUrl, {
+export const queryClient = postgres(databaseUrl, {
   max: 10, // Max connections
   connect_timeout: 30, // 30 seconds to connect
   idle_timeout: 60, // 60 seconds before closing idle connections

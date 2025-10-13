@@ -54,19 +54,27 @@ export class RMLProcessor {
       // Step 3: Create a lookup using PLAIN OBJECT (Map was corrupted)
       const visualLookup: Record<string, string> = {};
       declarations.forEach(decl => {
-        // Auto-inject photo_id for vision1, vision2, vision3, vision4, starcard tags from user data
-        if (decl.type === 'vision1' && options?.futureSelfImages && options.futureSelfImages.length >= 1) {
-          decl.photo_id = options.futureSelfImages[0].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision1: ${decl.photo_id}`);
-        } else if (decl.type === 'vision2' && options?.futureSelfImages && options.futureSelfImages.length >= 2) {
-          decl.photo_id = options.futureSelfImages[1].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision2: ${decl.photo_id}`);
-        } else if (decl.type === 'vision3' && options?.futureSelfImages && options.futureSelfImages.length >= 3) {
-          decl.photo_id = options.futureSelfImages[2].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision3: ${decl.photo_id}`);
-        } else if (decl.type === 'vision4' && options?.futureSelfImages && options.futureSelfImages.length >= 4) {
-          decl.photo_id = options.futureSelfImages[3].photoId;
-          console.log(`🎯 Auto-injected photo_id for vision4: ${decl.photo_id}`);
+        // Auto-inject photo_id for vision tags from user data
+        // Supports both type="vision" with id="vision1" OR legacy type="vision1"
+        const isVisionTag = decl.type === 'vision' || decl.type === 'vision1' || decl.type === 'vision2' || decl.type === 'vision3' || decl.type === 'vision4';
+
+        if (isVisionTag && options?.futureSelfImages) {
+          // Extract image number from ID (e.g., "vision1" -> 1) or from type (legacy)
+          const imageNumberMatch = decl.id?.match(/vision(\d+)/) || decl.type?.match(/vision(\d+)/);
+          const imageNumber = imageNumberMatch ? parseInt(imageNumberMatch[1]) : null;
+
+          if (imageNumber && imageNumber >= 1 && imageNumber <= options.futureSelfImages.length) {
+            const imageData = options.futureSelfImages[imageNumber - 1];
+
+            // Support both database photos (photoId) and external URLs (url)
+            if (imageData.photoId) {
+              decl.photo_id = imageData.photoId;
+              console.log(`🎯 Auto-injected photo_id for ${decl.id} (image ${imageNumber}): ${decl.photo_id}`);
+            } else if (imageData.url) {
+              decl.image_url = imageData.url;
+              console.log(`🎯 Auto-injected image_url for ${decl.id} (image ${imageNumber}): ${imageData.url.substring(0, 50)}...`);
+            }
+          }
         } else if (decl.type === 'starcard' && options?.userId) {
           decl.user_id = options.userId;
           console.log(`🎯 Auto-injected user_id for starcard: ${decl.user_id}`);
@@ -88,7 +96,13 @@ export class RMLProcessor {
         console.log(`✅ Rendered visual: ${decl.id} (${decl.type})`);
       });
 
-      // Step 4: Replace all [[visual:id]] placeholders with rendered HTML
+      // Step 4: Group consecutive vision image placeholders for horizontal display
+      processedContent = this.groupConsecutiveVisionImages(processedContent, visualLookup);
+
+      // Step 4.5: Group consecutive square placeholders (flow attributes, strength squares)
+      processedContent = this.groupConsecutiveSquares(processedContent, visualLookup, declarations);
+
+      // Step 5: Replace all remaining [[visual:id]] placeholders with rendered HTML
       const placeholders = rmlParser.findVisualPlaceholders(processedContent);
       
       console.log('🔍 Debug placeholder matching (FIXED - Plain Object):');
@@ -135,16 +149,30 @@ export class RMLProcessor {
         console.log(`   Final result: ${html ? 'FOUND' : 'NOT FOUND'}`);
         console.log(`   Available keys: [${Object.keys(visualLookup).join(', ')}]`);
         
+        // Escape special regex characters in the visualId
+        const escapedId = visualId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
         if (html) {
-          const placeholder = `[[visual:${visualId}]]`;
-          // Escape special regex characters in the visualId
-          const escapedId = visualId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`\\[\\[visual:${escapedId}\\]\\]`, 'g');
-          processedContent = processedContent.replace(regex, html);
-          console.log(`✅ FIXED: Replaced placeholder: [[visual:${visualId}]]`);
+          // Replace both [[visual:id]] and [[id]] formats
+          const longFormRegex = new RegExp(`\\[\\[visual:${escapedId}\\]\\]`, 'g');
+          const shortFormRegex = new RegExp(`\\[\\[${escapedId}\\]\\]`, 'g');
+
+          processedContent = processedContent.replace(longFormRegex, html);
+          processedContent = processedContent.replace(shortFormRegex, html);
+
+          console.log(`✅ Replaced placeholder: [[visual:${visualId}]] and [[${visualId}]]`);
         } else {
-          console.warn(`⚠️ STILL FAILED: No visual found for placeholder: [[visual:${visualId}]]`);
-          console.warn(`   Available visual keys: ${Object.keys(visualLookup).join(', ')}`);
+          // FALLBACK: Replace with graceful degradation text
+          console.warn(`⚠️ No visual found for placeholder: ${visualId}, using fallback`);
+
+          const fallback = this.generateFallbackForMissingVisual(visualId, declarations);
+          const longFormRegex = new RegExp(`\\[\\[visual:${escapedId}\\]\\]`, 'g');
+          const shortFormRegex = new RegExp(`\\[\\[${escapedId}\\]\\]`, 'g');
+
+          processedContent = processedContent.replace(longFormRegex, fallback);
+          processedContent = processedContent.replace(shortFormRegex, fallback);
+
+          console.log(`✅ Used fallback for: ${visualId}`);
         }
       });
 
@@ -156,6 +184,58 @@ export class RMLProcessor {
       // Return original content if processing fails
       return rawContent;
     }
+  }
+
+  /**
+   * Generate graceful fallback for missing visual
+   * Returns styled text instead of raw placeholder
+   */
+  private generateFallbackForMissingVisual(visualId: string, declarations: any[]): string {
+    // Find the declaration for this visual ID
+    const decl = declarations.find((d: any) => d.id === visualId);
+
+    if (!decl) {
+      // No declaration found - hide the placeholder completely
+      return '';
+    }
+
+    // For flow attributes, show styled text with appropriate color
+    if (decl.type === 'flow_attribute' && decl.value) {
+      const value = String(decl.value).toUpperCase();
+      const strengthType = this.getFlowAttributeColor(value);
+      // AST brand colors (matching rml-renderer.ts)
+      const colors: Record<string, string> = {
+        thinking: 'rgb(1, 162, 82)',    // Green
+        acting: 'rgb(241, 64, 64)',      // Red
+        feeling: 'rgb(22, 126, 253)',    // Blue
+        planning: 'rgb(255, 203, 47)'    // Yellow
+      };
+      const color = colors[strengthType as keyof typeof colors] || 'rgb(107, 114, 128)';
+
+      return `<strong style="color: ${color}; font-weight: 700;">${value}</strong>`;
+    }
+
+    // For other visual types, return empty string (hide placeholder)
+    return '';
+  }
+
+  /**
+   * Get strength type color for flow attribute
+   */
+  private getFlowAttributeColor(attributeName: string): string {
+    const thinkingWords = ['analytical', 'logical', 'strategic', 'curious', 'focused', 'methodical', 'precise'];
+    const actingWords = ['dynamic', 'energetic', 'proactive', 'bold', 'adventurous', 'spontaneous', 'decisive'];
+    const feelingWords = ['empathetic', 'compassionate', 'collaborative', 'supportive', 'warm', 'intuitive', 'positive', 'expressive'];
+    const planningWords = ['organized', 'structured', 'systematic', 'thorough', 'diligent', 'reliable', 'sensible'];
+
+    const lowerName = attributeName.toLowerCase();
+
+    if (thinkingWords.some(w => lowerName.includes(w))) return 'thinking';
+    if (actingWords.some(w => lowerName.includes(w))) return 'acting';
+    if (feelingWords.some(w => lowerName.includes(w))) return 'feeling';
+    if (planningWords.some(w => lowerName.includes(w))) return 'planning';
+
+    return 'thinking'; // Default
   }
 
   /**
@@ -175,6 +255,127 @@ export class RMLProcessor {
     // Remove first heading if it appears at the start (after optional whitespace)
     // Matches: # Title, ## Title, or ### Title
     return content.replace(/^\s*#{1,3}\s+[^\n]+\n/, '');
+  }
+
+  /**
+   * Group consecutive vision image placeholders into horizontal rows
+   * Detects sequences like [[visual:vision1]]\n[[visual:vision2]] and wraps them in a centered container
+   */
+  private groupConsecutiveVisionImages(content: string, visualLookup: Record<string, string>): string {
+    // Pattern: consecutive vision image placeholders separated by whitespace/newlines
+    // Matches: [[visual:vision1]]\n[[visual:vision2]]\n[[visual:vision3]]
+    const consecutivePattern = /(\[\[visual:vision\d+\]\](?:\s*\n\s*\[\[visual:vision\d+\]\])+)/g;
+
+    return content.replace(consecutivePattern, (match) => {
+      console.log('🖼️ Found consecutive vision images:', match);
+
+      // Extract all vision IDs from this group
+      const visionIds: string[] = [];
+      const placeholderPattern = /\[\[visual:(vision\d+)\]\]/g;
+      let placeholderMatch;
+
+      while ((placeholderMatch = placeholderPattern.exec(match)) !== null) {
+        visionIds.push(placeholderMatch[1]);
+      }
+
+      console.log(`🖼️ Grouping ${visionIds.length} vision images:`, visionIds);
+
+      // Render each image
+      const images = visionIds
+        .map(id => {
+          const html = visualLookup[id] || visualLookup[id.trim()] || visualLookup[id.toLowerCase()];
+          return html || `<div class="rml-error">Missing visual: ${id}</div>`;
+        })
+        .join('\n');
+
+      // Wrap in centered horizontal container
+      return `
+<div class="rml-vision-group">
+  ${images}
+</div>`;
+    });
+  }
+
+  /**
+   * Group consecutive square placeholders (flow attributes, strength squares) into horizontal rows
+   * Detects sequences like [[attr1]]\n[[attr2]] or [[chart1]][[shapes1]] and wraps them in centered container
+   */
+  private groupConsecutiveSquares(content: string, visualLookup: Record<string, string>, declarations: any[]): string {
+    // Pattern: consecutive square-type placeholders separated by minimal whitespace
+    // Supports both [[visual:id]] and [[id]] formats
+    // Matches flow attributes (attr1, attr2) and strength visuals (chart1, shapes1, imagination1)
+    const consecutivePattern = /(\[\[(?:visual:)?([a-zA-Z0-9_-]+)\]\](?:\s*\n?\s*\[\[(?:visual:)?([a-zA-Z0-9_-]+)\]\])+)/g;
+
+    return content.replace(consecutivePattern, (match) => {
+      console.log('🔲 Found consecutive placeholders:', match);
+
+      // Extract all IDs from this group (both [[visual:id]] and [[id]] formats)
+      const ids: string[] = [];
+      const longFormPattern = /\[\[visual:([a-zA-Z0-9_-]+)\]\]/g;
+      const shortFormPattern = /\[\[([a-zA-Z0-9_-]+)\]\]/g;
+
+      let placeholderMatch;
+
+      // Extract from long form [[visual:id]]
+      while ((placeholderMatch = longFormPattern.exec(match)) !== null) {
+        if (!ids.includes(placeholderMatch[1])) {
+          ids.push(placeholderMatch[1]);
+        }
+      }
+
+      // Extract from short form [[id]] (avoid duplicates)
+      let tempMatch = match;
+      while ((placeholderMatch = shortFormPattern.exec(tempMatch)) !== null) {
+        const id = placeholderMatch[1];
+        // Only add if not already in list and not a "visual:" prefix
+        if (!ids.includes(id) && id !== 'visual') {
+          ids.push(id);
+        }
+      }
+
+      console.log(`🔲 Extracted IDs:`, ids);
+
+      // Filter to only square-type visuals (flow_attribute, strength-related)
+      const squareIds = ids.filter(id => {
+        const decl = declarations.find((d: any) => d.id === id);
+        if (!decl) return false;
+
+        const squareTypes = ['flow_attribute', 'strength_squares', 'user_strength_chart', 'imagination_circle', 'shapes_intro_content'];
+        return squareTypes.includes(decl.type);
+      });
+
+      // If no valid square types found, return original match unchanged
+      if (squareIds.length === 0) {
+        console.log('⚠️ No square-type visuals found in group, skipping grouping');
+        return match;
+      }
+
+      console.log(`🔲 Grouping ${squareIds.length} square visuals:`, squareIds);
+
+      // Render each square
+      const squares = squareIds
+        .map(id => {
+          let html = visualLookup[id] || visualLookup[id.trim()] || visualLookup[id.toLowerCase()];
+
+          // If not found, try fallback
+          if (!html) {
+            const decl = declarations.find((d: any) => d.id === id);
+            if (decl) {
+              html = this.generateFallbackForMissingVisual(id, declarations);
+            }
+          }
+
+          return html || '';
+        })
+        .filter(html => html.length > 0) // Remove empty strings
+        .join('\n');
+
+      // Wrap in centered horizontal container with proper spacing
+      return `
+<div class="rml-squares-row">
+  ${squares}
+</div>`;
+    });
   }
 
   /**
