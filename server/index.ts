@@ -58,6 +58,7 @@ import astReportRoutes from './routes/ast-reports-routes.ts';
 import astSectionalReportRoutes from './routes/ast-sectional-reports-routes.ts';
 import { resetRouter } from './routes/reset-routes.ts';
 import starCardRoutes from './routes/starcard-routes.ts';
+import workshopResponsesRoutes from './routes/workshop-responses-routes.ts';
 import { initializeDatabase } from './db.ts';
 import { db } from './db.ts';
 import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
@@ -502,6 +503,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/ast-sectional-reports', astSectionalReportRoutes);
       app.use('/api/reset', resetRouter);
       app.use('/api/starcard', starCardRoutes);
+      app.use('/api/workshop-responses', workshopResponsesRoutes);
 
       // PhotoService alias endpoint for StarCard images
       app.get('/api/photoservice/starcard/:userId', (req, res) => {

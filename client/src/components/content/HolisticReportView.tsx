@@ -683,6 +683,20 @@ export default function HolisticReportView({
                       <Monitor className="h-4 w-4 mr-2" />
                       View Report
                     </Button>
+                    {/* Workshop Responses Button - Only for personal report */}
+                    {reportType === 'personal' && (
+                      <Button
+                        onClick={() => {
+                          if (!user?.id) return;
+                          window.open(`/api/workshop-responses/${user.id}`, '_blank');
+                        }}
+                        variant="outline"
+                        className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Your Workshop Answers
+                      </Button>
+                    )}
                   </div>
                 )}
 

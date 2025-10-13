@@ -378,14 +378,24 @@ class ASTSectionalReportService {
         reportType
       );
 
-      // Save raw content AND AI request payload
+      // Process RML immediately after generation
+      const processedContent = rmlProcessor.processContent(rawContent, {
+        sectionId: sectionId,
+        userId: userId,
+        attributes: payload.flow?.attributes,
+        futureSelfImages: payload.future_self?.images
+      });
+
+      console.log(`🎨 RML processed for section ${sectionId}: ${rawContent.includes('<RML>') ? 'RML block found' : 'no RML block'}`);
+
+      // Save both raw content (with RML tags) AND processed content (rendered HTML)
       await this.saveSectionContent(
         userId,
         reportType,
         sectionId,
         sectionDef.title,
         rawContent,
-        undefined, // processedContent (not used currently)
+        processedContent, // Now we store the processed content
         aiRequestPayload // Store the complete AI request payload including structured data
       );
 

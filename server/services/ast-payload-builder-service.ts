@@ -479,12 +479,13 @@ class ASTPayloadBuilderService {
     const data = JSON.parse(result.rows[0].results);
 
     return {
-      images: data.imageData?.selectedImages || [],
+      // Support both imageData.selectedImages (new) and direct images array (legacy)
+      images: data.imageData?.selectedImages || data.images || [],
       reflections: {
         'image-meaning': {
           field_id: 'image-meaning',
           question: 'What does your selected image mean to you?',
-          answer: data.imageData?.imageMeaning || ''
+          answer: data.imageData?.imageMeaning || data.imageMeaning || ''
         },
         'future-self-1': {
           field_id: 'future-self-1',
