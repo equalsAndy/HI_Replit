@@ -5,13 +5,14 @@ export function getClientAuthConfig() {
   const port = window.location.port;
   
   let environment: 'development' | 'staging' | 'production' = 'development';
-  
+
   if (hostname === 'app2.heliotropeimaginal.com') {
     environment = 'production';
-  } else if (hostname === '34.220.143.127') {
-    environment = 'staging';
   } else if (hostname === 'localhost' && port === '8080') {
     environment = 'development';
+  } else if (hostname === 'app.heliotropeimaginal.com') {
+    console.warn('⚠️ Using deprecated production URL (app.heliotropeimaginal.com). Please use app2.heliotropeimaginal.com');
+    environment = 'production'; // Still support it but warn
   } else {
     console.warn('Unknown environment, defaulting to development');
   }
