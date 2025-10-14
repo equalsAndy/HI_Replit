@@ -396,6 +396,33 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                     <X className="h-4 w-4 text-gray-600" />
                   </button>
                 )}
+                {image.photographer && (
+                  <p className="mt-2 text-xs text-gray-500 italic text-center">
+                    {image.photographerUrl ? (
+                      <a
+                        href={image.photographerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-gray-700 hover:underline"
+                      >
+                        Photo by {image.photographer}
+                      </a>
+                    ) : (
+                      `Photo by ${image.photographer}`
+                    )}
+                    {image.sourceUrl && ' on '}
+                    {image.sourceUrl && (
+                      <a
+                        href={image.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-gray-700 hover:underline"
+                      >
+                        Unsplash
+                      </a>
+                    )}
+                  </p>
+                )}
               </div>
             ))}
           </div>

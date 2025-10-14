@@ -93,32 +93,6 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
             </a>
           </div>
         </div>
-
-        {/* Workshop Insights Video */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 space-y-4">
-          <h3 className="text-lg sm:text-xl font-medium text-gray-900">
-            Workshop Insights Video
-          </h3>
-          <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-            This short video gives you a behind-the-scenes look at the workshop's purpose, structure, and 
-            neuroscience. It explains how your personal growth connects to team and organizational 
-            transformation — and why imagination is a key capability for thriving in the age of AI.
-          </p>
-          
-          {/* Video Embed - Larger and More Responsive */}
-          <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 max-w-4xl mx-auto">
-            <iframe
-              width="100%"
-              height="100%"
-              src="https://www.youtube.com/embed/kKarUFyDsf8?rel=0"
-              title="Workshop Insights Video"
-              frameBorder="0"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="w-full h-full min-h-[300px] md:min-h-[400px] lg:min-h-[500px]"
-            />
-          </div>
-        </div>
       </div>
 
 
