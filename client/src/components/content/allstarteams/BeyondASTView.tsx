@@ -26,6 +26,7 @@ interface InterestData {
   interest_positive_psychology: boolean;
   interest_neuroscience: boolean;
   interest_imagination: boolean;
+  interest_happiness_wellbeing: boolean;
   other_interests_feedback: string;
   preferred_email: string;
   use_existing_email: boolean;
@@ -51,6 +52,7 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
     interest_positive_psychology: false,
     interest_neuroscience: false,
     interest_imagination: false,
+    interest_happiness_wellbeing: false,
     other_interests_feedback: '',
     preferred_email: '',
     use_existing_email: true
@@ -169,51 +171,24 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
           Beyond AllStarTeams
         </h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          We are working on some activities beyond the workshop where you can create an About Me page
-          for teammates to understand how to work and collaborate with you.
+          This is our laboratory — a space where we're exploring new ideas and features to help you grow.
+        </p>
+        <p className="text-base text-gray-500 max-w-2xl mx-auto">
+          <strong>Access coming soon.</strong> In the meantime, what interests you?
         </p>
       </div>
 
-      {/* What We're Building */}
-      <Card>
-        <CardHeader>
-          <CardTitle>What We're Building</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-gray-700">
-            We would also like to augment your report with other assessments you may have done or are
-            interested in, such as:
-          </p>
-
-          <ul className="space-y-2 text-gray-700 ml-4">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">•</span>
-              <span><strong>Myers-Briggs (MBTI)</strong> — 16 personality types</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">•</span>
-              <span><strong>Enneagram</strong> — 9 types focused on core motivations</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">•</span>
-              <span><strong>CliftonStrengths</strong> — Your top natural talents</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">•</span>
-              <span><strong>DISC Assessment</strong> — Behavioral communication styles</span>
-            </li>
-          </ul>
-
-          <p className="text-gray-700 mt-4">
-            And maybe even build an AI assistant that can take this information about you and help you
-            in your day-to-day life at work and beyond.
-          </p>
-
-          <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg mt-4">
-            <p className="text-blue-900 text-sm">
-              <strong>Privacy First:</strong> You control what's shared with your org, your team, or kept
-              completely private. Your data, your choices.
-            </p>
+      {/* Privacy First */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-600 text-2xl">🔒</div>
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-1">Privacy First</h3>
+              <p className="text-blue-800 text-sm">
+                You control what's shared with your org, your team, or kept completely private. Your data, your choices.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -325,7 +300,7 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
               />
               <div className="flex-1">
                 <Label htmlFor="ai-coach" className="text-base cursor-pointer block">
-                  Personal Data protected AI coach where you own the data and only share what you wish to
+                  A trustable (you own the data) personalized AI that can help you at work or outside of work
                 </Label>
               </div>
             </div>
@@ -366,6 +341,17 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
                 />
                 <Label htmlFor="imagination" className="text-base cursor-pointer">
                   Imagination
+                </Label>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="happiness-wellbeing"
+                  checked={interests.interest_happiness_wellbeing}
+                  onCheckedChange={() => handleCheckboxChange('interest_happiness_wellbeing')}
+                />
+                <Label htmlFor="happiness-wellbeing" className="text-base cursor-pointer">
+                  Happiness and Wellbeing
                 </Label>
               </div>
             </div>

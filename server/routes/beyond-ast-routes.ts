@@ -94,6 +94,7 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
       interest_positive_psychology,
       interest_neuroscience,
       interest_imagination,
+      interest_happiness_wellbeing,
       other_interests_feedback,
       preferred_email
     } = req.body;
@@ -113,9 +114,10 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
         interest_positive_psychology,
         interest_neuroscience,
         interest_imagination,
+        interest_happiness_wellbeing,
         other_interests_feedback,
         preferred_email
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       ON CONFLICT (user_id)
       DO UPDATE SET
         interest_about_me_page = EXCLUDED.interest_about_me_page,
@@ -129,6 +131,7 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
         interest_positive_psychology = EXCLUDED.interest_positive_psychology,
         interest_neuroscience = EXCLUDED.interest_neuroscience,
         interest_imagination = EXCLUDED.interest_imagination,
+        interest_happiness_wellbeing = EXCLUDED.interest_happiness_wellbeing,
         other_interests_feedback = EXCLUDED.other_interests_feedback,
         preferred_email = EXCLUDED.preferred_email,
         updated_at = NOW()
@@ -146,6 +149,7 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
       interest_positive_psychology || false,
       interest_neuroscience || false,
       interest_imagination || false,
+      interest_happiness_wellbeing || false,
       other_interests_feedback || null,
       preferred_email || null
     ]);
