@@ -308,7 +308,7 @@ export const allStarTeamsNavigationSections = [
     expanded: false, // Unlocked after Module 3 completion
     steps: [
       { id: '5-1', title: 'More about AllStarTeams', type: 'resources', contentKey: 'workshop-resources' }, // Content: OLD 6-1
-      { id: '5-2', title: 'Interesting Extra Stuff', type: 'resources', contentKey: 'extra-stuff' }, // Content: PersonalProfileContainer
+      { id: '5-2', title: 'Beyond AST', type: 'resources', contentKey: 'extra-stuff' }, // Content: PersonalProfileContainer (admins) / BeyondASTView (non-admins)
       { id: '5-3', title: 'Introducing Imaginal Agility', type: 'resources', contentKey: 'more-imaginal-agility' } // Content: IntroIAView
     ]
   }

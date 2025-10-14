@@ -2,9 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ContentViewProps } from '../../../shared/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
 
 /**
@@ -41,6 +45,17 @@ const IntroIAView: React.FC<ContentViewProps> = ({
   });
 
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const { data: user } = useCurrentUser();
+
+  // Email form state
+  const [email, setEmail] = useState('');
+  const [emailType, setEmailType] = useState<'organization' | 'personal'>('organization');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [availableEmails, setAvailableEmails] = useState<Array<{ email: string; label: string; isPrimary: boolean }>>([]);
+  const [useExistingEmail, setUseExistingEmail] = useState(true);
+  const [selectedEmailIndex, setSelectedEmailIndex] = useState<number>(0);
 
   // Get navigation progress using the unified hook
   const navigation = useUnifiedWorkshopNavigation('ast');
@@ -48,6 +63,31 @@ const IntroIAView: React.FC<ContentViewProps> = ({
     updateVideoProgress,
     markStepCompleted: navMarkStepCompleted
   } = navigation;
+
+  // Load available emails
+  useEffect(() => {
+    const loadEmails = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await fetch(`/api/beyond-ast/emails/${user.id}`, {
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.emails && data.emails.length > 0) {
+            setAvailableEmails(data.emails);
+            setEmail(data.emails[0].email); // Set first email as default
+          }
+        }
+      } catch (error) {
+        console.error('Error loading emails:', error);
+      }
+    };
+
+    loadEmails();
+  }, [user?.id]);
 
   // Simplified mode: Next button always active for video steps
   useEffect(() => {
@@ -81,6 +121,41 @@ const IntroIAView: React.FC<ContentViewProps> = ({
     if (roundedProgress >= 90 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
       console.log(`✅ IntroIAView: 90% minimum reached`);
+    }
+  };
+
+  // Handle email submission
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const response = await fetch('/api/ia-interest/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email,
+          emailType
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitSuccess(true);
+        console.log('✅ IA interest email submitted successfully');
+      } else {
+        throw new Error(data.error || 'Failed to submit email');
+      }
+    } catch (error: any) {
+      console.error('❌ Error submitting IA interest email:', error);
+      setSubmitError(error.message || 'Failed to submit email. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -197,25 +272,127 @@ const IntroIAView: React.FC<ContentViewProps> = ({
         </CardContent>
       </Card>
 
-      <div className="bg-amber-50 p-6 rounded-lg border border-amber-200">
-        <h3 className="font-semibold text-amber-900 mb-2">Ready to Explore?</h3>
-        <p className="text-amber-800 mb-4">
-          This introduction provides context for the Imaginal Agility workshop. When you're ready to dive deeper
-          into hands-on exercises and practical applications, you can explore the full workshop experience.
-        </p>
-      </div>
+      {/* Email Interest Form */}
+      <Card className="border-2 border-purple-200 bg-purple-50">
+        <CardHeader>
+          <CardTitle className="text-purple-900">Interested in Imaginal Agility?</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {submitSuccess ? (
+            <div className="text-center p-6">
+              <div className="text-green-600 text-lg font-semibold mb-2">
+                ✓ Thank you for your interest!
+              </div>
+              <p className="text-gray-700 mb-6">
+                We've received your email and will be in touch with more information about the Imaginal Agility workshop.
+              </p>
+              <Button
+                onClick={handleNext}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+              >
+                Complete Step
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleEmailSubmit} className="space-y-6">
+              <p className="text-gray-700">
+                Share your email address to learn more about the full Imaginal Agility workshop experience.
+              </p>
 
-      {/* Complete Step Button - Same pattern as AST 1-1 */}
-      <div className="flex justify-center mt-8">
-        <Button
-          onClick={handleNext}
-          size="lg"
-          disabled={!hasReachedMinimum}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
-        >
-          Complete Step
-        </Button>
-      </div>
+              {availableEmails.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-gray-700">Select Email</Label>
+                  <RadioGroup
+                    value={useExistingEmail ? `existing-${selectedEmailIndex}` : 'new'}
+                    onValueChange={(value) => {
+                      if (value.startsWith('existing-')) {
+                        const index = parseInt(value.replace('existing-', ''));
+                        setSelectedEmailIndex(index);
+                        setEmail(availableEmails[index].email);
+                        setUseExistingEmail(true);
+                      } else {
+                        setUseExistingEmail(false);
+                        setEmail('');
+                      }
+                    }}
+                    disabled={isSubmitting}
+                    className="flex flex-col space-y-2"
+                  >
+                    {availableEmails.map((emailOption, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <RadioGroupItem value={`existing-${index}`} id={`email-${index}`} />
+                        <Label htmlFor={`email-${index}`} className="text-sm text-gray-700 cursor-pointer font-normal">
+                          {emailOption.email} {emailOption.isPrimary && <span className="text-xs text-gray-500">(Primary)</span>}
+                        </Label>
+                      </div>
+                    ))}
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="new" id="email-new" />
+                      <Label htmlFor="email-new" className="text-sm text-gray-700 cursor-pointer font-normal">
+                        Use a different email
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+
+              {(!useExistingEmail || availableEmails.length === 0) && (
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-700">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your.email@example.com"
+                    required
+                    className="w-full"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <Label className="text-gray-700">Email Type</Label>
+                <RadioGroup
+                  value={emailType}
+                  onValueChange={(value) => setEmailType(value as 'organization' | 'personal')}
+                  disabled={isSubmitting}
+                  className="flex flex-col space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="organization" id="org-email" />
+                    <Label htmlFor="org-email" className="text-sm text-gray-700 cursor-pointer font-normal">
+                      Work/Organization email
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="personal" id="personal-email" />
+                    <Label htmlFor="personal-email" className="text-sm text-gray-700 cursor-pointer font-normal">
+                      Personal email
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {submitError && (
+                <div className="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200">
+                  {submitError}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isSubmitting || !email}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 w-full"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Interest'}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

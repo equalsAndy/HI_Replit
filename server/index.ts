@@ -56,6 +56,8 @@ import iaContinuityRoutes from './routes/ia.ts';
 import auth0Routes from './routes/auth0-routes.ts';
 import astReportRoutes from './routes/ast-reports-routes.ts';
 import astSectionalReportRoutes from './routes/ast-sectional-reports-routes.ts';
+import iaInterestRoutes from './routes/ia-interest-routes.ts';
+import beyondASTRoutes from './routes/beyond-ast-routes.ts';
 import { resetRouter } from './routes/reset-routes.ts';
 import starCardRoutes from './routes/starcard-routes.ts';
 import workshopResponsesRoutes from './routes/workshop-responses-routes.ts';
@@ -499,6 +501,9 @@ app.use('/api/admin/ai', assistantTestRoutes);
       // AST Report Routes
       app.use('/api/ast-reports', astReportRoutes);
       app.use('/api/ast-sectional-reports', astSectionalReportRoutes);
+      // IA Interest Routes
+      app.use('/api/ia-interest', iaInterestRoutes);
+      app.use('/api/beyond-ast', beyondASTRoutes);
       app.use('/api/reset', resetRouter);
       app.use('/api/starcard', starCardRoutes);
       app.use('/api/workshop-responses', workshopResponsesRoutes);

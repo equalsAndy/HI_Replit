@@ -39,6 +39,7 @@ import SelfAwarenessOpportunityView from '../SelfAwarenessOpportunityView';
 import AboutCourseView from '../AboutCourseView';
 import ComprehensiveAssessmentsView from '../ComprehensiveAssessmentsView';
 import PersonalProfileContainer from './PersonalProfileContainer';
+import BeyondASTView from './BeyondASTView';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -435,13 +436,24 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     case 'extra-stuff':
     case 'more-fun-stuff':
     case 'personal-profile':
-      return (
-        <PersonalProfileContainer
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-        />
-      );
+      // Show PersonalProfileContainer for admins, BeyondASTView for non-admins
+      if (user?.role === 'admin') {
+        return (
+          <PersonalProfileContainer
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      } else {
+        return (
+          <BeyondASTView
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      }
 
     case 'more-imaginal-agility':
       return (
