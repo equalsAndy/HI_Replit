@@ -246,7 +246,7 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
                   onCheckedChange={() => handleCheckboxChange('interest_other_assessments')}
                 />
                 <Label htmlFor="other-assessments" className="text-base cursor-pointer">
-                  Add other assessments
+                  Add other assessments for more insights
                 </Label>
               </div>
 
