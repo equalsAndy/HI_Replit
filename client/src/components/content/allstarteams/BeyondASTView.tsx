@@ -23,6 +23,10 @@ interface InterestData {
   interest_disc: boolean;
   interest_other_assessment_names: string;
   interest_ai_coach: boolean;
+  interest_positive_psychology: boolean;
+  interest_neuroscience: boolean;
+  interest_imagination: boolean;
+  other_interests_feedback: string;
   preferred_email: string;
   use_existing_email: boolean;
 }
@@ -44,6 +48,10 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
     interest_disc: false,
     interest_other_assessment_names: '',
     interest_ai_coach: false,
+    interest_positive_psychology: false,
+    interest_neuroscience: false,
+    interest_imagination: false,
+    other_interests_feedback: '',
     preferred_email: '',
     use_existing_email: true
   });
@@ -320,6 +328,66 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
                   Personal Data protected AI coach where you own the data and only share what you wish to
                 </Label>
               </div>
+            </div>
+          </div>
+
+          {/* Content Topics of Interest */}
+          <div className="border-t pt-6 space-y-4">
+            <h3 className="font-semibold text-gray-900">Content Topics You'd Like to See More Of</h3>
+
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="positive-psychology"
+                  checked={interests.interest_positive_psychology}
+                  onCheckedChange={() => handleCheckboxChange('interest_positive_psychology')}
+                />
+                <Label htmlFor="positive-psychology" className="text-base cursor-pointer">
+                  Positive Psychology
+                </Label>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="neuroscience"
+                  checked={interests.interest_neuroscience}
+                  onCheckedChange={() => handleCheckboxChange('interest_neuroscience')}
+                />
+                <Label htmlFor="neuroscience" className="text-base cursor-pointer">
+                  Neuroscience
+                </Label>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="imagination"
+                  checked={interests.interest_imagination}
+                  onCheckedChange={() => handleCheckboxChange('interest_imagination')}
+                />
+                <Label htmlFor="imagination" className="text-base cursor-pointer">
+                  Imagination
+                </Label>
+              </div>
+            </div>
+          </div>
+
+          {/* Other Interests/Feedback */}
+          <div className="border-t pt-6 space-y-4">
+            <h3 className="font-semibold text-gray-900">Anything Else You'd Like to See?</h3>
+            <div className="space-y-2">
+              <Label htmlFor="other-feedback" className="text-sm text-gray-700">
+                Share any other topics, features, or ideas you'd like us to explore:
+              </Label>
+              <textarea
+                id="other-feedback"
+                className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Tell us what you'd like to see..."
+                value={interests.other_interests_feedback}
+                onChange={(e) => setInterests(prev => ({
+                  ...prev,
+                  other_interests_feedback: e.target.value
+                }))}
+              />
             </div>
           </div>
 

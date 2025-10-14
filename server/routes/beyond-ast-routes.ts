@@ -91,6 +91,10 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
       interest_disc,
       interest_other_assessment_names,
       interest_ai_coach,
+      interest_positive_psychology,
+      interest_neuroscience,
+      interest_imagination,
+      other_interests_feedback,
       preferred_email
     } = req.body;
 
@@ -106,8 +110,12 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
         interest_disc,
         interest_other_assessment_names,
         interest_ai_coach,
+        interest_positive_psychology,
+        interest_neuroscience,
+        interest_imagination,
+        other_interests_feedback,
         preferred_email
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       ON CONFLICT (user_id)
       DO UPDATE SET
         interest_about_me_page = EXCLUDED.interest_about_me_page,
@@ -118,6 +126,10 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
         interest_disc = EXCLUDED.interest_disc,
         interest_other_assessment_names = EXCLUDED.interest_other_assessment_names,
         interest_ai_coach = EXCLUDED.interest_ai_coach,
+        interest_positive_psychology = EXCLUDED.interest_positive_psychology,
+        interest_neuroscience = EXCLUDED.interest_neuroscience,
+        interest_imagination = EXCLUDED.interest_imagination,
+        other_interests_feedback = EXCLUDED.other_interests_feedback,
         preferred_email = EXCLUDED.preferred_email,
         updated_at = NOW()
       RETURNING *
@@ -131,6 +143,10 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
       interest_disc || false,
       interest_other_assessment_names || null,
       interest_ai_coach || false,
+      interest_positive_psychology || false,
+      interest_neuroscience || false,
+      interest_imagination || false,
+      other_interests_feedback || null,
       preferred_email || null
     ]);
 
