@@ -225,3 +225,4 @@ server/services/*-processor-fixed*.ts
 
 # Search and cleanup prompts
 find_and_remove_*.md
+landing-page-package/
