@@ -5,6 +5,7 @@ import { useLocation } from 'wouter';
 export function useWelcomeVideo() {
   const { data: user, isLoggedIn } = useCurrentUser();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [isFirstTimeShow, setIsFirstTimeShow] = useState(true);
   const [, setLocation] = useLocation();
   const isInitialMount = useRef(true);
 
@@ -108,6 +109,7 @@ export function useWelcomeVideo() {
 
         if (shouldShowWelcome) {
           console.log('🎉 SHOWING welcome video modal for user:', user.username);
+          setIsFirstTimeShow(true); // This is the first time showing, so autoplay
           setShowWelcomeModal(true);
           // Mark as shown this session to prevent showing on refresh
           sessionStorage.setItem(sessionKey, 'true');
@@ -176,6 +178,8 @@ export function useWelcomeVideo() {
       const sessionKey = `welcome_video_shown_${user.id}`;
       sessionStorage.removeItem(sessionKey);
 
+      // This is a manual replay, so don't autoplay
+      setIsFirstTimeShow(false);
       // Show the modal directly (bypass fresh login check for manual triggers)
       setShowWelcomeModal(true);
     }
@@ -188,5 +192,6 @@ export function useWelcomeVideo() {
     handleMarkVideoSeen,
     triggerWelcomeVideo,
     isLoggedIn: !!user?.id,
+    isFirstTimeShow,
   };
 }

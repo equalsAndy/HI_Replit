@@ -302,18 +302,54 @@ class ASTSectionalReportService {
       const sortedSections = this.sortSectionsByDependencies(sectionsToGenerate);
 
       // Generate sections sequentially to respect dependencies and rate limits
+      // Each section gets up to 2 attempts before being marked as failed
+      const MAX_SECTION_ATTEMPTS = 2;
+
       for (const sectionId of sortedSections) {
-        try {
-          await this.generateSingleSection(userId, reportType, sectionId, userData);
+        let attemptCount = 0;
+        let sectionSuccess = false;
 
-          // Small delay between sections to respect rate limits
+        while (attemptCount < MAX_SECTION_ATTEMPTS && !sectionSuccess) {
+          attemptCount++;
+
+          try {
+            console.log(`🔄 Generating section ${sectionId} for user ${userId} (attempt ${attemptCount}/${MAX_SECTION_ATTEMPTS})`);
+            const result = await this.generateSingleSection(userId, reportType, sectionId, userData);
+
+            if (result.success) {
+              sectionSuccess = true;
+              console.log(`✅ Section ${sectionId} generated successfully on attempt ${attemptCount}`);
+            } else {
+              console.warn(`⚠️ Section ${sectionId} failed on attempt ${attemptCount}: ${result.error}`);
+
+              // If we have attempts remaining, wait before retrying
+              if (attemptCount < MAX_SECTION_ATTEMPTS) {
+                console.log(`🔄 Retrying section ${sectionId} after 3 second delay...`);
+                await new Promise(resolve => setTimeout(resolve, 3000));
+              } else {
+                // Max attempts reached - mark as failed
+                console.error(`❌ Section ${sectionId} failed after ${MAX_SECTION_ATTEMPTS} attempts`);
+                await this.markSectionFailed(userId, reportType, sectionId, result.error || 'Failed after multiple attempts');
+              }
+            }
+
+          } catch (error) {
+            console.error(`❌ Error generating section ${sectionId} for user ${userId} (attempt ${attemptCount}):`, error);
+
+            // If we have attempts remaining, wait before retrying
+            if (attemptCount < MAX_SECTION_ATTEMPTS) {
+              console.log(`🔄 Retrying section ${sectionId} after 3 second delay...`);
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            } else {
+              // Max attempts reached - mark as failed
+              await this.markSectionFailed(userId, reportType, sectionId, error.message);
+            }
+          }
+        }
+
+        // Small delay between sections to respect rate limits (only after successful generation)
+        if (sectionSuccess) {
           await new Promise(resolve => setTimeout(resolve, 2000));
-
-        } catch (error) {
-          console.error(`❌ Error generating section ${sectionId} for user ${userId}:`, error);
-
-          // Mark section as failed but continue with others
-          await this.markSectionFailed(userId, reportType, sectionId, error.message);
         }
       }
 

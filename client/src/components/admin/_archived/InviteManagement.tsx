@@ -111,6 +111,8 @@ export const InviteManagement: React.FC = () => {
     email: '',
     role: 'participant',
     name: '',
+    jobTitle: '',
+    organization: '',
     cohortId: '',
     organizationId: '',
     isBetaTester: false,
@@ -295,6 +297,8 @@ export const InviteManagement: React.FC = () => {
           email: '',
           role: 'participant',
           name: '',
+          jobTitle: '',
+          organization: '',
           cohortId: '',
           organizationId: '',
           isBetaTester: false,
@@ -448,7 +452,7 @@ export const InviteManagement: React.FC = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreateInvite} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input
@@ -471,33 +475,57 @@ export const InviteManagement: React.FC = () => {
                     disabled={isSendingInvite}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={newInvite.role}
-                    onValueChange={(value) => setNewInvite({ ...newInvite, role: value })}
+                  <Label htmlFor="jobTitle">Job Title (Optional)</Label>
+                  <Input
+                    id="jobTitle"
+                    placeholder="Senior Manager"
+                    value={newInvite.jobTitle}
+                    onChange={(e) => setNewInvite({ ...newInvite, jobTitle: e.target.value })}
                     disabled={isSendingInvite}
-                  >
-                    <SelectTrigger id="role">
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {userRole === 'admin' && (
-                        <>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="facilitator">Facilitator</SelectItem>
-                        </>
-                      )}
-                      <SelectItem value="participant">Participant</SelectItem>
-                      <SelectItem value="student">Student</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {userRole === 'facilitator' && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Facilitators can only create participant and student invites
-                    </p>
-                  )}
+                  />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="organization">Organization (Optional)</Label>
+                  <Input
+                    id="organization"
+                    placeholder="Acme Corporation"
+                    value={newInvite.organization}
+                    onChange={(e) => setNewInvite({ ...newInvite, organization: e.target.value })}
+                    disabled={isSendingInvite}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={newInvite.role}
+                  onValueChange={(value) => setNewInvite({ ...newInvite, role: value })}
+                  disabled={isSendingInvite}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {userRole === 'admin' && (
+                      <>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="facilitator">Facilitator</SelectItem>
+                      </>
+                    )}
+                    <SelectItem value="participant">Participant</SelectItem>
+                    <SelectItem value="student">Student</SelectItem>
+                  </SelectContent>
+                </Select>
+                {userRole === 'facilitator' && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Facilitators can only create participant and student invites
+                  </p>
+                )}
               </div>
               
               {/* Beta Tester Checkbox - show for admins */}

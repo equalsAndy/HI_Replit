@@ -9,9 +9,9 @@ import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCi
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import tuningForkImage from '@assets/turningfork_1749438223210.png';
 import StarCard from '@/components/starcard/StarCard';
 import WellBeingLadderSvg from '@/components/visualization/WellBeingLadderSvg';
+import { getAttributeColor } from '@/components/starcard/starCardConstants';
 
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
@@ -405,7 +405,7 @@ export default function GrowthPlanView({
                     }
                     return {
                       text: attr.name,
-                      color: "rgb(59, 130, 246)"
+                      color: getAttributeColor(attr.name) // Use proper color mapping based on attribute name
                     };
                   }) : []
                 }
@@ -722,7 +722,7 @@ export default function GrowthPlanView({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <img src={tuningForkImage} alt="Growth Plan" className="w-8 h-8" />
+            <img src="/assets/turningfork_1749438223210.png" alt="Growth Plan" className="w-8 h-8" />
             Quarterly Growth Plan - {stepTitles[currentStep]}
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-gray-600">

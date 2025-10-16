@@ -27,7 +27,7 @@ profileFormSchema.refine((data) => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
 });
 
-const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organization?: string; inviteCode?: string } ; onComplete?: () => void }> = ({ inviteData, onComplete }) => {
+const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTitle?: string; organization?: string; inviteCode?: string } ; onComplete?: () => void }> = ({ inviteData, onComplete }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
@@ -40,7 +40,7 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       fullName: inviteData.name || '',
-      jobTitle: '',
+      jobTitle: inviteData.jobTitle || '',
       externalEmail: inviteData.email || '',
       organization: inviteData.organization || '',
       password: '',
@@ -50,6 +50,7 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
 
   useEffect(() => {
     form.setValue('fullName', inviteData.name || '');
+    form.setValue('jobTitle', inviteData.jobTitle || '');
     form.setValue('externalEmail', inviteData.email || '');
     form.setValue('organization', inviteData.organization || '');
   }, [inviteData, form]);
@@ -155,7 +156,7 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
                     />
                   ) : (
                     <div className="h-24 w-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center border-4 border-blue-100 hover:border-blue-300 transition-colors">
-                      <span className="text-xs text-blue-600 font-medium text-center px-2">Click to add avatar</span>
+                      <span className="text-xs text-blue-600 font-medium text-center px-2">Click to add a profile picture</span>
                     </div>
                   )}
                   <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white rounded-full p-1">
@@ -172,7 +173,6 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; organ
                 onChange={handleProfilePictureChange}
                 className="hidden"
               />
-              <div className="text-sm text-gray-500 mt-2 text-center">Upload a profile picture (optional)</div>
             </div>
 
             <FormField

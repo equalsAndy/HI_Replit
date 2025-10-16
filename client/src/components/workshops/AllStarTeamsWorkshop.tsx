@@ -39,6 +39,7 @@ export default function AllStarTeamsWorkshop() {
     handleCloseModal,
     handleGetStarted,
     triggerWelcomeVideo,
+    isFirstTimeShow,
   } = useWelcomeVideo();
   // Updated to use unified navigation system
   const navigation = useUnifiedWorkshopNavigation('ast');
@@ -198,6 +199,7 @@ export default function AllStarTeamsWorkshop() {
       ];
     } else {
       // Original structure for other user types
+      // Step 5-2 will be shown but disabled via isStepAccessible check
       return navigationSections;
     }
   };
@@ -638,6 +640,18 @@ export default function AllStarTeamsWorkshop() {
 
   // Enhanced function to determine step accessibility using module-specific locking
   const isStepAccessible = (sectionId: string, stepId: string) => {
+    // Special restriction: Step 5-2 is only accessible to beta testers and admins
+    if (stepId === '5-2') {
+      const user = userData?.user;
+      const isBetaTester = user?.isBetaTester === true;
+      const isAdmin = user?.role === 'admin';
+      const canAccessExtraStuff = isBetaTester || isAdmin;
+
+      if (!canAccessExtraStuff) {
+        return false; // Disabled for regular users
+      }
+    }
+
     // Use the new module-specific locking logic
     const module = getStepModule(stepId);
 
@@ -675,6 +689,12 @@ export default function AllStarTeamsWorkshop() {
   // Define a structure to map stepIds to navigation sequence for automatic progress
   // Updated for 5-Module Structure (RENUMBERED)
   const getNavigationSequence = () => {
+    // Check if user is beta tester or admin
+    const user = userData?.user;
+    const isBetaTester = user?.isBetaTester === true;
+    const isAdmin = user?.role === 'admin';
+    const canAccessExtraStuff = isBetaTester || isAdmin;
+
     const baseSequence: Record<string, { prev: string | null; next: string | null; contentKey: string }> = {
     // MODULE 1: GETTING STARTED
     '1-1': { prev: null, next: '1-2', contentKey: 'welcome' }, // ✅ WelcomeView
@@ -700,12 +720,15 @@ export default function AllStarTeamsWorkshop() {
     '4-4': { prev: '4-3', next: '5-1', contentKey: 'team-workshop-prep' }, // ✅ TeamWorkshopPrepView (OLD 5-4)
 
     // MODULE 5: MORE INFORMATION (unlocked after 3-4)
-    '5-1': { prev: '4-4', next: '5-2', contentKey: 'workshop-resources' }, // ✅ WorkshopResourcesView
-    '5-2': { prev: '5-1', next: '5-3', contentKey: 'extra-stuff' }, // ✅ PersonalProfileContainer (comprehensive assessments)
-    '5-3': { prev: '5-2', next: null, contentKey: 'more-imaginal-agility' }, // ✅ IntroIAView (Imaginal Agility intro)
+    '5-1': { prev: '4-4', next: canAccessExtraStuff ? '5-2' : '5-3', contentKey: 'workshop-resources' }, // ✅ WorkshopResourcesView
+    '5-3': { prev: canAccessExtraStuff ? '5-2' : '5-1', next: null, contentKey: 'more-imaginal-agility' }, // ✅ IntroIAView (Imaginal Agility intro)
     };
 
-    // Steps 5-2 and 5-3 are now fully implemented with real content - available to all users
+    // Only add 5-2 (Interesting Extra Stuff) for beta testers and admins
+    if (canAccessExtraStuff) {
+      baseSequence['5-2'] = { prev: '5-1', next: '5-3', contentKey: 'extra-stuff' }; // ✅ PersonalProfileContainer (comprehensive assessments)
+    }
+
     return baseSequence;
   };
 
@@ -844,6 +867,7 @@ export default function AllStarTeamsWorkshop() {
             onClose={handleCloseModal}
             onGetStarted={handleGetStarted}
             showCloseButton={true}
+            autoplay={isFirstTimeShow}
           />
 
           {/* Left Navigation Drawer */}

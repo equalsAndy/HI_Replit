@@ -11,40 +11,42 @@ const router = express.Router();
  */
 router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const { email, role, name, expiresAt, cohortId, organizationId, isBetaTester } = req.body;
+    const { email, role, name, jobTitle, organization, expiresAt, cohortId, organizationId, isBetaTester } = req.body;
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
-    
+
     if (!email) {
       return res.status(400).json({
         success: false,
         error: 'Email is required'
       });
     }
-    
+
     if (!role || !['admin', 'facilitator', 'participant', 'student'].includes(role)) {
       return res.status(400).json({
         success: false,
         error: 'Valid role is required'
       });
     }
-    
+
     // Restrict facilitators to participant/student roles only
     if (userRole === 'facilitator') {
       const allowedRoles = ['participant', 'student'];
       if (!allowedRoles.includes(role)) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           success: false,
-          error: 'Facilitators can only create participant and student invites' 
+          error: 'Facilitators can only create participant and student invites'
         });
       }
     }
-    
+
     // Use enhanced invite service with cohort and organization assignment
     const result = await inviteService.createInviteWithAssignment({
       email,
       role,
       name,
+      jobTitle: jobTitle || null,
+      organization: organization || null,
       createdBy: userId,
       cohortId: cohortId || null,
       organizationId: organizationId || null,

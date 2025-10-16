@@ -500,13 +500,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   "rounded-md p-2 flex items-center text-sm transition",
                                   // FIXED: Use visual state for highlight instead of isCurrent
                                   visualState.showRoundedHighlight
-                                    ? (isImaginalAgility 
-                                        ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium" 
-                                        : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium") 
+                                    ? (isImaginalAgility
+                                        ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium"
+                                        : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium")
                                     : "",
-                                  // Completed steps get green styling
-                                  isCompleted 
-                                    ? "text-green-700 bg-green-50" 
+                                  // Completed steps get green styling (but not in modules 4 and 5)
+                                  isCompleted && section.id !== '4' && section.id !== '5'
+                                    ? "text-green-700 bg-green-50"
                                     : isAccessible
                                       ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
                                       : "text-gray-400 cursor-not-allowed"
@@ -525,7 +525,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 }}
                               >
                                 <div className="mr-2 flex-shrink-0">
-                                  {isCompleted ? (
+                                  {/* Don't show checkmarks for modules 4 and 5 */}
+                                  {isCompleted && section.id !== '4' && section.id !== '5' ? (
                                     <CheckCircle className="h-4 w-4 text-green-600 bg-white rounded-full" />
                                   ) : showDarkDot ? (
                                     <div className="w-4 h-4 bg-indigo-600 rounded-full" />

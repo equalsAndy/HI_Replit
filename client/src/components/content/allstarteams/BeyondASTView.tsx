@@ -178,21 +178,6 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
         </p>
       </div>
 
-      {/* Privacy First */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <div className="text-blue-600 text-2xl">🔒</div>
-            <div>
-              <h3 className="font-semibold text-blue-900 mb-1">Privacy First</h3>
-              <p className="text-blue-800 text-sm">
-                You control what's shared with your org, your team, or kept completely private. Your data, your choices.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Interest Collection Form */}
       <Card>
         <CardHeader>

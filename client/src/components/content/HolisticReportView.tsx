@@ -137,9 +137,14 @@ export default function HolisticReportView({
     };
   }, [countdown, activeTimer]);
 
-  // Clear timer when generation is complete
+  // Clear timer when generation is complete OR when it fails
   useEffect(() => {
     if (personalProgress?.overallStatus === 'completed' && activeTimer === 'personal') {
+      setActiveTimer(null);
+      setCountdown(0);
+    }
+    // Stop timer on failure or partial failure
+    if ((personalProgress?.overallStatus === 'failed' || personalProgress?.overallStatus === 'partial_failure') && activeTimer === 'personal') {
       setActiveTimer(null);
       setCountdown(0);
     }
@@ -454,7 +459,7 @@ export default function HolisticReportView({
                       }}
                       className="text-blue-700 hover:text-blue-900 hover:bg-blue-100 text-xs"
                     >
-                      Cancel
+                      Cancel Report Generation
                     </Button>
                   </div>
 
@@ -485,22 +490,47 @@ export default function HolisticReportView({
                     </p>
                   )}
 
-                  {/* Section Details */}
+                  {/* Section Details - Enhanced with better status indicators */}
                   {progress?.sections && progress.sections.length > 0 && (
-                    <div className="mt-3 text-xs">
-                      <div className="grid grid-cols-2 gap-1">
-                        {progress.sections.map((section, index) => (
-                          <div key={section.id} className="flex items-center gap-1">
-                            <div className={`w-2 h-2 rounded-full ${
-                              section.status === 'completed' ? 'bg-green-500' :
-                              section.status === 'generating' ? 'bg-blue-500 animate-pulse' :
-                              section.status === 'failed' ? 'bg-red-500' :
-                              'bg-gray-300'
-                            }`} />
-                            <span className="text-blue-600 truncate">{section.title}</span>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="mt-3 text-xs space-y-1.5">
+                      {progress.sections.map((section, index) => (
+                        <div key={section.id} className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-white/50">
+                          {/* Status Icon */}
+                          {section.status === 'completed' ? (
+                            <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          ) : section.status === 'generating' ? (
+                            <RefreshCw className="h-4 w-4 text-blue-600 animate-spin flex-shrink-0" />
+                          ) : section.status === 'failed' ? (
+                            <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                          ) : (
+                            <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                          )}
+
+                          {/* Section Title with status-based color */}
+                          <span className={`truncate flex-1 ${
+                            section.status === 'completed' ? 'text-green-700 font-medium' :
+                            section.status === 'generating' ? 'text-blue-700 font-medium' :
+                            section.status === 'failed' ? 'text-red-700' :
+                            'text-gray-600'
+                          }`}>
+                            {section.title}
+                          </span>
+
+                          {/* Attempt indicator for generating sections */}
+                          {section.status === 'generating' && section.generationAttempts > 0 && (
+                            <span className="text-blue-600 text-[10px] font-mono bg-blue-100 px-1.5 py-0.5 rounded">
+                              Try {section.generationAttempts}
+                            </span>
+                          )}
+
+                          {/* Failed indicator with attempt count */}
+                          {section.status === 'failed' && section.generationAttempts > 0 && (
+                            <span className="text-red-600 text-[10px] font-mono bg-red-100 px-1.5 py-0.5 rounded">
+                              Failed after {section.generationAttempts} tries
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -551,21 +581,100 @@ export default function HolisticReportView({
                 </div>
               )}
 
-              {/* Error Status */}
+              {/* Error Status - Show after 2 failed attempts with "Try Again" button */}
               {isFailed && !isStalled && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                    <span className="text-red-800 font-medium">Generation failed</span>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <span className="text-red-800 font-semibold">Something went wrong</span>
                   </div>
-                  <p className="text-red-700 text-sm mt-1">
-                    {progress?.sections?.find(s => s.status === 'failed')?.errorMessage || 'An error occurred while generating the report.'}
+                  <p className="text-red-700 text-sm">
+                    {progress?.sectionsFailed && progress.sectionsFailed > 0 ? (
+                      <>
+                        {progress.sectionsCompleted > 0 ? (
+                          <>
+                            We successfully generated {progress.sectionsCompleted} of {progress.totalSections} parts,
+                            but {progress.sectionsFailed} {progress.sectionsFailed === 1 ? 'part' : 'parts'} failed after multiple attempts.
+                          </>
+                        ) : (
+                          <>
+                            Report generation failed. Please try again.
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      'An error occurred while generating the report.'
+                    )}
                   </p>
-                  {progress?.sectionsFailed && progress.sectionsFailed > 0 && (
-                    <p className="text-red-600 text-xs mt-1">
-                      {progress.sectionsFailed} of {progress.totalSections} parts failed
-                    </p>
+
+                  {/* Show detailed section status */}
+                  {progress?.sections && progress.sections.some(s => s.status === 'failed') && (
+                    <div className="mt-3 text-xs space-y-1">
+                      <p className="text-red-800 font-medium mb-1">Failed sections:</p>
+                      {progress.sections
+                        .filter(s => s.status === 'failed')
+                        .map(section => (
+                          <div key={section.id} className="flex items-center gap-2 text-red-700 bg-red-100 px-2 py-1 rounded">
+                            <AlertCircle className="h-3 w-3" />
+                            <span>{section.title}</span>
+                            {section.errorMessage && (
+                              <span className="text-[10px] text-red-600 italic truncate">
+                                ({section.errorMessage})
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                    </div>
                   )}
+
+                  {/* Try Again Button - Resumes from last successful section */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if (!user?.id) return;
+                      const astReportType = reportType === 'standard' ? 'ast_professional' : 'ast_personal';
+
+                      // Get failed section IDs to regenerate only those
+                      const failedSectionIds = progress?.sections
+                        ?.filter(s => s.status === 'failed')
+                        .map(s => s.id) || [];
+
+                      console.log(`🔄 Retrying failed sections: ${failedSectionIds.join(', ')}`);
+
+                      try {
+                        // Regenerate with specificSections parameter (only failed sections)
+                        const response = await fetch(`/api/ast-sectional-reports/generate/${user.id}`, {
+                          method: 'POST',
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            reportType: astReportType,
+                            regenerate: false, // Don't clear existing successful sections
+                            specificSections: failedSectionIds // Only retry failed sections
+                          })
+                        });
+
+                        if (response.ok) {
+                          console.log('✅ Retry initiated successfully');
+                          // Start timer for retry
+                          setActiveTimer(reportType);
+                          setCountdown(210); // 3:30 estimate
+                          // Refetch progress
+                          queryClient.invalidateQueries({ queryKey: [`/api/ast-sectional-reports/progress/${user.id}/${astReportType}`] });
+                        } else {
+                          const errorData = await response.json();
+                          console.error('❌ Failed to initiate retry:', errorData);
+                        }
+                      } catch (error) {
+                        console.error('❌ Error initiating retry:', error);
+                      }
+                    }}
+                    className="mt-3 border-red-300 text-red-700 hover:bg-red-100 hover:text-red-800"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Try Again
+                  </Button>
                 </div>
               )}
 

@@ -358,27 +358,37 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   
   // Move to next question
   const nextQuestion = () => {
-    // Check if current question has been answered
-    if (!answers[question.id]) {
+    console.log('🔍 Flow Assessment nextQuestion:', { currentQuestion, questionExists: !!question, hasAnswer: question ? !!answers[question.id] : false });
+
+    // Safety check - ensure question exists (only for non-last question)
+    if (!question && currentQuestion < flowQuestions.length - 1) {
+      console.error('❌ Flow Assessment: Cannot advance - question is undefined');
+      return;
+    }
+
+    // On last question, submit even if question is somehow undefined (shouldn't happen)
+    if (currentQuestion >= flowQuestions.length - 1) {
+      console.log('✅ Flow Assessment: On last question - submitting');
+      handleSubmit();
+      return;
+    }
+
+    // Check if current question has been answered (only for non-last questions)
+    if (question && !answers[question.id]) {
       setError("Please select an answer before proceeding.");
       return;
     }
-    
+
     // Clear error and proceed
     setError(null);
-    
+
     // Clear any pending auto-advance timeouts
     if (autoAdvanceTimeoutRef.current) {
       clearTimeout(autoAdvanceTimeoutRef.current);
       autoAdvanceTimeoutRef.current = null;
     }
-    
-    if (currentQuestion < flowQuestions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-    } else {
-      // If we're on the last question, allow submission regardless
-      handleSubmit();
-    }
+
+    setCurrentQuestion(prev => prev + 1);
   };
   
   // Check if all questions have been answered
@@ -426,19 +436,11 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   useEffect(() => {
     // Clear any error messages when moving to a new question
     setError(null);
-    
+
     // Make sure there's no default selection for new questions
     // (existing answers are preserved, but new questions start unselected)
   }, [currentQuestion]);
-  
-  // Get current question and previous question
-  const question = flowQuestions[currentQuestion];
-  const currentValue = answers[question.id] || 0; // No default value
-  
-  // Get previous question for display
-  const previousQuestion = currentQuestion > 0 ? flowQuestions[currentQuestion - 1] : null;
-  const prevAnswer = previousQuestion ? answers[previousQuestion.id] || 0 : 0;
-  
+
   // Debug logging to understand state
   console.log('🔍 Flow Assessment Render - State check:', {
     completedAssessmentData,
@@ -447,6 +449,9 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
     existingFlowScore,
     readOnly
   });
+
+  // IMPORTANT: Check for result states BEFORE accessing question
+  // This prevents errors when showResult is true but currentQuestion is out of bounds
 
   // If we have completed assessment data with a score, show detailed results
   if (completedAssessmentData && completedAssessmentData.flowScore !== undefined && completedAssessmentData.completed) {
@@ -625,7 +630,9 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {flowQuestions.map((q) => (
+                    {flowQuestions
+                      .filter(q => q && q.text) // Filter out any invalid questions BEFORE mapping
+                      .map((q) => (
                       <tr key={q.id} className={q.id % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                         <td className="px-3 py-2 text-xs text-gray-700">
                           <span className="font-semibold mr-1">Question #{q.id}:</span> {q.text}
@@ -715,18 +722,40 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
     );
   }
 
+  // NOW safe to access question - all result states have been handled above
+  // Get current question and previous question
+  const question = flowQuestions[currentQuestion];
+  const currentValue = question ? (answers[question.id] || 0) : 0; // No default value
+
+  // Get previous question for display
+  const previousQuestion = currentQuestion > 0 ? flowQuestions[currentQuestion - 1] : null;
+  const prevAnswer = previousQuestion ? answers[previousQuestion.id] || 0 : 0;
+
+  // Safety check - if question is undefined, show error
+  if (!question) {
+    console.error('❌ Flow Assessment: Question is undefined. currentQuestion:', currentQuestion, 'total questions:', flowQuestions.length);
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Assessment Error</h3>
+          <p className="text-red-600">Unable to load question. Please refresh the page or contact support.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Flow State Self-Assessment</h3>
         </div>
-        
+
         <p className="text-gray-600 mb-6">
           Rate your agreement with each statement on a scale from 1 (Never) to 5 (Always).
           Answer with a specific activity or task in mind where you most often seek or experience flow.
         </p>
-        
+
         <div className="mb-8">
           <p className="font-medium mb-4">
             <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}

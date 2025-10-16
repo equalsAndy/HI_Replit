@@ -52,13 +52,21 @@ router.post('/validate-invite', async (req, res) => {
     }
 
     // Return the invite details (excluding sensitive data)
+    // Note: Drizzle returns snake_case field names from database
+    const invite: any = result.invite;
+    console.log('📋 Invite data from DB:', JSON.stringify(invite, null, 2));
+    console.log('🔍 job_title field:', invite?.job_title);
+    console.log('🔍 organization field:', invite?.organization);
+
     res.json({
       success: true,
       invite: {
-        email: result.invite?.email,
-        role: result.invite?.role,
-        name: result.invite?.name,
-        isBetaTester: result.invite?.isBetaTester || result.invite?.is_beta_tester || false
+        email: invite?.email,
+        role: invite?.role,
+        name: invite?.name,
+        jobTitle: invite?.jobTitle || invite?.job_title,
+        organization: invite?.organization,
+        isBetaTester: invite?.isBetaTester || invite?.is_beta_tester || false
       }
     });
   } catch (error) {

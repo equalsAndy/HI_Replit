@@ -218,6 +218,8 @@ export const invites = pgTable('invites', {
   email: varchar('email', { length: 255 }).notNull(),
   role: varchar('role', { length: 20 }).notNull().default('participant'),
   name: text('name'),
+  jobTitle: text('job_title'),
+  organization: text('organization'),
   createdBy: integer('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at'),

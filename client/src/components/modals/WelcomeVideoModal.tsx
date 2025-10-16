@@ -8,13 +8,15 @@ interface WelcomeVideoModalProps {
   onClose: () => void;
   onGetStarted: () => void;
   showCloseButton?: boolean;
+  autoplay?: boolean;
 }
 
 export const WelcomeVideoModal: React.FC<WelcomeVideoModalProps> = ({
   isOpen,
   onClose,
   onGetStarted,
-  showCloseButton = true
+  showCloseButton = true,
+  autoplay = true
 }) => {
   const handleGetStarted = () => {
     onGetStarted();
@@ -54,7 +56,7 @@ export const WelcomeVideoModal: React.FC<WelcomeVideoModalProps> = ({
           <div className="bg-white rounded-3xl p-6 shadow-2xl">
             <div className="relative w-full mb-6" style={{ paddingBottom: '56.25%' }}>
               <iframe
-                src="https://www.youtube.com/embed/-2rSUwW17rw?autoplay=1&enablejsapi=1&rel=0"
+                src={`https://www.youtube.com/embed/-2rSUwW17rw?${autoplay ? 'autoplay=1&' : ''}enablejsapi=1&rel=0`}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

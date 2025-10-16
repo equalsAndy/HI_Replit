@@ -296,20 +296,12 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
       );
 
     case 'workshop-recap':
-      return (
-        <WorkshopRecap 
-          setCurrentContent={setCurrentContent}
-          markStepCompleted={markStepCompleted}
-        />
-      );
-
     case 'finish-workshop':
     case '3-4':
       return (
-        <FinishWorkshopView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
+        <WorkshopRecap
           setCurrentContent={setCurrentContent}
+          markStepCompleted={markStepCompleted}
         />
       );
 

@@ -24,13 +24,13 @@ const renderCustomizedLabel = (props: any) => {
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
   return (
-    <text 
-      x={x} 
-      y={y} 
+    <text
+      x={x}
+      y={y}
       fill={payload.color}
-      textAnchor={x > cx ? 'start' : 'end'} 
+      textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
-      style={{ 
+      style={{
         fontWeight: 600,
         fontSize: window.innerWidth >= 1024 ? '20px' : '17.5px',
         filter: 'drop-shadow(0px 0px 2px white)' // Add white glow for better visibility
@@ -50,13 +50,13 @@ const renderInnerLabel = (props: any) => {
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
   return (
-    <text 
-      x={x} 
-      y={y} 
+    <text
+      x={x}
+      y={y}
       fill="white"
-      textAnchor="middle" 
+      textAnchor="middle"
       dominantBaseline="central"
-      style={{ 
+      style={{
         fontWeight: 700,
         fontSize: '14px',
         filter: 'drop-shadow(0px 0px 1px black)' // Black outline for better contrast

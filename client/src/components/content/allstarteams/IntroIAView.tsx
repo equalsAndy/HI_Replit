@@ -49,13 +49,10 @@ const IntroIAView: React.FC<ContentViewProps> = ({
 
   // Email form state
   const [email, setEmail] = useState('');
-  const [emailType, setEmailType] = useState<'organization' | 'personal'>('organization');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [availableEmails, setAvailableEmails] = useState<Array<{ email: string; label: string; isPrimary: boolean }>>([]);
-  const [useExistingEmail, setUseExistingEmail] = useState(true);
-  const [selectedEmailIndex, setSelectedEmailIndex] = useState<number>(0);
 
   // Get navigation progress using the unified hook
   const navigation = useUnifiedWorkshopNavigation('ast');
@@ -64,9 +61,9 @@ const IntroIAView: React.FC<ContentViewProps> = ({
     markStepCompleted: navMarkStepCompleted
   } = navigation;
 
-  // Load available emails
+  // Load primary email
   useEffect(() => {
-    const loadEmails = async () => {
+    const loadPrimaryEmail = async () => {
       if (!user?.id) return;
 
       try {
@@ -77,16 +74,17 @@ const IntroIAView: React.FC<ContentViewProps> = ({
         if (response.ok) {
           const data = await response.json();
           if (data.emails && data.emails.length > 0) {
-            setAvailableEmails(data.emails);
-            setEmail(data.emails[0].email); // Set first email as default
+            // Find and set the primary email
+            const primaryEmail = data.emails.find((e: any) => e.isPrimary);
+            setEmail(primaryEmail?.email || data.emails[0].email);
           }
         }
       } catch (error) {
-        console.error('Error loading emails:', error);
+        console.error('Error loading primary email:', error);
       }
     };
 
-    loadEmails();
+    loadPrimaryEmail();
   }, [user?.id]);
 
   // Simplified mode: Next button always active for video steps
@@ -139,7 +137,7 @@ const IntroIAView: React.FC<ContentViewProps> = ({
         credentials: 'include',
         body: JSON.stringify({
           email,
-          emailType
+          notes
         })
       });
 
@@ -300,80 +298,30 @@ const IntroIAView: React.FC<ContentViewProps> = ({
                 Share your email address to learn more about the full Imaginal Agility workshop experience.
               </p>
 
-              {availableEmails.length > 0 && (
-                <div className="space-y-3">
-                  <Label className="text-gray-700">Select Email</Label>
-                  <RadioGroup
-                    value={useExistingEmail ? `existing-${selectedEmailIndex}` : 'new'}
-                    onValueChange={(value) => {
-                      if (value.startsWith('existing-')) {
-                        const index = parseInt(value.replace('existing-', ''));
-                        setSelectedEmailIndex(index);
-                        setEmail(availableEmails[index].email);
-                        setUseExistingEmail(true);
-                      } else {
-                        setUseExistingEmail(false);
-                        setEmail('');
-                      }
-                    }}
-                    disabled={isSubmitting}
-                    className="flex flex-col space-y-2"
-                  >
-                    {availableEmails.map((emailOption, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <RadioGroupItem value={`existing-${index}`} id={`email-${index}`} />
-                        <Label htmlFor={`email-${index}`} className="text-sm text-gray-700 cursor-pointer font-normal">
-                          {emailOption.email} {emailOption.isPrimary && <span className="text-xs text-gray-500">(Primary)</span>}
-                        </Label>
-                      </div>
-                    ))}
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="new" id="email-new" />
-                      <Label htmlFor="email-new" className="text-sm text-gray-700 cursor-pointer font-normal">
-                        Use a different email
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              )}
-
-              {(!useExistingEmail || availableEmails.length === 0) && (
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your.email@example.com"
-                    required
-                    className="w-full"
-                    disabled={isSubmitting}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <Label className="text-gray-700">Email Type</Label>
-                <RadioGroup
-                  value={emailType}
-                  onValueChange={(value) => setEmailType(value as 'organization' | 'personal')}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-700">Your Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  readOnly
+                  className="w-full bg-gray-50"
                   disabled={isSubmitting}
-                  className="flex flex-col space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="organization" id="org-email" />
-                    <Label htmlFor="org-email" className="text-sm text-gray-700 cursor-pointer font-normal">
-                      Work/Organization email
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="personal" id="personal-email" />
-                    <Label htmlFor="personal-email" className="text-sm text-gray-700 cursor-pointer font-normal">
-                      Personal email
-                    </Label>
-                  </div>
-                </RadioGroup>
+                />
+                <p className="text-xs text-gray-500">Using your primary email address</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-gray-700">Notes (Optional)</Label>
+                <textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any questions or additional information you'd like to share..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  disabled={isSubmitting}
+                />
               </div>
 
               {submitError && (

@@ -11,6 +11,8 @@ class InviteService {
     email: string;
     role: 'admin' | 'facilitator' | 'participant' | 'student';
     name?: string;
+    jobTitle?: string | null;
+    organization?: string | null;
     cohortId?: number | null;
     organizationId?: string | null;
     createdBy: number;
@@ -26,7 +28,7 @@ class InviteService {
           error: 'Invalid email format'
         };
       }
-      
+
       // Prevent duplicate invites for the same email
       const existingInvites = await db.select().from(invites).where(eq(invites.email, data.email.toLowerCase()));
       if (existingInvites.length > 0) {
@@ -34,16 +36,16 @@ class InviteService {
       }
       // Generate a unique invite code (remove hyphens to fit 12-char limit)
       const inviteCode = generateInviteCode().replace(/-/g, '');
-      
+
       // Ensure code fits database constraint (max 12 characters)
       if (inviteCode.length > 12) {
         throw new Error('Generated invite code exceeds database limit');
       }
-      
+
       // Insert the invite into the database with cohort and organization assignment
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null}, ${data.isBetaTester || false})
+        INSERT INTO invites (invite_code, email, role, name, job_title, organization, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.jobTitle || null}, ${data.organization || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null}, ${data.isBetaTester || false})
         RETURNING *
       `);
       

@@ -260,6 +260,8 @@ const InviteManagement: React.FC = () => {
     email: '',
     role: 'participant',
     name: '',
+    jobTitle: '',
+    organization: '',
     isTestUser: false,
     isBetaTester: false,
   });
@@ -313,7 +315,7 @@ const InviteManagement: React.FC = () => {
           title: 'Success', 
           description: `Invite created for ${newInvite.email}` 
         });
-        setNewInvite({ email: '', role: 'participant', name: '', isTestUser: false });
+        setNewInvite({ email: '', role: 'participant', name: '', jobTitle: '', organization: '', isTestUser: false, isBetaTester: false });
         fetchInvites();
       } else {
         toast({ 
@@ -592,6 +594,28 @@ const InviteManagement: React.FC = () => {
                       placeholder="John Doe"
                       value={newInvite.name}
                       onChange={(e) => setNewInvite({ ...newInvite, name: e.target.value })}
+                      disabled={isSendingInvite}
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Job Title (Optional)</label>
+                    <input
+                      style={styles.input}
+                      type="text"
+                      placeholder="Senior Manager"
+                      value={newInvite.jobTitle}
+                      onChange={(e) => setNewInvite({ ...newInvite, jobTitle: e.target.value })}
+                      disabled={isSendingInvite}
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Organization (Optional)</label>
+                    <input
+                      style={styles.input}
+                      type="text"
+                      placeholder="Acme Corporation"
+                      value={newInvite.organization}
+                      onChange={(e) => setNewInvite({ ...newInvite, organization: e.target.value })}
                       disabled={isSendingInvite}
                     />
                   </div>

@@ -100,24 +100,35 @@ export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: 
       icon: <Download className="w-6 h-6 text-blue-600" />,
       title: "Download Your Star Card",
       description: "Get your personalized strengths profile as a shareable visual reference",
-      action: () => setCurrentContent('download-star-card'),
+      action: () => {
+        console.log('🔍 WorkshopRecap: Navigating to download-star-card');
+        setCurrentContent('download-star-card');
+      },
       primary: true
     },
     {
       icon: <BarChart3 className="w-6 h-6 text-green-600" />,
       title: "Generate Holistic Report",
       description: "Create a comprehensive report of all your workshop insights and recommendations",
-      action: () => setCurrentContent('holistic-report'),
+      action: () => {
+        console.log('🔍 WorkshopRecap: Navigating to holistic-report');
+        setCurrentContent('holistic-report');
+      },
       primary: true
     },
     {
       icon: <Users className="w-6 h-6 text-purple-600" />,
       title: "Prepare for Team Workshop",
       description: "Access materials and guidance for participating in the team collaboration phase",
-      action: () => setCurrentContent('team-workshop-prep'),
+      action: () => {
+        console.log('🔍 WorkshopRecap: Navigating to team-workshop-prep');
+        setCurrentContent('team-workshop-prep');
+      },
       primary: false
     }
   ];
+
+  console.log('🔍 WorkshopRecap: Rendering with isWorkshopCompleted =', isWorkshopCompleted);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -133,11 +144,11 @@ export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: 
           <CheckCircle className="w-8 h-8 text-green-600" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          🎉 Workshop Complete!
+          Workshop (Almost) Complete!
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Congratulations on completing the AllStarTeams Individual Workshop. You've taken a significant step 
-          in understanding your unique strengths and potential. Here's what you accomplished and what comes next.
+          You've taken a significant step in understanding your unique strengths and potential.
+          <strong className="block mt-2">Scroll down to the green button to finish your workshop and unlock your takeaways.</strong>
         </p>
       </div>
 
@@ -175,32 +186,27 @@ export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: 
           {nextSteps.map((step, index) => (
             <button
               key={index}
-              onClick={isWorkshopCompleted ? step.action : undefined}
-              disabled={!isWorkshopCompleted}
+              onClick={() => {
+                console.log('🔍 WorkshopRecap: Button clicked -', step.title, '| isWorkshopCompleted =', isWorkshopCompleted);
+                step.action();
+              }}
               className={`
                 p-6 rounded-lg border-2 text-left transition-all duration-200
-                ${!isWorkshopCompleted
-                  ? 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : step.primary
-                    ? 'border-blue-200 bg-blue-50 hover:border-blue-300 hover:bg-blue-100 hover:shadow-lg'
-                    : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100 hover:shadow-lg'
+                ${step.primary
+                  ? 'border-blue-200 bg-blue-50 hover:border-blue-300 hover:bg-blue-100 hover:shadow-lg cursor-pointer'
+                  : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100 hover:shadow-lg cursor-pointer'
                 }
               `}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className={`
-                  p-2 rounded-lg
-                  ${!isWorkshopCompleted
-                    ? 'bg-gray-200'
-                    : step.primary ? 'bg-blue-100' : 'bg-gray-100'}
-                `}>
+                <div className={`p-2 rounded-lg ${step.primary ? 'bg-blue-100' : 'bg-gray-100'}`}>
                   {step.icon}
                 </div>
-                <h3 className={`font-semibold ${!isWorkshopCompleted ? 'text-gray-400' : 'text-gray-900'}`}>
+                <h3 className="font-semibold text-gray-900">
                   {step.title}
                 </h3>
               </div>
-              <p className={`text-sm leading-relaxed ${!isWorkshopCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className="text-sm leading-relaxed text-gray-600">
                 {step.description}
               </p>
             </button>

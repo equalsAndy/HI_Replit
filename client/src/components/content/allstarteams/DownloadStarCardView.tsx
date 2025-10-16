@@ -114,6 +114,7 @@ export default function DownloadStarCardView({
   };
 
   const handleNext = () => {
+    console.log('🔍 DownloadStarCard: handleNext clicked - navigating to holistic-report');
     // Removed markStepCompleted call - navigation should not advance menu
     setCurrentContent('holistic-report');
   };

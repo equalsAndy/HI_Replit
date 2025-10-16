@@ -44,11 +44,11 @@ export default function TeamWorkshopPrepView({
         {/* Header */}
         <div className="space-y-4">
           <h1 className="text-4xl font-bold text-gray-900">
-            Inspire, learn, and grow your team
+            Team Workshop
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed">
-            The Strengths Flow Fusion Workshop is dynamic, interactive session designed to transform the
-            way your team collaborates and executes. By combining each member's core strengths with
+            The AllStarTeams Team exercise is a dynamic, interactive session designed to transform the
+            way your team understands each other, collaborates, and executes with purpose. By combining each member's core strengths with
             defined flow attributes, this workshop promotes a holistic and seamless team synergy.
           </p>
         </div>
