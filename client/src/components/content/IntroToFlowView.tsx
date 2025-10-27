@@ -7,6 +7,7 @@ import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary
 import { trpc } from "@/utils/trpc";
 import FlowAssessmentModal from '@/components/flow/FlowAssessmentModal';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -68,6 +69,72 @@ const flowAttributes = [
   "Practical", "Resilient", "Spontaneous", "Vigorous"
 ];
 
+// Attribute descriptions for tooltips
+const attributeDescriptions: Record<string, string> = {
+  // Thinking attributes
+  "Abstract": "Thinking in concepts and ideas rather than concrete details",
+  "Analytic": "Breaking down complex problems into logical parts",
+  "Astute": "Showing sharp perception and good judgment",
+  "Big Picture": "Seeing the overall view and long-term implications",
+  "Curious": "Eager to learn and explore new ideas",
+  "Focused": "Maintaining concentrated attention on the task",
+  "Insightful": "Understanding deeper meanings and patterns",
+  "Investigative": "Examining and researching systematically",
+  "Logical": "Using reason and clear thinking",
+  "Rational": "Making decisions based on facts and reasoning",
+  "Reflective": "Taking time to think deeply about experiences",
+  "Sensible": "Making practical, well-reasoned choices",
+  "Strategic": "Planning with long-term goals in mind",
+  "Thoughtful": "Showing careful consideration",
+
+  // Feeling attributes
+  "Collaborative": "Working effectively with others toward shared goals",
+  "Compassionate": "Showing deep care and empathy for others",
+  "Creative": "Generating original ideas and solutions",
+  "Empathic": "Understanding and sharing others' feelings",
+  "Encouraging": "Giving support and confidence to others",
+  "Expressive": "Communicating thoughts and feelings openly",
+  "Inspiring": "Motivating others to achieve their best",
+  "Intuitive": "Understanding things instinctively",
+  "Objective": "Viewing situations without bias",
+  "Passionate": "Bringing intense enthusiasm and energy",
+  "Positive": "Maintaining an optimistic outlook",
+  "Receptive": "Being open to new ideas and feedback",
+  "Supportive": "Providing help and encouragement",
+
+  // Planning attributes
+  "Detail-Oriented": "Paying close attention to specifics",
+  "Diligent": "Working with care and persistence",
+  "Immersed": "Fully absorbed in the work",
+  "Industrious": "Working hard and steadily",
+  "Methodical": "Following a systematic, orderly approach",
+  "Organized": "Arranging things systematically",
+  "Precise": "Being exact and accurate",
+  "Punctual": "Consistently on time",
+  "Reliable": "Consistently dependable",
+  "Responsible": "Taking ownership and accountability",
+  "Straightforward": "Being direct and clear",
+  "Systematic": "Following structured procedures",
+  "Thorough": "Completing work with careful attention",
+  "Tidy": "Keeping things neat and organized",
+
+  // Acting attributes
+  "Adventuresome": "Seeking new and exciting experiences",
+  "Competitive": "Driven to excel and win",
+  "Dynamic": "Full of energy and new ideas",
+  "Effortless": "Making difficult things look easy",
+  "Energetic": "Showing high levels of activity and enthusiasm",
+  "Engaged": "Fully involved and committed",
+  "Funny": "Using humor effectively",
+  "Open-Minded": "Willing to consider new ideas",
+  "Optimistic": "Maintaining a positive, hopeful outlook",
+  "Persuasive": "Convincing others effectively",
+  "Practical": "Focusing on what works in real situations",
+  "Resilient": "Bouncing back from setbacks",
+  "Spontaneous": "Acting on impulse and energy in the moment",
+  "Vigorous": "Strong, active, and full of energy"
+};
+
 // Sortable flow badge component for drag-and-drop reordering
 const SortableFlowBadge = ({ 
   text, 
@@ -128,8 +195,8 @@ const SortableFlowBadge = ({
 };
 
 // Regular flow badge component for selections
-const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disabled = false, onSelect, onRemove }: { 
-  text: string; 
+const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disabled = false, onSelect, onRemove }: {
+  text: string;
   rank?: number | null; // Allow null or undefined with a default value applied
   selected?: boolean;
   rankBadgeColor?: string;
@@ -137,30 +204,41 @@ const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disa
   onSelect?: () => void;
   onRemove?: () => void;
 }) => {
+  const description = attributeDescriptions[text] || text;
+
   return (
-    <Badge 
-      variant="outline"
-      className={`${selected ? 'bg-gray-200 text-gray-900' : disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} transition-colors flex items-center`}
-      onClick={disabled ? undefined : onSelect}
-    >
-      {text}
-      {rank !== null && rank !== undefined && (
-        <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${rankBadgeColor}`}>
-          {rank + 1}
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>
+        <span className="inline-block">
+          <Badge
+            variant="outline"
+            className={`${selected ? 'bg-gray-200 text-gray-900' : disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} transition-colors flex items-center`}
+            onClick={disabled ? undefined : onSelect}
+          >
+            {text}
+            {rank !== null && rank !== undefined && (
+              <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${rankBadgeColor}`}>
+                {rank + 1}
+              </span>
+            )}
+            {selected && onRemove && !disabled && (
+              <button
+                className="ml-1 text-gray-600 hover:text-gray-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </Badge>
         </span>
-      )}
-      {selected && onRemove && !disabled && (
-        <button 
-          className="ml-1 text-gray-600 hover:text-gray-800"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-        >
-          <X className="h-3 w-3" />
-        </button>
-      )}
-    </Badge>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs">
+        <p className="text-sm">{description}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -854,20 +932,12 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Add Flow to Your Star Card</h1>
 
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
-        <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
-        <p className="text-blue-700 mb-0">
+        <p className="text-blue-700 mb-0 text-lg">
           Flow attributes represent how you work at your best. They complement your Star strengths profile which shows what you're naturally good at.
           Together, they create a more complete picture of your professional identity and help others understand how to collaborate with you effectively.
         </p>
       </div>
 
-      <div className="prose max-w-none mb-6">
-        <p className="text-lg text-gray-700">
-          Now that you've completed the flow assessment and reflection, select four flow attributes 
-          that best describe your optimal flow state. These will be added to your StarCard to create 
-          a comprehensive visualization of your strengths and flow profile.
-        </p>
-      </div>
 
       {hasExistingAttributes && !showSelectionInterface && !workshopCompleted && (
         <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-6">
@@ -920,7 +990,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
                   {/* Show selected attributes in a read-only display */}
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium mb-2">I find myself in flow when I am being:</h4>
+                    <p className="text-sm text-gray-700 mb-2">Think of a moment when you were completely absorbed and performing at your peak. In that flow state, what qualities emerged? Select 4 words below in order of how strongly you associate with them.</p>
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       <div className="flex flex-wrap gap-2">
                         {selectedAttributes
@@ -958,7 +1028,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   {/* Selected attributes */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-medium">I find myself in flow when I am being:</h4>
+                      <p className="text-sm text-gray-700 mb-2">Think of a moment when you were completely absorbed and performing at your peak. In that flow state, what qualities emerged? Select 4 words below in order of how strongly you associate with them.</p>
                     </div>
 
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
@@ -1011,25 +1081,27 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {flowAttributes.map((attr: string) => {
-                        const isSelected = selectedAttributes.some(selected => selected.text === attr);
-                        const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
-                        const isDisabled = (hasExistingAttributes && !isUpdating) || isStepLocked;
+                    <TooltipProvider>
+                      <div className="flex flex-wrap gap-2">
+                        {flowAttributes.map((attr: string) => {
+                          const isSelected = selectedAttributes.some(selected => selected.text === attr);
+                          const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
+                          const isDisabled = (hasExistingAttributes && !isUpdating) || isStepLocked;
 
-                        return (
-                          <FlowBadge 
-                            key={attr}
-                            text={attr}
-                            rank={rank || 0}
-                            selected={isSelected}
-                            disabled={isDisabled}
-                            rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
-                            onSelect={() => handleAttributeSelect(attr)}
-                          />
-                        );
-                      })}
-                    </div>
+                          return (
+                            <FlowBadge
+                              key={attr}
+                              text={attr}
+                              rank={rank || 0}
+                              selected={isSelected}
+                              disabled={isDisabled}
+                              rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
+                              onSelect={() => handleAttributeSelect(attr)}
+                            />
+                          );
+                        })}
+                      </div>
+                    </TooltipProvider>
                   </div>
                 </div>
               </div>

@@ -343,13 +343,14 @@ router.post('/get-png/:userId', async (req, res) => {
     const user = userResult.rows[0];
     console.log(`👤 Found user: ${user.name || user.username} (ID: ${user.id})`);
     
-    // Look for the most recent StarCard photo uploaded by this user
+    // Look for the most recent StarCard photo uploaded by this user (filter by image_type)
     const photoResult = await pool.query(`
       SELECT id, photo_data, photo_hash, mime_type, file_size, width, height, created_at
-      FROM photo_storage 
-      WHERE uploaded_by = $1 
+      FROM photo_storage
+      WHERE uploaded_by = $1
       AND is_thumbnail = false
-      ORDER BY created_at DESC 
+      AND image_type = 'starcard_generated'
+      ORDER BY created_at DESC
       LIMIT 1
     `, [userId]);
 
@@ -457,13 +458,14 @@ router.get('/admin/download/:userId', async (req, res) => {
     
     const user = userResult.rows[0];
     
-    // Look for the most recent StarCard photo
+    // Look for the most recent StarCard photo (filter by image_type to avoid profile pictures)
     const photoResult = await pool.query(`
       SELECT id, photo_data, photo_hash, mime_type, file_size, width, height, created_at
-      FROM photo_storage 
-      WHERE uploaded_by = $1 
+      FROM photo_storage
+      WHERE uploaded_by = $1
       AND is_thumbnail = false
-      ORDER BY created_at DESC 
+      AND image_type = 'starcard_generated'
+      ORDER BY created_at DESC
       LIMIT 1
     `, [userId]);
 
