@@ -1106,14 +1106,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 mt-6">
-                <h4 className="font-medium text-gray-700 mb-2">Selection Tip</h4>
-                <p className="text-sm text-gray-600">
-                  Choose attributes that reflect how you feel and perform when you're deeply engaged in meaningful work. 
-                  These will appear in the four corners of your Star Card.
-                </p>
-              </div>
-
               {isCardComplete && (
                 <div className="mb-4">
                   <Button 
