@@ -1019,16 +1019,10 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="mb-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-gray-600">
-                      Choose 4 words that best describe your flow state. Click badges to select/deselect. Once selected, use the grip handle to drag and reorder your selections.
-                    </p>
-                  </div>
-
                   {/* Selected attributes */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <p className="text-sm text-gray-700 mb-2">Think of a moment when you were completely absorbed and performing at your peak. In that flow state, what qualities emerged? Select 4 words below in order of how strongly you associate with them.</p>
+                      <p className="text-sm text-gray-700 mb-2">Think of a moment when you were completely absorbed and performing at your peak. In that flow state, what qualities emerged? <strong>Select 4 words below in order of how strongly you associate with them.</strong></p>
                     </div>
 
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
