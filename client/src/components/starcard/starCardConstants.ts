@@ -14,32 +14,27 @@ export const DEFAULT_COLOR = 'rgb(229, 231, 235)'; // Gray for empty state
 
 // Consolidated attribute categorization (merge all existing versions)
 const THINKING_ATTRIBUTES = [
-  'Analytical', 'Strategic', 'Thoughtful', 'Clever', 'Innovative', 'Investigative',
-  'Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 'Focused',
-  'Insightful', 'Logical', 'Rational', 'Reflective', 'Sensible'
+  'Abstract', 'Analytical', 'Astute', 'Big-picture', 'Curious',
+  'Focussed', 'Insightful', 'Logical', 'Precise', 'Rational',
+  'Reflective', 'Sensible', 'Strategic', 'Thoughtful'
 ].map(a => a.toLowerCase());
 
 const FEELING_ATTRIBUTES = [
-  'Empathetic', 'Friendly', 'Supportive', 'Compassionate', 'Intuitive', 'Empathic',
-  'Accepting', 'Authentic', 'Calm', 'Caring', 'Connected', 'Considerate', 'Diplomatic',
-  'Emotional', 'Generous', 'Gentle', 'Grateful', 'Harmonious', 'Helpful', 'Kind', 
-  'Open', 'Sociable', 'Vulnerable', 'Passionate', 'Creative', 'Receptive',
-  'Collaborative', 'Encouraging', 'Expressive', 'Inspiring', 'Objective', 'Positive'
+  'Collaborative', 'Compassionate', 'Creative', 'Encouraging', 'Empathic',
+  'Engaged', 'Expressive', 'Inclusive', 'Intuitive', 'Open-minded',
+  'Positive', 'Receptive', 'Resilient', 'Supportive'
 ].map(a => a.toLowerCase());
 
 const PLANNING_ATTRIBUTES = [
-  'Organized', 'Meticulous', 'Reliable', 'Consistent', 'Practical', 'Careful',
-  'Controlled', 'Dependable', 'Detailed', 'Detail-Oriented', 'Diligent', 'Methodical',
-  'Orderly', 'Precise', 'Punctual', 'Responsible', 'Thorough', 'Trustworthy', 
-  'Immersed', 'Industrious', 'Straightforward', 'Tidy', 'Systematic'
+  'Attentive', 'Conscientious', 'Detail-oriented', 'Diligent', 'Methodical',
+  'Organized', 'Practical', 'Reliable', 'Responsible', 'Straightforward',
+  'Structured', 'Systematic', 'Thorough', 'Tidy'
 ].map(a => a.toLowerCase());
 
 const ACTING_ATTRIBUTES = [
-  'Energetic', 'Bold', 'Decisive', 'Proactive', 'Persistent', 'Physical', 'Confident',
-  'Adaptable', 'Adventurous', 'Adventuresome', 'Assertive', 'Brave', 'Capable', 
-  'Challenging', 'Courageous', 'Dynamic', 'Fearless', 'Resolute', 'Resourceful', 
-  'Strong', 'Competitive', 'Effortless', 'Engaged', 'Funny', 'Persuasive', 
-  'Open-Minded', 'Optimistic', 'Resilient', 'Spontaneous', 'Vigorous'
+  'Adventurous', 'Competitive', 'Dynamic', 'Effortless', 'Energetic',
+  'Funny', 'Inspiring', 'Motivating', 'Optimistic', 'Passionate',
+  'Persuasive', 'Spontaneous', 'Vigorous'
 ].map(a => a.toLowerCase());
 
 // Single source of truth for attribute colors

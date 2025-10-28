@@ -48,91 +48,91 @@ interface RankedAttribute {
 
 // All flow attributes in a single list - grouped by quadrant for better organization
 const flowAttributes = [
-  // Thinking attributes
-  "Abstract", "Analytic", "Astute", "Big Picture", "Curious", 
-  "Focused", "Insightful", "Logical", "Investigative", "Rational", 
+  // Thinking attributes (Green) - 14 attributes
+  "Abstract", "Analytical", "Astute", "Big-picture", "Curious",
+  "Focussed", "Insightful", "Logical", "Precise", "Rational",
   "Reflective", "Sensible", "Strategic", "Thoughtful",
 
-  // Feeling attributes
-  "Collaborative", "Creative", "Encouraging", "Expressive",
-  "Empathic", "Intuitive", "Inspiring", "Objective", "Passionate",
-  "Positive", "Receptive", "Supportive",
+  // Feeling attributes (Blue) - 14 attributes
+  "Collaborative", "Compassionate", "Creative", "Encouraging", "Empathic",
+  "Engaged", "Expressive", "Inclusive", "Intuitive", "Open-minded",
+  "Positive", "Receptive", "Resilient", "Supportive",
 
-  // Planning attributes
-  "Detail-Oriented", "Diligent", "Immersed", "Industrious", "Methodical",
-  "Organized", "Precise", "Punctual", "Reliable", "Responsible",
-  "Straightforward", "Tidy", "Systematic", "Thorough",
+  // Planning attributes (Yellow) - 14 attributes
+  "Attentive", "Conscientious", "Detail-oriented", "Diligent", "Methodical",
+  "Organized", "Practical", "Reliable", "Responsible", "Straightforward",
+  "Structured", "Systematic", "Thorough", "Tidy",
 
-  // Acting attributes
-  "Adventuresome", "Competitive", "Dynamic", "Effortless", "Energetic",
-  "Engaged", "Funny", "Persuasive", "Open-Minded", "Optimistic",
-  "Practical", "Resilient", "Spontaneous", "Vigorous"
+  // Acting attributes (Red) - 14 attributes
+  "Adventurous", "Competitive", "Dynamic", "Effortless", "Energetic",
+  "Funny", "Inspiring", "Motivating", "Optimistic", "Passionate",
+  "Persuasive", "Spontaneous", "Vigorous"
 ];
 
 // Attribute descriptions for tooltips
 const attributeDescriptions: Record<string, string> = {
-  // Thinking attributes
-  "Abstract": "Thinking in concepts and ideas rather than concrete details",
-  "Analytic": "Breaking down complex problems into logical parts",
-  "Astute": "Showing sharp perception and good judgment",
-  "Big Picture": "Seeing the overall view and long-term implications",
-  "Curious": "Eager to learn and explore new ideas",
-  "Focused": "Maintaining concentrated attention on the task",
-  "Insightful": "Understanding deeper meanings and patterns",
-  "Investigative": "Examining and researching systematically",
-  "Logical": "Using reason and clear thinking",
-  "Rational": "Making decisions based on facts and reasoning",
-  "Reflective": "Taking time to think deeply about experiences",
-  "Sensible": "Making practical, well-reasoned choices",
-  "Strategic": "Planning with long-term goals in mind",
-  "Thoughtful": "Showing careful consideration",
+  // Thinking attributes (Green)
+  "Abstract": "Thinks in concepts beyond the concrete",
+  "Analytical": "Breaks down ideas to understand detail",
+  "Astute": "Quickly grasps key insights or patterns",
+  "Big-picture": "Sees overall context and long view",
+  "Curious": "Seeks to explore and understand deeply",
+  "Focussed": "Maintains steady concentration on task",
+  "Insightful": "Recognizes underlying causes or meaning",
+  "Logical": "Reasons clearly and consistently through facts",
+  "Precise": "Values accuracy and careful expression",
+  "Rational": "Bases conclusions on sound reasoning",
+  "Reflective": "Thinks back to learn and improve",
+  "Sensible": "Uses sound judgment in decisions",
+  "Strategic": "Plans ahead to achieve long-term aims",
+  "Thoughtful": "Considers impact and meaning carefully",
 
-  // Feeling attributes
-  "Collaborative": "Working effectively with others toward shared goals",
-  "Compassionate": "Showing deep care and empathy for others",
-  "Creative": "Generating original ideas and solutions",
-  "Empathic": "Understanding and sharing others' feelings",
-  "Encouraging": "Giving support and confidence to others",
-  "Expressive": "Communicating thoughts and feelings openly",
-  "Inspiring": "Motivating others to achieve their best",
-  "Intuitive": "Understanding things instinctively",
-  "Objective": "Viewing situations without bias",
-  "Passionate": "Bringing intense enthusiasm and energy",
-  "Positive": "Maintaining an optimistic outlook",
-  "Receptive": "Being open to new ideas and feedback",
-  "Supportive": "Providing help and encouragement",
+  // Feeling attributes (Blue)
+  "Collaborative": "Works easily and productively with others",
+  "Compassionate": "Responds with care to others' needs",
+  "Creative": "Generates original and imaginative ideas",
+  "Encouraging": "Helps others grow with positive feedback",
+  "Empathic": "Understands and feels others' emotions",
+  "Engaged": "Emotionally present and responsive",
+  "Expressive": "Communicates feelings openly and vividly",
+  "Inclusive": "Welcomes diverse views and participation",
+  "Intuitive": "Understands quickly without needing analysis",
+  "Open-minded": "Receptive to different ideas and perspectives",
+  "Positive": "Brings optimism and constructive attitude",
+  "Receptive": "Open to input, feedback, and change",
+  "Resilient": "Recovers quickly from stress or setback",
+  "Supportive": "Offers steady help and reassurance",
 
-  // Planning attributes
-  "Detail-Oriented": "Paying close attention to specifics",
-  "Diligent": "Working with care and persistence",
-  "Immersed": "Fully absorbed in the work",
-  "Industrious": "Working hard and steadily",
-  "Methodical": "Following a systematic, orderly approach",
-  "Organized": "Arranging things systematically",
-  "Precise": "Being exact and accurate",
-  "Punctual": "Consistently on time",
-  "Reliable": "Consistently dependable",
-  "Responsible": "Taking ownership and accountability",
-  "Straightforward": "Being direct and clear",
-  "Systematic": "Following structured procedures",
-  "Thorough": "Completing work with careful attention",
-  "Tidy": "Keeping things neat and organized",
+  // Planning attributes (Yellow)
+  "Attentive": "Notices details and stays observant",
+  "Conscientious": "Completes tasks with care and integrity",
+  "Detail-oriented": "Cares about precision and specifics",
+  "Diligent": "Works steadily and with persistence",
+  "Methodical": "Follows clear steps and structure",
+  "Organized": "Keeps information and priorities in order",
+  "Practical": "Focuses on workable, real-world results",
+  "Reliable": "Can be trusted to deliver consistently",
+  "Responsible": "Takes ownership for outcomes and duties",
+  "Straightforward": "Communicates clearly and directly",
+  "Structured": "Builds systems that support consistency",
+  "Systematic": "Approaches tasks through repeatable process",
+  "Thorough": "Ensures nothing is missed or incomplete",
+  "Tidy": "Maintains order and clarity in work",
 
-  // Acting attributes
-  "Adventuresome": "Seeking new and exciting experiences",
-  "Competitive": "Driven to excel and win",
-  "Dynamic": "Full of energy and new ideas",
-  "Effortless": "Making difficult things look easy",
-  "Energetic": "Showing high levels of activity and enthusiasm",
-  "Engaged": "Fully involved and committed",
-  "Funny": "Using humor effectively",
-  "Open-Minded": "Willing to consider new ideas",
-  "Optimistic": "Maintaining a positive, hopeful outlook",
-  "Persuasive": "Convincing others effectively",
-  "Practical": "Focusing on what works in real situations",
-  "Resilient": "Bouncing back from setbacks",
-  "Spontaneous": "Acting on impulse and energy in the moment",
-  "Vigorous": "Strong, active, and full of energy"
+  // Acting attributes (Red)
+  "Adventurous": "Willing to take bold new risks",
+  "Competitive": "Driven to excel and outperform others",
+  "Dynamic": "Full of energy and forward motion",
+  "Effortless": "Acts naturally without strain or force",
+  "Energetic": "Brings vitality and lively momentum",
+  "Funny": "Uses humor to connect and uplift",
+  "Inspiring": "Motivates others through example or vision",
+  "Motivating": "Sparks enthusiasm and forward action",
+  "Optimistic": "Expects positive outcomes and possibilities",
+  "Passionate": "Acts with heartfelt intensity and purpose",
+  "Persuasive": "Influences others with clarity and conviction",
+  "Spontaneous": "Responds freely and creatively in the moment",
+  "Vigorous": "Pursues goals with strong physical drive"
 };
 
 // Sortable flow badge component for drag-and-drop reordering
@@ -319,6 +319,13 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
     workshop: 'allstarteams',
     stepId: '2-2',
   });
+
+  // Fetch flow attributes intro video
+  const { data: flowIntroVideoData, isLoading: flowIntroVideoLoading, error: flowIntroVideoError } = trpc.lesson.byStep.useQuery({
+    workshop: 'allstarteams',
+    stepId: '2-2-flow-intro',
+  });
+
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
@@ -938,6 +945,31 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
         </p>
       </div>
 
+      {/* Flow State Introduction Video */}
+      <div className="mb-8">
+        {flowIntroVideoLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-3 text-gray-600">Loading video...</span>
+          </div>
+        ) : flowIntroVideoError ? (
+          <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+            Error loading video. Using fallback.
+          </div>
+        ) : flowIntroVideoData ? (
+          <VideoTranscriptGlossary
+            youtubeId={flowIntroVideoData.youtubeId}
+            title={flowIntroVideoData.title}
+            transcriptMd={flowIntroVideoData.transcriptMd}
+            glossary={flowIntroVideoData.glossary ?? []}
+          />
+        ) : (
+          <VideoTranscriptGlossary
+            youtubeId="jGVtiaQJ1a4"
+            title="Flow State Introduction"
+          />
+        )}
+      </div>
 
       {hasExistingAttributes && !showSelectionInterface && !workshopCompleted && (
         <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-6">
