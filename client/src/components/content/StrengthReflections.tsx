@@ -161,7 +161,7 @@ export default function StrengthReflections({
         'I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change.',
         'I value team environments where open communication is prioritized and every member\'s contributions are recognized. I work best when there\'s a culture of constructive feedback.'
       ],
-      strengthColor: { bg: 'bg-gray-400', text: 'text-white', name: 'TEAM' },
+      strengthColor: { bg: '', text: 'text-white', name: 'TEAM', style: { backgroundColor: 'rgb(100, 116, 139)' } },
       minLength: 25,
     };
 
@@ -179,7 +179,7 @@ export default function StrengthReflections({
         'I bring value through my combination of planning and empathy. I create structured processes while ensuring everyone feels heard and supported throughout implementation.',
         'My unique contribution comes from balancing analytical thinking with relationship building. This helps me develop solutions that are both technically sound and people-focused.'
       ],
-      strengthColor: { bg: 'bg-gray-500', text: 'text-white', name: 'YOU' },
+      strengthColor: { bg: '', text: 'text-white', name: 'YOU', style: { backgroundColor: 'rgb(71, 85, 105)' } },
       minLength: 25,
     };
 
