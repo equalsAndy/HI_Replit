@@ -41,6 +41,7 @@ import aiManagementRoutes from './routes/ai-management-routes.ts';
 // import personaManagementRoutes from './routes/persona-management-routes.ts'; // Temporarily disabled - causes startup hang
 import betaTesterRoutes from './routes/beta-tester-routes.ts';
 import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.ts';
+import beyondASTRoutes from './routes/beyond-ast-routes.ts';
 import metaliaRoutes from './routes/metalia-routes.ts';
 import growthPlanRoutes from './routes/growth-plan-routes.ts';
 import adminChatRoutes from './routes/admin-chat-routes.ts';
@@ -492,6 +493,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
       app.use('/api/beta-tester', betaTesterNotesRoutes);
+      app.use('/api/beyond-ast', beyondASTRoutes);
       // Admin hard-delete endpoint
       app.use('/admin', adminRouter);
       app.use('/api/metalia', metaliaRoutes);

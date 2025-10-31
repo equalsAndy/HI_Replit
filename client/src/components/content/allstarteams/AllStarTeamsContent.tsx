@@ -11,7 +11,6 @@ import FlowStarCardView from '../FlowStarCardView';
 import { ProtectedFlowPatternsView } from '../ProtectedFlowPatternsView';
 import { ProtectedFutureSelfView } from '../ProtectedFutureSelfView';
 
-import FlowRoundingOutView from '../FlowRoundingOutView';
 import WellBeingView from '../WellBeingView';
 import CantrilLadderView from '../CantrilLadderView';
 import VisualizingYouView from '../VisualizingYouView';
@@ -39,6 +38,7 @@ import SelfAwarenessOpportunityView from '../SelfAwarenessOpportunityView';
 import AboutCourseView from '../AboutCourseView';
 import ComprehensiveAssessmentsView from '../ComprehensiveAssessmentsView';
 import PersonalProfileContainer from './PersonalProfileContainer';
+import BeyondASTView from './BeyondASTView';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -119,16 +119,6 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     case 'wellbeing-ladder':
       return (
         <WellBeingView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-        />
-      );
-
-    case 'rounding-out':
-      return (
-        <FlowRoundingOutView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -219,16 +209,6 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );
 
-    case 'flow-rounding-out':
-      return (
-        <FlowRoundingOutView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-        />
-      );
-
     case 'flow-star-card':
       return (
         <FlowStarCardView
@@ -284,9 +264,10 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     case 'final-reflection-4-5':
     case '4-5':
     case 'your-statement':
+    case '3-3':
       console.log(`🔍 AllStarTeamsContent: Rendering FinalReflectionView for content: ${currentContent}`);
       return (
-        <FinalReflectionView 
+        <FinalReflectionView
           currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
@@ -433,6 +414,14 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
       );
 
     case 'extra-stuff':
+      return (
+        <BeyondASTView
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
     case 'more-fun-stuff':
     case 'personal-profile':
       return (
