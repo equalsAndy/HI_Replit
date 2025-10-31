@@ -150,7 +150,7 @@ export default function FinalReflectionView({
       }, 1000); // Increased delay to ensure DOM updates
 
       // Navigate to workshop recap (step 3-4) for all users
-      setCurrentContent('finish-workshop');
+      setCurrentContent('workshop-recap');
       
     } catch (error) {
       console.error('Failed to save final reflection:', error);
@@ -290,7 +290,7 @@ export default function FinalReflectionView({
                     </div>
 
                     <button
-                      onClick={() => setCurrentContent('finish-workshop')}
+                      onClick={() => setCurrentContent('workshop-recap')}
                       className="continue-button enabled"
                     >
                       Continue to Workshop Recap

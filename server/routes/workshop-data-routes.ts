@@ -3020,8 +3020,9 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
     }
     
     // Define required steps for each workshop type (only core modules 1-3 for AST)
+    // Note: Step 2-3 was removed from the workshop - no longer required
     const requiredSteps = appType === 'ast'
-      ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4']
+      ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-4', '3-1', '3-2', '3-3', '3-4']
       : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
     
     const allCompleted = requiredSteps.every(step => completedSteps.includes(step));

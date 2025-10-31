@@ -12,7 +12,7 @@ interface WorkshopRecapProps {
 
 export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: WorkshopRecapProps) {
   const [isFinishing, setIsFinishing] = useState(false);
-  const { completeWorkshop, astCompleted, iaCompleted } = useWorkshopStatus();
+  const { completeWorkshop, astCompleted, iaCompleted, triggerGlobalCompletion } = useWorkshopStatus();
   const { currentApp } = useApplication();
   const appType = currentApp === 'allstarteams' ? 'ast' : 'ia';
   const isWorkshopCompleted = appType === 'ast' ? astCompleted : iaCompleted;
@@ -41,6 +41,10 @@ export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: 
 
       if (result.success) {
         console.log('✅ Workshop completed successfully from recap');
+
+        // CRITICAL: Trigger global completion listeners to update all components
+        console.log('🔔 Triggering global completion listeners to unlock Modules 4 & 5...');
+        triggerGlobalCompletion();
 
         // Removed auto-scroll as per requirements
 
@@ -147,7 +151,7 @@ export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: 
           <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
           What You Accomplished
         </h2>
-        
+
         <div className="space-y-4">
           {accomplishments.map((item, index) => (
             <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
@@ -164,13 +168,60 @@ export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: 
         </div>
       </div>
 
+      {/* Finish Workshop Button */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 p-6 mb-8">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+            <Award className="w-6 h-6 text-green-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
+            {isWorkshopCompleted ? 'Workshop Completed' : 'Complete Your Workshop'}
+          </h2>
+          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+            {isWorkshopCompleted
+              ? 'Your workshop is complete! Modules 1-3 are now locked for reference, and Modules 4-5 are unlocked for your takeaways.'
+              : 'Ready to finish and unlock your takeaways? Click below to complete your workshop journey and access your Star Card, holistic report, and additional resources.'
+            }
+          </p>
+
+          <button
+            onClick={handleFinishWorkshop}
+            disabled={isFinishing}
+            className={`
+              px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200
+              ${
+                isFinishing
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700 hover:shadow-lg transform hover:-translate-y-0.5'
+              }
+            `}
+            data-continue-button="true"
+          >
+            {isFinishing ? (
+              <>
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Finishing Workshop...
+              </>
+            ) : (
+              isWorkshopCompleted ? 'Go to Star Card' : 'Finish Workshop & Unlock Modules 4-5'
+            )}
+          </button>
+
+          {isFinishing && (
+            <p className="text-sm text-green-600 mt-3 font-medium">
+              🎉 Congratulations! Unlocking your next steps...
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Next Steps */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
           <ArrowRight className="w-6 h-6 text-blue-600 mr-2" />
           Your Next Steps
         </h2>
-        
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {nextSteps.map((step, index) => (
             <button
@@ -205,53 +256,6 @@ export default function WorkshopRecap({ setCurrentContent, markStepCompleted }: 
               </p>
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Finish Workshop Button */}
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 p-6 mb-8">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-            <Award className="w-6 h-6 text-green-600" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-3">
-            {isWorkshopCompleted ? 'Workshop Completed' : 'Complete Your Workshop'}
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            {isWorkshopCompleted
-              ? 'Your workshop is complete! Modules 1-3 are now locked for reference, and Modules 4-5 are unlocked for your takeaways.'
-              : 'Ready to finish and unlock your takeaways? Click below to complete your workshop journey and access your Star Card, holistic report, and additional resources.'
-            }
-          </p>
-          
-          <button
-            onClick={handleFinishWorkshop}
-            disabled={isFinishing}
-            className={`
-              px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200
-              ${
-                isFinishing
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700 hover:shadow-lg transform hover:-translate-y-0.5'
-              }
-            `}
-            data-continue-button="true"
-          >
-            {isFinishing ? (
-              <>
-                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Finishing Workshop...
-              </>
-            ) : (
-              isWorkshopCompleted ? 'Go to Star Card' : 'Finish Workshop & Unlock Modules 4-5'
-            )}
-          </button>
-          
-          {isFinishing && (
-            <p className="text-sm text-green-600 mt-3 font-medium">
-              🎉 Congratulations! Unlocking your next steps...
-            </p>
-          )}
         </div>
       </div>
 
