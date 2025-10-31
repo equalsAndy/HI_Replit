@@ -691,7 +691,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
       markStepCompleted('2-2');  // Complete step 2-2 (Flow Patterns), not 3-1
     }
     if (setCurrentContent) {
-      setCurrentContent('flow-rounding-out');
+      setCurrentContent('module-2-recap');
     }
   };
 
@@ -730,20 +730,65 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           )}
         </div>
 
-        {/* Some Things to Know Header */}
+        {/* Understanding Flow Header */}
         <div className="section-headers-tabs-60 mt-16 mb-4">
           <div className="section-headers-pill-60 section-headers-pill-60--content">
             <div className="section-headers-pill-60__strip" aria-hidden="true" />
-            <div className="section-headers-pill-60__box">📚 Some Things to Know</div>
+            <div className="section-headers-pill-60__box">📚 Understanding Flow</div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Understanding Flow</h2>
 
-          <p className="text-gray-700 mb-6">
-            Flow is when you're fully absorbed in an activity—energized, focused, and enjoying the moment. Time seems to disappear.
-          </p>
+          {/* Two-column layout for intro text + diagram + benefits */}
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+
+            {/* LEFT COLUMN: Text Content */}
+            <div className="space-y-6">
+              {/* Flow definition */}
+              <p className="text-gray-700 text-base leading-relaxed">
+                Flow is when you're fully absorbed in an activity—energized, focused, and enjoying the moment. Time seems to disappear.
+              </p>
+
+              {/* Benefits Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-blue-700 mb-3">Benefits of Flow</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Higher productivity & performance</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>More creativity & innovation</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Greater satisfaction & motivation</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Reduced stress & anxiety</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Stronger learning & skill growth</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: Flow Diagram */}
+            <div className="flex items-center justify-center">
+              <div className="w-full max-w-md p-4">
+                <img
+                  src="/assets/FlowDiagram.png"
+                  alt="Flow State Diagram - Challenge vs Skill Balance"
+                  className="w-full h-auto rounded-lg shadow-md"
+                />
+              </div>
+            </div>
+          </div>
 
           <h3 className="text-lg font-semibold text-blue-700 mb-4">Key Conditions</h3>
 
@@ -797,15 +842,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             </div>
           </div>
 
-          <h3 className="text-lg font-semibold text-blue-700 mb-4">Benefits of Flow</h3>
-
-          <ul className="list-disc pl-5 text-gray-700 space-y-2 mb-6">
-            <li>Higher productivity & performance</li>
-            <li>More creativity & innovation</li>
-            <li>Greater satisfaction & motivation</li>
-            <li>Reduced stress & anxiety</li>
-            <li>Stronger learning & skill growth</li>
-          </ul>
         </div>
 
         {/* Flow Assessment Section - New Modal Launch Area */}
@@ -871,11 +907,16 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   onClick={() => setIsResponseSummaryExpanded(!isResponseSummaryExpanded)}
                   className="w-full flex justify-between items-center text-left hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
                 >
-                  <h4 className="text-lg font-semibold text-gray-900">Your Responses Summary</h4>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">Flow Assessment Review</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Click here to see your answers all together. Consider how you might create more opportunities for flow in your work and life.
+                    </p>
+                  </div>
                   {isResponseSummaryExpanded ? (
-                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                    <ChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                    <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
                   )}
                 </button>
 
@@ -909,12 +950,15 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               {!showAttributesActivity && (
                 <div className="mt-6">
                   <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">What's Next?</h3>
-                    <p className="text-gray-700">
-                      After completing your flow assessment, you'll explore your results in more detail and learn how to create more
-                      opportunities for flow in your work and life. This understanding will be added to your Star Card to create
-                      a complete picture of your strengths and optimal performance conditions.
-                    </p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">What's Next?</h3>
+
+                    <div>
+                      <h4 className="font-bold text-gray-800 mb-2">Star Card Completion</h4>
+                      <ul className="list-disc pl-5 text-gray-700 space-y-1">
+                        <li>You've identified your Core Strengths and how you tend to apply them.</li>
+                        <li>Now, let's consider what core strengths surface during your flow state.</li>
+                      </ul>
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button
@@ -939,11 +983,18 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Add Flow to Your Star Card</h1>
 
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
-        <p className="text-blue-700 mb-0 text-lg">
-          Flow attributes represent how you work at your best. They complement your Star strengths profile which shows what you're naturally good at.
-          Together, they create a more complete picture of your professional identity and help others understand how to collaborate with you effectively.
+        <p className="text-blue-700 mb-2 text-lg font-semibold">
+          Your Star Card is built on Two Dimensions:
         </p>
+        <ul className="list-disc pl-5 text-blue-700 space-y-1">
+          <li>Your Core Strengths show how you usually operate</li>
+          <li>Your Flow Amplifiers show the strengths that intensify when you're in flow</li>
+        </ul>
       </div>
+
+      <p className="text-gray-800 font-bold mb-4">
+        Watch the video below to hear some Flow stories from Lion Software.
+      </p>
 
       {/* Flow State Introduction Video */}
       <div className="mb-8">
@@ -969,6 +1020,21 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             title="Flow State Introduction"
           />
         )}
+      </div>
+
+      {/* Step 1 Instructions */}
+      <div className="bg-gray-50 rounded-lg p-6 mb-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Step 1: Recall a Flow Experience</h3>
+        <p className="text-gray-700 mb-3">
+          Think of a time you were completely absorbed and performing at your best. What words describe that state?
+        </p>
+        <ul className="list-disc pl-5 text-gray-700 space-y-2 mb-3">
+          <li>What did that feel like?</li>
+          <li>What words describe your state of mind?</li>
+        </ul>
+        <p className="text-gray-600 italic">
+          This is a subjective exercise. There are no right or wrong answers.
+        </p>
       </div>
 
       {hasExistingAttributes && !showSelectionInterface && !workshopCompleted && (
@@ -1022,7 +1088,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
                   {/* Show selected attributes in a read-only display */}
                   <div className="mb-4">
-                    <p className="text-sm text-gray-700 mb-2">Think of a moment when you were completely absorbed and performing at your peak. In that flow state, what qualities emerged? Select 4 words below in order of how strongly you associate with them.</p>
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       <div className="flex flex-wrap gap-2">
                         {selectedAttributes
@@ -1048,14 +1113,14 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             </>
           ) : (
             <>
-              <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Step 2: Select 4 Flow Amplifiers</h3>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="mb-4">
+                  <p className="text-sm text-gray-700 mb-4">
+                    Each adjective below reflects qualities related to one of the four core strengths Thinking, Planning, Feeling, and Acting. The adjectives give texture and emotional depth to each strength. Choose 4 that describe your flow state strengths in order of how strongly you associate with them (1 is the strongest).
+                  </p>
                   {/* Selected attributes */}
                   <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <p className="text-sm text-gray-700 mb-2">Think of a moment when you were completely absorbed and performing at your peak. In that flow state, what qualities emerged? <strong>Select 4 words below in order of how strongly you associate with them.</strong></p>
-                    </div>
 
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
@@ -1214,8 +1279,8 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   }
 
                   if (setCurrentContent) {
-                    console.log('✅ Navigating to rounding-out');
-                    setCurrentContent("rounding-out");
+                    console.log('✅ Navigating to module-2-recap');
+                    setCurrentContent("module-2-recap");
 
                     // Scroll to content title anchor when navigating
                     setTimeout(() => {
@@ -1231,7 +1296,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
                 data-continue-button="true"
               >
-                Continue to Rounding out Flow <ChevronRight className="ml-2 h-4 w-4" />
+                Continue to Recap <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           )}

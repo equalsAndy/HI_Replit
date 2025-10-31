@@ -39,8 +39,7 @@ export default function Mod2RecapView({
     <div className="mod2-recap-container">
       <div className="page-container">
         <div className="header-section">
-          <h1 className="main-title">Module 2 Recap</h1>
-          <p className="subtitle">Reflecting on Your Strengths and Flow Journey</p>
+          <h1 className="main-title">🌟 Module 2 Recap</h1>
         </div>
         
         <div className="content-section">
@@ -49,7 +48,7 @@ export default function Mod2RecapView({
               <div className="achievement-icon">🌟</div>
               <h2 className="achievement-title">What You've Accomplished</h2>
               <p className="achievement-description">
-                Congratulations! You've completed Module 2 and made significant progress in understanding yourself better.
+                Congratulations! You've completed Module 2 and deepened your understanding of what makes you unique. Let's reflect on the powerful insights you've gained about your strengths and when you perform at your best.
               </p>
             </div>
 
@@ -58,7 +57,7 @@ export default function Mod2RecapView({
                 <div className="recap-icon">💪</div>
                 <h3 className="recap-title">Discovered Your Strengths</h3>
                 <p className="recap-description">
-                  You've identified your core strengths across imagination, thinking, planning, feeling, and acting.
+                  You completed your Star Strengths Assessment and identified your core strengths across Imagining, Thinking, Planning, Feeling, and Acting—the five fundamental ways we engage with our work and life.
                 </p>
               </div>
 
@@ -66,7 +65,7 @@ export default function Mod2RecapView({
                 <div className="recap-icon">🌊</div>
                 <h3 className="recap-title">Found Your Flow</h3>
                 <p className="recap-description">
-                  You've explored when and how you perform at your best, discovering your unique flow patterns.
+                  You recalled times when you were completely absorbed, energized, and performing at your peak. You identified your Flow Amplifiers—the qualities that intensify when you're in your flow state.
                 </p>
               </div>
 
@@ -74,29 +73,28 @@ export default function Mod2RecapView({
                 <div className="recap-icon">🎯</div>
                 <h3 className="recap-title">Created Your Star Card</h3>
                 <p className="recap-description">
-                  You've built a personalized profile that captures your strengths and flow qualities.
+                  You built a personalized visual profile that captures your unique combination of core strengths and flow amplifiers—your Star Card that reflects who you are at your best.
                 </p>
               </div>
 
               <div className="recap-item">
-                <div className="recap-icon">💭</div>
-                <h3 className="recap-title">Reflected on Growth</h3>
+                <div className="recap-icon">✨</div>
+                <h3 className="recap-title">Integrated Your Insights</h3>
                 <p className="recap-description">
-                  You've taken time to reflect on your insights and how they apply to your life and work.
+                  You've woven together your understanding of how your strengths show up in your daily work and when you're in flow. You now have a clearer picture of what enables you to thrive.
                 </p>
               </div>
             </div>
 
             <div className="next-module-preview">
-              <h2 className="preview-title">What's Next: Module 3</h2>
+              <h2 className="preview-title">What's Next: Module 3 — Visualize Your Potential</h2>
               <p className="preview-description">
-                Now that you understand your strengths and flow, it's time to visualize your potential. In Module 3, you'll explore:
+                Now that you understand your strengths and flow patterns, it's time to envision where they can take you. In Module 3, you'll:
               </p>
               <ul className="preview-list">
-                <li>Your personal well-being and growth trajectory</li>
-                <li>Rounding out your complete profile</li>
-                <li>Creating a vision for your future self</li>
-                <li>Capturing your key reflections and intentions</li>
+                <li>Place yourself on the Well-Being Ladder and explore your path to growth and fulfillment</li>
+                <li>Envision your Future Self—who you're becoming as you grow into your strengths</li>
+                <li>Capture one powerful insight from your journey so far to carry forward</li>
               </ul>
             </div>
           </div>
@@ -108,7 +106,7 @@ export default function Mod2RecapView({
             className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
             data-continue-button="true"
           >
-            Continue to Well-Being Ladder
+            ➡️ Continue to Well-Being Ladder
           </Button>
         </div>
       </div>

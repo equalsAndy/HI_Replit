@@ -42,7 +42,7 @@ export default function AllStarTeamsWorkshop() {
   } = useWelcomeVideo();
   // Updated to use unified navigation system
   const navigation = useUnifiedWorkshopNavigation('ast');
-  const { isWorkshopLocked, isModuleAccessible, getStepModule } = useWorkshopStatus();
+  const { isWorkshopLocked, isModuleAccessible, getStepModule, astCompleted } = useWorkshopStatus();
   const { setCurrentStepId } = useStepContextSafe();
   const {
     progress: navProgress,
@@ -683,9 +683,8 @@ export default function AllStarTeamsWorkshop() {
 
     // MODULE 2: STRENGTH AND FLOW
     '2-1': { prev: '1-3', next: '2-2', contentKey: 'star-strengths-assessment' }, // ✅ IntroStrengthsView
-    '2-2': { prev: '2-1', next: '2-3', contentKey: 'flow-patterns' }, // ✅ IntroToFlowView (OLD 3-1)
-    '2-3': { prev: '2-2', next: '2-4', contentKey: 'rounding-out' }, // ✅ FlowRoundingOutView (OLD 3-2)
-    '2-4': { prev: '2-3', next: '3-1', contentKey: 'module-2-recap' }, // NEW - PlaceholderView
+    '2-2': { prev: '2-1', next: '2-4', contentKey: 'flow-patterns' }, // ✅ IntroToFlowView (OLD 3-1)
+    '2-4': { prev: '2-2', next: '3-1', contentKey: 'module-2-recap' }, // NEW - PlaceholderView
 
     // MODULE 3: VISUALIZE YOUR POTENTIAL
     '3-1': { prev: '2-4', next: '3-2', contentKey: 'wellbeing-ladder' }, // ✅ WellBeingView (OLD 4-1)
@@ -805,14 +804,15 @@ export default function AllStarTeamsWorkshop() {
     if (section.id === '5') return section;
 
     // Count completed steps in this section
-    const completedStepsInSection = section.steps.filter(step => 
+    const completedStepsInSection = section.steps.filter(step =>
       Array.isArray(completedSteps) && completedSteps.includes(step.id)
     ).length;
 
-    // Special handling for modules 4 and 5: expand when workshop recap (3-4) is completed
+    // Special handling for modules 4 and 5: expand when workshop is completed OR when step 3-4 is completed
     let shouldExpand = section.expanded;
-    if ((section.id === '4' || section.id === '5') && completedSteps.includes('3-4')) {
+    if ((section.id === '4' || section.id === '5') && (astCompleted || completedSteps.includes('3-4'))) {
       shouldExpand = true;
+      console.log(`🔓 Module ${section.id} unlocked - astCompleted: ${astCompleted}, 3-4 completed: ${completedSteps.includes('3-4')}`);
     }
 
     return {

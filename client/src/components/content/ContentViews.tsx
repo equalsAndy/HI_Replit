@@ -8,7 +8,6 @@ import ReflectionView from './ReflectionView';
 import FlowIntroView from './FlowIntroView';
 import IntroToFlowView from './IntroToFlowView';
 import FlowAssessmentView from './FlowAssessmentView';
-import FlowRoundingOutView from './FlowRoundingOutView';
 import VideoPlayer from './VideoPlayer';
 import { Button } from '@/components/ui/button';
 import FlowStarCardView from './FlowStarCardView';
@@ -518,16 +517,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'flow-assessment':
       return (
         <FlowAssessmentView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-        />
-      );
-
-    case 'flow-rounding-out':
-      return (
-        <FlowRoundingOutView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -1317,9 +1306,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       );
 
     case 'finish-workshop':
-    case 'workshop-recap':
       return (
-        <FinishWorkshopView 
+        <FinishWorkshopView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
