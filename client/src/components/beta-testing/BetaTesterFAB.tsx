@@ -4,12 +4,17 @@ import { BetaTesterNotesModal } from './BetaTesterNotesModal';
 import { useCurrentUser } from '../../hooks/use-current-user';
 import { isFeatureEnabled } from '../../utils/featureFlags';
 import { useBetaWorkshopCompletion } from '../../hooks/use-beta-workshop-completion';
+import { useNavigationProgress } from '../../hooks/use-navigation-progress';
 
 export const BetaTesterFAB: React.FC = () => {
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const { data: user } = useCurrentUser();
   const { isBetaTester, workshopCompleted } = useBetaWorkshopCompletion();
-  
+
+  // Get current step from navigation state (tracks which step user is viewing)
+  const { navigation } = useNavigationProgress('ast');
+  const currentViewingStep = navigation?.currentStep;
+
   // No need for page detection since FAB is hidden after workshop completion
 
   // Check if feedback system is enabled
@@ -73,6 +78,7 @@ export const BetaTesterFAB: React.FC = () => {
       <BetaTesterNotesModal
         isOpen={isNotesModalOpen}
         onClose={handleCloseNotesModal}
+        viewingStepId={currentViewingStep}
       />
     </>
   );

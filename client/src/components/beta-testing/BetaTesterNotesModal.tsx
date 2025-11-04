@@ -27,6 +27,7 @@ interface SystemInfo {
 interface BetaTesterNotesModalProps {
   isOpen: boolean;
   onClose: () => void;
+  viewingStepId?: string; // Step ID from navigation state (what user is actually viewing)
 }
 
 const NOTE_TYPES = [
@@ -37,30 +38,32 @@ const NOTE_TYPES = [
   { value: 'suggestion', label: 'Suggestion', icon: Lightbulb, color: 'yellow', desc: 'New feature or content idea' }
 ];
 
-export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOpen, onClose }) => {
+export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOpen, onClose, viewingStepId }) => {
   const { currentStepId: stepContextId } = useStepContextSafe();
   const { progress: navProgress } = useNavigationProgress('ast');
-  
+
   // Get current step ID from multiple sources with URL fallback
   const getStepIdFromUrl = (): string | undefined => {
     const url = window.location.pathname;
     const match = url.match(/\/(\d+-\d+|ia-\d+-\d+)/);
     return match ? match[1] : undefined;
   };
-  
-  const currentStepId = navProgress?.currentStepId || stepContextId || getStepIdFromUrl();
+
+  // Priority: viewingStepId (from navigation state) > stepContextId > navProgress (progression state) > URL
+  const currentStepId = viewingStepId || stepContextId || navProgress?.currentStepId || getStepIdFromUrl();
   
   // Debug modal state and step detection
   useEffect(() => {
     console.log('🔍 BetaTesterNotesModal render - isOpen:', isOpen);
     console.log('🔍 Step detection:', {
+      viewingStepId: viewingStepId,
       stepContextId,
       navProgressCurrentStep: navProgress?.currentStepId,
+      urlStepId: getStepIdFromUrl(),
       finalCurrentStepId: currentStepId,
-      currentUrl: window.location.pathname,
-      urlStepId: getStepIdFromUrl()
+      currentUrl: window.location.pathname
     });
-  }, [isOpen, stepContextId, navProgress?.currentStepId, currentStepId]);
+  }, [isOpen, stepContextId, navProgress?.currentStepId, currentStepId, viewingStepId]);
   
   const [noteContent, setNoteContent] = useState('');
   const [noteType, setNoteType] = useState<string>('general');
