@@ -431,16 +431,16 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] === true) : true) && (
                   <div className="relative">
                     {/* Module/Week Label spanning entire section - centered in 50px gap */}
-                    {(section.moduleNumber || section.weekNumber) && (
-                      <div 
+                    {(section.moduleNumber || section.weekNumber) && section.moduleNumber !== 4 && section.moduleNumber !== 5 && (
+                      <div
                         className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
                         style={{ marginLeft: '-8px' }}
                       >
                         <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-2 rounded text-center whitespace-nowrap"
-                             style={{ 
-                               writingMode: 'vertical-rl', 
-                               textOrientation: 'mixed', 
-                               transform: 'rotate(180deg)', 
+                             style={{
+                               writingMode: 'vertical-rl',
+                               textOrientation: 'mixed',
+                               transform: 'rotate(180deg)',
                                letterSpacing: '0.05em',
                                lineHeight: '1.2'
                              }}>

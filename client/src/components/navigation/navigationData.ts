@@ -259,7 +259,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
 export const allStarTeamsNavigationSections = [
   {
     id: '1',
-    title: 'MODULE 1: GETTING STARTED',
+    title: 'GETTING STARTED',
     moduleNumber: 1,
     steps: [
       { id: '1-1', title: 'The Self-Awareness Gap', type: 'video' }, // Content unchanged
@@ -269,7 +269,7 @@ export const allStarTeamsNavigationSections = [
   },
   {
     id: '2',
-    title: 'MODULE 2: STRENGTH AND FLOW',
+    title: 'STRENGTH AND FLOW',
     moduleNumber: 2,
     steps: [
       { id: '2-1', title: 'Star Strengths Assessment', type: 'video' }, // Content unchanged
@@ -279,7 +279,7 @@ export const allStarTeamsNavigationSections = [
   },
   {
     id: '3',
-    title: 'MODULE 3: VISUALIZE YOUR POTENTIAL',
+    title: 'VISUALIZE YOUR POTENTIAL',
     moduleNumber: 3,
     steps: [
       { id: '3-1', title: 'Well-Being Ladder', type: 'interactive' }, // Content: OLD 4-1 "Well-Being Ladder"
@@ -290,7 +290,7 @@ export const allStarTeamsNavigationSections = [
   },
   {
     id: '4',
-    title: 'MODULE 4: TAKEAWAYS & NEXT STEPS',
+    title: 'TAKEAWAYS & NEXT STEPS',
     moduleNumber: 4,
     expanded: false, // Unlocked after Module 3 completion
     steps: [
@@ -302,7 +302,7 @@ export const allStarTeamsNavigationSections = [
   },
   {
     id: '5',
-    title: 'MODULE 5: MORE INFORMATION',
+    title: 'MORE INFORMATION',
     moduleNumber: 5,
     expanded: false, // Unlocked after Module 3 completion
     steps: [

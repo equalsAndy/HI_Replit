@@ -1,320 +1,5 @@
 [
   {
-    "timestamp": "2025-10-13T20:50:07.942Z",
-    "mainBundleSize": 969384,
-    "totalSize": 1336835,
-    "bundles": [
-      {
-        "name": "ai-training-CptnIKst.js",
-        "type": "js",
-        "size": 42659,
-        "estimatedGzipped": 12798,
-        "isMain": false
-      },
-      {
-        "name": "allstarteams-BbtKazqp.js",
-        "type": "js",
-        "size": 503916,
-        "estimatedGzipped": 151175,
-        "isMain": false
-      },
-      {
-        "name": "book-open-DtYCokFB.js",
-        "type": "js",
-        "size": 448,
-        "estimatedGzipped": 134,
-        "isMain": false
-      },
-      {
-        "name": "bot-BjmumfO_.js",
-        "type": "js",
-        "size": 498,
-        "estimatedGzipped": 149,
-        "isMain": false
-      },
-      {
-        "name": "dashboard-new-BhEmHCq6.js",
-        "type": "js",
-        "size": 329091,
-        "estimatedGzipped": 98727,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas-DZ7_VfAF.js",
-        "type": "js",
-        "size": 1015,
-        "estimatedGzipped": 305,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "imaginal-agility-D1TWJuMB.js",
-        "type": "js",
-        "size": 237,
-        "estimatedGzipped": 71,
-        "isMain": false
-      },
-      {
-        "name": "index-Cn8uctCL.js",
-        "type": "js",
-        "size": 3231280,
-        "estimatedGzipped": 969384,
-        "isMain": true
-      },
-      {
-        "name": "index-upwa8hQG.css",
-        "type": "css",
-        "size": 173624,
-        "estimatedGzipped": 43406,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "FAIL",
-      "warnings": [
-        "Main bundle approaching size limit: 947KB / 500KB",
-        "Total assets approaching size limit: 1306KB / 1000KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-10-13T20:56:24.170Z",
-    "bundles": [
-      {
-        "name": "assets/index-C84wVwVK.js",
-        "size": 2072125,
-        "estimatedGzipped": 621638,
-        "isEntry": true,
-        "modules": 1123
-      },
-      {
-        "name": "assets/allstarteams-Dg6S-CuH.js",
-        "size": 242760,
-        "estimatedGzipped": 72828,
-        "isEntry": false,
-        "modules": 40
-      },
-      {
-        "name": "assets/imaginal-agility-Q_QNvfbE.js",
-        "size": 102,
-        "estimatedGzipped": 31,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/dashboard-new-BUzbloag.js",
-        "size": 142572,
-        "estimatedGzipped": 42772,
-        "isEntry": false,
-        "modules": 18
-      },
-      {
-        "name": "assets/book-open-D3mkx3CP.js",
-        "size": 448,
-        "estimatedGzipped": 134,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/ai-training-M0XDeldU.js",
-        "size": 20539,
-        "estimatedGzipped": 6162,
-        "isEntry": false,
-        "modules": 3
-      },
-      {
-        "name": "assets/bot-Cg1E4mmg.js",
-        "size": 498,
-        "estimatedGzipped": 149,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas-s4enusi8.js",
-        "size": 1015,
-        "estimatedGzipped": 305,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2681466,
-    "gzippedSize": 804441,
-    "budgetViolations": [
-      "assets/index-C84wVwVK.js: 607KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
-    "timestamp": "2025-10-13T20:56:24.452Z",
-    "mainBundleSize": 622181,
-    "totalSize": 848877,
-    "bundles": [
-      {
-        "name": "ai-training-M0XDeldU.js",
-        "type": "js",
-        "size": 20555,
-        "estimatedGzipped": 6167,
-        "isMain": false
-      },
-      {
-        "name": "allstarteams-Dg6S-CuH.js",
-        "type": "js",
-        "size": 243254,
-        "estimatedGzipped": 72976,
-        "isMain": false
-      },
-      {
-        "name": "book-open-D3mkx3CP.js",
-        "type": "js",
-        "size": 448,
-        "estimatedGzipped": 134,
-        "isMain": false
-      },
-      {
-        "name": "bot-Cg1E4mmg.js",
-        "type": "js",
-        "size": 498,
-        "estimatedGzipped": 149,
-        "isMain": false
-      },
-      {
-        "name": "dashboard-new-BUzbloag.js",
-        "type": "js",
-        "size": 142806,
-        "estimatedGzipped": 42842,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas-s4enusi8.js",
-        "type": "js",
-        "size": 1015,
-        "estimatedGzipped": 305,
-        "isMain": false
-      },
-      {
-        "name": "html2canvas.esm-BfxBtG_O.js",
-        "type": "js",
-        "size": 202285,
-        "estimatedGzipped": 60686,
-        "isMain": false
-      },
-      {
-        "name": "imaginal-agility-Q_QNvfbE.js",
-        "type": "js",
-        "size": 102,
-        "estimatedGzipped": 31,
-        "isMain": false
-      },
-      {
-        "name": "index-C84wVwVK.js",
-        "type": "js",
-        "size": 2073936,
-        "estimatedGzipped": 622181,
-        "isMain": true
-      },
-      {
-        "name": "index-upwa8hQG.css",
-        "type": "css",
-        "size": 173624,
-        "estimatedGzipped": 43406,
-        "isMain": false
-      }
-    ],
-    "budgetStatus": {
-      "mainBundleStatus": "FAIL",
-      "totalSizeStatus": "PASS",
-      "warnings": [
-        "Main bundle approaching size limit: 608KB / 500KB"
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-10-13T21:52:42.101Z",
-    "bundles": [
-      {
-        "name": "assets/index-C84wVwVK.js",
-        "size": 2072125,
-        "estimatedGzipped": 621638,
-        "isEntry": true,
-        "modules": 1123
-      },
-      {
-        "name": "assets/allstarteams-Dg6S-CuH.js",
-        "size": 242760,
-        "estimatedGzipped": 72828,
-        "isEntry": false,
-        "modules": 40
-      },
-      {
-        "name": "assets/imaginal-agility-Q_QNvfbE.js",
-        "size": 102,
-        "estimatedGzipped": 31,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/dashboard-new-BUzbloag.js",
-        "size": 142572,
-        "estimatedGzipped": 42772,
-        "isEntry": false,
-        "modules": 18
-      },
-      {
-        "name": "assets/book-open-D3mkx3CP.js",
-        "size": 448,
-        "estimatedGzipped": 134,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/ai-training-M0XDeldU.js",
-        "size": 20539,
-        "estimatedGzipped": 6162,
-        "isEntry": false,
-        "modules": 3
-      },
-      {
-        "name": "assets/bot-Cg1E4mmg.js",
-        "size": 498,
-        "estimatedGzipped": 149,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas-s4enusi8.js",
-        "size": 1015,
-        "estimatedGzipped": 305,
-        "isEntry": false,
-        "modules": 1
-      },
-      {
-        "name": "assets/html2canvas.esm-BfxBtG_O.js",
-        "size": 201407,
-        "estimatedGzipped": 60422,
-        "isEntry": false,
-        "modules": 1
-      }
-    ],
-    "totalSize": 2681466,
-    "gzippedSize": 804441,
-    "budgetViolations": [
-      "assets/index-C84wVwVK.js: 607KB exceeds main bundle budget of 500KB"
-    ]
-  },
-  {
     "timestamp": "2025-10-13T21:52:42.314Z",
     "mainBundleSize": 622181,
     "totalSize": 848877,
@@ -3913,5 +3598,319 @@
     "budgetViolations": [
       "assets/index-Dry4NGBZ.js: 601KB exceeds main bundle budget of 500KB"
     ]
+  },
+  {
+    "timestamp": "2025-11-04T17:36:51.992Z",
+    "bundles": [
+      {
+        "name": "assets/index-BA0sENsQ.js",
+        "size": 2051615,
+        "estimatedGzipped": 615485,
+        "isEntry": true,
+        "modules": 1119
+      },
+      {
+        "name": "assets/allstarteams-BtpqyGqa.js",
+        "size": 251650,
+        "estimatedGzipped": 75495,
+        "isEntry": false,
+        "modules": 41
+      },
+      {
+        "name": "assets/imaginal-agility-D0N3Jn7t.js",
+        "size": 102,
+        "estimatedGzipped": 31,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/dashboard-new-COrL0N8R.js",
+        "size": 142572,
+        "estimatedGzipped": 42772,
+        "isEntry": false,
+        "modules": 18
+      },
+      {
+        "name": "assets/book-open-DKy0YN2E.js",
+        "size": 448,
+        "estimatedGzipped": 134,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/ai-training-BgkOIa0c.js",
+        "size": 20539,
+        "estimatedGzipped": 6162,
+        "isEntry": false,
+        "modules": 3
+      },
+      {
+        "name": "assets/bot-DvcwBFsU.js",
+        "size": 498,
+        "estimatedGzipped": 149,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas-BfCoRo3X.js",
+        "size": 1015,
+        "estimatedGzipped": 305,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2669846,
+    "gzippedSize": 800955,
+    "budgetViolations": [
+      "assets/index-BA0sENsQ.js: 601KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-11-04T17:36:52.400Z",
+    "mainBundleSize": 616014,
+    "totalSize": 845395,
+    "bundles": [
+      {
+        "name": "ai-training-BgkOIa0c.js",
+        "type": "js",
+        "size": 20555,
+        "estimatedGzipped": 6167,
+        "isMain": false
+      },
+      {
+        "name": "allstarteams-BtpqyGqa.js",
+        "type": "js",
+        "size": 252180,
+        "estimatedGzipped": 75654,
+        "isMain": false
+      },
+      {
+        "name": "book-open-DKy0YN2E.js",
+        "type": "js",
+        "size": 448,
+        "estimatedGzipped": 134,
+        "isMain": false
+      },
+      {
+        "name": "bot-DvcwBFsU.js",
+        "type": "js",
+        "size": 498,
+        "estimatedGzipped": 149,
+        "isMain": false
+      },
+      {
+        "name": "dashboard-new-COrL0N8R.js",
+        "type": "js",
+        "size": 142806,
+        "estimatedGzipped": 42842,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas-BfCoRo3X.js",
+        "type": "js",
+        "size": 1015,
+        "estimatedGzipped": 305,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "imaginal-agility-D0N3Jn7t.js",
+        "type": "js",
+        "size": 102,
+        "estimatedGzipped": 31,
+        "isMain": false
+      },
+      {
+        "name": "index-BA0sENsQ.js",
+        "type": "js",
+        "size": 2053380,
+        "estimatedGzipped": 616014,
+        "isMain": true
+      },
+      {
+        "name": "index-D7U_txQH.css",
+        "type": "css",
+        "size": 173653,
+        "estimatedGzipped": 43413,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 602KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-11-04T17:48:31.861Z",
+    "bundles": [
+      {
+        "name": "assets/index-BA0sENsQ.js",
+        "size": 2051615,
+        "estimatedGzipped": 615485,
+        "isEntry": true,
+        "modules": 1119
+      },
+      {
+        "name": "assets/allstarteams-BtpqyGqa.js",
+        "size": 251650,
+        "estimatedGzipped": 75495,
+        "isEntry": false,
+        "modules": 41
+      },
+      {
+        "name": "assets/imaginal-agility-D0N3Jn7t.js",
+        "size": 102,
+        "estimatedGzipped": 31,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/dashboard-new-COrL0N8R.js",
+        "size": 142572,
+        "estimatedGzipped": 42772,
+        "isEntry": false,
+        "modules": 18
+      },
+      {
+        "name": "assets/book-open-DKy0YN2E.js",
+        "size": 448,
+        "estimatedGzipped": 134,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/ai-training-BgkOIa0c.js",
+        "size": 20539,
+        "estimatedGzipped": 6162,
+        "isEntry": false,
+        "modules": 3
+      },
+      {
+        "name": "assets/bot-DvcwBFsU.js",
+        "size": 498,
+        "estimatedGzipped": 149,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas-BfCoRo3X.js",
+        "size": 1015,
+        "estimatedGzipped": 305,
+        "isEntry": false,
+        "modules": 1
+      },
+      {
+        "name": "assets/html2canvas.esm-BfxBtG_O.js",
+        "size": 201407,
+        "estimatedGzipped": 60422,
+        "isEntry": false,
+        "modules": 1
+      }
+    ],
+    "totalSize": 2669846,
+    "gzippedSize": 800955,
+    "budgetViolations": [
+      "assets/index-BA0sENsQ.js: 601KB exceeds main bundle budget of 500KB"
+    ]
+  },
+  {
+    "timestamp": "2025-11-04T17:48:32.069Z",
+    "mainBundleSize": 616014,
+    "totalSize": 845395,
+    "bundles": [
+      {
+        "name": "ai-training-BgkOIa0c.js",
+        "type": "js",
+        "size": 20555,
+        "estimatedGzipped": 6167,
+        "isMain": false
+      },
+      {
+        "name": "allstarteams-BtpqyGqa.js",
+        "type": "js",
+        "size": 252180,
+        "estimatedGzipped": 75654,
+        "isMain": false
+      },
+      {
+        "name": "book-open-DKy0YN2E.js",
+        "type": "js",
+        "size": 448,
+        "estimatedGzipped": 134,
+        "isMain": false
+      },
+      {
+        "name": "bot-DvcwBFsU.js",
+        "type": "js",
+        "size": 498,
+        "estimatedGzipped": 149,
+        "isMain": false
+      },
+      {
+        "name": "dashboard-new-COrL0N8R.js",
+        "type": "js",
+        "size": 142806,
+        "estimatedGzipped": 42842,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas-BfCoRo3X.js",
+        "type": "js",
+        "size": 1015,
+        "estimatedGzipped": 305,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "imaginal-agility-D0N3Jn7t.js",
+        "type": "js",
+        "size": 102,
+        "estimatedGzipped": 31,
+        "isMain": false
+      },
+      {
+        "name": "index-BA0sENsQ.js",
+        "type": "js",
+        "size": 2053380,
+        "estimatedGzipped": 616014,
+        "isMain": true
+      },
+      {
+        "name": "index-D7U_txQH.css",
+        "type": "css",
+        "size": 173653,
+        "estimatedGzipped": 43413,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 602KB / 500KB"
+      ]
+    }
   }
 ]
