@@ -766,6 +766,8 @@ class UserManagementService {
       if (data.sort_order !== undefined) updateData.sortOrder = data.sort_order;
       if (data.requiredWatchPercentage !== undefined) updateData.requiredWatchPercentage = data.requiredWatchPercentage;
       if (data.required_watch_percentage !== undefined) updateData.requiredWatchPercentage = data.required_watch_percentage;
+      if (data.enforceWatchRequirement !== undefined) updateData.enforceWatchRequirement = data.enforceWatchRequirement;
+      if (data.enforce_watch_requirement !== undefined) updateData.enforceWatchRequirement = data.enforce_watch_requirement;
       if (data.transcriptMd !== undefined)             updateData.transcriptMd            = data.transcriptMd;
       if (data.glossary !== undefined)                updateData.glossary               = data.glossary;
       
@@ -801,6 +803,7 @@ class UserManagementService {
           autoplay: updatedVideo.autoplay,
           sortOrder: updatedVideo.sortOrder,
           requiredWatchPercentage: updatedVideo.requiredWatchPercentage,
+          enforceWatchRequirement: updatedVideo.enforceWatchRequirement,
           transcriptMd:        updatedVideo.transcriptMd,
           glossary:            updatedVideo.glossary
         }

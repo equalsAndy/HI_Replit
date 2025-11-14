@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "../ast/ast-video.css";
 import "./video-transcript-glossary.css";
+import { initYouTubePlayer, type VideoProgress } from "../../lib/youtubePlayerHelper";
+import { isFeatureEnabled } from "../../utils/featureFlags";
 
 type GlossaryItem = { term: string; definition: string };
 
@@ -9,6 +11,11 @@ type Props = {
   title?: string | null;
   transcriptMd?: string | null;
   glossary?: GlossaryItem[] | null;
+  // Video progress tracking props
+  stepId?: string;
+  onProgress?: (percentage: number) => void;
+  enforceWatchRequirement?: boolean;
+  requiredWatchPercentage?: number;
 };
 
 // Extracts a valid 11-character YouTube ID from raw ID or URL
@@ -38,12 +45,16 @@ export default function VideoTranscriptGlossary({
   title,
   transcriptMd,
   glossary,
+  stepId,
+  onProgress,
+  enforceWatchRequirement = false,
+  requiredWatchPercentage = 75,
 }: Props) {
   // Helper functions to check if content is meaningful
   const hasRealTranscript = (transcript?: string | null): boolean => {
     if (!transcript) return false;
     const cleaned = transcript.trim().toLowerCase();
-    return cleaned.length > 0 && 
+    return cleaned.length > 0 &&
            !cleaned.includes('transcript not available') &&
            !cleaned.includes('coming soon') &&
            cleaned !== 'n/a' &&
@@ -61,8 +72,14 @@ export default function VideoTranscriptGlossary({
 
   const [tab, setTab] = useState<'watch'|'read'|'glossary'>('watch');
   const [modalOpen, setModalOpen] = useState(false);
+  const [videoProgress, setVideoProgress] = useState<VideoProgress | null>(null);
   const inlineRef = useRef<HTMLIFrameElement>(null);
   const modalRef = useRef<HTMLIFrameElement>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Check if feature is enabled
+  const featureEnabled = isFeatureEnabled('videoWatchRequirements');
+  const shouldShowProgress = featureEnabled && enforceWatchRequirement && stepId;
 
   const normTitle = useMemo(() => {
     const s = title || '';
@@ -76,6 +93,54 @@ export default function VideoTranscriptGlossary({
     // eslint-disable-next-line no-console
     console.debug("[VTG] mounted", { title: normTitle, youtubeId: youtubeId, tabInitial: tab });
   }, []);
+
+  // Initialize YouTube Player API for progress tracking
+  useEffect(() => {
+    // Only initialize if we need progress tracking
+    if (!shouldShowProgress || !inlineRef.current || !onProgress) {
+      return;
+    }
+
+    // Wait a bit for iframe to fully load
+    const timer = setTimeout(async () => {
+      try {
+        if (inlineRef.current) {
+          console.log('🎬 Initializing YouTube Player for progress tracking');
+
+          const cleanup = await initYouTubePlayer(inlineRef.current, {
+            onProgress: (progress: VideoProgress) => {
+              setVideoProgress(progress);
+              // Use maxPercentage to prevent gaming by seeking
+              onProgress(progress.maxPercentage);
+            },
+            onReady: () => {
+              console.log('🎬 YouTube Player ready for step:', stepId);
+            },
+            onEnded: () => {
+              console.log('🎬 YouTube Player ended - reporting 100%');
+              onProgress(100);
+            },
+            onError: (error) => {
+              console.error('🎬 YouTube Player error:', error);
+            },
+            pollInterval: 10000 // Check every 10 seconds
+          });
+
+          cleanupRef.current = cleanup;
+        }
+      } catch (error) {
+        console.error('🎬 Error initializing YouTube Player:', error);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+    };
+  }, [shouldShowProgress, onProgress, stepId]);
 
   const id = getYouTubeId(youtubeId || undefined);
   const base = id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
@@ -192,6 +257,7 @@ export default function VideoTranscriptGlossary({
                   title={normTitle}
                   allow="autoplay; encrypted-media; picture-in-picture"
                   allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
                   className="w-full h-full"
                 />
               </div>
@@ -199,6 +265,30 @@ export default function VideoTranscriptGlossary({
                 <span>▶</span>
                 Watch larger
               </button>
+
+              {/* Progress indicator - only show if feature enabled and enforcement is on */}
+              {shouldShowProgress && (
+                <div className="mt-4 px-2">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                      style={{ width: `${videoProgress?.maxPercentage || 0}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2 text-center">
+                    {(videoProgress?.maxPercentage || 0) >= requiredWatchPercentage ? (
+                      <span className="text-green-600 font-medium">
+                        ✅ Watched {requiredWatchPercentage}% - You can continue to the next step
+                      </span>
+                    ) : (
+                      <span>
+                        Progress: {Math.round(videoProgress?.maxPercentage || 0)}% / {requiredWatchPercentage}% required
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+
               {modalOpen && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
                   <div className="hi-video-shell relative w-[90vw] max-w-4xl">
@@ -208,6 +298,7 @@ export default function VideoTranscriptGlossary({
                       title={normTitle + ' (larger)'}
                       allow="autoplay; encrypted-media; picture-in-picture"
                       allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
                       className="w-full h-full"
                     />
                     <button

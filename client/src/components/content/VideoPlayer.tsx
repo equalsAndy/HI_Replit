@@ -217,13 +217,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <div ref={playerRef} className={`video-responsive-container ${className}`}>
       <div className={`video-aspect-wrapper ${aspectClass}`}>
-        <iframe 
+        <iframe
           ref={iframeRef}
           src={processedUrl}
           title={videoTitle}
           className="video-responsive-element"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
           frameBorder="0"
           onLoad={handleIframeLoad}
         />
