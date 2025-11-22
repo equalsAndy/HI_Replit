@@ -98,6 +98,7 @@ export const users: any = pgTable('users', {
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
   hasSeenWelcomeVideo: boolean('has_seen_welcome_video').default(false).notNull(),
+  showWelcomeVideoOnStartup: boolean('show_welcome_video_on_startup').default(true).notNull(),
   showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(), // Admin-granted permission for demo data access
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields

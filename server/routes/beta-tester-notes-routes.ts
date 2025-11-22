@@ -405,15 +405,13 @@ router.get('/notes', async (req, res) => {
  */
 router.get('/notes/summary', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    // Use helper function for beta tester access verification
+    const hasAccess = await verifyBetaTesterAccess(req, res);
+    if (!hasAccess) return; // Response already sent by helper
+
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    // Verify user is a beta tester or admin (admins are also beta testers)
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
-      console.log('❌ Beta tester access denied for user:', req.session?.userId, { isBetaTester: req.session?.user?.isBetaTester, role: req.session?.user?.role });
-      return res.status(403).json({ error: 'Beta tester access required' });
     }
 
     const workshopType = req.query.workshopType as 'ast' | 'ia' | undefined;

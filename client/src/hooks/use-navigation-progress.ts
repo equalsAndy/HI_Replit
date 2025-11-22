@@ -134,9 +134,9 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
   // IA progression sequence - Updated structure matching actual navigation
   if (appType === 'ia') {
     const iaSequence = [
-      // Welcome & Orientation
-      'ia-1-1', 'ia-1-2',
-      // The I4C Model  
+      // Welcome & Orientation (Module 1)
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      // The I4C Model (Module 2)
       'ia-2-1', 'ia-2-2',
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
@@ -484,10 +484,15 @@ const getNextStepFromCompletedSteps = (completedSteps: string[], appType: 'ast' 
   if (appType === 'ia') {
     // IA progression sequence
     const iaMainSequence = [
-      'ia-1-1', 'ia-1-2',
+      // Module 1: WELCOME (5 steps)
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      // Module 2: THE I4C MODEL
       'ia-2-1', 'ia-2-2',
+      // Module 3: LADDER OF IMAGINATION
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      // Module 4: ADVANCED LADDER OF IMAGINATION
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      // Module 5: OUTCOMES & BENEFITS
       'ia-5-1'
     ];
 

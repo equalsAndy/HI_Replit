@@ -16,6 +16,9 @@ import { NavBar } from '@/components/layout/NavBar';
 import { useApplication } from '@/hooks/use-application';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import DiscernmentModal from '@/components/imaginal-agility/DiscernmentModal';
+import { useWelcomeVideo } from '@/hooks/useWelcomeVideo';
+import ImaginalAgilityWelcomeVideoModal from '@/components/modals/ImaginalAgilityWelcomeVideoModal';
+import { useStepContextSafe } from '@/contexts/StepContext';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -28,6 +31,15 @@ export default function ImaginalAgilityWorkshop() {
   const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
+  const { setCurrentStepId } = useStepContextSafe();
+
+  // Welcome video modal for first-time users
+  const {
+    showWelcomeModal,
+    handleCloseModal,
+    handleGetStarted,
+    triggerWelcomeVideo,
+  } = useWelcomeVideo();
 
   // Use navigation progress system like AST
   const {
@@ -157,13 +169,21 @@ export default function ImaginalAgilityWorkshop() {
     }
   }, []);
 
+  // Update StepContext whenever currentContent changes (for beta tester modal)
+  useEffect(() => {
+    if (currentContent && currentContent.startsWith('ia-')) {
+      setCurrentStepId(currentContent);
+      console.log('🔍 IA Workshop: Updated StepContext to:', currentContent);
+    }
+  }, [currentContent, setCurrentStepId]);
+
   // FIXED: Auto-navigate to current step based on navigation progress
   useEffect(() => {
     if (!navProgress?.currentStepId) return;
 
     const navigationCurrentStep = navProgress.currentStepId;
     console.log(`🧭IA Auto-nav: Navigation says current step is ${navigationCurrentStep}, component state is ${currentStep}`);
-    
+
     // Only update if navigation state differs from component state
     if (navigationCurrentStep !== currentStep && navigationCurrentStep.startsWith('ia-')) {
       console.log(`🔄 IA Auto-navigating: ${currentStep} → ${navigationCurrentStep}`);
@@ -228,9 +248,9 @@ export default function ImaginalAgilityWorkshop() {
 
     // Define the main progression order for IA
     const iaStepOrder = [
-      // Welcome & Orientation
-      'ia-1-1', 'ia-1-2',
-      // The I4C Model
+      // Welcome & Orientation (Module 1)
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      // The I4C Model (Module 2)
       'ia-2-1', 'ia-2-2', 
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
@@ -306,6 +326,14 @@ export default function ImaginalAgilityWorkshop() {
       {/* Navigation */}
       <NavBar />
 
+      {/* Welcome Video Modal */}
+      <ImaginalAgilityWelcomeVideoModal
+        isOpen={showWelcomeModal}
+        onClose={handleCloseModal}
+        onGetStarted={handleGetStarted}
+        showCloseButton={true}
+      />
+
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
@@ -331,7 +359,8 @@ export default function ImaginalAgilityWorkshop() {
               
               // Find next unfinished step for pulsating dot logic
               const iaStepOrder = [
-                'ia-1-1', 'ia-1-2', 'ia-2-1', 'ia-2-2', 
+                'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+                'ia-2-1', 'ia-2-2',
                 'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
                 'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
                 'ia-5-1'

@@ -6,22 +6,26 @@ import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import { trpc } from "@/utils/trpc";
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
-import IA_1_2_Content from './steps/IA_1_2_Content';
-import IA_2_1_Content from './steps/IA_2_1_Content';
-import IA_2_2_Content from './steps/IA_2_2_Content';
-import IA_3_1_Content from './steps/IA_3_1_Content';
-import IA_3_2_Content from './steps/IA_3_2_Content';
-import IA_3_3_Content from './steps/IA_3_3_Content';
-import IA_3_4_Content from './steps/IA_3_4_Content';
-import IA_3_5_Content from './steps/IA_3_5_Content';
-import IA_3_6_Content from './steps/IA_3_6_Content';
-import IA_4_1_Content from './steps/IA_4_1_Content';
-import IA_4_2_Content from './steps/IA_4_2_Content';
-import IA_4_3_Content from './steps/IA_4_3_Content';
-import IA_4_4_Content from './steps/IA_4_4_Content';
-import IA_4_5_Content from './steps/IA_4_5_Content';
-import IA_4_6_Content from './steps/IA_4_6_Content';
-import IA_5_1_Content from './steps/IA_5_1_Content';
+import IA_1_1_Overview from './steps/IA_1_1_Overview';
+import IA_1_2_WhatIsImagination from './steps/IA_1_2_WhatIsImagination';
+import IA_1_3_ImaginationDeficit from './steps/IA_1_3_ImaginationDeficit';
+import IA_1_4_TheBiggerPicture from './steps/IA_1_4_TheBiggerPicture';
+import IA_1_5_RealityAndWords from './steps/IA_1_5_RealityAndWords';
+import IA_2_1_I4CPrismOverview from './steps/IA_2_1_I4CPrismOverview';
+import IA_2_2_SelfAssessment from './steps/IA_2_2_SelfAssessment';
+import IA_3_1_LadderOverview from './steps/IA_3_1_LadderOverview';
+import IA_3_2_Autoflow from './steps/IA_3_2_Autoflow';
+import IA_3_3_VisualizingYourPotential from './steps/IA_3_3_VisualizingYourPotential';
+import IA_3_4_FromInsightToIntention from './steps/IA_3_4_FromInsightToIntention';
+import IA_3_5_Inspiration from './steps/IA_3_5_Inspiration';
+import IA_3_6_TheUnimaginable from './steps/IA_3_6_TheUnimaginable';
+import IA_4_1_AdvancedLadderOverview from './steps/IA_4_1_AdvancedLadderOverview';
+import IA_4_2_AutoflowMindfulPrompts from './steps/IA_4_2_AutoflowMindfulPrompts';
+import IA_4_3_VisualizationStretch from './steps/IA_4_3_VisualizationStretch';
+import IA_4_4_HigherPurposeUplift from './steps/IA_4_4_HigherPurposeUplift';
+import IA_4_5_InspirationSupport from './steps/IA_4_5_InspirationSupport';
+import IA_4_6_NothingIsUnimaginable from './steps/IA_4_6_NothingIsUnimaginable';
+import IA_5_1_Overview from './steps/IA_5_1_Overview';
 
 
 // Component for ia-4-1 Assessment step
@@ -305,116 +309,45 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
   const renderStepContent = () => {
     switch (stepId) {
       case 'ia-1-1':
-        if (videoLoading) {
-          return (
-            <div className="max-w-4xl mx-auto p-6">
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                <span className="text-gray-600">Loading video...</span>
-              </div>
-            </div>
-          );
-        }
-
-        // Extract YouTube ID from video URL, fallback to known video ID from migration
-        let youtubeId = videoData?.url ? extractYouTubeId(videoData.url) : null;
-
-        // Fallback to the known YouTube ID from the migration if video data isn't loading
-        if (!youtubeId && !videoLoading) {
-          youtubeId = 'CZ89trlNaK8'; // From migration: https://www.youtube.com/embed/CZ89trlNaK8
-        }
-
-        // Debug logging
-        console.log('🎬 IA-1-1 Debug:', {
-          stepId,
-          videoData: videoData ? { title: videoData.title, url: videoData.url, stepId: videoData.stepId } : null,
-          youtubeId,
-          videoLoading,
-          fallbackUsed: !videoData?.url && !videoLoading
-        });
-
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              Welcome to Imaginal Agility
-            </h1>
-
-            {/* Video Section using VideoTranscriptGlossary component like AST */}
-            <VideoTranscriptGlossary
-              youtubeId={youtubeId}
-              title={videoData?.title || "Welcome to Imaginal Agility"}
-              transcriptMd={null} // No transcript data available yet
-              glossary={null} // No glossary data available yet
-            />
-
-            {/* Content Card */}
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-                <p className="text-xl font-medium text-purple-700 mb-6">Welcome.</p>
-                <p className="text-lg leading-relaxed">
-                  Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.
-                </p>
-                <p className="text-lg leading-relaxed">
-                  As AI reshapes the workplace, the ability to imagine clearly and purposefully is your edge. It's the one human capability AI can't replace or optimize.
-                </p>
-                <p className="text-lg leading-relaxed font-medium text-purple-700">
-                  This Micro Course is your starting point.
-                </p>
-                <p className="text-lg leading-relaxed">
-                  You'll move at your own pace: watch short videos, follow simple prompts, and complete structured exercises.
-                </p>
-                <p className="text-lg leading-relaxed">
-                  It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.
-                </p>
-                <p className="text-xl font-semibold text-purple-600 mt-8">
-                  Team Option<br/>
-                  This Micro Course is a starting point to discover your own powers of imagination. You'll then be ready for learning how a team can amplify this power to the Nth Degree!<br/><br/>
-                  Just Imagine!
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end mt-8">
-              <Button
-                onClick={() => onNext && onNext('ia-1-2')}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-              >
-                Continue to Next Step
-              </Button>
-            </div>
-          </div>
-        );
+        return <IA_1_1_Overview onNext={onNext} />;
       case 'ia-1-2':
-        return <IA_1_2_Content onNext={onNext} />;
+        return <IA_1_2_WhatIsImagination onNext={onNext} />;
+      case 'ia-1-3':
+        return <IA_1_3_ImaginationDeficit onNext={onNext} />;
+      case 'ia-1-4':
+        return <IA_1_4_TheBiggerPicture onNext={onNext} />;
+      case 'ia-1-5':
+        return <IA_1_5_RealityAndWords onNext={onNext} />;
       case 'ia-2-1':
-        return <IA_2_1_Content onNext={onNext} />;
+        return <IA_2_1_I4CPrismOverview onNext={onNext} />;
       case 'ia-2-2':
-        return <IA_2_2_Content onNext={onNext} onOpenAssessment={onOpenAssessment} />;
+        return <IA_2_2_SelfAssessment onNext={onNext} onOpenAssessment={onOpenAssessment} />;
       case 'ia-3-1':
-        return <IA_3_1_Content onNext={onNext} />;
+        return <IA_3_1_LadderOverview onNext={onNext} />;
       case 'ia-3-2':
-        return <IA_3_2_Content onNext={onNext} />;
+        return <IA_3_2_Autoflow onNext={onNext} />;
       case 'ia-3-3':
-        return <IA_3_3_Content onNext={onNext} />;
+        return <IA_3_3_VisualizingYourPotential onNext={onNext} />;
       case 'ia-3-4':
-        return <IA_3_4_Content onNext={onNext} />;
+        return <IA_3_4_FromInsightToIntention onNext={onNext} />;
       case 'ia-3-5':
-        return <IA_3_5_Content onNext={onNext} />;
+        return <IA_3_5_Inspiration onNext={onNext} />;
       case 'ia-3-6':
-        return <IA_3_6_Content onNext={onNext} />;
+        return <IA_3_6_TheUnimaginable onNext={onNext} />;
       case 'ia-4-1':
-        return <IA_4_1_Content onNext={onNext} />;
+        return <IA_4_1_AdvancedLadderOverview onNext={onNext} />;
       case 'ia-4-2':
-        return <IA_4_2_Content onNext={onNext} />;
+        return <IA_4_2_AutoflowMindfulPrompts onNext={onNext} />;
       case 'ia-4-3':
-        return <IA_4_3_Content onNext={onNext} />;
+        return <IA_4_3_VisualizationStretch onNext={onNext} />;
       case 'ia-4-4':
-        return <IA_4_4_Content onNext={onNext} />;
+        return <IA_4_4_HigherPurposeUplift onNext={onNext} />;
       case 'ia-4-5':
-        return <IA_4_5_Content onNext={onNext} />;
+        return <IA_4_5_InspirationSupport onNext={onNext} />;
       case 'ia-4-6':
-        return <IA_4_6_Content onNext={onNext} />;
+        return <IA_4_6_NothingIsUnimaginable onNext={onNext} />;
       case 'ia-5-1':
-        return <IA_5_1_Content onNext={onNext} />;
+        return <IA_5_1_Overview onNext={onNext} />;
       case 'ia-6-1':
         return (
           <div className="max-w-4xl mx-auto p-6">

@@ -120,10 +120,10 @@ export default function AuthCallback() {
           // Test users (not beta testers) go to dashboard with testing controls
           dest = '/dashboard';
           console.log('[AuthCallback] Test user detected, routing to /dashboard');
-        } else if (user?.isBetaTester) {
-          // Beta testers go directly to AST workshop (treated as participants)
-          dest = '/allstarteams';
-          console.log('[AuthCallback] Beta tester detected, routing to /allstarteams');
+        } else if (user?.astAccess && user?.iaAccess) {
+          // Users with access to BOTH workshops go to selection page (including beta testers)
+          dest = '/workshop-selection';
+          console.log('[AuthCallback] Dual workshop access detected, routing to /workshop-selection');
         } else if (user?.astAccess) {
           dest = '/allstarteams';
           console.log('[AuthCallback] AST access detected, routing to /allstarteams');

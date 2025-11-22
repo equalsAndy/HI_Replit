@@ -36,13 +36,13 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
     staleTime: 0 // Always fetch fresh data
   });
 
-  
+
   const isAssessmentCompleted = assessmentData && (assessmentData as any).data !== null;
   console.log('🎯 IA_2_2_Content: isAssessmentCompleted:', isAssessmentCompleted);
-  
+
   // Parse assessment results for radar chart
   let resultData = null;
-  if (isAssessmentCompleted) {
+  if (isAssessmentCompleted && (assessmentData as any).data?.results) {
     const rawResults = (assessmentData as any).data.results;
     console.log('🎯 IA_2_2_Content: rawResults:', rawResults);
     if (typeof rawResults === 'string') {
@@ -59,7 +59,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       }
     }
   }
-  
+
   console.log('🎯 IA_2_2_Content: Final resultData:', resultData);
 
   const handleStartAssessment = () => {

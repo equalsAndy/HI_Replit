@@ -346,6 +346,8 @@ export function NavBar() {
               <ProfileEditor
                 user={user}
                 onLogout={handleLogout}
+                currentApp={currentApp}
+                onToggleWorkshop={toggleApplication}
               />
             </div>
           ) : (
@@ -353,6 +355,8 @@ export function NavBar() {
             <ProfileEditor
               user={user}
               onLogout={handleLogout}
+              currentApp={currentApp}
+              onToggleWorkshop={toggleApplication}
             />
           )}
         </div>

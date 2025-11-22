@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard, Key, Lock } from 'lucide-react';
+import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard, Key, Lock, ArrowLeftRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -15,9 +15,11 @@ import { useLocation } from 'wouter';
 interface ProfileEditorProps {
   user: any;
   onLogout: () => void;
+  currentApp?: 'allstarteams' | 'imaginal-agility';
+  onToggleWorkshop?: () => void;
 }
 
-export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
+export default function ProfileEditor({ user, onLogout, currentApp, onToggleWorkshop }: ProfileEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -623,11 +625,35 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
                     Test User Dashboard
                   </Button>
                 )}
+
+                {/* Workshop Switch Button - only for users with both workshop access */}
+                {user?.astAccess && user?.iaAccess && onToggleWorkshop && currentApp && (
+                  <div className="border-t pt-4">
+                    <Button
+                      onClick={() => {
+                        onToggleWorkshop();
+                        setIsOpen(false);
+                      }}
+                      variant="outline"
+                      className="w-full flex items-center gap-3 justify-start"
+                    >
+                      <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
+                      <span className="flex items-center gap-2">
+                        <span>Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}</span>
+                        <img
+                          src={currentApp === 'allstarteams' ? '/assets/imaginal_agility_logo_sq.png' : '/assets/all-star-teams-logo-square.png'}
+                          alt={currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
+                          className="h-6 w-auto"
+                        />
+                      </span>
+                    </Button>
+                  </div>
+                )}
               </>
             )}
 
 
-            
+
             <Button
               variant="destructive"
               onClick={onLogout}

@@ -507,27 +507,34 @@ export default function GrowthPlanView({
     );
   };
 
-  const renderPlayingToStrengths = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
-        <h3 className="text-xl font-semibold">Playing to Strengths</h3>
-        <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
-      </div>
+  const renderPlayingToStrengths = () => {
+    // Extract the actual text value from strengthsExamples
+    const strengthsText = typeof formData.strengthsExamples === 'string'
+      ? formData.strengthsExamples
+      : formData.strengthsExamples?.general || '';
 
-      <div className="space-y-4">
-        <div>
-          <Label>Strengths Examples & Applications</Label>
-          <Textarea
-            placeholder="How will you apply your top strengths this quarter? Provide specific examples of projects, roles, or responsibilities where you can leverage your unique strength combination..."
-            value={formData.strengthsExamples ? JSON.stringify(formData.strengthsExamples) : ''}
-            onChange={(e) => updateFormData('strengthsExamples', { general: e.target.value })}
-            className="h-32"
-          />
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
+          <h3 className="text-xl font-semibold">Playing to Strengths</h3>
+          <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <Label>Strengths Examples & Applications</Label>
+            <Textarea
+              placeholder="How will you apply your top strengths this quarter? Provide specific examples of projects, roles, or responsibilities where you can leverage your unique strength combination..."
+              value={strengthsText}
+              onChange={(e) => updateFormData('strengthsExamples', { general: e.target.value })}
+              className="h-32"
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderFlowOptimization = () => (
     <div className="space-y-6">

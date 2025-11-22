@@ -40,7 +40,6 @@ const NOTE_TYPES = [
 
 export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOpen, onClose, viewingStepId }) => {
   const { currentStepId: stepContextId } = useStepContextSafe();
-  const { progress: navProgress } = useNavigationProgress('ast');
 
   // Get current step ID from multiple sources with URL fallback
   const getStepIdFromUrl = (): string | undefined => {
@@ -48,6 +47,28 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
     const match = url.match(/\/(\d+-\d+|ia-\d+-\d+)/);
     return match ? match[1] : undefined;
   };
+
+  // Determine workshop type from URL or step ID
+  const getWorkshopType = (): 'ast' | 'ia' => {
+    const url = window.location.pathname;
+    const stepId = viewingStepId || stepContextId || getStepIdFromUrl();
+
+    // Check URL first
+    if (url.includes('imaginal-agility') || url.includes('/ia/')) {
+      return 'ia';
+    }
+
+    // Check step ID
+    if (stepId?.startsWith('ia-')) {
+      return 'ia';
+    }
+
+    // Default to AST
+    return 'ast';
+  };
+
+  const workshopType = getWorkshopType();
+  const { progress: navProgress } = useNavigationProgress(workshopType);
 
   // Priority: viewingStepId (from navigation state) > stepContextId > navProgress (progression state) > URL
   const currentStepId = viewingStepId || stepContextId || navProgress?.currentStepId || getStepIdFromUrl();

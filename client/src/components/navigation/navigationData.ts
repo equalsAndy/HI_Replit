@@ -28,17 +28,35 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     moduleNumber: 1, // Added module badge
     expanded: true, // Default expanded
     steps: [
-      { 
-        id: 'ia-1-1', 
-        title: 'Orientation', 
+      {
+        id: 'ia-1-1',
+        title: 'Overview',
         type: 'video',
         contentKey: 'ia-1-1'
       },
-      { 
-        id: 'ia-1-2', 
-        title: 'AI\'s 4X Mental Challenge', 
+      {
+        id: 'ia-1-2',
+        title: 'What Is Imagination?',
         type: 'video',
         contentKey: 'ia-1-2'
+      },
+      {
+        id: 'ia-1-3',
+        title: 'Imagination Deficit',
+        type: 'video',
+        contentKey: 'ia-1-3'
+      },
+      {
+        id: 'ia-1-4',
+        title: 'The Bigger Picture',
+        type: 'video',
+        contentKey: 'ia-1-4'
+      },
+      {
+        id: 'ia-1-5',
+        title: 'Extra: Reality and Words',
+        type: 'interactive',
+        contentKey: 'ia-1-5'
       }
     ]
   },
@@ -153,86 +171,88 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '5',
     title: 'OUTCOMES & BENEFITS',
+    moduleNumber: 5, // Added module badge
     expanded: false, // Default collapsed
     steps: [
-      { 
-        id: 'ia-5-1', 
-        title: 'Overview', 
+      {
+        id: 'ia-5-1',
+        title: 'Overview',
         type: 'video',
         contentKey: 'ia-5-1'
       }
       // Other steps temporarily hidden
-      // { 
-      //   id: 'ia-5-2', 
-      //   title: 'ROI 2.0', 
+      // {
+      //   id: 'ia-5-2',
+      //   title: 'ROI 2.0',
       //   type: 'viewing',
       //   contentKey: 'ia-5-2'
       // },
-      // { 
-      //   id: 'ia-5-3', 
-      //   title: 'Course Completion Badge', 
+      // {
+      //   id: 'ia-5-3',
+      //   title: 'Course Completion Badge',
       //   type: 'achievement',
       //   contentKey: 'ia-5-3'
       // },
-      // { 
-      //   id: 'ia-5-4', 
-      //   title: 'Imaginal Agility Compendium', 
+      // {
+      //   id: 'ia-5-4',
+      //   title: 'Imaginal Agility Compendium',
       //   type: 'download',
       //   contentKey: 'ia-5-4'
       // },
-      // { 
-      //   id: 'ia-5-5', 
-      //   title: 'Community of Practice', 
+      // {
+      //   id: 'ia-5-5',
+      //   title: 'Community of Practice',
       //   type: 'collaboration',
       //   contentKey: 'ia-5-5'
       // }
     ]
   },
-  {
-    id: '6',
-    title: 'QUARTERLY TUNE-UP',
-    expanded: false, // Default collapsed
-    steps: [
-      { 
-        id: 'ia-6-1', 
-        title: 'Teamwork Preparation', 
-        type: 'video',
-        contentKey: 'ia-6-1'
-      },
-      { 
-        id: 'ia-6-coming-soon', 
-        title: 'Coming Soon', 
-        type: 'coming-soon',
-        contentKey: 'ia-6-coming-soon'
-      }
-      // ia-6-2 remains hidden for now
-      // { 
-      //   id: 'ia-6-2', 
-      //   title: 'Practices', 
-      //   type: 'interactive',
-      //   contentKey: 'ia-6-2'
-      // }
-    ]
-  },
-  {
-    id: '7',
-    title: 'TEAM LADDER OF IMAGINATION',
-    expanded: false, // Expanded only after ia-4-6 completion
-    steps: [
-      { 
-        id: 'ia-7-1', 
-        title: 'Welcome', 
-        type: 'video',
-        contentKey: 'ia-7-1'
-      },
-      { 
-        id: 'ia-7-2', 
-        title: 'Team Whiteboard Workspace', 
-        type: 'interactive',
-        contentKey: 'ia-7-2'
-      }
-    ]
-  },
+  // TEMPORARILY HIDDEN - Sections 6 and 7 will be enabled later
+  // {
+  //   id: '6',
+  //   title: 'QUARTERLY TUNE-UP',
+  //   expanded: false, // Default collapsed
+  //   steps: [
+  //     {
+  //       id: 'ia-6-1',
+  //       title: 'Teamwork Preparation',
+  //       type: 'video',
+  //       contentKey: 'ia-6-1'
+  //     },
+  //     {
+  //       id: 'ia-6-coming-soon',
+  //       title: 'Coming Soon',
+  //       type: 'coming-soon',
+  //       contentKey: 'ia-6-coming-soon'
+  //     }
+  //     // ia-6-2 remains hidden for now
+  //     // {
+  //     //   id: 'ia-6-2',
+  //     //   title: 'Practices',
+  //     //   type: 'interactive',
+  //     //   contentKey: 'ia-6-2'
+  //     // }
+  //   ]
+  // },
+  // {
+  //   id: '7',
+  //   title: 'TEAM LADDER OF IMAGINATION',
+  //   expanded: false, // Expanded only after ia-4-6 completion
+  //   steps: [
+  //     {
+  //       id: 'ia-7-1',
+  //       title: 'Welcome',
+  //       type: 'video',
+  //       contentKey: 'ia-7-1'
+  //     },
+  //     {
+  //       id: 'ia-7-2',
+  //       title: 'Team Whiteboard Workspace',
+  //       type: 'interactive',
+  //       contentKey: 'ia-7-2'
+  //     }
+  //   ]
+  // },
   // TEMPORARILY HIDDEN - Section 8 will be enabled later
   // {
   //   id: '8',

@@ -87,28 +87,29 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     // Use the improved ImaginalAgilityContent component for all IA steps
     if (currentContent.startsWith('ia-')) {
       return (
-        <ImaginalAgilityContent 
+        <ImaginalAgilityContent
           stepId={currentContent}
           onNext={async (nextStepId) => {
             if (nextStepId && setCurrentContent) {
               console.log(`🧭 IA ContentViews Navigation: ${currentContent} → ${nextStepId}`);
-              
+
               try {
-                // For IA navigation, directly set the next step content
-                // The navigation system will handle step completion tracking
+                // FIXED: Mark current step as completed FIRST
+                // This updates the navigation state properly before changing content
+                if (markStepCompleted) {
+                  console.log(`📝 IA Marking step ${currentContent} as completed before navigating to ${nextStepId}`);
+                  await markStepCompleted(currentContent);
+                }
+
+                // Then navigate to next step
+                // The markStepCompleted call above should have already updated currentStep via the hook
+                // But we also update currentContent to ensure the content area shows the right step
+                console.log(`🔄 IA Setting content to ${nextStepId}`);
                 setCurrentContent(nextStepId);
                 scrollToContentTop();
-                
-                // Optionally mark current step as completed in background
-                // but don't wait for it or depend on its return value
-                if (markStepCompleted) {
-                  markStepCompleted(currentContent).catch(error => {
-                    console.warn(`Background step completion failed for ${currentContent}:`, error);
-                  });
-                }
               } catch (error) {
                 console.error(`❌ IA ContentViews Navigation Error:`, error);
-                // Fallback: still navigate even if other operations fail
+                // Fallback: still navigate even if completion tracking fails
                 setCurrentContent(nextStepId);
                 scrollToContentTop();
               }

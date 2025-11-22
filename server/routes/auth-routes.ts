@@ -452,6 +452,7 @@ router.post('/change-password', requireAuth, async (req, res) => {
 
 /**
  * Mark welcome video as seen for current user
+ * Accepts optional body: { showOnStartup: boolean }
  */
 router.post('/mark-welcome-video-seen', requireAuth, async (req, res) => {
   try {
@@ -463,7 +464,10 @@ router.post('/mark-welcome-video-seen', requireAuth, async (req, res) => {
       });
     }
 
-    const result = await userManagementService.markWelcomeVideoAsSeen(userId);
+    // Extract showOnStartup preference from request body (default: true)
+    const { showOnStartup = true } = req.body;
+
+    const result = await userManagementService.markWelcomeVideoAsSeen(userId, showOnStartup);
 
     if (!result.success) {
       return res.status(400).json(result);

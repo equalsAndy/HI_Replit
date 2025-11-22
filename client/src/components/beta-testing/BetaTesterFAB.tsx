@@ -1,19 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit3 } from 'lucide-react';
 import { BetaTesterNotesModal } from './BetaTesterNotesModal';
 import { useCurrentUser } from '../../hooks/use-current-user';
 import { isFeatureEnabled } from '../../utils/featureFlags';
 import { useBetaWorkshopCompletion } from '../../hooks/use-beta-workshop-completion';
-import { useNavigationProgress } from '../../hooks/use-navigation-progress';
 
 export const BetaTesterFAB: React.FC = () => {
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const { data: user } = useCurrentUser();
   const { isBetaTester, workshopCompleted } = useBetaWorkshopCompletion();
 
-  // Get current step from navigation state (tracks which step user is viewing)
-  const { navigation } = useNavigationProgress('ast');
-  const currentViewingStep = navigation?.currentStep;
+  // Get the actual viewing step from URL (what user is currently looking at)
+  const [currentViewingStep, setCurrentViewingStep] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const getStepFromUrl = () => {
+      const url = window.location.pathname;
+      const match = url.match(/\/(\d+-\d+|ia-\d+-\d+)/);
+      return match ? match[1] : undefined;
+    };
+
+    // Update viewing step whenever URL changes
+    const updateViewingStep = () => {
+      const stepId = getStepFromUrl();
+      console.log('🔍 FAB: Updating viewing step to:', stepId, 'from URL:', window.location.pathname);
+      setCurrentViewingStep(stepId);
+    };
+
+    // Initial update
+    updateViewingStep();
+
+    // Listen for URL changes
+    const handleUrlChange = () => {
+      updateViewingStep();
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+
+    // Also listen for programmatic navigation
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function(...args) {
+      originalPushState.apply(history, args);
+      handleUrlChange();
+    };
+
+    history.replaceState = function(...args) {
+      originalReplaceState.apply(history, args);
+      handleUrlChange();
+    };
+
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+    };
+  }, []);
 
   // No need for page detection since FAB is hidden after workshop completion
 
@@ -53,6 +96,8 @@ export const BetaTesterFAB: React.FC = () => {
   const handleOpenModal = () => {
     // Only show notes modal during workshop (before completion)
     console.log('🔍 Opening beta tester notes modal');
+    console.log('🔍 Current viewing step from FAB:', currentViewingStep);
+    console.log('🔍 Current URL:', window.location.pathname);
     setIsNotesModalOpen(true);
   };
 

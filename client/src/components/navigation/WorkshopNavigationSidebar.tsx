@@ -431,7 +431,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] === true) : true) && (
                   <div className="relative">
                     {/* Module/Week Label spanning entire section - centered in 50px gap */}
-                    {(section.moduleNumber || section.weekNumber) && section.moduleNumber !== 4 && section.moduleNumber !== 5 && (
+                    {(section.moduleNumber || section.weekNumber) && (
+                      // For AST: hide badges for modules 4 and 5 (post-workshop resources)
+                      // For IA: show badges for all modules
+                      isImaginalAgility || (section.moduleNumber !== 4 && section.moduleNumber !== 5)
+                    ) && (
                       <div
                         className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
                         style={{ marginLeft: '-8px' }}

@@ -1523,14 +1523,17 @@ class UserManagementService {
 
   /**
    * Mark welcome video as seen for a user
+   * @param showOnStartup - Whether to show the video on future logins (default: true)
    */
-  async markWelcomeVideoAsSeen(userId: number) {
+  async markWelcomeVideoAsSeen(userId: number, showOnStartup: boolean = true) {
     try {
       const result = await db.execute(sql`
         UPDATE users
-        SET has_seen_welcome_video = true, updated_at = NOW()
+        SET has_seen_welcome_video = true,
+            show_welcome_video_on_startup = ${showOnStartup},
+            updated_at = NOW()
         WHERE id = ${userId}
-        RETURNING id, username, name, email, has_seen_welcome_video
+        RETURNING id, username, name, email, has_seen_welcome_video, show_welcome_video_on_startup
       `);
 
       if (!result || result.length === 0) {

@@ -31,8 +31,11 @@ const STEP_MAPPINGS: Record<string, { title: string; workshop: 'ast' | 'ia'; mod
   '5-3': { title: 'Introducing Imaginal Agility', workshop: 'ast', module: 'MODULE 5: MORE INFORMATION' },
 
   // IA Workshop Steps - UPDATED to match navigationData.ts menu item names exactly
-  'ia-1-1': { title: 'Orientation', workshop: 'ia', module: 'WELCOME' },
-  'ia-1-2': { title: 'AI\'s 4X Mental Challenge', workshop: 'ia', module: 'WELCOME' },
+  'ia-1-1': { title: 'Overview', workshop: 'ia', module: 'WELCOME' },
+  'ia-1-2': { title: 'What Is Imagination?', workshop: 'ia', module: 'WELCOME' },
+  'ia-1-3': { title: 'Imagination Deficit', workshop: 'ia', module: 'WELCOME' },
+  'ia-1-4': { title: 'The Bigger Picture', workshop: 'ia', module: 'WELCOME' },
+  'ia-1-5': { title: 'Reality and Words', workshop: 'ia', module: 'WELCOME' },
   'ia-2-1': { title: 'I4C Prism Overview', workshop: 'ia', module: 'THE I4C MODEL' },
   'ia-2-2': { title: 'Self-Assessment', workshop: 'ia', module: 'THE I4C MODEL' },
   'ia-3-1': { title: 'Ladder Overview', workshop: 'ia', module: 'LADDER OF IMAGINATION' },

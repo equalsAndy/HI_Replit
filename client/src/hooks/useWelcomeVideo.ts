@@ -83,6 +83,7 @@ export function useWelcomeVideo() {
           userId: user.id,
           username: user.username,
           hasSeenWelcomeVideo: user.hasSeenWelcomeVideo,
+          showWelcomeVideoOnStartup: user.showWelcomeVideoOnStartup,
           hasShownThisSession: !!hasShownThisSession,
           sessionKey,
           sessionValue: hasShownThisSession,
@@ -90,13 +91,20 @@ export function useWelcomeVideo() {
           isFreshLogin,
           currentPath: window.location.pathname,
           shouldShow_notSeenVideo: !user.hasSeenWelcomeVideo,
+          shouldShow_preferenceEnabled: user.showWelcomeVideoOnStartup !== false,
           shouldShow_notShownThisSession: !hasShownThisSession,
           shouldShow_isFreshLogin: isFreshLogin
         });
 
-        const shouldShowWelcome = !user.hasSeenWelcomeVideo &&
-                                 !hasShownThisSession &&
-                                 isFreshLogin;
+        // Show welcome if:
+        // 1. User hasn't seen it yet (!hasSeenWelcomeVideo), OR
+        // 2. User has seen it but preference is still enabled (showWelcomeVideoOnStartup !== false)
+        // AND it's a fresh login and not shown this session
+        const shouldShowWelcome = (
+          (!user.hasSeenWelcomeVideo || user.showWelcomeVideoOnStartup !== false) &&
+          !hasShownThisSession &&
+          isFreshLogin
+        );
 
         console.log('🎯 Final decision - shouldShowWelcomeVideo:', shouldShowWelcome);
         console.log('🔍 Decision breakdown:', {
@@ -140,21 +148,25 @@ export function useWelcomeVideo() {
     setShowWelcomeModal(false);
   };
 
-  const handleMarkVideoSeen = async () => {
+  const handleMarkVideoSeen = async (showOnStartup: boolean = true) => {
     try {
       await fetch('/api/auth/mark-welcome-video-seen', {
         method: 'POST',
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ showOnStartup }),
       });
-      console.log('✅ Welcome video marked as seen in database');
+      console.log('✅ Welcome video marked as seen in database with preference:', showOnStartup);
     } catch (error) {
       console.error('❌ Failed to mark welcome video as seen:', error);
     }
   };
 
-  const handleGetStarted = async () => {
-    // Mark as seen in database
-    await handleMarkVideoSeen();
+  const handleGetStarted = async (showOnStartup: boolean = true) => {
+    // Mark as seen in database with user preference
+    await handleMarkVideoSeen(showOnStartup);
 
     // Close modal
     setShowWelcomeModal(false);
