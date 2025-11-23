@@ -62,7 +62,7 @@ export default function VideoTranscriptGlossary({
   };
 
   const hasRealGlossary = (glossary?: GlossaryItem[] | null): boolean => {
-    return glossary && glossary.length > 0;
+    return !!(glossary && glossary.length > 0);
   };
 
   // Determine which tabs should be shown
@@ -209,17 +209,18 @@ export default function VideoTranscriptGlossary({
       {showTabs && (
         <div className="vtg-tabs-32" role="tablist" aria-label="Lesson content">
           {(['watch', ...(showTranscriptTab ? ['read'] : []), ...(showGlossaryTab ? ['glossary'] : [])] as const).map(k => {
-            const label = k === 'read' ? 'Transcript' : k.charAt(0).toUpperCase() + k.slice(1);
-            const isActive = tab === k;
-            const style = ({ ['--vtg-strip' as any]: stripFor(k) } as React.CSSProperties);
+            const key = k as 'watch' | 'read' | 'glossary';
+            const label = key === 'read' ? 'Transcript' : key.charAt(0).toUpperCase() + key.slice(1);
+            const isActive = tab === key;
+            const style = ({ ['--vtg-strip' as any]: stripFor(key) } as React.CSSProperties);
             return (
               <button
-                key={k}
+                key={key}
                 role="tab"
-                id={`vtg-tab-${k}`}
-                aria-controls={`vtg-panel-${k}`}
+                id={`vtg-tab-${key}`}
+                aria-controls={`vtg-panel-${key}`}
                 aria-selected={isActive}
-                onClick={() => setTab(k)}
+                onClick={() => setTab(key)}
                 className={`vtg-pill-32 ${isActive ? 'is-active' : ''}`}
                 type="button"
                 style={style}
@@ -261,6 +262,9 @@ export default function VideoTranscriptGlossary({
                   className="w-full h-full"
                 />
               </div>
+              <p className="text-sm text-gray-600 text-center mt-3 mb-2">
+                Click the Video to Play. Unmute to hear it.
+              </p>
               <button onClick={handleLarger} className="vtg-watch-larger-btn">
                 <span>▶</span>
                 Watch larger
