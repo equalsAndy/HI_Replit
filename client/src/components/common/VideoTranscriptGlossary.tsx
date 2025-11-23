@@ -263,7 +263,7 @@ export default function VideoTranscriptGlossary({
                 />
               </div>
               <p className="text-sm text-gray-600 text-center mt-3 mb-2">
-                Click the Video to Play. Unmute to hear it.
+                Click the Video to Play. Unmute if you cannot hear it.
               </p>
               <button onClick={handleLarger} className="vtg-watch-larger-btn">
                 <span>▶</span>

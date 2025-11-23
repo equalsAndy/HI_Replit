@@ -29,6 +29,7 @@ export default function ImaginalAgilityWorkshop() {
   const [currentStep, setCurrentStepState] = useState("ia-1-1");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
   const { setCurrentStepId } = useStepContextSafe();
@@ -321,6 +322,9 @@ export default function ImaginalAgilityWorkshop() {
     }
   }, [currentContent, navProgress?.currentStepId]);
 
+  // Toggle drawer open/closed state
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Navigation */}
@@ -339,8 +343,8 @@ export default function ImaginalAgilityWorkshop() {
         {/* Left Navigation Drawer */}
         <UserHomeNavigation
           key={`ia-nav-${currentContent}-${completedSteps.length}`}
-          drawerOpen={true}
-          toggleDrawer={() => {}}
+          drawerOpen={drawerOpen}
+          toggleDrawer={toggleDrawer}
           navigationSections={imaginalAgilityNavigationSections}
           completedSteps={completedSteps}
           isStepAccessible={(sectionId, stepId) => isStepAccessible(sectionId, stepId)}
