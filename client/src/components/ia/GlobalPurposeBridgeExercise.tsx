@@ -141,7 +141,7 @@ export default function GlobalPurposeBridgeExercise() {
         
         {higherPurposeFromIA34 && (
           <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-            <p className="text-sm text-purple-700 font-medium">From your IA-3-4 reflection:</p>
+            <p className="text-sm text-purple-700 font-medium">From your Insight to Intention reflection:</p>
             <p className="text-purple-800 italic">"{higherPurposeFromIA34}"</p>
           </div>
         )}
@@ -158,7 +158,7 @@ export default function GlobalPurposeBridgeExercise() {
             className="text-sm"
           />
           <p className="text-xs text-gray-500">
-            {higherPurposeFromIA34 ? "Leave blank to use your IA-3-4 purpose, or refine it here." : "What do you care about deeply? What future would you like to help shape?"}
+            {higherPurposeFromIA34 ? "Leave blank to use your Insight to Intention purpose, or refine it here." : "What do you care about deeply? What future would you like to help shape?"}
           </p>
         </div>
       </div>

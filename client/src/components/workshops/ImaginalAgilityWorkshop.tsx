@@ -338,7 +338,7 @@ export default function ImaginalAgilityWorkshop() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
         <UserHomeNavigation
-          key={`ia-nav-${navProgress?.currentStepId}-${completedSteps.length}`}
+          key={`ia-nav-${currentContent}-${completedSteps.length}`}
           drawerOpen={true}
           toggleDrawer={() => {}}
           navigationSections={imaginalAgilityNavigationSections}
@@ -349,11 +349,11 @@ export default function ImaginalAgilityWorkshop() {
           isImaginalAgility={true}
           navigation={{
             progress: navProgress,
-            currentStepId: navProgress?.currentStepId || 'ia-1-1',
+            currentStepId: currentContent,
             completedSteps: completedSteps,
-            isStepCurrent: (stepId: string) => navProgress?.currentStepId === stepId,
+            isStepCurrent: (stepId: string) => currentContent === stepId,
             getStepVisualState: (stepId: string) => {
-              const isCurrent = navProgress?.currentStepId === stepId;
+              const isCurrent = currentContent === stepId;
               const isCompleted = completedSteps.includes(stepId);
               const isAccessible = isStepAccessible('', stepId);
               
@@ -365,12 +365,12 @@ export default function ImaginalAgilityWorkshop() {
                 'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
                 'ia-5-1'
               ];
-              const nextUnfinishedStep = iaStepOrder.find(step => 
+              const nextUnfinishedStep = iaStepOrder.find(step =>
                 !completedSteps.includes(step) && isStepAccessible('', step)
               );
               const isNextUnfinished = stepId === nextUnfinishedStep;
-              const currentStepIsCompleted = completedSteps.includes(navProgress?.currentStepId || '');
-              const userNavigatedBack = currentStepIsCompleted && nextUnfinishedStep !== navProgress?.currentStepId;
+              const currentStepIsCompleted = completedSteps.includes(currentContent);
+              const userNavigatedBack = currentStepIsCompleted && nextUnfinishedStep !== currentContent;
               
               // IA Workshop Visual Logic (matching AST):
               // - Purple highlight: Current step being viewed

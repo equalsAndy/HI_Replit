@@ -88,28 +88,42 @@ const IA_1_1_Overview: React.FC<IA11OverviewProps> = ({ onNext }) => {
 
           <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-6 my-8">
             <h2 className="text-xl font-semibold text-purple-800 mb-4">What You'll Learn:</h2>
-            <ol className="space-y-3 text-gray-800">
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">1</span>
-                <span className="pt-1"><strong>Learn:</strong> Imaginal Agility</span>
-              </li>
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">2</span>
-                <span className="pt-1"><strong>Enhance:</strong> Mental Health & Brain Plasticity</span>
-              </li>
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">3</span>
-                <span className="pt-1"><strong>Develop:</strong> Collaborative Intelligence — Human to Human & Human to AI</span>
-              </li>
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">4</span>
-                <span className="pt-1"><strong>Deepen Self-Awareness</strong> – Curiosity, Caring, Creativity, & Courage</span>
-              </li>
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">5</span>
-                <span className="pt-1"><strong>Restore</strong> Meaning, Purpose, & Fulfillment</span>
-              </li>
-            </ol>
+
+            {/* Two-column layout: Image on left, numbered list on right */}
+            <div className="grid md:grid-cols-2 gap-6 items-center">
+              {/* Yellow Disc Image */}
+              <div className="flex justify-center">
+                <img
+                  src="/assets/IA-1-1_yellowdisc.png"
+                  alt="Imaginal Agility Visual Overview"
+                  className="w-full max-w-sm rounded-lg shadow-md"
+                />
+              </div>
+
+              {/* Numbered List */}
+              <ol className="space-y-3 text-gray-800">
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">1</span>
+                  <span className="pt-1"><strong>Learn:</strong> Imaginal Agility</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">2</span>
+                  <span className="pt-1"><strong>Enhance:</strong> Mental Health & Brain Plasticity</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">3</span>
+                  <span className="pt-1"><strong>Develop:</strong> Collaborative Intelligence — Human to Human & Human to AI</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">4</span>
+                  <span className="pt-1"><strong>Deepen Self-Awareness</strong> – Curiosity, Caring, Creativity, & Courage</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center mr-3 font-semibold">5</span>
+                  <span className="pt-1"><strong>Restore</strong> Meaning, Purpose, & Fulfillment</span>
+                </li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>

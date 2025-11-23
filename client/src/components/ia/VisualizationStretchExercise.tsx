@@ -140,7 +140,7 @@ export default function VisualizationStretchExercise() {
       {/* Display IA-3-3 data if available */}
       {hasIA33Data && (
         <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <h3 className="text-lg font-semibold text-purple-800 mb-4">From Your Previous Visualization (IA-3-3)</h3>
+          <h3 className="text-lg font-semibold text-purple-800 mb-4">From Your Previous Visualization</h3>
           <div className="flex flex-col md:flex-row gap-4 items-start">
             {ia33Image && (
               <div className="flex-shrink-0">

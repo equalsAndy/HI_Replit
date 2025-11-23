@@ -65,7 +65,7 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed mb-4">
-            This exercise transforms your inspiration moments from IA-3-5 into concrete, actionable steps. 
+            This exercise transforms your inspiration moments from the Inspiration step into concrete, actionable steps.
             You'll work with AI to bridge the gap between inspiration and implementation.
           </p>
           <div className="bg-purple-100 border border-purple-300 rounded-lg p-4">

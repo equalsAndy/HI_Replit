@@ -54,6 +54,51 @@ const IA_1_2_WhatIsImagination: React.FC<IA12WhatIsImaginationProps> = ({ onNext
             feelings, and ideas to help you see new options. People imagine in different ways—through images, sound, emotion,
             or abstraction—but everyone can strengthen this capability.
           </p>
+
+          {/* Learning Objectives with DMN Brain Graphic */}
+          <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+            <div className="grid md:grid-cols-2 gap-6 items-start">
+              {/* Left column - Learning objectives */}
+              <div>
+                <h3 className="text-lg font-semibold text-purple-800 mb-4">In this unit you'll learn:</h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    <span>A simple, science-based definition of imagination</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    <span>Why it's essential for identity, meaning, and growth</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    <span>How the brain creates mental images and ideas</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    <span>Why everyone imagines differently</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-purple-600 mr-2">•</span>
+                    <span>How imagination functions individually, in teams, and across organizations</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Right column - DMN Brain Graphic */}
+              <div className="flex justify-center">
+                <img
+                  src="/assets/ia-1-2-DMN-brain.png"
+                  alt="Default Mode Network Brain Diagram"
+                  className="w-full max-w-xs rounded-lg shadow-md"
+                />
+              </div>
+            </div>
+          </div>
+
+          <p className="text-lg leading-relaxed font-medium text-purple-700">
+            Understanding what imagination is helps clarify why it declines for most people—and why rebuilding it matters for your wellbeing, resilience, and professional growth.
+          </p>
         </div>
       </div>
 

@@ -906,10 +906,22 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     console.log(`🔄 SIMPLIFIED MODE: Navigating to step ${stepId}`);
 
     setProgress(prev => {
+      // Recalculate workshop completion status
+      const workshopCompleted = isWorkshopCompleted(prev.completedSteps, appType);
+
+      // Recalculate section expansion state based on the new current step
+      const sectionExpansion = calculateSectionExpansion(
+        stepId,
+        prev.completedSteps,
+        appType,
+        workshopCompleted
+      );
+
       const newProgress = {
         ...prev,
         currentStepId: stepId,
-        lastVisitedAt: new Date().toISOString()
+        lastVisitedAt: new Date().toISOString(),
+        sectionExpansion  // Update section expansion when navigating
       };
 
       // If navigating to a resource step, mark it as visited

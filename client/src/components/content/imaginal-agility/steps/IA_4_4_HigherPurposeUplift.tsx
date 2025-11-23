@@ -65,8 +65,8 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed mb-4">
-            Challenge yourself to imagine how your deeper purpose might serve a world in crisis. 
-            Building on your higher purpose from IA-3-4, explore how personal intention intersects with global challenges.
+            Challenge yourself to imagine how your deeper purpose might serve a world in crisis.
+            Building on your higher purpose from Insight to Intention, explore how personal intention intersects with global challenges.
           </p>
           <div className="bg-purple-100 border border-purple-300 rounded-lg p-4">
             <p className="text-lg font-medium text-purple-800 text-center">

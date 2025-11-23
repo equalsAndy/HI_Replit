@@ -139,7 +139,7 @@ export default function ActionPlanningExercise() {
       {hasInterludes && (
         <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
           <h3 className="text-lg font-semibold text-purple-800 mb-3">
-            Your Inspiration Moments (from IA-3-5)
+            Your Inspiration Moments
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {availableInterludes.slice(0, 6).map((interlude) => (

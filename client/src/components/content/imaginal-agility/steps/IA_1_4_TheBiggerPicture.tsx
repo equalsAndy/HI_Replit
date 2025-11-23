@@ -72,23 +72,23 @@ const IA_1_4_TheBiggerPicture: React.FC<IA14TheBiggerPictureProps> = ({ onNext }
             </ul>
           </div>
 
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 my-8">
-            <div className="flex items-start mb-4">
-              <Lightbulb className="w-8 h-8 text-green-600 mr-3 flex-shrink-0" />
-              <h2 className="text-2xl font-semibold text-green-800">Practical Good News</h2>
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-5 my-6">
+            <div className="flex items-center gap-3 mb-3">
+              <Lightbulb className="w-6 h-6 text-green-600 flex-shrink-0" />
+              <h2 className="text-xl font-semibold text-green-800">Practical Good News</h2>
             </div>
-            <p className="text-gray-800 leading-relaxed">
+            <p className="text-gray-800 leading-relaxed text-base">
               Imagination isn't fixed. Neuroscience shows it can be strengthened at any age through deliberate, DMN-focused practice.
               Even small habits—reflection, visualization, mindful attention—create measurable changes in 8–12 weeks.
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 my-8">
-            <div className="flex items-start mb-4">
-              <Briefcase className="w-8 h-8 text-blue-600 mr-3 flex-shrink-0" />
-              <h2 className="text-2xl font-semibold text-blue-800">WEF & LinkedIn Future Skills</h2>
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-5 my-6">
+            <div className="flex items-center gap-3 mb-3">
+              <Briefcase className="w-6 h-6 text-blue-600 flex-shrink-0" />
+              <h2 className="text-xl font-semibold text-blue-800">WEF & LinkedIn Future Skills</h2>
             </div>
-            <p className="text-gray-800 leading-relaxed">
+            <p className="text-gray-800 leading-relaxed text-base">
               The World Economic Forum and LinkedIn identify imagination, creativity, adaptability, empathy, and self-awareness
               as core <strong>Enduring Capabilities</strong> for the 2030 workforce. Imagination is the hidden driver behind all
               of them—it powers future thinking, collaboration, and innovation.

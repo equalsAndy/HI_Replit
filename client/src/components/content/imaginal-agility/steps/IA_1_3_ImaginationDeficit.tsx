@@ -60,11 +60,11 @@ const IA_1_3_ImaginationDeficit: React.FC<IA13ImaginationDeficitProps> = ({ onNe
             <ul className="space-y-3 text-gray-800">
               <li className="flex items-start">
                 <CheckCircle className="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-1" />
-                <span>Plato and Buddha diagnosed the same challenges</span>
+                <span>Plato and Buddha diagnosed the same challenges we have today</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle className="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-1" />
-                <span>How school and work suppress reflection and creative risk-taking</span>
+                <span>How school and work often suppress reflection and creative risk-taking</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle className="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-1" />
@@ -72,7 +72,7 @@ const IA_1_3_ImaginationDeficit: React.FC<IA13ImaginationDeficitProps> = ({ onNe
               </li>
               <li className="flex items-start">
                 <CheckCircle className="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-1" />
-                <span>Why the Self-Awareness Gap and Imagination Deficit is now a major human-capability problem</span>
+                <span>Why the Self-Awareness Gap and Imagination Deficit are now a major human-capability problem</span>
               </li>
             </ul>
           </div>
@@ -86,6 +86,15 @@ const IA_1_3_ImaginationDeficit: React.FC<IA13ImaginationDeficitProps> = ({ onNe
           title={videoData?.title || "The Imagination Deficit"}
           transcriptMd={null}
           glossary={null}
+        />
+      </div>
+
+      {/* Imagination Deficit Graph */}
+      <div className="flex justify-center my-8">
+        <img
+          src="/assets/ia-1-3-graph.png"
+          alt="Imagination Deficit Over Time"
+          className="w-full max-w-xl rounded-lg shadow-md"
         />
       </div>
 
