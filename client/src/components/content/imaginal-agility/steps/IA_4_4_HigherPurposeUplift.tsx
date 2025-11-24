@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import GlobalPurposeBridgeExercise from '@/components/ia/GlobalPurposeBridgeExercise';
 import { useContinuity } from '@/hooks/useContinuity';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA_4_4_ContentProps {
   onNext?: (nextStepId: string) => void;
@@ -38,6 +39,12 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         Global Purpose Bridge
       </h1>

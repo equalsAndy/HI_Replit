@@ -485,8 +485,61 @@ export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' = 'ast') {
   };
 
   // Video progress tracking (compatibility functions)
-  const updateVideoProgress = (stepId: string, progress: number) => {
-    // Implementation depends on video progress tracking requirements
+  const updateVideoProgress = async (stepId: string, progress: number | { percentage: number; duration?: number }) => {
+    try {
+      // Normalize input - handle both number and object formats
+      const progressData = typeof progress === 'number'
+        ? { percentage: progress }
+        : progress;
+
+      console.log(`🎬 Updating video progress for ${stepId}:`, progressData);
+
+      // Get current navigation progress
+      const response = await fetch('/api/user/navigation-progress', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get current progress');
+      }
+
+      const { progress: currentProgress } = await response.json();
+      let parsedProgress = currentProgress ? JSON.parse(currentProgress) : {};
+
+      // Update video progress with new data (server will handle max tracking)
+      const updatedProgress = {
+        ...parsedProgress,
+        videoProgress: {
+          ...(parsedProgress.videoProgress || {}),
+          [stepId]: {
+            percentage: progressData.percentage,
+            maxPercentage: progressData.percentage,
+            duration: progressData.duration,
+            timestamp: new Date().toISOString()
+          }
+        }
+      };
+
+      // Save to backend - server will merge with existing data and keep max
+      const saveResponse = await fetch('/api/user/navigation-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          navigationProgress: JSON.stringify(updatedProgress)
+        })
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save video progress');
+      }
+
+      const result = await saveResponse.json();
+      console.log(`✅ Video progress saved for ${stepId}:`, result);
+    } catch (error) {
+      console.error(`❌ Error updating video progress for ${stepId}:`, error);
+    }
   };
 
   const getVideoProgress = (stepId: string): number => {

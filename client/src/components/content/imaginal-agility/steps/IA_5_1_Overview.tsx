@@ -4,6 +4,7 @@ import { useVideoByStepId } from '@/hooks/use-videos';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA51ContentProps {
   onNext?: (stepId: string) => void;
@@ -47,6 +48,12 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         Outcomes and Benefits
       </h1>

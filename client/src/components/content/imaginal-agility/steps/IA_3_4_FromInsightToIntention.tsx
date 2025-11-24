@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA34ContentProps {
   onNext?: (stepId: string) => void;
@@ -63,6 +64,12 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         From Insight to Intention
       </h1>

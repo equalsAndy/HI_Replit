@@ -505,11 +505,78 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
       }
     };
 
-    // Ensure video progress always maintains highest values
+    // Ensure video progress always maintains highest values and records watch history
     Object.keys(incomingData.videoProgress || {}).forEach(stepId => {
-      const currentValue = (currentProgress.videoProgress as any)[stepId] || 0;
-      const newValue = incomingData.videoProgress[stepId] || 0;
-      mergedProgress.videoProgress[stepId] = Math.max(currentValue, newValue);
+      const currentValue = (currentProgress.videoProgress as any)[stepId];
+      const newValue = incomingData.videoProgress[stepId];
+
+      // Handle both legacy (number) and new (object) format
+      let currentMax = 0;
+      let currentData: any = { watchHistory: [] };
+
+      if (typeof currentValue === 'number') {
+        // Legacy format - convert to new format
+        currentMax = currentValue;
+        currentData = {
+          maxPercentage: currentValue,
+          lastWatchedAt: new Date().toISOString(),
+          watchHistory: [],
+          completed: false
+        };
+      } else if (currentValue && typeof currentValue === 'object') {
+        // New format
+        currentMax = currentValue.maxPercentage || 0;
+        currentData = { ...currentValue };
+      }
+
+      let newMax = 0;
+      let newData: any = {};
+
+      if (typeof newValue === 'number') {
+        // Legacy format from client
+        newMax = newValue;
+        newData = {
+          maxPercentage: newValue,
+          lastWatchedAt: new Date().toISOString(),
+          watchHistory: [
+            ...(currentData.watchHistory || []),
+            {
+              percentage: newValue,
+              timestamp: new Date().toISOString()
+            }
+          ],
+          completed: false
+        };
+      } else if (newValue && typeof newValue === 'object') {
+        // New format from client
+        newMax = newValue.maxPercentage || newValue.percentage || 0;
+        newData = {
+          ...currentData,
+          ...newValue,
+          maxPercentage: Math.max(currentMax, newValue.maxPercentage || newValue.percentage || 0),
+          lastWatchedAt: new Date().toISOString(),
+          watchHistory: [
+            ...(currentData.watchHistory || []),
+            {
+              percentage: newValue.percentage || newValue.maxPercentage || 0,
+              timestamp: new Date().toISOString(),
+              duration: newValue.duration
+            }
+          ]
+        };
+      }
+
+      // Keep the highest percentage
+      mergedProgress.videoProgress[stepId] = {
+        ...newData,
+        maxPercentage: Math.max(currentMax, newMax)
+      };
+
+      // Limit watch history to last 50 entries to prevent bloat
+      if (mergedProgress.videoProgress[stepId].watchHistory?.length > 50) {
+        mergedProgress.videoProgress[stepId].watchHistory =
+          mergedProgress.videoProgress[stepId].watchHistory.slice(-50);
+      }
     });
 
     console.log(`🔄 Atomic video progress merge for user ${(req.session as any).userId}:`);

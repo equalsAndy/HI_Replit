@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA_4_1_ContentProps {
   onNext?: (nextStepId: string) => void;
@@ -41,6 +42,12 @@ const IA_4_1_Content: React.FC<IA_4_1_ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         Advanced Ladder Overview
       </h1>

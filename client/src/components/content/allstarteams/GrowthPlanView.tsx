@@ -12,6 +12,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import tuningForkImage from '@assets/turningfork_1749438223210.png';
 import StarCard from '@/components/starcard/StarCard';
 import WellBeingLadderSvg from '@/components/visualization/WellBeingLadderSvg';
+import { getAttributeColor } from '@/components/starcard/starCardConstants';
 
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
@@ -396,16 +397,16 @@ export default function GrowthPlanView({
                 feeling={starData?.feeling || 0}
                 planning={starData?.planning || 0}
                 flowAttributes={
-                  flowAttributesData && 
-                  (flowAttributesData as any).attributes && 
-                  Array.isArray((flowAttributesData as any).attributes) ? 
+                  flowAttributesData &&
+                  (flowAttributesData as any).attributes &&
+                  Array.isArray((flowAttributesData as any).attributes) ?
                   (flowAttributesData as any).attributes.map((attr: any) => {
                     if (!attr || !attr.name) {
                       return { text: "", color: "rgb(156, 163, 175)" };
                     }
                     return {
                       text: attr.name,
-                      color: "rgb(59, 130, 246)"
+                      color: getAttributeColor(attr.name)
                     };
                   }) : []
                 }

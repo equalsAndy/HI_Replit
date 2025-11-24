@@ -15,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA32ContentProps {
   onNext?: (stepId: string) => void;
@@ -111,6 +112,12 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         Autoflow Practice
       </h1>

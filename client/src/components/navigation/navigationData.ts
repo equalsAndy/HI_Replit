@@ -1,4 +1,4 @@
-import { 
+import {
   StarIcon, BarChartIcon, Activity, Sparkles, BookOpen,
   LightbulbIcon, Braces, Users, Puzzle, Book, Zap, PenTool,
   Download, Calendar, Brain, Play
@@ -66,15 +66,15 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     moduleNumber: 2, // Added module badge
     expanded: true, // Default expanded
     steps: [
-      { 
-        id: 'ia-2-1', 
-        title: 'I4C Prism Overview', 
+      {
+        id: 'ia-2-1',
+        title: 'I4C Prism Overview',
         type: 'video',
         contentKey: 'ia-2-1'
       },
-      { 
-        id: 'ia-2-2', 
-        title: 'Self-Assessment', 
+      {
+        id: 'ia-2-2',
+        title: 'Self-Assessment',
         type: 'assessment',
         contentKey: 'ia-2-2'
       }
@@ -86,39 +86,39 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     moduleNumber: 3, // Added module badge
     expanded: true, // Default expanded
     steps: [
-      { 
-        id: 'ia-3-1', 
-        title: 'Ladder Overview', 
+      {
+        id: 'ia-3-1',
+        title: 'Ladder Overview',
         type: 'video',
         contentKey: 'ia-3-1'
       },
-      { 
-        id: 'ia-3-2', 
-        title: 'Autoflow', 
+      {
+        id: 'ia-3-2',
+        title: 'Autoflow',
         type: 'interactive',
         contentKey: 'ia-3-2'
       },
-      { 
-        id: 'ia-3-3', 
-        title: 'Visualizing Your Potential', 
+      {
+        id: 'ia-3-3',
+        title: 'Visualizing Your Potential',
         type: 'interactive',
         contentKey: 'ia-3-3'
       },
-      { 
-        id: 'ia-3-4', 
-        title: 'From Insight to Intention', 
+      {
+        id: 'ia-3-4',
+        title: 'From Insight to Intention',
         type: 'reflection',
         contentKey: 'ia-3-4'
       },
-      { 
-        id: 'ia-3-5', 
-        title: 'Inspiration', 
+      {
+        id: 'ia-3-5',
+        title: 'Inspiration',
         type: 'reflection',
         contentKey: 'ia-3-5'
       },
-      { 
-        id: 'ia-3-6', 
-        title: 'The Unimaginable', 
+      {
+        id: 'ia-3-6',
+        title: 'The Unimaginable',
         type: 'video',
         contentKey: 'ia-3-6'
       }
@@ -130,39 +130,39 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     moduleNumber: 4, // Added module badge
     expanded: false, // Default collapsed
     steps: [
-      { 
-        id: 'ia-4-1', 
-        title: 'Advanced Ladder Overview', 
+      {
+        id: 'ia-4-1',
+        title: 'Advanced Ladder Overview',
         type: 'video',
         contentKey: 'ia-4-1'
       },
-      { 
-        id: 'ia-4-2', 
-        title: 'Autoflow Mindful Prompts', 
+      {
+        id: 'ia-4-2',
+        title: 'Autoflow Mindful Prompts',
         type: 'interactive',
         contentKey: 'ia-4-2'
       },
-      { 
-        id: 'ia-4-3', 
-        title: 'Visualization Stretch', 
+      {
+        id: 'ia-4-3',
+        title: 'Visualization Stretch',
         type: 'interactive',
         contentKey: 'ia-4-3'
       },
-      { 
-        id: 'ia-4-4', 
-        title: 'Higher Purpose Uplift', 
+      {
+        id: 'ia-4-4',
+        title: 'Higher Purpose Uplift',
         type: 'reflection',
         contentKey: 'ia-4-4'
       },
-      { 
-        id: 'ia-4-5', 
-        title: 'Inspiration Support', 
+      {
+        id: 'ia-4-5',
+        title: 'Inspiration Support',
         type: 'reflection',
         contentKey: 'ia-4-5'
       },
-      { 
-        id: 'ia-4-6', 
-        title: 'Nothing is Unimaginable', 
+      {
+        id: 'ia-4-6',
+        title: 'Nothing is Unimaginable',
         type: 'video',
         contentKey: 'ia-4-6'
       }
@@ -170,13 +170,13 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '5',
-    title: 'OUTCOMES & BENEFITS',
-    moduleNumber: 5, // Added module badge
+    title: 'FINAL THOUGHTS',
+    // No moduleNumber - this is a conclusion section, not a numbered module
     expanded: false, // Default collapsed
     steps: [
       {
         id: 'ia-5-1',
-        title: 'Overview',
+        title: 'Outcomes and Benefits',
         type: 'video',
         contentKey: 'ia-5-1'
       }
@@ -259,15 +259,15 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   //   title: 'MORE INFO',
   //   expanded: false, // Default collapsed
   //   steps: [
-  //     { 
-  //       id: 'ia-8-1', 
-  //       title: 'The Neuroscience of Imagination', 
+  //     {
+  //       id: 'ia-8-1',
+  //       title: 'The Neuroscience of Imagination',
   //       type: 'video',
   //       contentKey: 'ia-8-1'
   //     },
-  //     { 
-  //       id: 'ia-8-2', 
-  //       title: 'About Heliotrope Imaginal', 
+  //     {
+  //       id: 'ia-8-2',
+  //       title: 'About Heliotrope Imaginal',
   //       type: 'video',
   //       contentKey: 'ia-8-2'
   //     }
@@ -317,7 +317,7 @@ export const allStarTeamsNavigationSections = [
       { id: '4-1', title: 'Download your Star Card', type: 'download' }, // Content: OLD 5-1
       { id: '4-2', title: 'Your Holistic Report', type: 'download' }, // Content: OLD 5-2
       { id: '4-3', title: 'Growth Plan', type: 'planning' }, // Content: OLD 5-3
-      { id: '4-4', title: 'Team Workshop Prep', type: 'collaboration' } // Content: OLD 5-4
+      { id: '4-4', title: 'Team Workshop', type: 'collaboration' } // Content: OLD 5-4
     ]
   },
   {

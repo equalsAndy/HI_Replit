@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA11OverviewProps {
   onNext?: (stepId: string) => void;
@@ -37,6 +38,13 @@ const IA_1_1_Overview: React.FC<IA11OverviewProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
+
       <h1 className="text-4xl font-bold text-purple-700 mb-8">
         Module 1: Overview
       </h1>

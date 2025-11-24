@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Clock } from 'lucide-react';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA15RealityAndWordsProps {
   onNext?: (stepId: string) => void;
@@ -9,6 +10,13 @@ interface IA15RealityAndWordsProps {
 const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) => {
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
+
       <h1 className="text-4xl font-bold text-purple-700 mb-8">
         Extra: Reality and Words
       </h1>

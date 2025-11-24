@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, Target, Lightbulb, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from '../ImaginalAgilityRadarChart';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA_2_2_ContentProps {
   onNext?: (stepId: string) => void;
@@ -99,6 +100,12 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
   if (isAssessmentCompleted && resultData) {
     return (
       <div className="max-w-4xl mx-auto p-6 space-y-8">
+        {/* Scroll Indicator - appears when user is idle */}
+        <ScrollIndicator
+          idleTime={3000}
+          position="nav-adjacent"
+          colorScheme="purple"
+        />
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-purple-800">Your I4C Assessment Results</h1>
@@ -189,6 +196,12 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
   // Show pre-assessment content if assessment is not completed
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold text-purple-800">I4C Self-Assessment</h1>

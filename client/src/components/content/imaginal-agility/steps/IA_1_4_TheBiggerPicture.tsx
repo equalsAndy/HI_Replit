@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import { CheckCircle, Lightbulb, Briefcase } from 'lucide-react';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA14TheBiggerPictureProps {
   onNext?: (stepId: string) => void;
@@ -38,6 +39,13 @@ const IA_1_4_TheBiggerPicture: React.FC<IA14TheBiggerPictureProps> = ({ onNext }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="purple"
+      />
+
       <h1 className="text-4xl font-bold text-purple-700 mb-8">
         Unit 3 — The Bigger Picture
       </h1>
