@@ -7,6 +7,7 @@ import { trpc } from "@/utils/trpc";
 import '@/styles/section-headers.css';
 import { Check, X, Play } from 'lucide-react';
 import JeopardySelfAwarenessGame from './JeopardySelfAwarenessGame';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 // import organizationalChallengesImg from '@/assets/graphics/organizational-challenges-diagram.png';
 
 interface WelcomeViewProps {
@@ -223,6 +224,13 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
+
       <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
 
       {/* Play Welcome Video Again Link - Only for AST */}

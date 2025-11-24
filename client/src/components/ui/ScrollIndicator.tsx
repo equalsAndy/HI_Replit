@@ -37,6 +37,8 @@ export const ScrollIndicator: React.FC<ScrollIndicatorProps> = ({
     // Find the scrollable content container (the main content area)
     const contentArea = document.querySelector('.flex-1.overflow-auto') as HTMLElement;
 
+    console.log('ScrollIndicator: Checking scroll position, contentArea found:', !!contentArea);
+
     if (contentArea) {
       // Check scroll position of the content area, not the window
       const scrollHeight = contentArea.scrollHeight;
@@ -46,6 +48,14 @@ export const ScrollIndicator: React.FC<ScrollIndicatorProps> = ({
       // Consider "at bottom" if within 100px of the bottom
       const atBottom = scrollTop + clientHeight >= scrollHeight - 100;
 
+      console.log('ScrollIndicator (Content Area):', {
+        scrollHeight,
+        scrollTop,
+        clientHeight,
+        atBottom,
+        hasContent: scrollHeight > clientHeight
+      });
+
       setIsAtBottom(atBottom);
     } else {
       // Fallback to window scroll
@@ -54,6 +64,13 @@ export const ScrollIndicator: React.FC<ScrollIndicatorProps> = ({
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
       const atBottom = scrollTop + windowHeight >= documentHeight - 100;
+
+      console.log('ScrollIndicator (Window):', {
+        windowHeight,
+        documentHeight,
+        scrollTop,
+        atBottom
+      });
 
       setIsAtBottom(atBottom);
     }
@@ -122,6 +139,7 @@ export const ScrollIndicator: React.FC<ScrollIndicatorProps> = ({
   // Show indicator when idle and not at bottom
   useEffect(() => {
     const shouldShow = isIdle && !isAtBottom;
+    console.log('ScrollIndicator Visibility:', { isIdle, isAtBottom, shouldShow });
     setIsVisible(shouldShow);
   }, [isIdle, isAtBottom]);
 

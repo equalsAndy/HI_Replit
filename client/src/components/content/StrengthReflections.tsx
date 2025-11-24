@@ -100,6 +100,7 @@ export default function StrengthReflections({
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
 
   // Expandable section states
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -285,6 +286,11 @@ export default function StrengthReflections({
     const canAccess = completedIndices.has(index) || index <= Math.max(...Array.from(completedIndices), -1) + 1;
     if (canAccess) {
       setCurrentIndex(index);
+      setIsEditing(true);
+      // Scroll the editor back into view so the textarea is visible
+      setTimeout(() => {
+        topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 0);
     }
   };
 
@@ -374,7 +380,7 @@ export default function StrengthReflections({
   const isEditingMode = !allReflectionsCompleted || isEditing;
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto" ref={topRef}>
       {/* Header */}
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Reflect on Your Strengths</h2>
@@ -629,13 +635,7 @@ export default function StrengthReflections({
                 return (
                   <button
                     key={reflection.id}
-                    onClick={() => {
-                      setCurrentIndex(index);
-                      // Force editing mode when clicking on a completed reflection
-                      if (allReflectionsCompleted) {
-                        setIsEditing(true);
-                      }
-                    }}
+                    onClick={() => handleReflectionClick(index)}
                     className="w-full bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border text-left transition-colors"
                   >
                     <h5 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">

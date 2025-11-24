@@ -16,6 +16,9 @@ class InviteService {
     createdBy: number;
     expiresAt?: Date;
     isBetaTester?: boolean;
+    astAccess?: boolean;
+    iaAccess?: boolean;
+    showDemoDataButtons?: boolean;
   }) {
     try {
       // Validate email format
@@ -42,8 +45,21 @@ class InviteService {
       
       // Insert the invite into the database with cohort and organization assignment
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null}, ${data.isBetaTester || false})
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, show_demo_data_buttons)
+        VALUES (
+          ${inviteCode},
+          ${data.email.toLowerCase()},
+          ${data.role},
+          ${data.name || null},
+          ${data.createdBy},
+          ${data.expiresAt || null},
+          ${data.cohortId || null},
+          ${data.organizationId || null},
+          ${data.isBetaTester || false},
+          ${data.astAccess ?? true},
+          ${data.iaAccess ?? true},
+          ${data.showDemoDataButtons ?? false}
+        )
         RETURNING *
       `);
       
@@ -58,6 +74,9 @@ class InviteService {
         cohort_id: data.cohortId || null,
         organization_id: data.organizationId || null,
         is_beta_tester: data.isBetaTester || false,
+        ast_access: data.astAccess ?? true,
+        ia_access: data.iaAccess ?? true,
+        show_demo_data_buttons: data.showDemoDataButtons ?? false,
         created_at: new Date(),
         used_at: null,
         used_by: null
@@ -91,6 +110,9 @@ class InviteService {
     cohortId?: string;
     organizationId?: string;
     isBetaTester?: boolean;
+    astAccess?: boolean;
+    iaAccess?: boolean;
+    showDemoDataButtons?: boolean;
   }) {
     try {
       // Validate email format
@@ -112,8 +134,21 @@ class InviteService {
       
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId ? parseInt(data.cohortId) : null}, ${data.organizationId || null}, ${data.isBetaTester || false})
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, show_demo_data_buttons)
+        VALUES (
+          ${inviteCode},
+          ${data.email.toLowerCase()},
+          ${data.role},
+          ${data.name || null},
+          ${data.createdBy},
+          ${data.expiresAt || null},
+          ${data.cohortId ? parseInt(data.cohortId) : null},
+          ${data.organizationId || null},
+          ${data.isBetaTester || false},
+          ${data.astAccess ?? true},
+          ${data.iaAccess ?? true},
+          ${data.showDemoDataButtons ?? false}
+        )
         RETURNING *
       `);
       
@@ -126,6 +161,9 @@ class InviteService {
         created_by: data.createdBy,
         expires_at: data.expiresAt || null,
         is_beta_tester: data.isBetaTester || false,
+        ast_access: data.astAccess ?? true,
+        ia_access: data.iaAccess ?? true,
+        show_demo_data_buttons: data.showDemoDataButtons ?? false,
         created_at: new Date(),
         used_at: null,
         used_by: null
@@ -169,6 +207,84 @@ class InviteService {
       return {
         success: false,
         error: 'Failed to fetch invite'
+      };
+    }
+  }
+
+  /**
+   * Get an invite by id
+   */
+  async getInviteById(id: number) {
+    try {
+      const result = await db.select()
+        .from(invites)
+        .where(eq(invites.id, id));
+      
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'Invite not found'
+        };
+      }
+      
+      return {
+        success: true,
+        invite: result[0]
+      };
+    } catch (error) {
+      console.error('Error fetching invite by id:', error);
+      return {
+        success: false,
+        error: 'Failed to fetch invite'
+      };
+    }
+  }
+
+  /**
+   * Update an invite (pending only)
+   */
+  async updateInvite(id: number, updates: {
+    name?: string;
+    role?: 'admin' | 'facilitator' | 'participant' | 'student';
+    isBetaTester?: boolean;
+    astAccess?: boolean;
+    iaAccess?: boolean;
+    showDemoDataButtons?: boolean;
+  }) {
+    try {
+      // Build dynamic set clauses
+      const setClauses: any[] = [];
+      if (updates.name !== undefined) setClauses.push(sql`name = ${updates.name}`);
+      if (updates.role !== undefined) setClauses.push(sql`role = ${updates.role}`);
+      if (updates.isBetaTester !== undefined) setClauses.push(sql`is_beta_tester = ${updates.isBetaTester}`);
+      if (updates.astAccess !== undefined) setClauses.push(sql`ast_access = ${updates.astAccess}`);
+      if (updates.iaAccess !== undefined) setClauses.push(sql`ia_access = ${updates.iaAccess}`);
+      if (updates.showDemoDataButtons !== undefined) setClauses.push(sql`show_demo_data_buttons = ${updates.showDemoDataButtons}`);
+
+      if (setClauses.length === 0) {
+        return { success: false, error: 'No fields provided for update' };
+      }
+
+      const query = sql`
+        UPDATE invites
+        SET ${sql.join(setClauses, sql`, `)}
+        WHERE id = ${id} AND used_at IS NULL
+        RETURNING *
+      `;
+
+      const result = await db.execute(query);
+      const inviteData = (result as any)[0] || (result as any).rows?.[0];
+
+      if (!inviteData) {
+        return { success: false, error: 'Invite not found or already used' };
+      }
+
+      return { success: true, invite: inviteData };
+    } catch (error) {
+      console.error('Error updating invite:', error);
+      return {
+        success: false,
+        error: 'Failed to update invite'
       };
     }
   }
@@ -395,6 +511,83 @@ class InviteService {
       return {
         success: false,
         error: 'Failed to bulk delete invites'
+      };
+    }
+  }
+
+  /**
+   * Update a pending invite's workshop access settings
+   */
+  async updateInvite(inviteId: number, updates: {
+    astAccess?: boolean;
+    iaAccess?: boolean;
+    showDemoDataButtons?: boolean;
+    name?: string;
+    role?: 'admin' | 'facilitator' | 'participant' | 'student';
+    expiresAt?: Date | null;
+    cohortId?: number | null;
+    organizationId?: string | null;
+    isBetaTester?: boolean;
+  }) {
+    try {
+      // First check if the invite exists and is not used
+      const checkResult = await db.execute(sql`
+        SELECT id, used_at FROM invites WHERE id = ${inviteId}
+      `);
+      const invite = (checkResult as any)[0] || (checkResult as any).rows?.[0];
+
+      if (!invite) {
+        return {
+          success: false,
+          error: 'Invite not found'
+        };
+      }
+
+      if (invite.used_at) {
+        return {
+          success: false,
+          error: 'Cannot update an invite that has already been used'
+        };
+      }
+
+      // Build update object with only defined fields (using camelCase to match schema)
+      const updateData: any = {};
+
+      if (updates.astAccess !== undefined) updateData.astAccess = updates.astAccess;
+      if (updates.iaAccess !== undefined) updateData.iaAccess = updates.iaAccess;
+      if (updates.showDemoDataButtons !== undefined) updateData.showDemoDataButtons = updates.showDemoDataButtons;
+      if (updates.name !== undefined) updateData.name = updates.name || null;
+      if (updates.role !== undefined) updateData.role = updates.role;
+      if (updates.expiresAt !== undefined) updateData.expiresAt = updates.expiresAt || null;
+      if (updates.cohortId !== undefined) updateData.cohortId = updates.cohortId || null;
+      if (updates.organizationId !== undefined) updateData.organizationId = updates.organizationId || null;
+      if (updates.isBetaTester !== undefined) updateData.isBetaTester = updates.isBetaTester;
+
+      if (Object.keys(updateData).length === 0) {
+        return {
+          success: false,
+          error: 'No fields to update'
+        };
+      }
+
+      // Use Drizzle's update method
+      const result = await db
+        .update(invites)
+        .set(updateData)
+        .where(eq(invites.id, inviteId))
+        .returning();
+
+      const updatedInvite = result[0];
+
+      return {
+        success: true,
+        invite: updatedInvite
+      };
+    } catch (error) {
+      console.error('Error updating invite:', error);
+      return {
+        success: false,
+        error: 'Failed to update invite'
       };
     }
   }

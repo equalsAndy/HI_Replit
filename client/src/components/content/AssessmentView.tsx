@@ -6,6 +6,7 @@ import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useStarCardData } from '@/hooks/useStarCardData';
 import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface AssessmentViewProps {
   navigate: (to: string) => void;
@@ -112,6 +113,12 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
 
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Strengths Assessment</h1>
 
       {!isAssessmentComplete ? (

@@ -262,8 +262,13 @@ const InviteManagement: React.FC = () => {
     name: '',
     isTestUser: false,
     isBetaTester: false,
+    astAccess: true,
+    iaAccess: true,
+    showDemoDataButtons: false,
   });
   const [isSendingInvite, setIsSendingInvite] = React.useState(false);
+  const [editingInvite, setEditingInvite] = React.useState<any | null>(null);
+  const [editValues, setEditValues] = React.useState<any | null>(null);
   const { toast } = useToast();
 
   const fetchInvites = async () => {
@@ -313,7 +318,7 @@ const InviteManagement: React.FC = () => {
           title: 'Success', 
           description: `Invite created for ${newInvite.email}` 
         });
-        setNewInvite({ email: '', role: 'participant', name: '', isTestUser: false });
+        setNewInvite({ email: '', role: 'participant', name: '', isTestUser: false, isBetaTester: false, astAccess: true, iaAccess: true, showDemoDataButtons: false });
         fetchInvites();
       } else {
         toast({ 
@@ -331,6 +336,51 @@ const InviteManagement: React.FC = () => {
       });
     } finally {
       setIsSendingInvite(false);
+    }
+  };
+
+  const startEditInvite = (invite: any) => {
+    setEditingInvite(invite);
+    setEditValues({
+      name: invite.name || '',
+      role: invite.role || 'participant',
+      isBetaTester: invite.isBetaTester ?? invite.is_beta_tester ?? false,
+      astAccess: invite.astAccess ?? invite.ast_access ?? true,
+      iaAccess: invite.iaAccess ?? invite.ia_access ?? true,
+      showDemoDataButtons: invite.showDemoDataButtons ?? invite.show_demo_data_buttons ?? false,
+    });
+    setActiveTab('create'); // keep form visible
+  };
+
+  const handleUpdateInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingInvite || !editValues) return;
+
+    try {
+      const response = await apiRequest(`/api/invites/${editingInvite.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(editValues),
+      });
+
+      if (response.success) {
+        toast({ title: 'Updated', description: 'Invite updated successfully' });
+        setEditingInvite(null);
+        setEditValues(null);
+        fetchInvites();
+      } else {
+        toast({
+          title: 'Error',
+          description: response.error || 'Failed to update invite',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating invite:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update invite',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -570,7 +620,7 @@ const InviteManagement: React.FC = () => {
                 Generate an invitation code for a new user to join the workshop.
               </p>
               
-              <form onSubmit={handleCreateInvite} style={styles.form}>
+              <form onSubmit={editingInvite ? handleUpdateInvite : handleCreateInvite} style={styles.form}>
                 <div style={styles.formRow}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Email Address *</label>
@@ -578,9 +628,11 @@ const InviteManagement: React.FC = () => {
                       style={styles.input}
                       type="email"
                       placeholder="user@example.com"
-                      value={newInvite.email}
-                      onChange={(e) => setNewInvite({ ...newInvite, email: e.target.value })}
-                      disabled={isSendingInvite}
+                      value={editingInvite ? editingInvite.email : newInvite.email}
+                      onChange={(e) => editingInvite 
+                        ? setEditingInvite({ ...editingInvite, email: e.target.value })
+                        : setNewInvite({ ...newInvite, email: e.target.value })}
+                      disabled={isSendingInvite || !!editingInvite} // email locked during edit
                       required
                     />
                   </div>
@@ -590,8 +642,10 @@ const InviteManagement: React.FC = () => {
                       style={styles.input}
                       type="text"
                       placeholder="John Doe"
-                      value={newInvite.name}
-                      onChange={(e) => setNewInvite({ ...newInvite, name: e.target.value })}
+                      value={editingInvite ? editValues?.name ?? '' : newInvite.name}
+                      onChange={(e) => editingInvite
+                        ? setEditValues({ ...editValues, name: e.target.value })
+                        : setNewInvite({ ...newInvite, name: e.target.value })}
                       disabled={isSendingInvite}
                     />
                   </div>
@@ -599,8 +653,10 @@ const InviteManagement: React.FC = () => {
                     <label style={styles.label}>Role</label>
                     <select
                       style={styles.select}
-                      value={newInvite.role}
-                      onChange={(e) => setNewInvite({ ...newInvite, role: e.target.value })}
+                      value={editingInvite ? editValues?.role ?? 'participant' : newInvite.role}
+                      onChange={(e) => editingInvite
+                        ? setEditValues({ ...editValues, role: e.target.value })
+                        : setNewInvite({ ...newInvite, role: e.target.value })}
                       disabled={isSendingInvite}
                     >
                       <option value="student">Student</option>
@@ -613,8 +669,10 @@ const InviteManagement: React.FC = () => {
                     <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
                         type="checkbox"
-                        checked={newInvite.isTestUser}
-                        onChange={(e) => setNewInvite({ ...newInvite, isTestUser: e.target.checked })}
+                        checked={editingInvite ? editingInvite.isTestUser || false : newInvite.isTestUser}
+                        onChange={(e) => editingInvite
+                          ? setEditingInvite({ ...editingInvite, isTestUser: e.target.checked })
+                          : setNewInvite({ ...newInvite, isTestUser: e.target.checked })}
                         disabled={isSendingInvite}
                         style={{ margin: 0 }}
                       />
@@ -628,8 +686,10 @@ const InviteManagement: React.FC = () => {
                     <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
                         type="checkbox"
-                        checked={newInvite.isBetaTester}
-                        onChange={(e) => setNewInvite({ ...newInvite, isBetaTester: e.target.checked })}
+                        checked={editingInvite ? editValues?.isBetaTester ?? false : newInvite.isBetaTester}
+                        onChange={(e) => editingInvite
+                          ? setEditValues({ ...editValues, isBetaTester: e.target.checked })
+                          : setNewInvite({ ...newInvite, isBetaTester: e.target.checked })}
                         disabled={isSendingInvite}
                         style={{ margin: 0 }}
                       />
@@ -637,6 +697,60 @@ const InviteManagement: React.FC = () => {
                     </label>
                     <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
                       Mark this user as a beta tester with enhanced access and features
+                    </small>
+                  </div>
+                </div>
+
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={editingInvite ? editValues?.astAccess ?? true : newInvite.astAccess}
+                        onChange={(e) => editingInvite
+                          ? setEditValues({ ...editValues, astAccess: e.target.checked })
+                          : setNewInvite({ ...newInvite, astAccess: e.target.checked })}
+                        disabled={isSendingInvite}
+                        style={{ margin: 0 }}
+                      />
+                      AllStarTeams Access
+                    </label>
+                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                      Allow this invite to access AllStarTeams workshop content
+                    </small>
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={editingInvite ? editValues?.iaAccess ?? true : newInvite.iaAccess}
+                        onChange={(e) => editingInvite
+                          ? setEditValues({ ...editValues, iaAccess: e.target.checked })
+                          : setNewInvite({ ...newInvite, iaAccess: e.target.checked })}
+                        disabled={isSendingInvite}
+                        style={{ margin: 0 }}
+                      />
+                      Imaginal Agility Access
+                    </label>
+                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                      Allow this invite to access Imaginal Agility workshop content
+                    </small>
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={editingInvite ? editValues?.showDemoDataButtons ?? false : newInvite.showDemoDataButtons}
+                        onChange={(e) => editingInvite
+                          ? setEditValues({ ...editValues, showDemoDataButtons: e.target.checked })
+                          : setNewInvite({ ...newInvite, showDemoDataButtons: e.target.checked })}
+                        disabled={isSendingInvite}
+                        style={{ margin: 0 }}
+                      />
+                      Demo Data Buttons
+                    </label>
+                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                      Grant access to demo data buttons in the UI
                     </small>
                   </div>
                 </div>
@@ -650,8 +764,20 @@ const InviteManagement: React.FC = () => {
                   type="submit"
                   disabled={isSendingInvite}
                 >
-                  {isSendingInvite ? 'Creating...' : 'Create Invite'}
+                  {editingInvite
+                    ? (isSendingInvite ? 'Saving...' : 'Save Invite')
+                    : (isSendingInvite ? 'Creating...' : 'Create Invite')}
                 </button>
+                {editingInvite && (
+                  <button
+                    type="button"
+                    style={{ ...styles.button, backgroundColor: '#f3f4f6', color: '#374151' }}
+                    onClick={() => { setEditingInvite(null); setEditValues(null); }}
+                    disabled={isSendingInvite}
+                  >
+                    Cancel Edit
+                  </button>
+                )}
               </form>
             </div>
           )}
@@ -687,6 +813,8 @@ const InviteManagement: React.FC = () => {
                       <th style={styles.th}>Email</th>
                       <th style={styles.th}>Name</th>
                       <th style={styles.th}>Role</th>
+                      <th style={styles.th}>Workshops</th>
+                      <th style={styles.th}>Demo</th>
                       <th style={styles.th}>Code</th>
                       <th style={styles.th}>Status</th>
                       <th style={styles.th}>Created</th>
@@ -704,6 +832,21 @@ const InviteManagement: React.FC = () => {
                             ...getRoleBadgeStyle(invite.role)
                           }}>
                             {invite.role}
+                          </span>
+                        </td>
+                        <td style={styles.td}>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ ...styles.badge, backgroundColor: (invite.astAccess ?? invite.ast_access ?? true) ? '#d1fae5' : '#f3f4f6', color: (invite.astAccess ?? invite.ast_access ?? true) ? '#065f46' : '#6b7280' }}>
+                              AST {invite.astAccess ?? invite.ast_access ?? true ? 'On' : 'Off'}
+                            </span>
+                            <span style={{ ...styles.badge, backgroundColor: (invite.iaAccess ?? invite.ia_access ?? true) ? '#e0f2fe' : '#f3f4f6', color: (invite.iaAccess ?? invite.ia_access ?? true) ? '#1d4ed8' : '#6b7280' }}>
+                              IA {invite.iaAccess ?? invite.ia_access ?? true ? 'On' : 'Off'}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={styles.td}>
+                          <span style={{ ...styles.badge, backgroundColor: (invite.showDemoDataButtons ?? invite.show_demo_data_buttons ?? false) ? '#fef3c7' : '#f3f4f6', color: (invite.showDemoDataButtons ?? invite.show_demo_data_buttons ?? false) ? '#92400e' : '#6b7280' }}>
+                            {invite.showDemoDataButtons ?? invite.show_demo_data_buttons ?? false ? 'Enabled' : 'Off'}
                           </span>
                         </td>
                         <td style={styles.td}>
@@ -728,14 +871,24 @@ const InviteManagement: React.FC = () => {
                           {formatDate(invite.createdAt || invite.created_at)}
                         </td>
                         <td style={styles.td}>
-                          {/* Show Delete for both pending and used invites */}
-                          <button
-                            style={styles.deleteButton}
-                            onClick={() => handleDeleteInvite(invite.id)}
-                            title="Delete invite"
-                          >
-                            Delete
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {!invite.used_at && !invite.isUsed && (
+                              <button
+                                style={{ ...styles.codeButton, padding: '6px 10px' }}
+                                onClick={() => startEditInvite(invite)}
+                                title="Edit invite"
+                              >
+                                Edit
+                              </button>
+                            )}
+                            <button
+                              style={styles.deleteButton}
+                              onClick={() => handleDeleteInvite(invite.id)}
+                              title="Delete invite"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

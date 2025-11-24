@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface FinishWorkshopViewProps {
   navigate: (path: string) => void;
@@ -63,6 +64,12 @@ export default function FinishWorkshopView({
 
   return (
     <div className="finish-workshop-container">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       {/* Workshop Completion Banner */}
       {astCompleted && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto mt-4">

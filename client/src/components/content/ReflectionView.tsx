@@ -8,6 +8,7 @@ import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import StepByStepReflection from '@/components/reflection/StepByStepReflection';
 import { ContentViewProps } from '@/shared/types';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 const ReflectionView: React.FC<ContentViewProps> = ({
   navigate,
@@ -35,6 +36,12 @@ const ReflectionView: React.FC<ContentViewProps> = ({
 
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Reflect on Your Strengths</h1>
 
       <StepByStepReflection 

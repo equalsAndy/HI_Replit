@@ -6,6 +6,7 @@ import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary
 import { trpc } from "@/utils/trpc";
 import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 /**
  * AST-specific introduction to Imaginal Agility module (AST Step 5-3).
@@ -103,6 +104,12 @@ const IntroIAView: React.FC<ContentViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <div className="text-center">
         <div className="flex justify-center mb-6">
           <img

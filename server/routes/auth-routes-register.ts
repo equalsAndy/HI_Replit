@@ -116,7 +116,11 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Create the user with invite creator tracking and beta tester status
+    // Create the user with invite creator tracking, workshop access, and demo permissions
+    const inviteAstAccess = (inviteResult.invite as any)?.astAccess ?? (inviteResult.invite as any)?.ast_access;
+    const inviteIaAccess = (inviteResult.invite as any)?.iaAccess ?? (inviteResult.invite as any)?.ia_access;
+    const inviteShowDemo = (inviteResult.invite as any)?.showDemoDataButtons ?? (inviteResult.invite as any)?.show_demo_data_buttons;
+
     const createResult = await userManagementService.createUser({
       username: data.username,
       password: data.password,
@@ -127,7 +131,10 @@ router.post('/register', async (req, res) => {
       jobTitle: data.jobTitle,
       profilePicture: data.profilePicture,
       invitedBy: inviteResult.invite.createdBy,
-      isBetaTester: inviteResult.invite.isBetaTester || inviteResult.invite.is_beta_tester || false
+      isBetaTester: inviteResult.invite.isBetaTester || inviteResult.invite.is_beta_tester || false,
+      astAccess: inviteAstAccess !== undefined ? !!inviteAstAccess : true,
+      iaAccess: inviteIaAccess !== undefined ? !!inviteIaAccess : true,
+      showDemoDataButtons: inviteShowDemo !== undefined ? !!inviteShowDemo : false
     });
     
     if (!createResult.success) {

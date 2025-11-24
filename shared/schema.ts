@@ -228,6 +228,9 @@ export const invites = pgTable('invites', {
   cohortId: integer('cohort_id'),
   organizationId: varchar('organization_id', { length: 255 }),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
+  astAccess: boolean('ast_access').default(true).notNull(),
+  iaAccess: boolean('ia_access').default(true).notNull(),
+  showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(),
 });
 
 // Create insert schema for invites with role validation

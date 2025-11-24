@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Download, Play } from 'lucide-react';
 import { VideoLibraryDropdown } from '@/components/content/VideoLibraryDropdown';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface WorkshopResourcesViewProps {
   navigate?: any;
@@ -23,6 +24,12 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       {/* Header */}
       <div className="text-center space-y-3 sm:space-y-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">

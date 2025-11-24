@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useToast } from '@/hooks/use-toast';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface BeyondASTViewProps {
   navigate?: (path: string) => void;
@@ -155,6 +156,12 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       {/* Header */}
       <div className="text-center space-y-3">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">

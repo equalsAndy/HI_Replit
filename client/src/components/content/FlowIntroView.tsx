@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import VideoPlayer from './VideoPlayer';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -34,6 +35,12 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Introduction to Flow</h1>
 
       {/* YouTube Video Player */}

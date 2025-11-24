@@ -35,6 +35,10 @@ class UserManagementService {
     profilePicture?: string | null;
     invitedBy?: number | null;
     isBetaTester?: boolean;
+    astAccess?: boolean;
+    iaAccess?: boolean;
+    showDemoDataButtons?: boolean;
+    contentAccess?: 'student' | 'professional' | 'both';
   }) {
     try {
       // Hash the password
@@ -43,8 +47,25 @@ class UserManagementService {
 
       // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
-        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${(data as any).isTestUser || false}, ${data.isBetaTester || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
+        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, show_demo_data_buttons, invited_by, created_at, updated_at)
+        VALUES (
+          ${data.username},
+          ${hashedPassword},
+          ${data.name},
+          ${data.email.toLowerCase()},
+          ${data.role},
+          ${data.organization || null},
+          ${data.jobTitle || null},
+          ${(data as any).isTestUser || false},
+          ${data.isBetaTester || false},
+          ${data.contentAccess || 'professional'},
+          ${data.astAccess ?? true},
+          ${data.iaAccess ?? true},
+          ${data.showDemoDataButtons ?? false},
+          ${data.invitedBy || null},
+          NOW(),
+          NOW()
+        )
         RETURNING *
       `);
 

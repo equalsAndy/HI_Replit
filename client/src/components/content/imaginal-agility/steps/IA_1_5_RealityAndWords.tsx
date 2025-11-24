@@ -152,20 +152,13 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
           <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-8">
             <h2 className="text-2xl font-semibold text-purple-800 mb-6">5 Tests for Daily Mental Health</h2>
 
-            {/* Two-column layout: Text on left, graphics on right */}
+            {/* Two-column layout: Left content and right checklist */}
             <div className="grid md:grid-cols-2 gap-6 items-start">
-              {/* Left column - Text */}
-              <div>
-                <p className="text-gray-800 text-lg mb-4">
+              {/* Left column - Text and brain timer */}
+              <div className="space-y-4">
+                <p className="text-gray-800 text-lg">
                   Simple habits help guard against both AI error types.
                 </p>
-                <p className="text-gray-600 text-sm italic">
-                  (More detailed guidance coming soon)
-                </p>
-              </div>
-
-              {/* Right column - Graphics stacked */}
-              <div className="space-y-4">
                 <div className="flex justify-center">
                   <img
                     src="/assets/ia-1-5-braintimer.png"
@@ -173,6 +166,15 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
                     className="w-full max-w-xs rounded-lg shadow-md"
                   />
                 </div>
+              </div>
+
+              {/* Right column - Checklist graphic */}
+              <div className="flex justify-center items-start">
+                <img
+                  src="/assets/ia1-5-checklist.png"
+                  alt="5 Tests of Mental Health Checklist"
+                  className="w-full rounded-lg shadow-md"
+                />
               </div>
             </div>
           </div>
@@ -191,8 +193,8 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
             <div className="space-y-4">
               {/* Option 1 */}
               <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-2">Option 1</h4>
-                <div className="space-y-1">
+                <h4 className="font-semibold text-gray-900 mb-1">Option 1</h4>
+                <div className="space-y-0.5">
                   <p className="text-gray-800">
                     <span className="font-bold text-purple-700">A:</span> "Be realistic."
                   </p>
@@ -204,8 +206,8 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
 
               {/* Option 2 */}
               <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-2">Option 2</h4>
-                <div className="space-y-1">
+                <h4 className="font-semibold text-gray-900 mb-1">Option 2</h4>
+                <div className="space-y-0.5">
                   <p className="text-gray-800">
                     <span className="font-bold text-purple-700">A:</span> "I can't imagine that."
                   </p>

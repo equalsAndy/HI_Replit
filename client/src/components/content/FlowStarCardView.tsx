@@ -12,6 +12,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useStarCardAutoCapture } from '@/hooks/useStarCardAutoCapture';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 import { 
   DndContext, 
   closestCenter,
@@ -511,6 +512,12 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Module 2 Recap</h1>
     </div>
   );

@@ -3,6 +3,7 @@ import { ContentViewProps } from '../../shared/types';
 import { AlertCircle, Book, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface PlaceholderViewProps extends ContentViewProps {
   title: string;
@@ -40,6 +41,12 @@ const PlaceholderView: React.FC<PlaceholderViewProps> = ({
   
   return (
     <div className="flex flex-col h-full py-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
       
       {description ? (

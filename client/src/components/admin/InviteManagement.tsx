@@ -78,6 +78,12 @@ interface Invite {
   isTestUser?: boolean;
   user_is_beta_tester?: boolean;
   user_is_test_user?: boolean;
+  ast_access?: boolean;
+  astAccess?: boolean;
+  ia_access?: boolean;
+  iaAccess?: boolean;
+  show_demo_data_buttons?: boolean;
+  showDemoDataButtons?: boolean;
   [key: string]: any; // Allow additional properties for flexibility
 }
 
@@ -682,6 +688,9 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Role</TableHead>
                       <TableHead>Beta Tester</TableHead>
                       <TableHead>Test User</TableHead>
+                      <TableHead>AST</TableHead>
+                      <TableHead>IA</TableHead>
+                      <TableHead>Demo</TableHead>
                       <TableHead>Organization</TableHead>
                       <TableHead>Cohort</TableHead>
                       <TableHead>Created By</TableHead>
@@ -742,6 +751,33 @@ export const InviteManagement: React.FC = () => {
                           {invite.is_test_user || invite.isTestUser || invite.user_is_test_user ? (
                             <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
                               Test User
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {invite.ast_access || invite.astAccess ? (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
+                              ✓
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">✗</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {invite.ia_access || invite.iaAccess ? (
+                            <Badge variant="outline" className="bg-purple-50 text-purple-800 border-purple-200">
+                              ✓
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">✗</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {invite.show_demo_data_buttons || invite.showDemoDataButtons ? (
+                            <Badge variant="outline" className="bg-orange-50 text-orange-800 border-orange-200">
+                              Demo
                             </Badge>
                           ) : (
                             <span className="text-muted-foreground text-sm">—</span>

@@ -9,6 +9,7 @@ import { searchUnsplash } from '@/services/api-services';
 import { useToast } from '@/hooks/use-toast';
 import { ContentViewProps } from '../../shared/types';
 import { saveFutureSelfComplete, loadFutureSelfComplete, FutureSelfImageData } from '@/utils/saveFutureSelfReflections';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
   navigate,
@@ -323,6 +324,12 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Future Self</h1>
 
       {/* Video Player */}

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1050"
+   height="200"
+   viewBox="0 0 1050 200"
+   version="1.1"
+   id="svg100"
+   sodipodi:docname="strength_pattern_shapes_labeledv2.svg"
+   inkscape:version="1.2.1 (9c6d41e4, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs104" />
+  <sodipodi:namedview
+     id="namedview102"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.0799829"
+     inkscape:cx="892.60672"
+     inkscape:cy="106.94614"
+     inkscape:window-width="1309"
+     inkscape:window-height="803"
+     inkscape:window-x="302"
+     inkscape:window-y="1053"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg100" />
+  <style
+     id="style2">
+.bar.acting   { fill: #444; }
+.bar.planning { fill: #666; }
+.bar.thinking { fill: #888; }
+.bar.feeling  { fill: #aaa; }
+.label { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; font-size: 10px; fill: #111; }
+</style>
+  <g
+     id="pattern-1"
+     transform="translate(12,8)">
+    <rect
+       class="bar acting"
+       x="11.2"
+       y="48.889687"
+       width="25.200001"
+       height="113.11031"
+       id="rect4" />
+    <rect
+       class="bar planning"
+       x="42"
+       y="50.91"
+       width="25.200001"
+       height="111.09"
+       id="rect6" />
+    <rect
+       class="bar thinking"
+       x="72.800003"
+       y="50.498936"
+       width="25.199997"
+       height="111.50106"
+       id="rect8" />
+    <rect
+       class="bar feeling"
+       x="103.6"
+       y="50.969437"
+       width="25.200005"
+       height="111.03056"
+       id="rect10" />
+    <text
+       class="label"
+       x="70"
+       y="174"
+       text-anchor="middle"
+       id="text12">1. Balanced</text>
+  </g>
+  <g
+     id="pattern-2"
+     transform="translate(160,8)">
+    <rect
+       class="bar acting"
+       x="11.2"
+       y="23.139999"
+       width="25.200001"
+       height="138.86"
+       id="rect15" />
+    <rect
+       class="bar planning"
+       x="42"
+       y="60.169998"
+       width="25.200001"
+       height="101.83"
+       id="rect17" />
+    <rect
+       class="bar thinking"
+       x="72.800003"
+       y="64.800003"
+       width="25.200001"
+       height="97.199997"
+       id="rect19" />
+    <rect
+       class="bar feeling"
+       x="103.25012"
+       y="64.461937"
+       width="25.549885"
+       height="97.538063"
+       id="rect21" />
+    <text
+       class="label"
+       x="70"
+       y="174"
+       text-anchor="middle"
+       id="text23">2. One High</text>
+  </g>
+  <g
+     id="pattern-3"
+     transform="translate(308,8)">
+    <rect
+       class="bar acting"
+       x="11.2"
+       y="37.029999"
+       width="25.200001"
+       height="124.97"
+       id="rect26" />
+    <rect
+       class="bar planning"
+       x="42"
+       y="41.66"
+       width="25.200001"
+       height="120.34"
+       id="rect28" />
+    <rect
+       class="bar thinking"
+       x="72.800003"
+       y="46.290001"
+       width="25.200001"
+       height="115.71"
+       id="rect30" />
+    <rect
+       class="bar feeling"
+       x="103.6"
+       y="87.940002"
+       width="25.200001"
+       height="74.059998"
+       id="rect32" />
+    <text
+       class="label"
+       x="70"
+       y="174"
+       text-anchor="middle"
+       id="text34">3. One Low</text>
+  </g>
+  <g
+     id="pattern-4"
+     transform="translate(456,8)">
+    <rect
+       class="bar acting"
+       x="11.2"
+       y="27.77"
+       width="25.200001"
+       height="134.23"
+       id="rect37" />
+    <rect
+       class="bar planning"
+       x="42"
+       y="32.400002"
+       width="25.200001"
+       height="129.60001"
+       id="rect39" />
+    <rect
+       class="bar thinking"
+       x="72.800003"
+       y="78.690002"
+       width="25.200001"
+       height="83.309998"
+       id="rect41" />
+    <rect
+       class="bar feeling"
+       x="103.6"
+       y="83.309998"
+       width="25.200001"
+       height="78.690002"
+       id="rect43" />
+    <text
+       class="label"
+       x="70"
+       y="174"
+       text-anchor="middle"
+       id="text45">4. Two High +</text>
+    <text
+       class="label"
+       x="70"
+       y="186"
+       text-anchor="middle"
+       id="text47">Two Low</text>
+  </g>
+  <g
+     id="pattern-5"
+     transform="translate(604,8)">
+    <rect
+       class="bar acting"
+       x="11.2"
+       y="32.400002"
+       width="25.200001"
+       height="129.60001"
+       id="rect50" />
+    <rect
+       class="bar planning"
+       x="42"
+       y="37.029999"
+       width="25.200001"
+       height="124.97"
+       id="rect52" />
+    <rect
+       class="bar thinking"
+       x="72.800003"
+       y="41.66"
+       width="25.200001"
+       height="120.34"
+       id="rect54" />
+    <rect
+       class="bar feeling"
+       x="103.6"
+       y="83.309998"
+       width="25.200001"
+       height="78.690002"
+       id="rect56" />
+    <text
+       class="label"
+       x="70"
+       y="174"
+       text-anchor="middle"
+       id="text58">5. Three High +</text>
+    <text
+       class="label"
+       x="70"
+       y="186"
+       text-anchor="middle"
+       id="text60">One Low</text>
+  </g>
+  <g
+     id="pattern-6"
+     transform="translate(748.17827,6.9601251)">
+    <rect
+       class="bar acting"
+       x="11.2"
+       y="23.139999"
+       width="25.200001"
+       height="138.86"
+       id="rect76" />
+    <rect
+       class="bar planning"
+       x="42"
+       y="50.91"
+       width="25.200001"
+       height="111.09"
+       id="rect78" />
+    <rect
+       class="bar thinking"
+       x="72.800003"
+       y="50.91"
+       width="25.200001"
+       height="111.09"
+       id="rect80" />
+    <rect
+       class="bar feeling"
+       x="103.6"
+       y="92.57"
+       width="25.200001"
+       height="69.43"
+       id="rect82" />
+    <text
+       class="label"
+       x="70"
+       y="174"
+       text-anchor="middle"
+       id="text84">6. Two Middle +</text>
+    <text
+       class="label"
+       x="70"
+       y="186"
+       text-anchor="middle"
+       id="text86">Two Outliers</text>
+  </g>
+  <g
+     id="pattern-7"
+     transform="translate(889.41909,6.4401877)">
+    <rect
+       class="bar acting"
+       x="11.2"
+       y="23.139999"
+       width="25.200001"
+       height="138.86"
+       id="rect89" />
+    <rect
+       class="bar planning"
+       x="42"
+       y="46.290001"
+       width="25.200001"
+       height="115.71"
+       id="rect91" />
+    <rect
+       class="bar thinking"
+       x="72.800003"
+       y="69.43"
+       width="25.200001"
+       height="92.57"
+       id="rect93" />
+    <rect
+       class="bar feeling"
+       x="103.6"
+       y="92.57"
+       width="25.200001"
+       height="69.43"
+       id="rect95" />
+    <text
+       class="label"
+       x="70"
+       y="174"
+       text-anchor="middle"
+       id="text97">7. Stair-step</text>
+  </g>
+</svg>

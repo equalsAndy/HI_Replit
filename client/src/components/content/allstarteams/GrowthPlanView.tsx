@@ -13,6 +13,7 @@ import tuningForkImage from '@assets/turningfork_1749438223210.png';
 import StarCard from '@/components/starcard/StarCard';
 import WellBeingLadderSvg from '@/components/visualization/WellBeingLadderSvg';
 import { getAttributeColor } from '@/components/starcard/starCardConstants';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
@@ -166,6 +167,18 @@ export default function GrowthPlanView({
           Module 3: Post-Workshop Individual Development
         </p>
       </div>
+
+      {/* Prototype Notice */}
+      <Card className="border-purple-300 bg-purple-50">
+        <CardContent className="p-4">
+          <p className="text-sm text-purple-800">
+            <strong>📋 Prototype Feature:</strong> This Quarterly Growth Plan is currently a prototype.
+            Your responses are saved to your profile and you can review them anytime, but this data
+            is not yet integrated with other features or reports. We're developing this tool to help
+            you connect your workshop insights to ongoing personal development.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* What is this? */}
       <Card className="border-blue-200 bg-blue-50">
@@ -727,6 +740,12 @@ export default function GrowthPlanView({
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

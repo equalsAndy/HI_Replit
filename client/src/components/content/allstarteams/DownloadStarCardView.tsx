@@ -6,6 +6,7 @@ import { Download, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import StarCard from '@/components/starcard/StarCard';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface DownloadStarCardViewProps {
   navigate: (path: string) => void;
@@ -147,6 +148,12 @@ export default function DownloadStarCardView({
 
   return (
     <div className="max-w-6xl mx-auto p-6 overflow-x-auto">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

@@ -90,6 +90,7 @@ export default function FlowReflections({
   const [userHasInteractedWithExamples, setUserHasInteractedWithExamples] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
 
   // Build reflection configs
   const reflectionConfigs = React.useMemo(() => {
@@ -197,6 +198,10 @@ export default function FlowReflections({
     const canAccess = completedIndices.has(index) || index <= Math.max(...Array.from(completedIndices), -1) + 1;
     if (canAccess) {
       setCurrentIndex(index);
+      // Bring the editor back into view when jumping from lower on the page
+      setTimeout(() => {
+        topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 0);
     }
   };
 
@@ -222,7 +227,7 @@ export default function FlowReflections({
         
         // Navigate to module 2 recap step first
         console.log('🎯 FlowReflections: About to navigate to module-2-recap');
-        markStepCompleted?.('2-3');
+        markStepCompleted?.('2-2');
 
         // Use setTimeout to ensure state updates happen after current execution
         setTimeout(() => {
@@ -279,7 +284,7 @@ export default function FlowReflections({
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto" ref={topRef}>
       {/* Header */}
       <div className="mb-8 text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Reflect on Your Flow State</h2>
@@ -486,7 +491,7 @@ export default function FlowReflections({
                 return (
                   <button
                     key={reflection.id}
-                    onClick={() => setCurrentIndex(index)}
+                    onClick={() => handleReflectionClick(index)}
                     className="w-full bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border text-left transition-colors"
                   >
                     <h5 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
@@ -529,5 +534,3 @@ export default function FlowReflections({
     </div>
   );
 };
-
-

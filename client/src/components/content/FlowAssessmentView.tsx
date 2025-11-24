@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ContentViewProps } from '../../shared/types';
 import FlowAssessment from '../flow/FlowAssessment';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 const FlowAssessmentView: React.FC<ContentViewProps> = ({
   navigate,
@@ -52,7 +53,17 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     }
   };
 
-  return <FlowAssessment onTabChange={handleTabChange} isCompleted={isAssessmentCompleted} />;
+  return (
+    <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
+      <FlowAssessment onTabChange={handleTabChange} isCompleted={isAssessmentCompleted} />
+    </>
+  );
 };
 
 export default FlowAssessmentView;

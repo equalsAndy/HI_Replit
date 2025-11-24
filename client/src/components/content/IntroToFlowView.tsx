@@ -16,6 +16,8 @@ import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useStarCardAutoCapture } from '@/hooks/useStarCardAutoCapture';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import WorkshopCompletionBanner from '@/components/common/WorkshopCompletionBanner';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import FlowReflections from './FlowReflections';
 import { 
   DndContext, 
   closestCenter,
@@ -697,6 +699,12 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       {/* Intro to Flow Content */}
       <div className="max-w-4xl mx-auto mb-12">
         {/* Workshop Completion Banner */}
@@ -1248,63 +1256,36 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               </Button>
             </div>
           ) : null}
-
-          {/* Only show Next button after flow attributes are added */}
-          {isCardComplete && (
-            <div className="mt-12 text-center border-t border-gray-200 pt-8">
-              <Button
-                onClick={async () => {
-                  console.log('🚀 Finish Assessment button clicked');
-                  console.log('📝 Available functions:', {
-                    hasMarkStepCompleted: !!markStepCompleted,
-                    hasSetCurrentContent: !!setCurrentContent
-                  });
-
-                  // Auto-capture StarCard before proceeding
-                  if (user?.id) {
-                    console.log('🎯 Auto-capturing StarCard for user:', user.id);
-                    try {
-                      await captureStarCardFromPage(user.id);
-                    } catch (error) {
-                      console.warn('StarCard auto-capture failed, but continuing:', error);
-                      // Don't block user flow if capture fails
-                    }
-                  }
-
-                  if (markStepCompleted) {
-                    console.log('✅ Marking step 2-2 complete');
-                    await markStepCompleted('2-2');
-                  } else {
-                    console.error('❌ markStepCompleted function not available');
-                  }
-
-                  if (setCurrentContent) {
-                    console.log('✅ Navigating to module-2-recap');
-                    setCurrentContent("module-2-recap");
-
-                    // Scroll to content title anchor when navigating
-                    setTimeout(() => {
-                      const anchor = document.getElementById('content-title');
-                      if (anchor) {
-                        anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }
-                    }, 100);
-                  } else {
-                    console.error('❌ setCurrentContent function not available');
-                  }
-                }}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
-                data-continue-button="true"
-              >
-                Continue to Recap <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
-        </>
+      {/* Only show reflections after flow attributes are added */}
+      {isCardComplete && (
+        <div className="max-w-5xl mx-auto mt-16 border-t border-gray-200 pt-10">
+          <div className="text-center mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Flow Reflections</h3>
+            <p className="text-gray-600">
+              Capture what you learned about creating flow before moving to the Module 2 recap.
+            </p>
+          </div>
+          <FlowReflections
+            setCurrentContent={setCurrentContent}
+            markStepCompleted={markStepCompleted}
+            onComplete={async () => {
+              if (user?.id) {
+                try {
+                  await captureStarCardFromPage(user.id);
+                } catch (error) {
+                  console.warn('StarCard auto-capture failed, but continuing:', error);
+                }
+              }
+            }}
+          />
+        </div>
       )}
+
+      </>
+    )}
       
       {/* Flow Assessment Modal */}
       <FlowAssessmentModal

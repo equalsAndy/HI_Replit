@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Calendar, Star, TrendingUp, Target, Clock, Users, ArrowRight } from 'lucide-react';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface QuarterlyReportProps {
   navigate: (content: string) => void;
@@ -94,6 +95,12 @@ export default function QuarterlyReportView({ navigate, setCurrentContent }: Qua
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       {/* Header */}
       <div className="text-center mb-8 border-b-2 border-blue-500 pb-6">
         <div className="flex items-center justify-center mb-4">
