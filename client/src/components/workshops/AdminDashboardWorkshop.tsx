@@ -256,6 +256,7 @@ const InviteManagement: React.FC = () => {
   const [invites, setInvites] = React.useState<any[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState('create');
+  const [filterStatus, setFilterStatus] = React.useState<'all' | 'pending' | 'used'>('all');
   const [newInvite, setNewInvite] = React.useState({
     email: '',
     role: 'participant',
@@ -274,15 +275,21 @@ const InviteManagement: React.FC = () => {
   const fetchInvites = async () => {
     setIsLoading(true);
     try {
-      const response = await apiRequest('/api/admin/invites');
+      // Build URL with optional status filter
+      let url = '/api/admin/invites';
+      if (filterStatus !== 'all') {
+        url += `?status=${filterStatus}`;
+      }
+
+      const response = await apiRequest(url);
       if (response.success || Array.isArray(response)) {
         const inviteData = response.success ? response.invites : response;
         setInvites(inviteData || []);
       }
     } catch (error) {
       console.error('Error fetching invites:', error);
-      toast({ 
-        title: 'Error', 
+      toast({
+        title: 'Error',
         description: 'Failed to load invites',
         variant: 'destructive'
       });
@@ -294,6 +301,10 @@ const InviteManagement: React.FC = () => {
   React.useEffect(() => {
     fetchInvites();
   }, []);
+
+  React.useEffect(() => {
+    fetchInvites();
+  }, [filterStatus]);
 
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -788,13 +799,55 @@ const InviteManagement: React.FC = () => {
               <p style={{ color: '#6b7280', marginBottom: '30px' }}>
                 View and manage existing invitation codes.
               </p>
-              <button
-                style={{ ...styles.deleteButton, marginBottom: '20px' }}
-                onClick={handleDeleteAllUsedInvites}
-                title="Delete all used invites"
-              >
-                Delete All Used Invites
-              </button>
+
+              {/* Filter and actions row */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+                gap: '10px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <label style={{ fontSize: '14px', fontWeight: '500' }}>Filter:</label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value as 'all' | 'pending' | 'used')}
+                    style={{
+                      padding: '8px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="all">All Invites</option>
+                    <option value="pending">Pending Only</option>
+                    <option value="used">Used Only</option>
+                  </select>
+                  <span style={{ fontSize: '13px', color: '#6b7280' }}>
+                    ({invites.length} {invites.length === 1 ? 'invite' : 'invites'})
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleDeleteAllUsedInvites}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#fee2e2',
+                    color: '#dc2626',
+                    border: '1px solid #fecaca',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                  title="Delete all used invites"
+                >
+                  Delete All Used
+                </button>
+              </div>
 
               {invites.length === 0 ? (
                 <div style={{

@@ -12,11 +12,44 @@ WORKDIR /app
 # Copy package files (root level in monorepo)
 COPY package*.json ./
 
-# Install build tools and production dependencies (canvas needs native build)
-RUN apk add --no-cache --virtual .build-deps build-base python3 cairo-dev pango-dev giflib-dev libjpeg-turbo-dev libpng-dev pkgconfig && \
-    npm ci --only=production --legacy-peer-deps && \
-    npm cache clean --force && \
-    apk del .build-deps
+# Install runtime dependencies for canvas (kept permanently)
+RUN apk add --no-cache \
+    cairo \
+    pango \
+    giflib \
+    libjpeg-turbo \
+    libpng \
+    pixman
+
+# Install build tools temporarily for native modules
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    g++ \
+    python3 \
+    cairo-dev \
+    pango-dev \
+    giflib-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    pixman-dev \
+    pkgconfig
+
+# Install production dependencies - canvas needs patching for Alpine Linux
+# First install without canvas to avoid build failure
+RUN npm ci --only=production --legacy-peer-deps --ignore-scripts || true
+
+# Patch canvas source files to add missing cstdint include
+RUN if [ -f /app/node_modules/canvas/src/CharData.h ]; then \
+      sed -i '2i #include <cstdint>' /app/node_modules/canvas/src/CharData.h && \
+      sed -i '2i #include <cstdint>' /app/node_modules/canvas/src/FontParser.h; \
+    fi
+
+# Now rebuild canvas with the patch applied
+RUN npm rebuild canvas && \
+    npm cache clean --force
+
+# Remove build tools but keep runtime libraries
+RUN apk del .build-deps
 
 # Copy built application (already built locally with production env vars)
 COPY dist ./dist
