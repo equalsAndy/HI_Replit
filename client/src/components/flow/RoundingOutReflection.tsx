@@ -187,12 +187,12 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
             {shouldShowDemoButtons && (
               <Button 
                 variant="ghost" 
-                size="sm" 
+                size="sm"
                 onClick={fillWithDemoData}
                 className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
               >
                 <FileText className="w-3 h-3 mr-1" />
-                Add Demo Data
+                Use Demo Data
               </Button>
             )}
             <Button

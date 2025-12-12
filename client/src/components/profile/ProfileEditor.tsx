@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard, Key, Lock, ArrowLeftRight } from 'lucide-react';
+import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard, Key, Lock, ArrowLeftRight, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -182,10 +182,10 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
         title: 'Data reset successful',
         description: 'All your workshop data has been reset. Redirecting to home page...',
       });
-      
+
       // Clear React Query cache
       queryClient.clear();
-      
+
       // Redirect to home page after brief delay
       setTimeout(() => {
         window.location.href = '/';
@@ -195,6 +195,41 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
       toast({
         title: 'Reset failed',
         description: error.message || 'Failed to reset your data. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Demo account workshop reset mutation
+  const resetDemoWorkshopMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/demo-accounts/restore/ast', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to reset workshop');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Workshop reset',
+        description: 'Demo workshop data has been restored. The page will reload now.',
+      });
+
+      // Clear React Query cache
+      queryClient.clear();
+
+      // Reload page after brief delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Reset failed',
+        description: error.message || 'Failed to reset workshop. Please try again.',
         variant: 'destructive',
       });
     },
@@ -652,7 +687,40 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
               </>
             )}
 
-
+            {/* Reset Workshop Button - only for demo accounts */}
+            {!isEditing && user?.isDemoAccount && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center gap-2 border-green-500 text-green-700 hover:bg-green-50"
+                    title="Reset workshop to original demo data"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset Workshop
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset Workshop Data?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will delete all current workshop progress and restore the original demo data.
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => resetDemoWorkshopMutation.mutate()}
+                      disabled={resetDemoWorkshopMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {resetDemoWorkshopMutation.isPending ? 'Resetting...' : 'Reset Workshop'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
 
             <Button
               variant="destructive"

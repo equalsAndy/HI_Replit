@@ -95,6 +95,7 @@ export const users: any = pgTable('users', {
   profilePicture: text('profile_picture'),
   profilePictureId: integer('profile_picture_id'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
+  isDemoAccount: boolean('is_demo_account').default(false).notNull(),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
   hasSeenWelcomeVideo: boolean('has_seen_welcome_video').default(false).notNull(),
@@ -276,6 +277,55 @@ export const insertUserAssessmentSchema = createInsertSchema(userAssessments);
 // Type definitions for user assessments
 export type UserAssessment = typeof userAssessments.$inferSelect;
 export type InsertUserAssessment = z.infer<typeof insertUserAssessmentSchema>;
+
+// Demo snapshots table for storing workshop data snapshots
+export const demoSnapshots = pgTable('demo_snapshots', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workshopType: varchar('workshop_type', { length: 10 }).notNull().default('ast'),
+  snapshotName: varchar('snapshot_name', { length: 255 }),
+  snapshotData: jsonb('snapshot_data').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: integer('created_by').references(() => users.id),
+}, (table) => ({
+  uniqueUserWorkshop: unique().on(table.userId, table.workshopType),
+}));
+
+// Create insert schema for demo snapshots
+export const insertDemoSnapshotSchema = createInsertSchema(demoSnapshots);
+
+// Type definitions for demo snapshots
+export type DemoSnapshot = typeof demoSnapshots.$inferSelect;
+export type InsertDemoSnapshot = z.infer<typeof insertDemoSnapshotSchema>;
+
+// TypeScript interface for snapshot data structure
+export interface SnapshotData {
+  userAssessments: Array<{
+    assessmentType: string;
+    results: string;
+    answers?: any;
+  }>;
+  reflectionResponses: Array<{
+    reflectionSetId: string;
+    reflectionId: string;
+    response: string;
+    completed: boolean;
+  }>;
+  workshopStepData: Array<{
+    stepId: string;
+    data: any;
+  }>;
+  navigationProgress: {
+    currentStepId?: string;
+    completedSteps?: string[];
+    moduleProgress?: any;
+  };
+  holisticReports?: Array<{
+    reportType: string;
+    htmlContent: string;
+    generatedAt: string;
+  }>;
+}
 
 // Growth plans table for quarterly planning
 export const growthPlans = pgTable('growth_plans', {

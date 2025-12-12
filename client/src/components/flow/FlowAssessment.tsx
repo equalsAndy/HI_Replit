@@ -937,12 +937,12 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
           
           <div className="flex items-center gap-3">
             {shouldShowDemoButtons && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={fillDemoAnswers}
                 className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
               >
-                Fill Demo Answers
+                Use Demo Data
               </Button>
             )}
             <Button 

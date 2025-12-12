@@ -325,7 +325,7 @@ const FlowAssessmentModal = ({ isOpen, onClose, onComplete }: FlowAssessmentModa
                 onClick={fillDemoAnswers}
                 className="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors text-sm font-medium"
               >
-                Add Demo Data
+                Use Demo Data
               </button>
             )}
           </div>

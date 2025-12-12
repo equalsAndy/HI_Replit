@@ -16,6 +16,7 @@ export const useTestUser = () => {
     organization: string | null;
     role?: string;
     isTestUser?: boolean;
+    isDemoAccount?: boolean;
     showDemoDataButtons?: boolean;
   }>({
     queryKey: ['/api/auth/me'],
@@ -50,29 +51,33 @@ export const useTestUser = () => {
   // Fix: The API returns {success: true, user: {...}}, extract the user object
   const user = userData?.user || userData;
   const isTestUser = user?.isTestUser === true;
+  const isDemoAccount = user?.isDemoAccount === true;
   const isAdmin = user?.role === 'admin';
-  
-  // Admin users automatically get test user privileges  
-  const hasTestAccess = isTestUser || isAdmin;
-  
+
+  // Admin users automatically get test user privileges
+  const hasTestAccess = isTestUser || isDemoAccount || isAdmin;
+
   // Demo buttons visibility logic:
   // - Test users see demo buttons by default (for quick testing)
+  // - Demo accounts see demo buttons (for presentations)
   // - Beta testers do NOT see demo buttons (they provide real data)
   // - Admin can grant permission via showDemoDataButtons for special cases
   // - Regular participants never see demo buttons
-  const shouldShowDemoButtons = isAdmin || isTestUser || (user?.showDemoDataButtons === true);
+  const shouldShowDemoButtons = isAdmin || isTestUser || isDemoAccount || (user?.showDemoDataButtons === true);
   
   // Debug test user access (single log to verify fix)
   if (user && !sessionStorage.getItem('demo-buttons-logged')) {
     console.log('✅ Demo Buttons Logic:', {
-      user: { 
-        id: user.id, 
-        username: user.username, 
-        role: user.role, 
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
         isTestUser: user.isTestUser,
+        isDemoAccount: user.isDemoAccount,
         showDemoDataButtons: user.showDemoDataButtons
       },
       isTestUser,
+      isDemoAccount,
       isAdmin,
       hasTestAccess,
       shouldShowDemoButtons
@@ -83,6 +88,7 @@ export const useTestUser = () => {
   // SECURE: Only database field and admin role, no username patterns
   return {
     isTestUser: hasTestAccess,
+    isDemoAccount,
     // Demo buttons controlled by explicit database permission or admin role
     shouldShowDemoButtons,
     user

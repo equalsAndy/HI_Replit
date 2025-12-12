@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { userManagementService } from '../services/user-management-service.js';
 import { inviteService } from '../services/invite-service.js';
 import { ExportService } from '../services/export-service.js';
+import { SnapshotService } from '../services/snapshot-service.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles.js';
 import { formatInviteCode } from '../utils/invite-code.js';
@@ -878,6 +879,130 @@ router.get('/users/:userId/validate', requireAuth, isAdmin, async (req: Request,
     res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? (error as Error).message : 'Validation failed'
+    });
+  }
+});
+
+/**
+ * Demo Account Endpoints
+ */
+
+/**
+ * Check if user has completed AST workshop (admin only)
+ */
+router.get('/users/:userId/ast-complete', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
+
+    const completionStatus = await SnapshotService.isAstWorkshopComplete(userId);
+
+    res.json({
+      success: true,
+      isComplete: completionStatus.isComplete,
+      missing: completionStatus.missing,
+      message: completionStatus.isComplete
+        ? 'AST workshop is complete'
+        : `AST workshop incomplete. Missing: ${completionStatus.missing.join(', ')}`
+    });
+  } catch (error) {
+    console.error('Error checking AST completion:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to check completion'
+    });
+  }
+});
+
+/**
+ * Capture AST snapshot for demo account (admin only)
+ */
+router.post('/demo-accounts/:userId/snapshot/ast', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const capturedBy = (req.session as any).userId;
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
+
+    const result = await SnapshotService.captureAstSnapshot(userId, capturedBy);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      snapshot: {
+        id: result.snapshotId,
+        workshopType: 'ast',
+        capturedAt: new Date().toISOString(),
+        metadata: result.metadata
+      }
+    });
+  } catch (error) {
+    console.error('Error capturing AST snapshot:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to capture snapshot'
+    });
+  }
+});
+
+/**
+ * Load AST snapshot data (demo account user or admin)
+ */
+router.get('/demo-accounts/snapshot/ast/:stepId?', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId;
+    const stepId = req.params.stepId;
+
+    const result = await SnapshotService.loadAstSnapshot(userId, stepId);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    console.error('Error loading AST snapshot:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to load snapshot'
+    });
+  }
+});
+
+/**
+ * Restore demo account from AST snapshot (demo account user or admin)
+ */
+router.post('/demo-accounts/restore/ast', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId;
+
+    const result = await SnapshotService.restoreFromAstSnapshot(userId);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      success: true,
+      message: result.message
+    });
+  } catch (error) {
+    console.error('Error restoring from AST snapshot:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to restore from snapshot'
     });
   }
 });
