@@ -203,7 +203,7 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
   // Demo account workshop reset mutation
   const resetDemoWorkshopMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/demo-accounts/restore/ast', {
+      const response = await fetch('/api/admin/demo-accounts/restore/ast', {
         method: 'POST',
         credentials: 'include',
       });
@@ -702,9 +702,10 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Reset Workshop Data?</AlertDialogTitle>
+                    <AlertDialogTitle>Reset Workshop to Beginning?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will delete all current workshop progress and restore the original demo data.
+                      This will delete all current workshop progress and return you to the start.
+                      You can use "Use Demo Data" buttons on each step to quickly fill in responses.
                       This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>

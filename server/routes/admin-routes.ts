@@ -983,13 +983,24 @@ router.get('/demo-accounts/snapshot/ast/:stepId?', requireAuth, async (req: Requ
 });
 
 /**
- * Restore demo account from AST snapshot (demo account user or admin)
+ * Reset demo account workshop (delete all data, keep snapshot for "Use Demo Data" buttons)
+ * This is different from restoring - it just clears the workshop so demo users can start fresh
  */
 router.post('/demo-accounts/restore/ast', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req.session as any).userId;
 
-    const result = await SnapshotService.restoreFromAstSnapshot(userId);
+    // Verify user is a demo account
+    const user = await userManagementService.getUserById(userId);
+    if (!user?.isDemoAccount) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only demo accounts can reset their workshop data'
+      });
+    }
+
+    // Delete all workshop data (same as admin delete, but keeps profile and snapshot)
+    const result = await userManagementService.deleteUserData(userId);
 
     if (!result.success) {
       return res.status(400).json(result);
@@ -997,13 +1008,13 @@ router.post('/demo-accounts/restore/ast', requireAuth, async (req: Request, res:
 
     res.json({
       success: true,
-      message: result.message
+      message: 'Workshop data cleared successfully. Use "Use Demo Data" buttons on each step to auto-fill from snapshot.'
     });
   } catch (error) {
-    console.error('Error restoring from AST snapshot:', error);
+    console.error('Error resetting demo account workshop:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to restore from snapshot'
+      error: error instanceof Error ? error.message : 'Failed to reset workshop'
     });
   }
 });

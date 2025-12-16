@@ -330,10 +330,13 @@ export class SnapshotService {
       const snapshotData = snapshotResult.data;
 
       // Step 1: Delete existing workshop data
+      console.log(`Deleting existing workshop data for user ${userId}...`);
       await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
       await db.execute(sql`DELETE FROM reflection_responses WHERE user_id = ${userId}`);
       await db.execute(sql`DELETE FROM workshop_step_data WHERE user_id = ${userId}`);
-      await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+      await db.execute(sql`DELETE FROM final_reflections WHERE user_id = ${userId}`);
+      await db.execute(sql`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
+      // Note: holistic_reports table doesn't exist yet, so we skip it
 
       console.log(`Deleted existing workshop data for user ${userId}`);
 
@@ -369,13 +372,21 @@ export class SnapshotService {
       }
       console.log(`Restored ${snapshotData.workshopStepData.length} workshop steps`);
 
-      // Step 5: Restore navigation progress
+      // Step 5: Reset navigation progress to initial state (unlock workshop steps)
+      // Instead of restoring the "complete" navigation state, reset to allow re-taking
+      const initialNavProgress = {
+        currentModule: 1,
+        currentStep: 1,
+        completedSteps: [],
+        unlockedSteps: ['1-1', '1-2', '1-3'] // Only unlock Module 1 steps initially
+      };
+
       await db
         .update(schema.users)
-        .set({ navigationProgress: JSON.stringify(snapshotData.navigationProgress) })
+        .set({ navigationProgress: JSON.stringify(initialNavProgress) })
         .where(eq(schema.users.id, userId));
 
-      console.log(`Restored navigation progress`);
+      console.log(`Reset navigation progress to initial state`);
 
       console.log(`=== SNAPSHOT SERVICE: Successfully restored user ${userId} from snapshot ===`);
 

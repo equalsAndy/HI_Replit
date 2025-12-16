@@ -599,10 +599,20 @@ workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopL
       acting: 24,
       planning: 23
     };
-    
+
+    // Get individual answers from request (NEW: for demo data feature)
+    const answers = req.body.answers || [];
+
+    // Combine quadrant scores and answers into results object
+    const results = {
+      ...quadrantData,
+      answers: answers  // Include the 22 individual question answers
+    };
+
     // Log the data we're saving
-    console.log('Saving star card data:', quadrantData);
-    
+    console.log('Saving star card data with answers:', results);
+    console.log(`Saving ${answers.length} individual answers`);
+
     // Check if user already has an assessment
     const existingAssessment = await db
       .select()
@@ -613,33 +623,33 @@ workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopL
           eq(schema.userAssessments.assessmentType, 'starCard')
         )
       );
-    
+
     let updatedId = null;
-    
+
     if (existingAssessment.length > 0) {
       // Update existing assessment
       const updated = await db
         .update(schema.userAssessments)
         .set({
-          results: JSON.stringify(quadrantData)
+          results: JSON.stringify(results)  // Save both scores and answers
         })
         .where(eq(schema.userAssessments.id, existingAssessment[0].id))
         .returning();
-      
+
       // Get the updated record ID
       updatedId = updated.length > 0 ? updated[0].id : existingAssessment[0].id;
-      console.log('Updated existing star card assessment:', updated);
+      console.log('Updated existing star card assessment with answers:', updated);
     } else {
       // Create new assessment record
       const inserted = await db.insert(schema.userAssessments).values({
         userId: userId,
         assessmentType: 'starCard',
-        results: JSON.stringify(quadrantData)
+        results: JSON.stringify(results)  // Save both scores and answers
       }).returning();
-      
+
       // Get the new record ID
       updatedId = inserted.length > 0 ? inserted[0].id : null;
-      console.log('Created new star card assessment:', inserted);
+      console.log('Created new star card assessment with answers:', inserted);
     }
     
     // Return the full star card data in the format expected by the client
