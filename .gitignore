@@ -230,3 +230,9 @@ server/services/*-processor-fixed*.ts
 # Search and cleanup prompts
 find_and_remove_*.md
 landing-page-package/
+
+# Demo account setup files
+MAX-HEADROOM-DEMO-ACCOUNT.md
+add-max-headroom-to-auth0.ts
+create-max-headroom-demo.ts
+max-headroom-complete-answers.md
