@@ -213,6 +213,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       astAccess: z.boolean().optional(),
       iaAccess: z.boolean().optional(),
       isTestUser: z.boolean().optional(),
+      isDemoAccount: z.boolean().optional(),
       isBetaTester: z.boolean().optional(),
       showDemoDataButtons: z.boolean().optional(),
       password: z.string().optional(),

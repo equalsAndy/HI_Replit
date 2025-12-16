@@ -723,8 +723,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
         </div>
         
         <p className="text-gray-600 mb-6">
-          Rate your agreement with each statement on a scale from 1 (Never) to 5 (Always).
-          Answer with a specific activity or task in mind where you most often seek or experience flow.
+          Rate your agreement with each statement. Answer with a specific activity or task in mind where you most often seek or experience flow.
         </p>
         
         <div className="mb-8">

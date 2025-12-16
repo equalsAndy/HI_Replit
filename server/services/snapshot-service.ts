@@ -35,8 +35,8 @@ export class SnapshotService {
         'flowAttributes': 'Flow Assessment',
         'stepByStepReflection': 'Step-by-Step Reflection (all 6 steps)',
         'cantrilLadder': 'Cantril Ladder (Well-being)',
-        'visualizingYou': 'Visualizing You (Future Self)',
-        'roundingOut': 'Rounding Out Reflection'
+        'futureSelfReflection': 'Visualizing You (Future Self)',
+        'roundingOutReflection': 'Rounding Out Reflection'
       };
 
       // Check each required assessment
@@ -134,21 +134,30 @@ export class SnapshotService {
 
       console.log(`Captured navigation progress for user ${userId}`);
 
-      // Step 5: Capture holistic reports (if any)
-      const reports = await db
-        .select()
-        .from(schema.holisticReports)
-        .where(eq(schema.holisticReports.userId, userId));
-
-      console.log(`Captured ${reports.length} holistic reports for user ${userId}`);
+      // Step 5: Capture holistic reports (if table exists - currently not implemented)
+      // Note: Holistic reports table doesn't exist yet, so we skip this for now
+      const reports: any[] = [];
+      console.log(`Holistic reports feature not yet implemented, skipping`);
 
       // Construct snapshot data
       const snapshotData: SnapshotData = {
-        userAssessments: assessments.map(a => ({
-          assessmentType: a.assessmentType,
-          results: a.results,
-          answers: undefined, // TODO: Extract from results if available
-        })),
+        userAssessments: assessments.map(a => {
+          // Extract answers from results JSON if available
+          let answers = undefined;
+          try {
+            const parsedResults = typeof a.results === 'string' ? JSON.parse(a.results) : a.results;
+            // Check for answers in various possible locations
+            answers = parsedResults?.answers || parsedResults?.data?.answers || parsedResults;
+          } catch (error) {
+            console.warn(`Could not parse answers for ${a.assessmentType}:`, error);
+          }
+
+          return {
+            assessmentType: a.assessmentType,
+            results: a.results,
+            answers: answers,
+          };
+        }),
         reflectionResponses: reflections.map(r => ({
           reflectionSetId: r.reflectionSetId,
           reflectionId: r.reflectionId,

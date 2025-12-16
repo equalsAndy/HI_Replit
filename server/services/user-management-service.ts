@@ -260,6 +260,7 @@ class UserManagementService {
     title?: string | null; // For admin route compatibility
     profilePicture?: string | null;
     isTestUser?: boolean;
+    isDemoAccount?: boolean;
     isBetaTester?: boolean;
     showDemoDataButtons?: boolean;
     role?: 'admin' | 'facilitator' | 'participant' | 'student';
@@ -281,6 +282,10 @@ class UserManagementService {
       if (data.title !== undefined) updateData.jobTitle = data.title; // Map title to jobTitle
       if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
       if (data.isTestUser !== undefined) updateData.isTestUser = data.isTestUser;
+      if (data.isDemoAccount !== undefined) {
+        console.log(`🔍 DEBUG: Updating isDemoAccount for user ${id} to ${data.isDemoAccount}`);
+        updateData.isDemoAccount = data.isDemoAccount;
+      }
       if (data.isBetaTester !== undefined) {
         console.log(`🔍 DEBUG: Updating isBetaTester for user ${id} from ${data.isBetaTester}`);
         updateData.isBetaTester = data.isBetaTester;

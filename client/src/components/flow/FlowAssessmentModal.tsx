@@ -371,56 +371,53 @@ const FlowAssessmentModal = ({ isOpen, onClose, onComplete }: FlowAssessmentModa
 
           {/* Question Card */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="space-y-6">
-              {/* Question Text */}
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-gray-900 leading-relaxed mb-2">
-                  {currentQ.text}
-                </h2>
-              </div>
-
-              {/* Rating Scale - Circular buttons like IA-2-2 */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span>Never</span>
-                  <span>Always</span>
-                </div>
-                
-                <div className="flex justify-center space-x-8">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <button
-                      key={value}
-                      onClick={() => handleAnswerSelection(currentQ.id, value)}
-                      className={`
-                        w-16 h-16 rounded-full border-2 flex items-center justify-center text-lg font-bold transition-all hover:scale-105
-                        ${answers[currentQ.id] === value 
-                          ? 'bg-blue-600 border-blue-600 text-white shadow-lg' 
-                          : 'border-gray-300 text-gray-600 hover:border-blue-300 hover:text-blue-600'
-                        }
-                      `}
-                    >
-                      {value}
-                    </button>
-                  ))}
+            {currentQ ? (
+              <div className="space-y-6">
+                {/* Question Text */}
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold text-gray-900 leading-relaxed mb-2">
+                    {currentQ.text}
+                  </h2>
                 </div>
 
-                <div className="flex justify-between text-xs text-gray-500 px-2">
-                  <span>Never</span>
-                  <span>Rarely</span>
-                  <span>Sometimes</span>
-                  <span>Often</span>
-                  <span>Always</span>
-                </div>
-
-                {answers[currentQ.id] && (
-                  <div className="text-center">
-                    <p className="text-blue-700 font-semibold">
-                      Your answer: {answers[currentQ.id]} - {valueToLabel(answers[currentQ.id])}
-                    </p>
+                {/* Rating Scale - Circular buttons like IA-2-2 */}
+                <div className="space-y-4">
+                  <div className="flex justify-center space-x-8">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <div key={value} className="flex flex-col items-center space-y-2">
+                        <button
+                          onClick={() => handleAnswerSelection(currentQ.id, value)}
+                          className={`
+                            w-16 h-16 rounded-full border-2 flex items-center justify-center text-lg font-bold transition-all hover:scale-105
+                            ${answers[currentQ.id] === value
+                              ? 'bg-blue-600 border-blue-600 text-white shadow-lg'
+                              : 'border-gray-300 text-gray-600 hover:border-blue-300 hover:text-blue-600'
+                            }
+                          `}
+                        >
+                          {value}
+                        </button>
+                        <span className="text-xs text-gray-500">
+                          {value === 1 ? 'Never' : value === 2 ? 'Rarely' : value === 3 ? 'Sometimes' : value === 4 ? 'Often' : 'Always'}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                )}
+
+                  {answers[currentQ.id] && (
+                    <div className="text-center">
+                      <p className="text-blue-700 font-semibold">
+                        Your answer: {answers[currentQ.id]} - {valueToLabel(answers[currentQ.id])}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Loading question...</p>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
