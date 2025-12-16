@@ -170,7 +170,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '5',
-    title: 'FINAL THOUGHTS',
+    title: 'OUTCOMES AND TEAMS',
     // No moduleNumber - this is a conclusion section, not a numbered module
     expanded: false, // Default collapsed
     steps: [
@@ -179,13 +179,25 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         title: 'Outcomes and Benefits',
         type: 'video',
         contentKey: 'ia-5-1'
+      },
+      {
+        id: 'ia-5-2',
+        title: 'Team Ladder',
+        type: 'video',
+        contentKey: 'ia-5-2'
+      },
+      {
+        id: 'ia-5-3',
+        title: 'I4C Team Board',
+        type: 'interactive',
+        contentKey: 'ia-5-3'
       }
       // Other steps temporarily hidden
       // {
-      //   id: 'ia-5-2',
-      //   title: 'ROI 2.0',
-      //   type: 'viewing',
-      //   contentKey: 'ia-5-2'
+      //   id: 'ia-5-4',
+      //   title: 'Imaginal Agility Compendium',
+      //   type: 'download',
+      //   contentKey: 'ia-5-4'
       // },
       // {
       //   id: 'ia-5-3',

@@ -234,6 +234,11 @@ export default function ImaginalAgilityWorkshop() {
     if (stepId === 'ia-1-1') return true;
 
     // Special unlock rules
+    // Section 5 (Outcomes & Teams) - All unlock after ia-4-6
+    if (stepId === 'ia-5-1' || stepId === 'ia-5-2' || stepId === 'ia-5-3') {
+      return completedSteps.includes('ia-4-6');
+    }
+
     if (stepId === 'ia-6-1') return true; // Always accessible from start
     if (stepId === 'ia-7-1') {
       // Unlock after workshop completion (final submission on ia-4-6)
@@ -252,13 +257,13 @@ export default function ImaginalAgilityWorkshop() {
       // Welcome & Orientation (Module 1)
       'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
       // The I4C Model (Module 2)
-      'ia-2-1', 'ia-2-2', 
+      'ia-2-1', 'ia-2-2',
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
       // Advanced Ladder of Imagination
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
-      // Outcomes & Benefits
-      'ia-5-1'
+      // Outcomes & Teams
+      'ia-5-1', 'ia-5-2', 'ia-5-3'
       // Note: Section 6 and 7 handled by special rules above
     ];
 

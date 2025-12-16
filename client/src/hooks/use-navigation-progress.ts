@@ -163,12 +163,28 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
     }
     
     // Special unlock rules:
+    // ia-5-1, ia-5-2, ia-5-3 (Outcomes and Teams section) - unlocked after ia-4-6 completion
+    if (completedSteps.includes('ia-4-6')) {
+      if (!unlocked.includes('ia-5-1')) {
+        unlocked.push('ia-5-1');
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-1`);
+      }
+      if (!unlocked.includes('ia-5-2')) {
+        unlocked.push('ia-5-2');
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-2`);
+      }
+      if (!unlocked.includes('ia-5-3')) {
+        unlocked.push('ia-5-3');
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-3`);
+      }
+    }
+
     // ia-6-1 (Quarterly Tune-up) - always accessible
     if (!unlocked.includes('ia-6-1')) {
       unlocked.push('ia-6-1');
       console.log(`🔓 IA: ia-6-1 always accessible`);
     }
-    
+
     // ia-7-1 and ia-7-2 (Team Ladder) - unlocked after ia-4-6 completion
     if (completedSteps.includes('ia-4-6')) {
       if (!unlocked.includes('ia-7-1')) {

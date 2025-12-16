@@ -21,7 +21,7 @@ const iaVideoUpdates = [
   
   // Additional sections from content mapping
   { step_id: "ia-5-1", title: "HaiQ", youtube_id: "7__r4FVj-EI" },
-  { step_id: "ia-5-2", title: "ROI 2.0", youtube_id: "7__r4FVj-EI" },
+  { step_id: "ia-5-2", title: "Team Ladder", youtube_id: "ryvW4KppCu0" },
   { step_id: "ia-5-3", title: "Course Completion Badge", youtube_id: "7__r4FVj-EI" },
   { step_id: "ia-5-4", title: "Imaginal Agility Compendium", youtube_id: "7__r4FVj-EI" },
   { step_id: "ia-5-5", title: "Community of Practice", youtube_id: "7__r4FVj-EI" },

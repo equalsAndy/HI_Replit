@@ -26,6 +26,8 @@ import IA_4_4_HigherPurposeUplift from './steps/IA_4_4_HigherPurposeUplift';
 import IA_4_5_InspirationSupport from './steps/IA_4_5_InspirationSupport';
 import IA_4_6_NothingIsUnimaginable from './steps/IA_4_6_NothingIsUnimaginable';
 import IA_5_1_Overview from './steps/IA_5_1_Overview';
+import IA_5_2_TeamLadder from './steps/IA_5_2_TeamLadder';
+import IA_5_3_TeamBoard from './steps/IA_5_3_TeamBoard';
 
 
 // Component for ia-4-1 Assessment step
@@ -348,6 +350,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
         return <IA_4_6_NothingIsUnimaginable onNext={onNext} />;
       case 'ia-5-1':
         return <IA_5_1_Overview onNext={onNext} />;
+      case 'ia-5-2':
+        return <IA_5_2_TeamLadder onNext={onNext} />;
+      case 'ia-5-3':
+        return <IA_5_3_TeamBoard onNext={onNext} />;
       case 'ia-6-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
