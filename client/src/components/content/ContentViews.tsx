@@ -60,6 +60,7 @@ interface ContentViewsProps {
   starCard?: any;
   showDiscernmentModal?: boolean;
   setShowDiscernmentModal?: (open: boolean) => void;
+  onOpenContactModal?: () => void;
 }
 
 const ContentViews: React.FC<ContentViewsProps> = ({
@@ -73,7 +74,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   setIsAssessmentModalOpen,
   isImaginalAgility = false,
   showDiscernmentModal,
-  setShowDiscernmentModal
+  setShowDiscernmentModal,
+  onOpenContactModal
 }) => {
   // Use local state if not provided from parent (for backward compatibility)
   const [localShowDiscernmentModal, setLocalShowDiscernmentModal] = useState(false);
@@ -121,6 +123,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               setIsAssessmentModalOpen(true);
             }
           }}
+          onOpenContactModal={onOpenContactModal}
           assessmentResults={null} // This would come from API in real implementation
           user={user}
         />

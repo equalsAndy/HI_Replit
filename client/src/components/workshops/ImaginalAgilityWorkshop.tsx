@@ -19,6 +19,7 @@ import DiscernmentModal from '@/components/imaginal-agility/DiscernmentModal';
 import { useWelcomeVideo } from '@/hooks/useWelcomeVideo';
 import ImaginalAgilityWelcomeVideoModal from '@/components/modals/ImaginalAgilityWelcomeVideoModal';
 import { useStepContextSafe } from '@/contexts/StepContext';
+import ContactModal from '@/components/modals/ContactModal';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -29,6 +30,7 @@ export default function ImaginalAgilityWorkshop() {
   const [currentStep, setCurrentStepState] = useState("ia-1-1");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
@@ -235,7 +237,7 @@ export default function ImaginalAgilityWorkshop() {
 
     // Special unlock rules
     // Section 5 (Outcomes & Teams) - All unlock after ia-4-6
-    if (stepId === 'ia-5-1' || stepId === 'ia-5-2' || stepId === 'ia-5-3') {
+    if (stepId === 'ia-5-1' || stepId === 'ia-5-2' || stepId === 'ia-5-3' || stepId === 'ia-5-4') {
       return completedSteps.includes('ia-4-6');
     }
 
@@ -413,6 +415,7 @@ export default function ImaginalAgilityWorkshop() {
             isImaginalAgility={true}
             showDiscernmentModal={showDiscernmentModal}
             setShowDiscernmentModal={setShowDiscernmentModal}
+            onOpenContactModal={() => setIsContactModalOpen(true)}
           />
 
           {/* Imaginal Agility Assessment */}
@@ -517,6 +520,12 @@ export default function ImaginalAgilityWorkshop() {
       <DiscernmentModal
         isOpen={showDiscernmentModal}
         onClose={() => setShowDiscernmentModal(false)}
+      />
+
+      {/* Contact Modal - Rendered at page level */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
       />
     </div>
   );

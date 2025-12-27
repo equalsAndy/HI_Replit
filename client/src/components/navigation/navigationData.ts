@@ -191,14 +191,14 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         title: 'I4C Team Board',
         type: 'interactive',
         contentKey: 'ia-5-3'
+      },
+      {
+        id: 'ia-5-4',
+        title: 'Organizational Vision',
+        type: 'educational',
+        contentKey: 'ia-5-4'
       }
       // Other steps temporarily hidden
-      // {
-      //   id: 'ia-5-4',
-      //   title: 'Imaginal Agility Compendium',
-      //   type: 'download',
-      //   contentKey: 'ia-5-4'
-      // },
       // {
       //   id: 'ia-5-3',
       //   title: 'Course Completion Badge',

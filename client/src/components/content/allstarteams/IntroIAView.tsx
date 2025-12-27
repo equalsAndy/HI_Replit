@@ -1,12 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ContentViewProps } from '../../../shared/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
-import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import ContactModal from '@/components/modals/ContactModal';
 
 /**
  * AST-specific introduction to Imaginal Agility module (AST Step 5-3).
@@ -18,6 +19,8 @@ const IntroIAView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const stepId = "5-3"; // AST step 5-3
+  const { data: user } = useCurrentUser();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Fetch video from database using tRPC
   const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
@@ -41,20 +44,9 @@ const IntroIAView: React.FC<ContentViewProps> = ({
     } : 'NO_VIDEO_DATA'
   });
 
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-
   // Get navigation progress using the unified hook
   const navigation = useUnifiedWorkshopNavigation('ast');
-  const {
-    updateVideoProgress,
-    markStepCompleted: navMarkStepCompleted
-  } = navigation;
-
-  // Simplified mode: Next button always active for video steps
-  useEffect(() => {
-    setHasReachedMinimum(true);
-    console.log(`🎬 SIMPLIFIED MODE: Next button always active for video step ${stepId}`);
-  }, [stepId]);
+  const { updateVideoProgress } = navigation;
 
   // Track last logged progress to prevent spam
   const lastLoggedProgressRef = useRef(0);
@@ -79,23 +71,16 @@ const IntroIAView: React.FC<ContentViewProps> = ({
       lastLoggedProgressRef.current = roundedProgress;
       updateVideoProgress(stepId, roundedProgress);
     }
-    if (roundedProgress >= 90 && !hasReachedMinimum) {
-      setHasReachedMinimum(true);
-      console.log(`✅ IntroIAView: 90% minimum reached`);
-    }
   };
 
-  // Handle next button click
-  const handleNext = async () => {
-    try {
-      console.log(`🎯 IntroIAView: Completing step ${stepId}`);
-      await navMarkStepCompleted(stepId);
-      console.log(`✅ Step ${stepId} marked complete`);
-
-      // This is the last step in the workshop, so just mark as complete
-      // No navigation needed
-    } catch (error) {
-      console.error(`❌ Error completing step ${stepId}:`, error);
+  // Handle IA exploration button click
+  const handleExploreIA = () => {
+    if (user?.iaAccess) {
+      // User has IA access - navigate to IA workshop using window.location
+      window.location.href = '/workshop/ia';
+    } else {
+      // User doesn't have IA access - open contact modal
+      setIsContactModalOpen(true);
     }
   };
 
@@ -113,9 +98,9 @@ const IntroIAView: React.FC<ContentViewProps> = ({
       <div className="text-center">
         <div className="flex justify-center mb-6">
           <img
-            src={imaginalAgilityLogo}
+            src="http://localhost:8080/assets/imaginal_agility_logo_sq.png"
             alt="Imaginal Agility"
-            className="h-24 w-auto"
+            className="h-32 w-32"
           />
         </div>
         <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-4">
@@ -204,25 +189,32 @@ const IntroIAView: React.FC<ContentViewProps> = ({
         </CardContent>
       </Card>
 
-      <div className="bg-amber-50 p-6 rounded-lg border border-amber-200">
-        <h3 className="font-semibold text-amber-900 mb-2">Ready to Explore?</h3>
-        <p className="text-amber-800 mb-4">
-          This introduction provides context for the Imaginal Agility workshop. When you're ready to dive deeper
-          into hands-on exercises and practical applications, you can explore the full workshop experience.
+      {/* IA Workshop Access Section */}
+      <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+        <h3 className="font-semibold text-purple-900 mb-2 text-center">
+          {user?.iaAccess ? 'Explore the Full Workshop' : 'Interested in the Full Workshop?'}
+        </h3>
+        <p className="text-purple-800 mb-6 text-center">
+          {user?.iaAccess
+            ? 'You have access to the complete Imaginal Agility workshop with hands-on exercises and practical applications.'
+            : 'Learn more about bringing the complete Imaginal Agility workshop to your team or organization.'}
         </p>
+        <div className="flex justify-center">
+          <Button
+            onClick={handleExploreIA}
+            size="lg"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+          >
+            {user?.iaAccess ? 'Go to Imaginal Agility Workshop' : 'Contact Us About IA Workshop'}
+          </Button>
+        </div>
       </div>
 
-      {/* Complete Step Button - Same pattern as AST 1-1 */}
-      <div className="flex justify-center mt-8">
-        <Button
-          onClick={handleNext}
-          size="lg"
-          disabled={!hasReachedMinimum}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
-        >
-          Complete Step
-        </Button>
-      </div>
+      {/* Contact Modal for users without IA access */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 };

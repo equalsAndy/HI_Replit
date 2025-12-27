@@ -28,6 +28,7 @@ import IA_4_6_NothingIsUnimaginable from './steps/IA_4_6_NothingIsUnimaginable';
 import IA_5_1_Overview from './steps/IA_5_1_Overview';
 import IA_5_2_TeamLadder from './steps/IA_5_2_TeamLadder';
 import IA_5_3_TeamBoard from './steps/IA_5_3_TeamBoard';
+import IA_5_4_OrganizationalVision from './steps/IA_5_4_OrganizationalVision';
 
 
 // Component for ia-4-1 Assessment step
@@ -117,6 +118,7 @@ interface ImaginalAgilityContentProps {
   stepId: string;
   onNext?: (nextStepId: string) => void;
   onOpenAssessment?: () => void;
+  onOpenContactModal?: () => void;
   assessmentResults?: any;
   user?: any;
 }
@@ -294,7 +296,7 @@ const AssessmentResultsContent: React.FC<{ onNext?: (stepId: string) => void }> 
   );
 };
 
-const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId, onNext, onOpenAssessment }) => {
+const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId, onNext, onOpenAssessment, onOpenContactModal }) => {
   // Get video data using the existing video hook - for ia-1-1 and ia-7-1
   const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
     'ia',
@@ -353,7 +355,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
       case 'ia-5-2':
         return <IA_5_2_TeamLadder onNext={onNext} />;
       case 'ia-5-3':
-        return <IA_5_3_TeamBoard onNext={onNext} />;
+        return <IA_5_3_TeamBoard onNext={onNext} onOpenContactModal={onOpenContactModal} />;
+      case 'ia-5-4':
+        return <IA_5_4_OrganizationalVision onNext={onNext} />;
       case 'ia-6-1':
         return (
           <div className="max-w-4xl mx-auto p-6">

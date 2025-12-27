@@ -5,9 +5,10 @@ import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA53ContentProps {
   onNext?: (stepId: string) => void;
+  onOpenContactModal?: () => void;
 }
 
-const IA_5_3_TeamBoard: React.FC<IA53ContentProps> = ({ onNext }) => {
+const IA_5_3_TeamBoard: React.FC<IA53ContentProps> = ({ onNext, onOpenContactModal }) => {
   const muralUrl = "https://app.mural.co/t/teamprelude0846/m/teamprelude0846/1765730392096/7b38226f1a0551f5c8c433e0140a2111000b7d52";
 
   const handleOpenBoard = () => {
@@ -53,10 +54,7 @@ const IA_5_3_TeamBoard: React.FC<IA53ContentProps> = ({ onNext }) => {
             </p>
             <div className="flex gap-4">
               <Button
-                onClick={() => {
-                  // TODO: Open contact form modal when form embed link is provided
-                  console.log('Contact Us clicked - modal will open here');
-                }}
+                onClick={() => onOpenContactModal?.()}
                 className="bg-white text-purple-600 hover:bg-gray-100 px-6 py-3 text-base font-semibold"
                 size="lg"
               >
