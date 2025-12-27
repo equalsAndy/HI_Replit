@@ -41,6 +41,9 @@ codex_auth0_migration_kit_*/
 /src/
 # client/src/styles/ # Commented out - we want to track client/src/
 
+# Jira ticket templates (created locally, manually added to Jira)
+JiraTickets/
+
 # Version and build artifacts (these are managed by versioning system)
 public/version.json
 client/public/version.json
