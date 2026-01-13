@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { photoStorageService } from '../services/photo-storage-service';
+import { photoStorageService, ImageType } from '../services/photo-storage-service';
 import { safeConsoleLog } from '../../shared/photo-data-filter';
 import { db } from '../db.js';
 import { users } from '../../shared/schema.js';
@@ -297,13 +297,19 @@ photoRouter.post('/starcard', requireAuth, async (req: Request, res: Response) =
 
     console.log(`🖼️ Saving StarCard for user ${userId} (NOT changing profile picture)...`);
 
-    // Store the StarCard image with StarCard-specific filename
+    // Store the StarCard image with StarCard-specific filename and type
     const starCardFilename = filename || `Star_Card-user-${userId}-${Date.now()}.png`;
-    const photoId = await photoStorageService.storePhoto(imageData, userId, true, starCardFilename);
-    
+    const photoId = await photoStorageService.storePhoto(
+      imageData,
+      userId,
+      true,
+      starCardFilename,
+      ImageType.STARCARD_GENERATED
+    );
+
     // DO NOT update user's profile picture - this was the bug!
     // The star card should just be saved, not set as profile picture
-    
+
     console.log(`✅ StarCard saved as photo ID ${photoId} (profile picture unchanged)`);
 
     res.json({

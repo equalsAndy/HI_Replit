@@ -108,7 +108,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
         />
         {/* Header */}
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-purple-800">Your I4C Assessment Results</h1>
+          <h1 className="text-4xl font-bold text-purple-800">Your i4C Assessment Results</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Here's your personal radar chart showing your strengths across the five core capabilities.
           </p>
@@ -204,9 +204,9 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       />
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-purple-800">I4C Self-Assessment</h1>
+        <h1 className="text-4xl font-bold text-purple-800">i4C Self-Assessment</h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Before we dive deeper into developing your imaginal agility, let's establish your current baseline 
+          Before we dive deeper into developing your imaginal agility, let's establish your current baseline
           across the five core capabilities.
         </p>
       </div>

@@ -62,13 +62,13 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '2',
-    title: 'THE I4C MODEL',
+    title: 'THE i4C MODEL',
     moduleNumber: 2, // Added module badge
     expanded: true, // Default expanded
     steps: [
       {
         id: 'ia-2-1',
-        title: 'I4C Prism Overview',
+        title: 'i4C Prism Overview',
         type: 'video',
         contentKey: 'ia-2-1'
       },

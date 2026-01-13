@@ -53,13 +53,13 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
       />
 
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
-        The I4C Prism Model
+        The i4C Prism Model
       </h1>
       
       {/* Video Section using VideoTranscriptGlossary component like AST */}
       <VideoTranscriptGlossary
         youtubeId={youtubeId}
-        title={videoData?.title || "The I4C Prism Model"}
+        title={videoData?.title || "The i4C Prism Model"}
         transcriptMd={null} // No transcript data available yet
         glossary={null} // No glossary data available yet
       />
@@ -113,7 +113,7 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
               These capabilities shape how you think, connect, and grow.
             </p>
             <p className="text-lg text-purple-800 text-center">
-              Together, they define your <strong>I4C</strong> — "I Foresee" — a practical way to reflect, engage, and lead in the AI era.
+              Together, they define your <strong>i4C</strong> — "i Foresee" — a practical way to reflect, engage, and lead in the AI era.
             </p>
           </div>
           

@@ -602,7 +602,7 @@ router.get('/admin/list-available', async (req, res) => {
     
     // Get all users who have StarCard PNGs
     const result = await pool.query(`
-      SELECT 
+      SELECT
         u.id,
         u.name,
         u.username,
@@ -615,6 +615,7 @@ router.get('/admin/list-available', async (req, res) => {
       FROM users u
       JOIN photo_storage ps ON ps.uploaded_by = u.id
       WHERE ps.is_thumbnail = false
+      AND ps.image_type = 'starcard_generated'
       ORDER BY ps.created_at DESC
     `);
     
