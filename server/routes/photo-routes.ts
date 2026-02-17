@@ -284,18 +284,22 @@ photoRouter.delete('/:id', async (req: Request, res: Response) => {
  */
 photoRouter.post('/starcard', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.session?.userId;
+    // Allow admin to save for other users
+    const requestingUserId = req.session?.userId;
+    const { imageData, filename, userId: targetUserId } = req.body;
+
+    // Use target user ID if provided (admin mode), otherwise use requesting user
+    const userId = targetUserId || requestingUserId;
+
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { imageData, filename } = req.body;
-    
     if (!imageData) {
       return res.status(400).json({ error: 'Image data is required' });
     }
 
-    console.log(`🖼️ Saving StarCard for user ${userId} (NOT changing profile picture)...`);
+    console.log(`🖼️ Saving StarCard for user ${userId}${targetUserId ? ` (admin request by ${requestingUserId})` : ''} (NOT changing profile picture)...`);
 
     // Store the StarCard image with StarCard-specific filename and type
     const starCardFilename = filename || `Star_Card-user-${userId}-${Date.now()}.png`;

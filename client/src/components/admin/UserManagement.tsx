@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { formatDistanceToNow } from 'date-fns';
 import { WorkshopDataView } from './WorkshopDataView';
 import VersionInfo from '@/components/ui/VersionInfo';
+import { AdminStarCardModal } from './AdminStarCardModal';
 
 // Types
 interface User {
@@ -180,6 +181,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [dataViewOpen, setDataViewOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [starCardModalState, setStarCardModalState] = useState<{
+    isOpen: boolean;
+    userId: number | null;
+    userName: string;
+    username: string;
+  } | null>(null);
 
   // Query for current user profile to get role information
   const { data: userProfile } = useQuery({
@@ -784,69 +791,15 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
-  // StarCard download mutation
-  const downloadStarCardMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      setLoadingUsers(prev => new Set(prev).add(userId));
-
-      const response = await fetch(`/api/starcard/admin/download/${userId}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'No StarCard found for this user');
-        }
-        throw new Error('Failed to download StarCard');
-      }
-
-      // Get the filename from the Content-Disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filename = contentDisposition
-        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
-        : `user-${userId}-starcard.png`;
-
-      // Get the image data
-      const blob = await response.blob();
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      return userId;
-    },
-    onSuccess: (userId) => {
-      setLoadingUsers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(userId);
-        return newSet;
-      });
-      toast({
-        title: 'StarCard downloaded',
-        description: `StarCard PNG for ${users.find(user => user.id === userId)?.username} has been downloaded.`,
-      });
-    },
-    onError: (error: any, userId) => {
-      setLoadingUsers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(userId);
-        return newSet;
-      });
-      toast({
-        title: 'StarCard download failed',
-        description: error.message || 'Failed to download StarCard. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
+  // StarCard modal handler
+  const handleStarCardClick = (user: User) => {
+    setStarCardModalState({
+      isOpen: true,
+      userId: user.id,
+      userName: user.name || user.username,
+      username: user.username
+    });
+  };
 
   // Demo Account: Capture snapshot mutation
   const captureSnapshotMutation = useMutation({
@@ -1381,14 +1334,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                           variant="outline"
                                           size="sm"
                                           className="h-8 w-8 p-0 text-purple-600 hover:text-purple-800 hover:bg-purple-50 border-purple-200"
-                                          onClick={() => downloadStarCardMutation.mutate(user.id)}
-                                          disabled={loadingUsers.has(user.id)}
+                                          onClick={() => handleStarCardClick(user)}
                                         >
-                                          {loadingUsers.has(user.id) && downloadStarCardMutation.isPending ? (
-                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                          ) : (
-                                            <FileImage className="h-3 w-3" />
-                                          )}
+                                          <FileImage className="h-3 w-3" />
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>
@@ -2521,6 +2469,17 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* StarCard Modal */}
+      {starCardModalState && (
+        <AdminStarCardModal
+          userId={starCardModalState.userId!}
+          userName={starCardModalState.userName}
+          username={starCardModalState.username}
+          isOpen={starCardModalState.isOpen}
+          onClose={() => setStarCardModalState(null)}
+        />
+      )}
     </div>
   );
 };

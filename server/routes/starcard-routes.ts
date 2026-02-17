@@ -421,6 +421,173 @@ router.post('/get-png/:userId', async (req, res) => {
 });
 
 /**
+ * Admin: Check if user has StarCard PNG
+ */
+router.get('/admin/check/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    const result = await pool.query(`
+      SELECT id FROM photo_storage
+      WHERE uploaded_by = $1
+      AND is_thumbnail = false
+      AND image_type = 'starcard_generated'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [userId]);
+
+    await pool.end();
+
+    res.json({
+      success: true,
+      exists: result.rows.length > 0,
+      photoId: result.rows[0]?.id || null
+    });
+  } catch (error) {
+    console.error('Check StarCard error:', error);
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+/**
+ * Admin: Get user's StarCard data (scores)
+ */
+router.get('/admin/data/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    const result = await pool.query(`
+      SELECT results FROM user_assessments
+      WHERE user_id = $1
+      AND assessment_type = 'starCard'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [userId]);
+
+    await pool.end();
+
+    if (result.rows.length === 0) {
+      return res.json({
+        success: true,
+        isEmpty: true,
+        thinking: 0,
+        feeling: 0,
+        acting: 0,
+        planning: 0
+      });
+    }
+
+    const data = JSON.parse(result.rows[0].results);
+    res.json({
+      success: true,
+      isEmpty: false,
+      thinking: data.thinking || 0,
+      feeling: data.feeling || 0,
+      acting: data.acting || 0,
+      planning: data.planning || 0
+    });
+  } catch (error) {
+    console.error('Get StarCard data error:', error);
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+/**
+ * Admin: Get user's flow attributes
+ */
+router.get('/admin/flow-attributes/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    const result = await pool.query(`
+      SELECT results FROM user_assessments
+      WHERE user_id = $1
+      AND assessment_type = 'flowAttributes'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [userId]);
+
+    await pool.end();
+
+    if (result.rows.length === 0) {
+      return res.json({
+        success: true,
+        attributes: []
+      });
+    }
+
+    const data = JSON.parse(result.rows[0].results);
+    res.json({
+      success: true,
+      attributes: data.attributes || []
+    });
+  } catch (error) {
+    console.error('Get flow attributes error:', error);
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+/**
+ * Admin: Preview StarCard PNG (returns image, not download)
+ */
+router.get('/admin/preview/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+
+    const result = await pool.query(`
+      SELECT photo_data, mime_type FROM photo_storage
+      WHERE uploaded_by = $1
+      AND is_thumbnail = false
+      AND image_type = 'starcard_generated'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [userId]);
+
+    await pool.end();
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'No StarCard found' });
+    }
+
+    const photo = result.rows[0];
+    const base64Data = photo.photo_data.includes(',')
+      ? photo.photo_data.split(',')[1]
+      : photo.photo_data;
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    res.setHeader('Content-Type', photo.mime_type);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Preview error:', error);
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+/**
  * Admin: Download StarCard PNG for any user (if exists in database)
  */
 router.get('/admin/download/:userId', async (req, res) => {
