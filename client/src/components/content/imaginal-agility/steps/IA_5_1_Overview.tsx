@@ -1,9 +1,7 @@
 import React from 'react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA51ContentProps {
@@ -11,17 +9,14 @@ interface IA51ContentProps {
 }
 
 const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
-  // Get video data for debugging
   const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-5-1');
 
-  // Helper function to extract YouTube ID from video URL
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
     const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
-  // Simple debug logging for video data
   React.useEffect(() => {
     if (videoData) {
       console.log('🎬 IA-5-1 Video found:', videoData.title);
@@ -30,234 +25,79 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
     }
   }, [videoData, isLoading]);
 
-  const RungPreview: React.FC<{ n: 1 | 2 | 3 | 4 | 5 }> = ({ n }) => (
-    <div className="flex items-center gap-2 md:gap-3">
-      <img
-        src={`/assets/solo_rung${n}_split.png`}
-        alt={`Rung ${n} Solo`}
-        className="h-12 w-24 sm:h-14 sm:w-28 md:h-20 md:w-40 lg:h-24 lg:w-48 xl:h-28 xl:w-56 object-contain"
-      />
-      <span className="text-muted-foreground text-lg sm:text-xl md:text-2xl lg:text-3xl">→</span>
-      <img
-        src={`/assets/adv_rung${n}_split.png`}
-        alt={`Rung ${n} ADV`}
-        className="h-12 w-24 sm:h-14 sm:w-28 md:h-20 md:w-40 lg:h-24 lg:w-48 xl:h-28 xl:w-56 object-contain"
-      />
-    </div>
-  );
-
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Scroll Indicator - appears when user is idle */}
       <ScrollIndicator
         idleTime={3000}
         position="nav-adjacent"
         colorScheme="purple"
       />
-      <h1 className="text-3xl font-bold text-purple-700 mb-8">
-        Outcomes and Benefits
+
+      <h1 className="text-3xl font-bold text-purple-700 mb-2">
+        Imaginal Agility Matrix (IAM)
       </h1>
-      
-      {/* Video Section using VideoTranscriptGlossary component like AST */}
+      <p className="text-lg text-muted-foreground mb-8">
+        Your foundational activation profile.
+      </p>
+
+      {/* Video Section */}
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
-        title={videoData?.title || "Outcomes and Benefits Overview"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        title={videoData?.title || "Imaginal Agility Matrix"}
+        transcriptMd={null}
+        glossary={null}
       />
 
-      {/* Interactive Outcomes & Benefits */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-purple-700">Click each set of rungs to see some of the benefits.</h2>
+      {/* IAM Activation Content */}
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mt-6">
+        <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">IAM Activation</h2>
 
-        <Accordion type="single" collapsible className="w-full space-y-3">
-          {/* 1. AUTO-FLOW / PROMPT YOUR FLOW */}
-          <AccordionItem value="item-1" className="border rounded-lg">
-            <AccordionTrigger className="px-4">
-              <div className="flex w-full flex-wrap items-center justify-center gap-3 md:gap-4">
-                <RungPreview n={1} />
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Card className="border-0">
-                <CardContent className="pt-4">
-                  <div className="mb-4">
-                    <div className="font-medium">AUTO-FLOW <span className="text-muted-foreground">→</span> PROMPT YOUR FLOW</div>
-                    <div className="text-sm text-muted-foreground">Self-awareness and spontaneous expression</div>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Enhances emotional self-awareness and presence.</li>
-                        <li>Builds confidence in spontaneous creative expression and reflective noticing.</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Strengthens salience network, attentional control, and metacognitive switching.</li>
-                        <li>Improves fluid recall and pattern interruption.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
+          <div className="space-y-4">
+            <p className="text-lg leading-relaxed">
+              The IAM distills your I4C Prism and your climb up ten Ladder Rungs into one overall developmental pattern.
+            </p>
+            <p className="text-lg leading-relaxed">
+              As you reflected, wrote, refined, and engaged with structured AI collaboration, you generated signals — insights, tensions, intentions, and goals.
+            </p>
+            <p className="text-lg leading-relaxed">
+              The IAM coheres those signals across your five core capabilities.
+            </p>
+          </div>
 
-          {/* 2. VISUALIZATION / STRETCH POTENTIAL */}
-          <AccordionItem value="item-2" className="border rounded-lg">
-            <AccordionTrigger className="px-4">
-              <div className="flex w-full flex-wrap items-center justify-center gap-3 md:gap-4">
-                <RungPreview n={2} />
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Card className="border-0">
-                <CardContent className="pt-4">
-                  <div className="mb-4">
-                    <div className="font-medium">VISUALIZATION <span className="text-muted-foreground">→</span> STRETCH POTENTIAL</div>
-                    <div className="text-sm text-muted-foreground">Symbolic thinking and inner clarity</div>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Activates self-symbolization.</li>
-                        <li>Deepens inner clarity and aspirational identity.</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Engages visual cortex and DMN to integrate imagery with executive planning.</li>
-                        <li>Supports future scenario modeling.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* 3. HIGHER PURPOSE / WORLD CHALLENGES */}
-          <AccordionItem value="item-3" className="border rounded-lg">
-            <AccordionTrigger className="px-4">
-              <div className="flex w-full flex-wrap items-center justify-center gap-3 md:gap-4">
-                <RungPreview n={3} />
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Card className="border-0">
-                <CardContent className="pt-4">
-                  <div className="mb-4">
-                    <div className="font-medium">HIGHER PURPOSE <span className="text-muted-foreground">→</span> WORLD CHALLENGES</div>
-                    <div className="text-sm text-muted-foreground">Coherence between values and vision</div>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Fosters coherence between values and vision.</li>
-                        <li>Builds a moral and motivational compass.</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Enhances theory of mind, empathy circuits, and long-range goal scaffolding.</li>
-                        <li>Activates moral reasoning networks.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* 4. INSPIRATION / INVITING THE MUSE */}
-          <AccordionItem value="item-4" className="border rounded-lg">
-            <AccordionTrigger className="px-4">
-              <div className="flex w-full flex-wrap items-center justify-center gap-3 md:gap-4">
-                <RungPreview n={4} />
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Card className="border-0">
-                <CardContent className="pt-4">
-                  <div className="mb-4">
-                    <div className="font-medium">INSPIRATION <span className="text-muted-foreground">→</span> INVITING THE MUSE</div>
-                    <div className="text-sm text-muted-foreground">Openness and meaningful resonance</div>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Amplifies openness and intrinsic motivation.</li>
-                        <li>Strengthens affective resonance with aesthetic and meaningful experiences.</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Stimulates dopaminergic novelty response and limbic-affective integration.</li>
-                        <li>Engages right-hemisphere associative networks.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* 5. UNIMAGINED / WHAT IF... */}
-          <AccordionItem value="item-5" className="border rounded-lg">
-            <AccordionTrigger className="px-4">
-              <div className="flex w-full flex-wrap items-center justify-center gap-3 md:gap-4">
-                <RungPreview n={5} />
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <Card className="border-0">
-                <CardContent className="pt-4">
-                  <div className="mb-4">
-                    <div className="font-medium">UNIMAGINED <span className="text-muted-foreground">→</span> WHAT IF...</div>
-                    <div className="text-sm text-muted-foreground">Tolerating ambiguity; visionary expression</div>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Builds tolerance for ambiguity and deepens existential awareness.</li>
-                        <li>Encourages visionary expression and meaning-making.</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
-                      <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Activates integration across DMN, limbic, and executive systems.</li>
-                        <li>Enhances generative ideation and transcendent cognition.</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 space-y-2">
+            <p className="text-lg italic text-purple-800">It does not rank you.</p>
+            <p className="text-lg italic text-purple-800">It does not judge you.</p>
+            <p className="text-lg italic text-purple-800 font-semibold">It reveals patterns.</p>
+          </div>
+        </div>
       </div>
 
-      {/* Framework Overview */}
-      <div className="mt-8 bg-white rounded-xl border p-6">
-        <h3 className="text-xl font-semibold mb-3">Framework Overview</h3>
-        <ol className="list-decimal pl-6 space-y-1 text-sm">
-          <li><strong>AUTO-FLOW → PROMPT YOUR FLOW</strong>: Building foundational self-awareness</li>
-          <li><strong>VISUALIZATION → STRETCH POTENTIAL</strong>: Developing symbolic thinking capabilities</li>
-          <li><strong>HIGHER PURPOSE → WORLD CHALLENGES</strong>: Cultivating social responsibility</li>
-          <li><strong>INSPIRATION → INVITING THE MUSE</strong>: Enhancing overall well-being</li>
-          <li><strong>UNIMAGINED → WHAT IF...</strong>: Achieving meta-cognitive transcendence</li>
-        </ol>
+      {/* IAM Matrix Image */}
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mt-6">
+        <img
+          src="/assets/IAM_Matrix.png"
+          alt="Imaginal Agility Matrix"
+          className="max-w-2xl w-full h-auto mx-auto object-contain"
+          onLoad={() => console.log('✅ IAM_Matrix.png loaded')}
+          onError={(e) => console.error('❌ Failed to load IAM_Matrix.png', e)}
+        />
+      </div>
+
+      {/* Closing Paragraph */}
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mt-6">
+        <p className="text-lg leading-relaxed text-gray-800">
+          What you see here is the gestalt of how you engaged the work — and how AI collaboration influenced that engagement. From this pattern, a developmental direction becomes visible. The next step: translate direction into focused action.
+        </p>
+      </div>
+
+      <div className="flex justify-end mt-8">
+        <Button
+          onClick={() => onNext && onNext('ia-5-2')}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+        >
+          Continue to Capability Commitment
+        </Button>
       </div>
     </div>
   );

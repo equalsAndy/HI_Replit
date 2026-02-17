@@ -99,95 +99,116 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
   // If assessment is completed, show radar chart
   if (isAssessmentCompleted && resultData) {
     return (
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
-        {/* Scroll Indicator - appears when user is idle */}
-        <ScrollIndicator
-          idleTime={3000}
-          position="nav-adjacent"
-          colorScheme="purple"
-        />
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-purple-800">Your i4C Assessment Results</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Here's your personal radar chart showing your strengths across the five core capabilities.
-          </p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-purple-100">
+        <div className="max-w-4xl mx-auto p-6 space-y-8">
+          {/* Scroll Indicator - appears when user is idle */}
+          <ScrollIndicator
+            idleTime={3000}
+            position="nav-adjacent"
+            colorScheme="purple"
+          />
 
-        {/* Radar Chart Display */}
-        <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
-          <CardContent className="pt-6">
-            <div className="flex justify-center mb-8">
-              <ImaginalAgilityRadarChart data={{
-                imagination: resultData.imagination || 0,
-                curiosity: resultData.curiosity || 0,
-                empathy: resultData.empathy || 0,
-                creativity: resultData.creativity || 0,
-                courage: resultData.courage || 0
-              }} />
-            </div>
-
-            {/* Individual Capability Scores */}
-            <div className="bg-white rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Your Capability Scores</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                {[
-                  {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/Imagination_new.png', color: 'bg-purple-50 border-purple-200'},
-                  {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/Curiosity_new.png', color: 'bg-blue-50 border-blue-200'},
-                  {capacity: 'Caring', score: parseFloat(resultData.empathy) || 0, icon: '/assets/Caring_new.png', color: 'bg-green-50 border-green-200'},
-                  {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/Creativity_new.png', color: 'bg-orange-50 border-orange-200'},
-                  {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/Courage_new.png', color: 'bg-red-50 border-red-200'}
-                ].map(item => (
-                  <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[120px]`}>
-                    <div className="w-12 h-12 mb-2 flex items-center justify-center">
-                      <img 
-                        src={item.icon} 
-                        alt={item.capacity} 
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <h4 className="font-semibold text-gray-800 mb-1 text-sm">{item.capacity}</h4>
-                    <div className="text-lg font-bold text-purple-700">{item.score.toFixed(1)}</div>
-                    <div className="text-xs text-gray-600">
-                      {item.score >= 4.0 ? 'Strength' : item.score >= 3.5 ? 'Developing' : 'Growth Area'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Understanding Results */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Understanding Your Results</h3>
-              <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium text-green-700">Strengths (4.0+):</span> Your natural superpowers - leverage these capabilities
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium text-blue-700">Developing (3.5-3.9):</span> Strong foundation - ready for advanced practice
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium text-orange-700">Growth Areas (below 3.5):</span> Opportunities for intentional development
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="text-center space-y-4">
-          <p className="text-gray-600">
-            Your assessment is complete! You can now proceed to the next section to start developing your imagination.
-          </p>
-          
-          <div className="flex justify-center">
-            <Button 
-              onClick={() => onNext?.('ia-3-1')}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
-            >
-              Continue to Ladder Overview
-            </Button>
+          {/* Header */}
+          <div className="text-center space-y-3">
+            <p className="text-sm font-semibold text-purple-700 uppercase tracking-wide">Your i4C</p>
+            <h1 className="text-4xl font-bold text-gray-900">Prism Reflection</h1>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+              This page presents your I4C Prism — a five-sided prismatic form that reflects how your core human
+              capabilities currently take shape together.
+            </p>
           </div>
+
+          {/* Prism card with chart */}
+          <Card className="bg-white border border-purple-100 shadow-lg shadow-purple-100/60 rounded-2xl">
+            <CardContent className="pt-8 pb-10 px-6 space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-semibold text-purple-800">Your I4C Prism</h2>
+                <p className="text-gray-700 max-w-3xl mx-auto">
+                  This prismatic form is generated from your responses and represents the current configuration of
+                  Imagination, Curiosity, Caring, Creativity, and Courage as a unified whole.
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <ImaginalAgilityRadarChart data={{
+                  imagination: resultData.imagination || 0,
+                  curiosity: resultData.curiosity || 0,
+                  empathy: resultData.empathy || 0,
+                  creativity: resultData.creativity || 0,
+                  courage: resultData.courage || 0
+                }} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* What this prism shows */}
+          <Card className="bg-white border border-purple-100 shadow-sm rounded-2xl">
+            <CardContent className="py-6 px-6 space-y-3">
+              <h3 className="text-xl font-semibold text-purple-800 text-center">What This Prism Shows</h3>
+              <p className="text-gray-700 text-center max-w-3xl mx-auto">
+                Your I4C Prism does not measure levels or assign scores. It offers a visual snapshot of how your five
+                core capabilities fit and take shape together at this moment.
+              </p>
+              <ul className="space-y-2 text-gray-700 max-w-2xl mx-auto">
+                <li className="flex items-start gap-2">
+                  <span className="mt-2 w-2 h-2 rounded-full bg-purple-500"></span>
+                  <span>Notice the overall shape, not individual parts</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-2 w-2 h-2 rounded-full bg-purple-500"></span>
+                  <span>Look for balance, emphasis, or asymmetry</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-2 w-2 h-2 rounded-full bg-purple-500"></span>
+                  <span>Treat this as a moment-in-time configuration, not a judgement</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Understanding section */}
+          <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6 space-y-4 shadow-inner">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-purple-900">Understanding Your I4C Prism</h3>
+              <p className="text-gray-800">
+                Your I4C Prism is not a scorecard or a judgment. It is a visual snapshot of how your five core
+                capabilities take shape together at this moment.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-semibold text-gray-900">What to notice:</h4>
+              <ul className="list-disc list-inside text-gray-800 space-y-1">
+                <li>The overall shape of the prism, rather than any single side</li>
+                <li>Areas of balance, emphasis, or contrast</li>
+                <li>How the form feels stable, stretched, compact, or uneven</li>
+              </ul>
+            </div>
+            <p className="text-gray-800">
+              There is no ideal configuration. This prismatic form serves as an orientation point as you move into
+              practice through the Ladder of Imagination.
+            </p>
+          </div>
+
+          {/* Completion + CTA */}
+          <Card className="bg-white border border-purple-100 shadow-sm rounded-2xl">
+            <CardContent className="py-6 px-6 space-y-4">
+              <div className="space-y-2">
+                <h4 className="text-lg font-semibold text-purple-900">Completing This Reflection</h4>
+                <p className="text-gray-700">
+                  This prism marks the completion of Module 2. You now have a clear orientation to how your core
+                  capabilities currently take shape together. When you're ready, continue to Module 3 to begin working
+                  with imagination more directly.
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <Button 
+                  onClick={() => onNext?.('ia-3-1')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+                >
+                  Continue to Module 3
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -204,10 +225,16 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       />
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-purple-800">i4C Self-Assessment</h1>
+        <h1 className="text-4xl font-bold text-purple-800">Prism Reflection</h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Before we dive deeper into developing your imaginal agility, let's establish your current baseline
-          across the five core capabilities.
+          This brief reflection explores how your five core capabilities — Imagination, Curiosity, Caring, Creativity,
+          and Courage — fit and form together right now. There are no right or wrong responses; respond intuitively
+          rather than analytically.
+        </p>
+        <p className="text-md text-gray-600 max-w-3xl mx-auto">
+          At completion, you'll receive a short reflection and a visual I4C Prism capturing this moment-in-time
+          configuration. It isn't fixed or evaluative — it's a reference you can use as you progress individually and,
+          if you choose, with a team or cohort.
         </p>
       </div>
 
@@ -215,7 +242,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
         <CardHeader>
           <CardTitle className="text-2xl text-purple-800 text-center">
-            What You'll Assess
+            What You'll Reflect On
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -236,7 +263,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
               {
                 icon: Users,
                 label: 'Caring',
-                description: 'Your ability to understand and connect with others emotional experiences',
+                description: "Your ability to understand and connect with others' emotional experiences",
                 color: 'text-green-600'
               },
               {
@@ -274,32 +301,32 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                How the Assessment Works
+                How This Works
               </h3>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                You'll evaluate yourself on a scale of 1-5 across each capability, then see your results 
-                displayed in an interactive radar chart. This becomes your baseline for growth and development.
+                You'll respond to a short set of prompts that surface how your five core capabilities show up in your
+                experience. Your responses generate a five-sided I4C Prism — a current configuration, not a score.
               </p>
             </div>
 
             <div className="bg-purple-50 p-6 rounded-lg">
-              <h4 className="font-semibold text-purple-800 mb-3">Assessment Features:</h4>
+              <h4 className="font-semibold text-purple-800 mb-3">What You'll Receive</h4>
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  Interactive radar chart visualization
+                  A visual I4C Prism representing your current prismatic configuration
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  Personalized insights based on your profile
+                  Reflective insights to notice patterns, balance, and emphasis
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  Development recommendations for each capability
+                  Guidance for working with your prism as you move into the Ladder of Imagination
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  Save and track your progress over time
+                  The ability to revisit your prism over time and observe how it evolves through practice
                 </li>
               </ul>
             </div>
@@ -310,7 +337,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       {/* Action Section */}
       <div className="text-center space-y-4">
         <p className="text-gray-600">
-          Ready to discover your current I4C profile? The assessment takes about 10-15 minutes to complete.
+          Ready to explore your current I4C Prism? This reflection takes about 10–15 minutes to complete.
         </p>
         
         <div className="flex justify-center gap-4">

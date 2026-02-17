@@ -235,21 +235,12 @@ export default function ImaginalAgilityWorkshop() {
     // Always allow access to the first step
     if (stepId === 'ia-1-1') return true;
 
-    // Special unlock rules
-    // Section 5 (Outcomes & Teams) - All unlock after ia-4-6
-    if (stepId === 'ia-5-1' || stepId === 'ia-5-2' || stepId === 'ia-5-3' || stepId === 'ia-5-4') {
-      return completedSteps.includes('ia-4-6');
+    // Sections 6 & 7 (TEAMWORK, ORGANIZATION) - all unlock after Module 5 completion
+    if (stepId === 'ia-6-1' || stepId === 'ia-6-2' || stepId === 'ia-7-1') {
+      return completedSteps.includes('ia-5-5');
     }
 
-    if (stepId === 'ia-6-1') return true; // Always accessible from start
-    if (stepId === 'ia-7-1') {
-      // Unlock after workshop completion (final submission on ia-4-6)
-      return completedSteps.includes('ia-4-6');
-    }
-    if (stepId === 'ia-7-2') return false; // Locked for now
-    if (stepId === 'ia-6-coming-soon') return false; // Quarterly tune-up locked
-
-    // FIXED: Allow navigation to any completed step (for revisiting)
+    // Allow navigation to any completed step (for revisiting)
     if (completedSteps.includes(stepId)) {
       return true;
     }
@@ -260,13 +251,16 @@ export default function ImaginalAgilityWorkshop() {
       'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
       // The I4C Model (Module 2)
       'ia-2-1', 'ia-2-2',
-      // Ladder of Imagination (Basics)
+      // Ladder of Imagination (Module 3)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
-      // Advanced Ladder of Imagination
+      // Advanced Ladder of Imagination (Module 4)
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
-      // Outcomes & Teams
-      'ia-5-1', 'ia-5-2', 'ia-5-3'
-      // Note: Section 6 and 7 handled by special rules above
+      // Review & Plan (Module 5)
+      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+      // Teamwork (Section 6)
+      'ia-6-1', 'ia-6-2',
+      // Organization (Section 7)
+      'ia-7-1'
     ];
 
     const currentStepIndex = iaStepOrder.indexOf(stepId);
@@ -274,7 +268,7 @@ export default function ImaginalAgilityWorkshop() {
 
     // For new steps: Check if previous step is completed
     if (currentStepIndex === 0) return true; // First step is always accessible
-    
+
     const previousStepId = iaStepOrder[currentStepIndex - 1];
     return completedSteps.includes(previousStepId);
   };
@@ -374,7 +368,9 @@ export default function ImaginalAgilityWorkshop() {
                 'ia-2-1', 'ia-2-2',
                 'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
                 'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
-                'ia-5-1'
+                'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+                'ia-6-1', 'ia-6-2',
+                'ia-7-1'
               ];
               const nextUnfinishedStep = iaStepOrder.find(step =>
                 !completedSteps.includes(step) && isStepAccessible('', step)

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA15RealityAndWordsProps {
@@ -8,6 +8,38 @@ interface IA15RealityAndWordsProps {
 }
 
 const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) => {
+  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+
+  const quizItems = [
+    {
+      id: 'q1',
+      prompt: 'Phrase Pair 1',
+      options: [
+        { key: 'A', text: `"Be realistic."` },
+        { key: 'B', text: `"Let's see what might be possible."` }
+      ],
+      correct: 'B',
+      success: "That's right—inviting possibilities lights up your Default Mode Network.",
+      incorrect: '“Be realistic” narrows options and keeps thinking inside current constraints, dampening the Default Mode Network.'
+    },
+    {
+      id: 'q2',
+      prompt: 'Phrase Pair 2',
+      options: [
+        { key: 'A', text: `"Help me imagine how this could work."` },
+        { key: 'B', text: `"I can't imagine that."` }
+      ],
+      // Swapped: make A the correct answer for this second item
+      correct: 'A',
+      success: 'Correct—asking for imaginative help invites new possibilities and engages the Default Mode Network.',
+      incorrect: '"I can\'t imagine that" is a conversation stopper that shuts down exploration and the Default Mode Network.'
+    }
+  ];
+
+  const handleSelect = (questionId: string, optionKey: string) => {
+    setAnswers(prev => ({ ...prev, [questionId]: optionKey }));
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Scroll Indicator - appears when user is idle */}
@@ -188,34 +220,68 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
           {/* Quiz Section */}
           <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-8 my-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-4 text-center">Quiz</h2>
-            <h3 className="text-xl font-semibold text-purple-700 mb-6 text-center">Which Phrase Triggers Your DMN?</h3>
+            <h3 className="text-xl font-semibold text-purple-700 mb-2 text-center">
+              Which phrase activates your Default Mode Network?
+            </h3>
+            <p className="text-center text-gray-700 mb-6">
+              Choose the phrase that keeps imagination open. Notice how wording affects your Default Mode Network.
+            </p>
 
             <div className="space-y-4">
-              {/* Option 1 */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-1">Option 1</h4>
-                <div className="space-y-0.5">
-                  <p className="text-gray-800">
-                    <span className="font-bold text-purple-700">A:</span> "Be realistic."
-                  </p>
-                  <p className="text-gray-800">
-                    <span className="font-bold text-purple-700">B:</span> "Let's see what might be possible."
-                  </p>
-                </div>
-              </div>
-
-              {/* Option 2 */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="font-semibold text-gray-900 mb-1">Option 2</h4>
-                <div className="space-y-0.5">
-                  <p className="text-gray-800">
-                    <span className="font-bold text-purple-700">A:</span> "I can't imagine that."
-                  </p>
-                  <p className="text-gray-800">
-                    <span className="font-bold text-purple-700">B:</span> "Help me imagine how this could work."
-                  </p>
-                </div>
-              </div>
+              {quizItems.map(item => {
+                const selected = answers[item.id];
+                const isCorrect = selected === item.correct;
+                return (
+                  <div key={item.id} className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-gray-900">{item.prompt}</p>
+                      {selected && (
+                        <span className={`inline-flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded
+                          ${isCorrect ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                          {isCorrect ? 'Correct' : 'Keep going'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {item.options.map(opt => {
+                        const chosen = selected === opt.key;
+                        const correctChoice = opt.key === item.correct;
+                        return (
+                          <button
+                            key={opt.key}
+                            onClick={() => handleSelect(item.id, opt.key)}
+                            className={`text-left w-full border rounded-lg px-3 py-3 transition flex items-center gap-3
+                              ${chosen ? (isCorrect ? 'border-green-500 ring-2 ring-green-200 bg-green-50' : 'border-red-400 ring-2 ring-red-200 bg-red-50') : 'border-gray-200 hover:border-purple-300 bg-white'}
+                            `}
+                          >
+                            {chosen && isCorrect && (
+                              <CheckCircle className="w-5 h-5 text-green-700 flex-shrink-0" />
+                            )}
+                            {chosen && !isCorrect && (
+                              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                            )}
+                            <div>
+                              <span className="font-bold text-purple-700 mr-2">{opt.key}:</span>
+                              <span className="text-gray-800">{opt.text}</span>
+                            </div>
+                            {correctChoice && !chosen && (
+                              <span className="ml-auto text-xs text-gray-400">hint</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selected && (
+                      <div className={`mt-4 text-sm font-semibold leading-6 px-4 py-3 rounded-lg border
+                        ${isCorrect ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                        {isCorrect
+                          ? item.success
+                          : (item.incorrect || 'Consider how possibility language engages the Default Mode Network.')}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <p className="text-center text-lg font-semibold text-purple-800 mt-6">

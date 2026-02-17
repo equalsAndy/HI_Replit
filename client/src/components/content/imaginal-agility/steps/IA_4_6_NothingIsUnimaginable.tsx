@@ -221,7 +221,7 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
           onClick={() => onNext && onNext('ia-5-1')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Complete the Ladder →
+          Continue to Imaginal Agility Matrix
         </Button>
       </div>
     </div>

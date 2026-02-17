@@ -1,35 +1,32 @@
 import React from 'react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
+import { Button } from '@/components/ui/button';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
-interface IA52ContentProps {
+interface IA61ContentProps {
   onNext?: (stepId: string) => void;
 }
 
-const IA_5_2_TeamLadder: React.FC<IA52ContentProps> = ({ onNext }) => {
-  // Get video data for debugging
-  const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-5-2');
+const IA_6_1_TeamLadder: React.FC<IA61ContentProps> = ({ onNext }) => {
+  const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-6-1');
 
-  // Helper function to extract YouTube ID from video URL
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
     const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
-  // Simple debug logging for video data
   React.useEffect(() => {
     if (videoData) {
-      console.log('🎬 IA-5-2 Video found:', videoData.title);
+      console.log('🎬 IA-6-1 Video found:', videoData.title);
     } else if (!isLoading) {
-      console.log('🎬 IA-5-2 No video data found for step ia-5-2');
+      console.log('🎬 IA-6-1 No video data found for step ia-6-1');
     }
   }, [videoData, isLoading]);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Scroll Indicator - appears when user is idle */}
       <ScrollIndicator
         idleTime={3000}
         position="nav-adjacent"
@@ -39,15 +36,14 @@ const IA_5_2_TeamLadder: React.FC<IA52ContentProps> = ({ onNext }) => {
         Team Ladder
       </h1>
 
-      {/* Video Section using VideoTranscriptGlossary component like AST */}
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'ryvW4KppCu0'}
         title={videoData?.title || "Team Ladder"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={null}
+        glossary={null}
       />
 
-      {/* Key Takeaways Section - positioned directly under video */}
+      {/* Key Takeaways Section */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mt-8">
         <h3 className="text-xl font-semibold text-gray-900 mb-4">Key Takeaways</h3>
         <ul className="list-disc pl-6 space-y-2 text-base text-gray-800">
@@ -58,6 +54,15 @@ const IA_5_2_TeamLadder: React.FC<IA52ContentProps> = ({ onNext }) => {
           <li>AI shapes team systems; without stewardship, human alignment lags behind machine efficiency.</li>
           <li>Imaginal Agility restores teaming with shared language, capability maps, and practices.</li>
         </ul>
+      </div>
+
+      {/* Team Ladder Illustration */}
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mt-6 flex justify-center">
+        <img
+          src="/assets/TeamLADDER.jpeg"
+          alt="Team Ladder illustration"
+          className="w-full max-w-2xl rounded-lg shadow-md"
+        />
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mt-8">
@@ -91,8 +96,17 @@ const IA_5_2_TeamLadder: React.FC<IA52ContentProps> = ({ onNext }) => {
           </div>
         </div>
       </div>
+
+      <div className="flex justify-end mt-8">
+        <Button
+          onClick={() => onNext && onNext('ia-6-2')}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+        >
+          Continue to Team Whiteboard
+        </Button>
+      </div>
     </div>
   );
 };
 
-export default IA_5_2_TeamLadder;
+export default IA_6_1_TeamLadder;

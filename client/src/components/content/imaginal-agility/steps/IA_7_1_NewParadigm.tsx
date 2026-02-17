@@ -8,15 +8,13 @@ import { FileText } from 'lucide-react';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
-interface IA54ContentProps {
+interface IA71ContentProps {
   onNext?: (stepId: string) => void;
 }
 
-const IA_5_4_Content: React.FC<IA54ContentProps> = ({ onNext }) => {
-  // State for PDF viewer modal
+const IA_7_1_NewParadigm: React.FC<IA71ContentProps> = ({ onNext }) => {
   const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
 
-  // Event handlers for PDF viewer
   const handleOpenPdfViewer = () => {
     setIsPdfViewerOpen(true);
   };
@@ -27,7 +25,6 @@ const IA_5_4_Content: React.FC<IA54ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Scroll Indicator - appears when user is idle */}
       <ScrollIndicator
         idleTime={3000}
         position="nav-adjacent"
@@ -35,7 +32,7 @@ const IA_5_4_Content: React.FC<IA54ContentProps> = ({ onNext }) => {
       />
 
       <h1 className="text-3xl font-bold text-purple-700 mb-4">
-        Organizational Vision
+        New Paradigm
       </h1>
 
       <p className="text-lg text-muted-foreground mb-8 italic">
@@ -132,7 +129,6 @@ const IA_5_4_Content: React.FC<IA54ContentProps> = ({ onNext }) => {
         </p>
 
         <Accordion type="single" collapsible className="w-full space-y-3">
-          {/* The Brain Basis of Vision */}
           <AccordionItem value="brain-basis" className="border rounded-lg">
             <AccordionTrigger className="px-4 text-lg font-semibold">
               The Brain Basis of Vision
@@ -185,7 +181,6 @@ const IA_5_4_Content: React.FC<IA54ContentProps> = ({ onNext }) => {
             </AccordionContent>
           </AccordionItem>
 
-          {/* Why Vision Must Be Distributed */}
           <AccordionItem value="distributed" className="border rounded-lg">
             <AccordionTrigger className="px-4 text-lg font-semibold">
               Why Vision Must Be Distributed
@@ -221,7 +216,6 @@ const IA_5_4_Content: React.FC<IA54ContentProps> = ({ onNext }) => {
             </AccordionContent>
           </AccordionItem>
 
-          {/* Vision Across Time Horizons */}
           <AccordionItem value="time-horizons" className="border rounded-lg">
             <AccordionTrigger className="px-4 text-lg font-semibold">
               Vision Across Time Horizons
@@ -341,4 +335,4 @@ const IA_5_4_Content: React.FC<IA54ContentProps> = ({ onNext }) => {
   );
 };
 
-export default IA_5_4_Content;
+export default IA_7_1_NewParadigm;

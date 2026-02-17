@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
-interface IA53ContentProps {
+interface IA62ContentProps {
   onNext?: (stepId: string) => void;
   onOpenContactModal?: () => void;
 }
 
-const IA_5_3_TeamBoard: React.FC<IA53ContentProps> = ({ onNext, onOpenContactModal }) => {
+const IA_6_2_TeamWhiteboard: React.FC<IA62ContentProps> = ({ onNext, onOpenContactModal }) => {
   const muralUrl = "https://app.mural.co/t/teamprelude0846/m/teamprelude0846/1765730392096/7b38226f1a0551f5c8c433e0140a2111000b7d52";
 
   const handleOpenBoard = () => {
@@ -17,20 +17,19 @@ const IA_5_3_TeamBoard: React.FC<IA53ContentProps> = ({ onNext, onOpenContactMod
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Scroll Indicator - appears when user is idle */}
       <ScrollIndicator
         idleTime={3000}
         position="nav-adjacent"
         colorScheme="purple"
       />
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
-        I4C Team Board
+        Team Whiteboard
       </h1>
 
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
         <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
           <p className="text-lg leading-relaxed">
-            The I4C Team Board is an <strong>example</strong> of how Imaginal Agility can be brought to life as a collaborative team practice. This demonstration workspace showcases the I4C (Imagination for Collaborative Change) framework applied to team development.
+            The Team Whiteboard is an <strong>example</strong> of how Imaginal Agility can be brought to life as a collaborative team practice. This demonstration workspace showcases the I4C (Imagination for Collaborative Change) framework applied to team development.
           </p>
 
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 my-6">
@@ -86,8 +85,17 @@ const IA_5_3_TeamBoard: React.FC<IA53ContentProps> = ({ onNext, onOpenContactMod
           </div>
         </div>
       </div>
+
+      <div className="flex justify-end mt-8">
+        <Button
+          onClick={() => onNext && onNext('ia-7-1')}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+        >
+          Continue to New Paradigm
+        </Button>
+      </div>
     </div>
   );
 };
 
-export default IA_5_3_TeamBoard;
+export default IA_6_2_TeamWhiteboard;

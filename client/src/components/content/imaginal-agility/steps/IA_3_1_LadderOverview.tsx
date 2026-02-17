@@ -51,9 +51,20 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
         position="nav-adjacent"
         colorScheme="purple"
       />
-      <h1 className="text-3xl font-bold text-purple-700 mb-8">
-        The Ladder of Imagination
+      <h1 className="text-3xl font-bold text-purple-700 mb-4">
+        From Prism to Ladder
       </h1>
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+        <p className="text-lg text-purple-900 text-center font-medium">
+          Your I4C Prism offers orientation, not instruction.
+        </p>
+        <p className="text-lg text-purple-900 text-center font-medium">
+          The Ladder of Imagination begins with shared practice, not diagnosis.
+        </p>
+        <p className="text-lg text-purple-900 text-center font-medium">
+          Everyone starts at the first rung.
+        </p>
+      </div>
       
       {/* Video Section using VideoTranscriptGlossary component like AST */}
       <VideoTranscriptGlossary
@@ -101,11 +112,8 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
           
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mt-8">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
-              Where do you begin?
+              Your I4C Prism offers orientation. The Ladder begins with practice.
             </h3>
-            <p className="text-base text-gray-700 text-center">
-              Your Radar Map shows the way. Each rung builds on the previous, creating a systematic path for developing your imaginative capacity.
-            </p>
           </div>
         </div>
       </div>

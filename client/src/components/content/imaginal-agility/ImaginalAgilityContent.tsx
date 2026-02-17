@@ -26,9 +26,13 @@ import IA_4_4_HigherPurposeUplift from './steps/IA_4_4_HigherPurposeUplift';
 import IA_4_5_InspirationSupport from './steps/IA_4_5_InspirationSupport';
 import IA_4_6_NothingIsUnimaginable from './steps/IA_4_6_NothingIsUnimaginable';
 import IA_5_1_Overview from './steps/IA_5_1_Overview';
-import IA_5_2_TeamLadder from './steps/IA_5_2_TeamLadder';
-import IA_5_3_TeamBoard from './steps/IA_5_3_TeamBoard';
-import IA_5_4_OrganizationalVision from './steps/IA_5_4_OrganizationalVision';
+import IA_5_2_CapabilityCommitment from './steps/IA_5_2_CapabilityCommitment';
+import IA_5_3_MonthlySignal from './steps/IA_5_3_MonthlySignal';
+import IA_5_4_HaiQ from './steps/IA_5_4_HaiQ';
+import IA_5_5_DevelopmentArc from './steps/IA_5_5_DevelopmentArc';
+import IA_6_1_TeamLadder from './steps/IA_6_1_TeamLadder';
+import IA_6_2_TeamWhiteboard from './steps/IA_6_2_TeamWhiteboard';
+import IA_7_1_NewParadigm from './steps/IA_7_1_NewParadigm';
 
 
 // Component for ia-4-1 Assessment step
@@ -297,19 +301,6 @@ const AssessmentResultsContent: React.FC<{ onNext?: (stepId: string) => void }> 
 };
 
 const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId, onNext, onOpenAssessment, onOpenContactModal }) => {
-  // Get video data using the existing video hook - for ia-1-1 and ia-7-1
-  const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
-    'ia',
-    (stepId === 'ia-1-1' || stepId === 'ia-7-1') ? stepId : ''
-  );
-
-  // Helper function to extract YouTube ID from video URL
-  const extractYouTubeId = (url: string): string | null => {
-    if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-    return match ? match[1] : null;
-  };
-
   const renderStepContent = () => {
     switch (stepId) {
       case 'ia-1-1':
@@ -353,157 +344,19 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
       case 'ia-5-1':
         return <IA_5_1_Overview onNext={onNext} />;
       case 'ia-5-2':
-        return <IA_5_2_TeamLadder onNext={onNext} />;
+        return <IA_5_2_CapabilityCommitment onNext={onNext} />;
       case 'ia-5-3':
-        return <IA_5_3_TeamBoard onNext={onNext} onOpenContactModal={onOpenContactModal} />;
+        return <IA_5_3_MonthlySignal onNext={onNext} />;
       case 'ia-5-4':
-        return <IA_5_4_OrganizationalVision onNext={onNext} />;
+        return <IA_5_4_HaiQ onNext={onNext} />;
+      case 'ia-5-5':
+        return <IA_5_5_DevelopmentArc onNext={onNext} />;
       case 'ia-6-1':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              Quarterly Tune-up Orientation
-            </h1>
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-                <p className="text-lg leading-relaxed">
-                  Content for ia-6-1 step.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
+        return <IA_6_1_TeamLadder onNext={onNext} />;
+      case 'ia-6-2':
+        return <IA_6_2_TeamWhiteboard onNext={onNext} onOpenContactModal={onOpenContactModal} />;
       case 'ia-7-1':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              Welcome
-            </h1>
-            {/* Video Section using VideoTranscriptGlossary component like AST */}
-            <VideoTranscriptGlossary
-              youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'ScQ7JqLOOVY'} // Fallback to known ID from migration
-              title={videoData?.title || "Welcome"}
-              transcriptMd={null} // No transcript data available yet
-              glossary={null} // No glossary data available yet
-            />
-            {/* Content Card */}
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-                <p className="text-lg leading-relaxed">
-                  This page activates the final part of your journey — where your personal growth becomes shared intelligence.
-                </p>
-                
-                <p className="text-lg leading-relaxed font-medium">
-                  As a team, you'll climb five steps:
-                </p>
-                
-                <ul className="list-disc pl-6 space-y-2 text-lg">
-                  <li>Express what you're sensing</li>
-                  <li>Visualize what's possible</li>
-                  <li>Align around shared purpose</li>
-                  <li>Surface hidden energetic patterns</li>
-                  <li>Co-create practices that shape the future</li>
-                </ul>
-                
-                <p className="text-lg leading-relaxed">
-                  Use images, metaphors, and insights. Let AI assist when needed. Move at your own pace — together.
-                </p>
-                
-                <p className="text-lg leading-relaxed font-medium">
-                  This is not a test. It's a tool for real collaboration.
-                </p>
-                
-                <p className="text-lg leading-relaxed">
-                  When you're ready, begin the first rung.
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end mt-8">
-              <Button 
-                onClick={() => onNext && onNext('ia-7-2')}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-              >
-                Begin the First Rung
-              </Button>
-            </div>
-          </div>
-        );
-      case 'ia-7-2':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              Team Whiteboard Workspace
-            </h1>
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-                <p className="text-lg leading-relaxed mb-6">
-                  Access the collaborative team workspace for Imaginal Agility exercises.
-                </p>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-4">
-                    NEW TEAM IMAGINAL AGILITY WHITEBOARD TEMPLATE
-                  </h3>
-                  <p className="text-purple-700 mb-4">
-                    This collaborative workspace allows your team to work together on imagination exercises and build collective creative capacity.
-                  </p>
-                  <a 
-                    href="https://app.mural.co/t/teamprelude0846/m/teamprelude0846/1752840219288/724532f9efa7cf6b7e62f338cf511f2eb9272e4a?sender=ua9824e7f46ca005336059760"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block"
-                  >
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3">
-                      Access Team Workspace
-                    </Button>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      // Section 8: More Info content
-      case 'ia-8-1':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              The Neuroscience of Imagination
-            </h1>
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                  <p className="text-lg font-medium text-yellow-800">
-                    🚧 This section is temporarily hidden but available for future activation.
-                  </p>
-                  <p className="text-yellow-700 mt-2">
-                    Scientific foundation of imagination development and the neurological basis for imaginative capacity.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'ia-8-2':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              About Heliotrope Imaginal
-            </h1>
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                  <p className="text-lg font-medium text-yellow-800">
-                    🚧 This section is temporarily hidden but available for future activation.
-                  </p>
-                  <p className="text-yellow-700 mt-2">
-                    Organization background and methodology behind the Imaginal Agility workshop.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
+        return <IA_7_1_NewParadigm onNext={onNext} />;
       default:
         return null;
     }
