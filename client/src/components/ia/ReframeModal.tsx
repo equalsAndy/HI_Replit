@@ -27,7 +27,7 @@ export interface ReframeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   challenge: string;
-  onApply: (result: { transcript: string[]; shift: string; tag: string }) => void;
+  onApply: (result: { transcript: string[]; shift: string; tag: string; reframe: string }) => void;
   onStartOver: () => void;
   onKeepContext?: () => void;
 }
@@ -270,7 +270,7 @@ export function ReframeModal({
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
-    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag });
+    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag, reframe: currentReframe.trim() });
     onOpenChange(false);
   };
 

@@ -5,8 +5,11 @@ type UserKey = string; // session userId as string or demoUserId cookie
 export type IAState = {
   ia_4_2: {
     original_thought: string;
-    ai_reframe: string;
+    ai_reframe: string[];
     user_shift: string; // normalized key
+    tag: string;
+    new_perspective: string;
+    challenge?: string;
     // legacy alias kept for backward compatibility in state snapshots
     shift?: string;
   };
@@ -33,7 +36,7 @@ export type IAState = {
 
 function defaultState(): IAState {
   return {
-    ia_4_2: { original_thought: '', ai_reframe: '', user_shift: '', shift: '' },
+    ia_4_2: { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '' },
     ia_4_3: { frame_sentence: '', ai_stretch: '', stretch_vision: '', resistance: '' },
     ia_4_4: { purpose_one_line: '', global_challenge: '', ai_perspectives: [], contribution: '', what_it_needs: '' },
     ia_4_5: { interlude_cluster: '', muse_convo: '' },

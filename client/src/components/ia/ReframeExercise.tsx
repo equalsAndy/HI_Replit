@@ -45,7 +45,7 @@ export default function ReframeExercise() {
     setModalOpen(open);
   }
 
-  function onModalApply(result: { transcript: string[]; shift: string; tag: string }) {
+  function onModalApply(result: { transcript: string[]; shift: string; tag: string; reframe: string }) {
     setState((prev) => {
       const prevIA = prev.ia_4_2 || {};
       return {
@@ -62,6 +62,7 @@ export default function ReframeExercise() {
           ],
           user_shift: result.shift,
           tag: result.tag,
+          new_perspective: result.reframe,
           original_thought: challenge,
         },
       };
