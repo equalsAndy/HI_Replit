@@ -239,3 +239,10 @@ MAX-HEADROOM-DEMO-ACCOUNT.md
 add-max-headroom-to-auth0.ts
 create-max-headroom-demo.ts
 max-headroom-complete-answers.md
+
+# OpenAI reference files
+OpenAI files/
+
+# Archived IA step files
+*.archive
+archived-sections-6-7-8/
