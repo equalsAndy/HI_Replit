@@ -85,7 +85,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   
   const baseExpandedSections = isImaginalAgility 
     ? (navigationProgress?.sectionExpansion || {
-        '1': true, '2': true, '3': false, '4': false, '5': false, '6': false, '7': false
+        '1': true, '2': true, '3': true, '4': false, '5': false, '6': false, '7': false
       })
     : {};
     
@@ -273,10 +273,10 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       '1-2': 'self-awareness-opp',
       '1-3': 'about-course',
 
-      // MODULE 2: STRENGTH AND FLOW  
+      // MODULE 2: STRENGTH AND FLOW
       '2-1': 'star-strengths-assessment',
       '2-2': 'flow-patterns',
-      '2-3': 'rounding-out',        // FIXED: Step 2-3 → rounding-out (FlowRoundingOutView)
+      // NOTE: Step 2-3 was removed from the workshop - goes directly from 2-2 to 2-4
       '2-4': 'module-2-recap',
 
       // MODULE 3: VISUALIZE YOUR POTENTIAL

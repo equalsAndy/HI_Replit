@@ -38,7 +38,8 @@ export interface StepVisualState {
 const WORKSHOP_CONFIGS = {
   ast: {
     // ONLY MODULES 1-3 are progressive steps
-    progressiveSteps: ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'],
+    // NOTE: Step 2-3 was removed from the workshop - goes directly from 2-2 to 2-4
+    progressiveSteps: ['1-1', '1-2', '1-3', '2-1', '2-2', '2-4', '3-1', '3-2', '3-3', '3-4'],
     // Modules 4-5 unlock all at once after 3-4 completion
     unlockAllSteps: ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'],
     // FIXED: All completed steps get checkmarks in AST (not just activities)
@@ -175,22 +176,25 @@ export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' = 'ast') {
       };
     }
 
+    // IA section 7 steps don't show blue dot indicators — progression ends before them
+    const suppressDot = stepId === 'ia-7-1' || stepId === 'ia-7-2';
+
     const visualState = {
       // FIXED: Blue highlight - Shows ONLY on currentStep (only one at a time)
       showRoundedHighlight: isCurrentStep,
-      
+
       // Green checkmark: Shows for completed steps (all completed in AST, not just activities)
       showGreenCheckmark: isCompleted,
-      
+
       // Light blue shading: ONLY when current step is also the next unfinished step
-      showLightBlueShading: isCurrentStep && isNextStep,
-      
+      showLightBlueShading: isCurrentStep && isNextStep && !suppressDot,
+
       // FIXED: Blue dot - Shows ONLY on nextStep when currently viewing it (only one at a time)
-      showDarkDot: isCurrentStep && isNextStep,
-      
+      showDarkDot: isCurrentStep && isNextStep && !suppressDot,
+
       // FIXED: Pulsating dot - Shows ONLY on nextStep when user went back to any completed step
-      showPulsatingDot: !isCurrentStep && isNextStep && isNavigatingBack,
-      
+      showPulsatingDot: !isCurrentStep && isNextStep && isNavigatingBack && !suppressDot,
+
       // Locked: Not accessible yet
       isLocked: false // Already filtered out above
     };
@@ -336,49 +340,50 @@ export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' = 'ast') {
 
     console.log(`📋 Adding ${stepId} to completed steps: [${newCompletedSteps.join(', ')}]`);
 
-    // Update completedSteps and optionally currentStep
+    // Update React state for immediate UI feedback
     updateState({
       completedSteps: newCompletedSteps,
       currentStep: nextStepId
     });
 
-    // CRITICAL FIX: Save immediately with the correct values instead of using stale closure
-    const savePromise = setTimeout(async () => {
-      console.log(`💾 Auto-saving navigation progress after completing step ${stepId}...`);
-      
-      // Use the calculated values directly instead of stale navigationState
-      const currentSaveData = {
-        currentStepId: nextStepId, // Use calculated next step
-        completedSteps: newCompletedSteps, // Use calculated completed steps
-        appType: workshop,
-        stepConfig: navigationState.stepConfig
-      };
-      
-      console.log(`📊 State being saved: currentStep=${currentSaveData.currentStepId}, completed=[${currentSaveData.completedSteps.join(', ')}]`);
+    // CRITICAL FIX: Save to database SYNCHRONOUSLY (no setTimeout) to ensure it completes
+    // before the function returns. This prevents race conditions where page navigation
+    // happens before the save completes.
+    console.log(`💾 Saving navigation progress after completing step ${stepId}...`);
 
-      try {
-        const response = await fetch('/api/workshop-data/navigation-progress', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(currentSaveData)
-        });
+    const currentSaveData = {
+      currentStepId: nextStepId,
+      completedSteps: newCompletedSteps,
+      appType: workshop,
+      stepConfig: navigationState.stepConfig
+    };
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`❌ Save failed with status ${response.status}:`, errorText);
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
-        } else {
-          const responseData = await response.json();
-          console.log(`✅ Navigation state saved successfully:`, responseData);
-          console.log(`📊 Saved state: currentStep=${currentSaveData.currentStepId}, completed=[${currentSaveData.completedSteps.join(', ')}]`);
-        }
-        console.log(`✅ Step completion successfully saved to database`);
-      } catch (error) {
-        console.error('❌ CRITICAL: Failed to save step completion to database:', error);
-        console.error('📋 Failed state data:', currentSaveData);
+    console.log(`📊 State being saved: currentStep=${currentSaveData.currentStepId}, completed=[${currentSaveData.completedSteps.join(', ')}]`);
+
+    try {
+      const response = await fetch('/api/workshop-data/navigation-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(currentSaveData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Save failed with status ${response.status}:`, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      } else {
+        const responseData = await response.json();
+        console.log(`✅ Navigation state saved successfully:`, responseData);
+        console.log(`📊 Saved state: currentStep=${currentSaveData.currentStepId}, completed=[${currentSaveData.completedSteps.join(', ')}]`);
       }
-    }, 100);
+      console.log(`✅ Step completion successfully saved to database`);
+    } catch (error) {
+      console.error('❌ CRITICAL: Failed to save step completion to database:', error);
+      console.error('📋 Failed state data:', currentSaveData);
+      // Don't throw - allow navigation to continue even if save fails
+      // The state is already updated locally
+    }
   };
 
   const hideStep = (stepId: string, reason: string = 'configuration') => {

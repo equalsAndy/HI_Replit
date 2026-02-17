@@ -20,7 +20,7 @@ export interface IANavigationSection {
   steps: IANavigationStep[];
 }
 
-// Imaginal Agility navigation - 8-section hierarchical menu with 28 steps
+// Imaginal Agility navigation - 7-section hierarchical menu
 export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '1',
@@ -74,7 +74,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-2-2',
-        title: 'Self-Assessment',
+        title: 'Prism Reflection',
         type: 'assessment',
         contentKey: 'ia-2-2'
       }
@@ -127,8 +127,8 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '4',
     title: 'ADVANCED LADDER OF IMAGINATION',
-    moduleNumber: 4, // Added module badge
-    expanded: false, // Default collapsed
+    moduleNumber: 4,
+    expanded: false, // Opens when section 2 completes
     steps: [
       {
         id: 'ia-4-1',
@@ -170,121 +170,74 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '5',
-    title: 'OUTCOMES AND TEAMS',
-    // No moduleNumber - this is a conclusion section, not a numbered module
-    expanded: false, // Default collapsed
+    title: 'REVIEW & PLAN',
+    moduleNumber: 5,
+    expanded: false,
     steps: [
       {
         id: 'ia-5-1',
-        title: 'Outcomes and Benefits',
+        title: 'Imaginal Agility Matrix',
         type: 'video',
         contentKey: 'ia-5-1'
       },
       {
         id: 'ia-5-2',
-        title: 'Team Ladder',
+        title: 'Capability Commitment',
         type: 'video',
         contentKey: 'ia-5-2'
       },
       {
         id: 'ia-5-3',
-        title: 'I4C Team Board',
-        type: 'interactive',
+        title: 'Monthly Signal',
+        type: 'video',
         contentKey: 'ia-5-3'
       },
       {
         id: 'ia-5-4',
-        title: 'Organizational Vision',
-        type: 'educational',
+        title: 'HaiQ',
+        type: 'interactive',
         contentKey: 'ia-5-4'
+      },
+      {
+        id: 'ia-5-5',
+        title: 'Development Arc',
+        type: 'interactive',
+        contentKey: 'ia-5-5'
       }
-      // Other steps temporarily hidden
-      // {
-      //   id: 'ia-5-3',
-      //   title: 'Course Completion Badge',
-      //   type: 'achievement',
-      //   contentKey: 'ia-5-3'
-      // },
-      // {
-      //   id: 'ia-5-4',
-      //   title: 'Imaginal Agility Compendium',
-      //   type: 'download',
-      //   contentKey: 'ia-5-4'
-      // },
-      // {
-      //   id: 'ia-5-5',
-      //   title: 'Community of Practice',
-      //   type: 'collaboration',
-      //   contentKey: 'ia-5-5'
-      // }
     ]
   },
-  // TEMPORARILY HIDDEN - Sections 6 and 7 will be enabled later
-  // {
-  //   id: '6',
-  //   title: 'QUARTERLY TUNE-UP',
-  //   expanded: false, // Default collapsed
-  //   steps: [
-  //     {
-  //       id: 'ia-6-1',
-  //       title: 'Teamwork Preparation',
-  //       type: 'video',
-  //       contentKey: 'ia-6-1'
-  //     },
-  //     {
-  //       id: 'ia-6-coming-soon',
-  //       title: 'Coming Soon',
-  //       type: 'coming-soon',
-  //       contentKey: 'ia-6-coming-soon'
-  //     }
-  //     // ia-6-2 remains hidden for now
-  //     // {
-  //     //   id: 'ia-6-2',
-  //     //   title: 'Practices',
-  //     //   type: 'interactive',
-  //     //   contentKey: 'ia-6-2'
-  //     // }
-  //   ]
-  // },
-  // {
-  //   id: '7',
-  //   title: 'TEAM LADDER OF IMAGINATION',
-  //   expanded: false, // Expanded only after ia-4-6 completion
-  //   steps: [
-  //     {
-  //       id: 'ia-7-1',
-  //       title: 'Welcome',
-  //       type: 'video',
-  //       contentKey: 'ia-7-1'
-  //     },
-  //     {
-  //       id: 'ia-7-2',
-  //       title: 'Team Whiteboard Workspace',
-  //       type: 'interactive',
-  //       contentKey: 'ia-7-2'
-  //     }
-  //   ]
-  // },
-  // TEMPORARILY HIDDEN - Section 8 will be enabled later
-  // {
-  //   id: '8',
-  //   title: 'MORE INFO',
-  //   expanded: false, // Default collapsed
-  //   steps: [
-  //     {
-  //       id: 'ia-8-1',
-  //       title: 'The Neuroscience of Imagination',
-  //       type: 'video',
-  //       contentKey: 'ia-8-1'
-  //     },
-  //     {
-  //       id: 'ia-8-2',
-  //       title: 'About Heliotrope Imaginal',
-  //       type: 'video',
-  //       contentKey: 'ia-8-2'
-  //     }
-  //   ]
-  // }
+  {
+    id: '6',
+    title: 'TEAMWORK',
+    expanded: false,
+    steps: [
+      {
+        id: 'ia-6-1',
+        title: 'Team Ladder',
+        type: 'video',
+        contentKey: 'ia-6-1'
+      },
+      {
+        id: 'ia-6-2',
+        title: 'Team Whiteboard',
+        type: 'interactive',
+        contentKey: 'ia-6-2'
+      }
+    ]
+  },
+  {
+    id: '7',
+    title: 'ORGANIZATION',
+    expanded: false,
+    steps: [
+      {
+        id: 'ia-7-1',
+        title: 'New Paradigm',
+        type: 'educational',
+        contentKey: 'ia-7-1'
+      }
+    ]
+  }
 ];
 
 // All Star Teams navigation sections - 5 Module Structure (RENUMBERED)
