@@ -1,38 +1,69 @@
-import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { getAttributeColor, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
 
 interface Mod2RecapViewProps {
   navigate: (path: string) => void;
   markStepCompleted: (stepId: string) => void;
   setCurrentContent: (content: string) => void;
+  starCard?: any;
+  flowAttributesData?: any;
 }
 
-export default function Mod2RecapView({ 
-  navigate, 
-  markStepCompleted, 
-  setCurrentContent 
-}: Mod2RecapViewProps) {
-  
-  // Step completion should only happen when user clicks Next button
-  // Removed auto-completion on mount to prevent immediate progression
+// Helper function to sort strengths by percentage (descending)
+const getSortedStrengths = (starCard: any) => {
+  if (!starCard) return [];
 
-  const handleNext = () => {
-    // Mark the current step as completed first
-    markStepCompleted('2-4');
-    
-    // Auto-scroll to continue button after a brief delay
-    setTimeout(() => {
-      const continueButton = document.querySelector('[data-continue-button="true"]');
-      if (continueButton) {
-        continueButton.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
-        });
-      }
-    }, 1000); // Delay to ensure DOM updates
-    
-    // Then navigate to the next content
+  const strengths = [
+    { name: 'Thinking', value: starCard.thinking || 0, color: QUADRANT_COLORS.thinking },
+    { name: 'Acting', value: starCard.acting || 0, color: QUADRANT_COLORS.acting },
+    { name: 'Feeling', value: starCard.feeling || 0, color: QUADRANT_COLORS.feeling },
+    { name: 'Planning', value: starCard.planning || 0, color: QUADRANT_COLORS.planning },
+  ];
+
+  return strengths.sort((a, b) => b.value - a.value);
+};
+
+// Helper function to map flow attributes with colors
+const getFlowAttributes = (flowAttributesData: any) => {
+  if (!flowAttributesData?.attributes || !Array.isArray(flowAttributesData.attributes)) {
+    return [];
+  }
+  return flowAttributesData.attributes.map((attr: any) => ({
+    text: attr.name || attr.text || '',
+    color: getAttributeColor(attr.name || attr.text || '')
+  }));
+};
+
+export default function Mod2RecapView({
+  navigate,
+  markStepCompleted,
+  setCurrentContent,
+  starCard,
+  flowAttributesData
+}: Mod2RecapViewProps) {
+
+  // Get user data for Star Card image URL
+  const { data: userData } = useQuery({
+    queryKey: ['/api/auth/me'],
+    staleTime: 5 * 60 * 1000,
+  });
+  const userId = (userData as any)?.user?.id || (userData as any)?.id;
+
+  // Get sorted strengths and flow attributes
+  const sortedStrengths = getSortedStrengths(starCard);
+  const flowAttributes = getFlowAttributes(flowAttributesData);
+
+  const handleNext = async () => {
+    await markStepCompleted('2-4');
     setCurrentContent('wellbeing-ladder');
+
+    setTimeout(() => {
+      document.getElementById('content-top')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 100);
   };
 
   return (
@@ -41,69 +72,119 @@ export default function Mod2RecapView({
         <div className="header-section">
           <h1 className="main-title">🌟 Module 2 Recap</h1>
         </div>
-        
+
         <div className="content-section">
-          <div className="recap-content">
-            <div className="achievement-card">
-              <div className="achievement-icon">🌟</div>
-              <h2 className="achievement-title">What You've Accomplished</h2>
-              <p className="achievement-description">
-                Congratulations! You've completed Module 2 and deepened your understanding of what makes you unique. Let's reflect on the powerful insights you've gained about your strengths and when you perform at your best.
-              </p>
+          {/* Smaller achievement card */}
+          <div className="achievement-card-small">
+            <p className="achievement-text">
+              🌟 <strong>Congratulations!</strong> You've completed Module 2 and discovered your unique strengths profile.
+              Let's review what you've learned about yourself.
+            </p>
+          </div>
+
+          {/* Two-column layout: Strengths + Star Card */}
+          <div className="data-grid">
+            {/* Strengths Section */}
+            <div className="data-card">
+              <h3 className="data-title">💪 Your Core Strengths</h3>
+              <div className="strengths-list">
+                {sortedStrengths.length > 0 ? (
+                  sortedStrengths.map((strength, index) => (
+                    <div key={strength.name} className="strength-row">
+                      <span className="strength-rank">{index + 1}.</span>
+                      <span
+                        className="strength-name"
+                        style={{ color: strength.color }}
+                      >
+                        {strength.name}
+                      </span>
+                      <span className="strength-value">{Math.round(strength.value)}%</span>
+                      <div className="strength-bar-container">
+                        <div
+                          className="strength-bar"
+                          style={{
+                            width: `${strength.value}%`,
+                            backgroundColor: strength.color
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-data">Complete the Star Strengths Assessment to see your results.</p>
+                )}
+              </div>
             </div>
 
-            <div className="recap-grid">
-              <div className="recap-item">
-                <div className="recap-icon">💪</div>
-                <h3 className="recap-title">Discovered Your Strengths</h3>
-                <p className="recap-description">
-                  You completed your Star Strengths Assessment and identified your core strengths across Imagining, Thinking, Planning, Feeling, and Acting—the five fundamental ways we engage with our work and life.
-                </p>
-              </div>
-
-              <div className="recap-item">
-                <div className="recap-icon">🌊</div>
-                <h3 className="recap-title">Found Your Flow</h3>
-                <p className="recap-description">
-                  You recalled times when you were completely absorbed, energized, and performing at your peak. You identified your Flow Amplifiers—the qualities that intensify when you're in your flow state.
-                </p>
-              </div>
-
-              <div className="recap-item">
-                <div className="recap-icon">🎯</div>
-                <h3 className="recap-title">Created Your Star Card</h3>
-                <p className="recap-description">
-                  You built a personalized visual profile that captures your unique combination of core strengths and flow amplifiers—your Star Card that reflects who you are at your best.
-                </p>
-              </div>
-
-              <div className="recap-item">
-                <div className="recap-icon">✨</div>
-                <h3 className="recap-title">Integrated Your Insights</h3>
-                <p className="recap-description">
-                  You've woven together your understanding of how your strengths show up in your daily work and when you're in flow. You now have a clearer picture of what enables you to thrive.
-                </p>
+            {/* Star Card Section */}
+            <div className="data-card starcard-card">
+              <h3 className="data-title">🎯 Your Star Card</h3>
+              <div className="starcard-container">
+                {userId ? (
+                  <img
+                    src={`/api/star-card/${userId}`}
+                    alt="Your Star Card"
+                    className="starcard-image"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const fallback = document.getElementById('starcard-fallback');
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div id="starcard-fallback" className="starcard-fallback" style={{ display: 'none' }}>
+                  <p>Star Card image not available yet.</p>
+                  <p className="text-sm">Complete the flow exercise to generate your card.</p>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="next-module-preview">
-              <h2 className="preview-title">What's Next: Module 3 — Visualize Your Potential</h2>
-              <p className="preview-description">
-                Now that you understand your strengths and flow patterns, it's time to envision where they can take you. In Module 3, you'll:
-              </p>
-              <ul className="preview-list">
-                <li>Place yourself on the Well-Being Ladder and explore your path to growth and fulfillment</li>
-                <li>Envision your Future Self—who you're becoming as you grow into your strengths</li>
-                <li>Capture one powerful insight from your journey so far to carry forward</li>
-              </ul>
+          {/* Flow Attributes Section */}
+          <div className="flow-section">
+            <h3 className="data-title">🌊 Your Flow Amplifiers</h3>
+            <p className="flow-description">
+              These are the qualities that intensify when you're in your flow state:
+            </p>
+            <div className="flow-attributes">
+              {flowAttributes.length > 0 ? (
+                flowAttributes.map((attr: { text: string; color: string }, index: number) => (
+                  <span
+                    key={index}
+                    className="flow-tag"
+                    style={{
+                      backgroundColor: `${attr.color}20`,
+                      borderColor: attr.color,
+                      color: attr.color
+                    }}
+                  >
+                    {attr.text}
+                  </span>
+                ))
+              ) : (
+                <p className="no-data">Complete the Flow Patterns exercise to see your flow amplifiers.</p>
+              )}
             </div>
+          </div>
+
+          {/* Next Module Preview */}
+          <div className="next-module-preview">
+            <h2 className="preview-title">What's Next: Module 3 — Visualize Your Potential</h2>
+            <p className="preview-description">
+              Now that you understand your strengths and flow patterns, it's time to envision where they can take you.
+            </p>
+            <ul className="preview-list">
+              <li>Place yourself on the Well-Being Ladder</li>
+              <li>Envision your Future Self</li>
+              <li>Capture your key insights</li>
+            </ul>
           </div>
         </div>
 
         <div className="text-center">
           <Button
             onClick={handleNext}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
             data-continue-button="true"
           >
             ➡️ Continue to Well-Being Ladder
@@ -119,7 +200,7 @@ export default function Mod2RecapView({
         }
 
         .page-container {
-          max-width: 900px;
+          max-width: 950px;
           margin: 0 auto;
           background: white;
           border-radius: 20px;
@@ -129,135 +210,213 @@ export default function Mod2RecapView({
 
         .header-section {
           text-align: center;
-          padding: 60px 40px 40px;
+          padding: 40px 40px 30px;
           background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
           color: white;
         }
 
         .main-title {
-          font-size: 3rem;
+          font-size: 2.5rem;
           font-weight: 700;
-          margin-bottom: 12px;
+          margin: 0;
           line-height: 1.2;
         }
 
-        .subtitle {
-          font-size: 1.3rem;
-          font-weight: 500;
-          margin: 0;
-          opacity: 0.9;
-        }
-
         .content-section {
-          padding: 50px 40px;
+          padding: 30px 40px;
         }
 
-        .achievement-card {
-          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-          border-radius: 16px;
-          padding: 40px;
-          text-align: center;
-          margin-bottom: 40px;
-          border: 2px solid #3498db;
+        /* Smaller achievement card */
+        .achievement-card-small {
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          border-radius: 12px;
+          padding: 20px 24px;
+          margin-bottom: 30px;
+          border-left: 4px solid #3498db;
         }
 
-        .achievement-icon {
-          font-size: 4rem;
-          margin-bottom: 20px;
-        }
-
-        .achievement-title {
-          color: #2c3e50;
-          font-size: 2rem;
-          font-weight: 600;
-          margin-bottom: 16px;
-        }
-
-        .achievement-description {
-          color: #5d6d7e;
-          font-size: 1.2rem;
+        .achievement-text {
+          color: #1e3a5f;
+          font-size: 1.1rem;
           line-height: 1.6;
-          max-width: 600px;
-          margin: 0 auto;
+          margin: 0;
         }
 
-        .recap-grid {
+        /* Two-column data grid */
+        .data-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 24px;
-          margin-bottom: 50px;
+          margin-bottom: 30px;
         }
 
-        .recap-item {
+        .data-card {
           background: #ffffff;
           border: 2px solid #e9ecef;
           border-radius: 16px;
-          padding: 30px;
-          text-align: center;
-          transition: all 0.3s ease;
+          padding: 24px;
         }
 
-        .recap-item:hover {
-          border-color: #3498db;
-          transform: translateY(-4px);
-          box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
-        }
-
-        .recap-icon {
-          font-size: 2.5rem;
-          margin-bottom: 16px;
-        }
-
-        .recap-title {
+        .data-title {
           color: #2c3e50;
           font-size: 1.25rem;
           font-weight: 600;
-          margin-bottom: 12px;
+          margin-bottom: 20px;
+          padding-bottom: 12px;
+          border-bottom: 2px solid #e9ecef;
         }
 
-        .recap-description {
+        /* Strengths styling */
+        .strengths-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .strength-row {
+          display: grid;
+          grid-template-columns: 24px 90px 50px 1fr;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .strength-rank {
+          color: #7f8c8d;
+          font-weight: 600;
+          font-size: 0.9rem;
+        }
+
+        .strength-name {
+          font-weight: 600;
+          font-size: 1rem;
+        }
+
+        .strength-value {
+          color: #2c3e50;
+          font-weight: 700;
+          font-size: 1rem;
+          text-align: right;
+        }
+
+        .strength-bar-container {
+          height: 8px;
+          background: #e9ecef;
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .strength-bar {
+          height: 100%;
+          border-radius: 4px;
+          transition: width 0.5s ease;
+        }
+
+        /* Star Card styling */
+        .starcard-card {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .starcard-container {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 220px;
+        }
+
+        .starcard-image {
+          width: 154px;
+          height: 214px;
+          object-fit: contain;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .starcard-fallback {
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          color: #7f8c8d;
+          padding: 20px;
+        }
+
+        /* Flow section styling */
+        .flow-section {
+          background: #ffffff;
+          border: 2px solid #e9ecef;
+          border-radius: 16px;
+          padding: 24px;
+          margin-bottom: 30px;
+        }
+
+        .flow-description {
           color: #5d6d7e;
           font-size: 1rem;
-          line-height: 1.5;
+          margin-bottom: 16px;
         }
 
+        .flow-attributes {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .flow-tag {
+          padding: 8px 16px;
+          border-radius: 20px;
+          border: 2px solid;
+          font-weight: 600;
+          font-size: 0.95rem;
+        }
+
+        .no-data {
+          color: #95a5a6;
+          font-style: italic;
+          text-align: center;
+          padding: 20px;
+        }
+
+        /* Next module preview */
         .next-module-preview {
           background: linear-gradient(135deg, #e8f6ff 0%, #d1ecff 100%);
           border-radius: 16px;
-          padding: 40px;
+          padding: 30px;
           border: 2px solid #3498db;
+          margin-bottom: 20px;
         }
 
         .preview-title {
           color: #2980b9;
-          font-size: 1.8rem;
+          font-size: 1.5rem;
           font-weight: 600;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
           text-align: center;
         }
 
         .preview-description {
           color: #34495e;
-          font-size: 1.1rem;
-          line-height: 1.6;
-          margin-bottom: 20px;
+          font-size: 1rem;
+          line-height: 1.5;
+          margin-bottom: 16px;
           text-align: center;
         }
 
         .preview-list {
           color: #34495e;
-          font-size: 1rem;
+          font-size: 0.95rem;
           line-height: 1.6;
           list-style: none;
           padding: 0;
-          max-width: 600px;
+          max-width: 400px;
           margin: 0 auto;
         }
 
         .preview-list li {
           position: relative;
-          padding-left: 28px;
-          margin-bottom: 12px;
+          padding-left: 24px;
+          margin-bottom: 8px;
         }
 
         .preview-list li::before {
@@ -267,29 +426,9 @@ export default function Mod2RecapView({
           top: 0;
         }
 
-        .navigation-section {
-          padding: 30px 40px 50px;
+        .text-center {
           text-align: center;
-          background: #f8f9fa;
-        }
-
-        .next-button {
-          background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-          color: white;
-          border: none;
-          padding: 16px 32px;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .next-button:hover {
-          background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+          padding: 20px 40px 40px;
         }
 
         /* Responsive Design */
@@ -299,54 +438,64 @@ export default function Mod2RecapView({
           }
 
           .header-section {
-            padding: 40px 30px 30px;
-          }
-
-          .content-section {
-            padding: 30px 30px;
+            padding: 30px 20px 20px;
           }
 
           .main-title {
-            font-size: 2.2rem;
+            font-size: 2rem;
           }
 
-          .subtitle {
-            font-size: 1.1rem;
+          .content-section {
+            padding: 20px;
           }
 
-          .recap-grid {
+          .data-grid {
             grid-template-columns: 1fr;
             gap: 20px;
           }
 
-          .achievement-card {
-            padding: 30px 20px;
+          .strength-row {
+            grid-template-columns: 20px 80px 45px 1fr;
           }
 
-          .next-module-preview {
-            padding: 30px 20px;
+          .starcard-container {
+            min-height: 180px;
           }
         }
 
         @media (max-width: 480px) {
           .header-section {
-            padding: 30px 20px 20px;
+            padding: 25px 15px 15px;
           }
 
           .content-section {
-            padding: 25px 20px;
-          }
-
-          .navigation-section {
-            padding: 25px 20px 40px;
+            padding: 15px;
           }
 
           .main-title {
-            font-size: 1.9rem;
+            font-size: 1.75rem;
           }
 
-          .recap-item {
-            padding: 24px 20px;
+          .data-card {
+            padding: 16px;
+          }
+
+          .strength-row {
+            grid-template-columns: 1fr;
+            gap: 4px;
+          }
+
+          .strength-name {
+            display: inline;
+          }
+
+          .strength-value {
+            display: inline;
+            text-align: left;
+          }
+
+          .strength-bar-container {
+            grid-column: 1 / -1;
           }
         }
       `}</style>

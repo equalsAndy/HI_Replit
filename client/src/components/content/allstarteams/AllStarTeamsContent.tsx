@@ -137,10 +137,12 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'module-2-recap':
       return (
-        <Mod2RecapView 
+        <Mod2RecapView
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          flowAttributesData={flowAttributesData}
         />
       );
 

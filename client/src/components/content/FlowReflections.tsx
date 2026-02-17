@@ -221,32 +221,28 @@ export default function FlowReflections({
     try {
       // Save all reflections in single transaction
       const result = await saveFlowReflections(responses);
-      
+
       if (result.success) {
         console.log('✅ All flow reflections saved successfully');
-        
-        // Navigate to module 2 recap step first
-        console.log('🎯 FlowReflections: About to navigate to module-2-recap');
-        markStepCompleted?.('2-2');
 
-        // Use setTimeout to ensure state updates happen after current execution
+        // Mark step 2-2 as completed and wait for navigation to update
+        // The markStepCompleted function will auto-advance to 2-4 (module-2-recap)
+        console.log('🎯 FlowReflections: Marking step 2-2 as completed');
+        await markStepCompleted?.('2-2');
+
+        // Set content to module-2-recap (step 2-4) after step completion
+        console.log('🎯 FlowReflections: Setting current content to module-2-recap');
+        setCurrentContent?.('module-2-recap');
+        onComplete?.();
+
+        // Auto-scroll to top after navigation
         setTimeout(() => {
-          console.log('🎯 FlowReflections: Setting current content to module-2-recap');
-          setCurrentContent?.('module-2-recap');
-          onComplete?.();
-          
-          // Auto-scroll to final continue button after navigation and rendering completes
-          setTimeout(() => {
-            const continueButton = document.querySelector('[data-continue-button="true"]');
-            if (continueButton) {
-              continueButton.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center' 
-              });
-            }
-          }, 500); // Additional delay after navigation
+          document.getElementById('content-top')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
         }, 100);
-        
+
       } else {
         console.error('❌ Failed to save flow reflections:', result.error);
         alert('Failed to save reflections. Please try again.');
