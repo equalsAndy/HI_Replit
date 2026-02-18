@@ -74,81 +74,99 @@ export function ReframeModal({
     return t.replace(/\s+/g, ' ').trim();
   }
 
+  function cleanReframeText(text: string) {
+    let t = text.trim();
+    // Strip leading colons, dashes, quotes, and whitespace
+    t = t.replace(/^[:\-\s]+/, '').replace(/^["'""''`]+\s*/, '').replace(/["'""''`]+$/, '').trim();
+    // Ensure it ends with a period (if it doesn't already end with punctuation)
+    if (t.length > 0 && !/[.!?]$/.test(t)) {
+      t += '.';
+    }
+    return t;
+  }
+
   function extractReframe(raw: string) {
-    // First, try to find quoted reframes (most common pattern)
-    const quotedReframePattern = /['"`]([^'"`.]*?)['"`]/g;
-    const quotedMatches = Array.from(raw.matchAll(quotedReframePattern));
-    
+    // Normalize curly/smart quotes to straight quotes for easier matching
+    const normalized = raw
+      .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')   // curly double quotes → "
+      .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");  // curly single quotes → '
+
+    // 1. Try to find quoted reframes (most common AI pattern)
+    // Allow periods inside quotes since reframes are full sentences
+    const quotedReframePattern = /"([^"]{15,})"/g;
+    const quotedMatches = Array.from(normalized.matchAll(quotedReframePattern));
+
     for (const match of quotedMatches) {
       const quote = match[1].trim();
-      // Skip short quotes, questions, or generic responses
-      if (quote.length > 15 && 
-          !quote.includes('?') && 
-          !quote.toLowerCase().includes('something else') &&
-          !quote.toLowerCase().includes('more hopeful') &&
-          !quote.toLowerCase().includes('more practical') &&
-          (quote.includes('I\'m') || quote.includes('I am') || quote.includes('I feel') || 
-           quote.includes('I see') || quote.includes('I\'ve') || quote.includes('I have') ||
-           quote.includes('I recognize') || quote.includes('I\'re') || quote.includes('I can'))) {
-        return toFirstPerson(quote).slice(0, 300);
+      // Skip questions or generic filler responses
+      if (quote.endsWith('?') ||
+          quote.toLowerCase().includes('something else') ||
+          quote.toLowerCase().includes('more hopeful') ||
+          quote.toLowerCase().includes('more practical')) continue;
+      // Accept if it contains first-person language (or will after conversion)
+      if (/\b(I'm|I am|I feel|I see|I've|I have|I recognize|I can|I need|I want|you're|you are|you need|you have|you can)\b/i.test(quote)) {
+        return cleanReframeText(toFirstPerson(quote)).slice(0, 300);
       }
     }
 
-    // Look for specific reframe introduction patterns
+    // 2. Look for specific reframe introduction patterns
     const reframeIntroPatterns = [
-      /(?:here\'s|here is)\s+(?:a\s+)?(?:quick\s+)?reframe[:\s]+['"`]([^'"`.!?]+)['"`]/i,
-      /(?:how about|what about)\s+this(?:\s+as)?(?:\s+a)?\s*(?:fresh\s+)?reframe[:\s]+['"`]([^'"`.!?]+)['"`]/i,
-      /(?:try\s+this|consider\s+this)[:\s]+['"`]([^'"`.!?]+)['"`]/i,
+      /(?:here'?s|here is)\s+(?:a\s+)?(?:quick\s+)?reframe[:\s]+"([^"]+)"/i,
+      /(?:how about|what about)\s+this(?:\s+as)?(?:\s+a)?\s*(?:fresh\s+)?reframe[:\s]+"([^"]+)"/i,
+      /(?:try\s+this|consider\s+this)[:\s]+"([^"]+)"/i,
     ];
 
     for (const pattern of reframeIntroPatterns) {
-      const match = raw.match(pattern);
+      const match = normalized.match(pattern);
       if (match && match[1]) {
         const reframe = match[1].trim();
         if (reframe.length > 10) {
-          return toFirstPerson(reframe).slice(0, 300);
+          return cleanReframeText(toFirstPerson(reframe)).slice(0, 300);
         }
       }
     }
 
+    // 3. Pattern-based extraction (no quotes)
     const reframePatterns = [
       /instead of[^,.]*,?\s*(?:you might|try|consider|what if|perhaps)\s*([^.!?]*[.!?])/i,
       /rather than[^,.]*,?\s*(?:you could|try|consider|what if|perhaps)\s*([^.!?]*[.!?])/i,
       /what if (?:you|we)\s*([^.!?]*[.!?])/i,
-      /try (?:thinking|seeing|viewing|this)\s*([^.!?]*[.!?])/i,
+      /try (?:thinking|seeing|viewing)\s*([^.!?]*[.!?])/i,
       /consider (?:that)?\s*([^.!?]*[.!?])/i,
       /perhaps\s*([^.!?]*[.!?])/i,
       /maybe\s*([^.!?]*[.!?])/i,
-      /how about\s*([^.!?]*[.!?])/i,
       /^I\s+(?:am|feel|see|think|believe|recognize|understand)\s*([^.!?]*[.!?])/i,
     ];
 
     for (const pattern of reframePatterns) {
-      const match = raw.match(pattern);
+      const match = normalized.match(pattern);
       if (match) {
         let reframe = match[1] || match[0];
         if (/^(I|you)\s/i.test(reframe)) {
           reframe = match[0];
         }
-        // Clean up any prefixes and extra quotes
-        reframe = reframe.replace(/^(?:this\s+)?(?:reframe|this)\s*[:\-]?\s*/i, '').replace(/^["'""''`]|["'""''`]$/g, '');
-        return toFirstPerson(reframe.trim()).slice(0, 300);
+        reframe = reframe.replace(/^(?:this\s+)?(?:reframe|this)\s*[:\-]?\s*/i, '').replace(/^["'`]|["'`]$/g, '');
+        if (reframe.trim().length > 10) {
+          return cleanReframeText(toFirstPerson(reframe.trim())).slice(0, 300);
+        }
       }
     }
 
-    const sentences = raw.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    // 4. Sentence-level fallback
+    const sentences = normalized.split(/[.!?]+/).filter(s => s.trim().length > 20);
     for (const sentence of sentences) {
       if (sentence.includes('?') || sentence.trim().length < 20) continue;
-      
+
       const reframeIndicators = [
-        'instead', 'rather', 'reframe', 'perspective', 'view', 'see', 'think',
+        'instead', 'rather', 'reframe', 'perspective', 'view',
         'opportunity', 'chance', 'possibility', 'potential', 'growth', 'learning'
       ];
-      
+
       if (reframeIndicators.some(indicator => sentence.toLowerCase().includes(indicator))) {
-        // Clean up any prefixes and extra quotes
-        const cleaned = sentence.replace(/^(?:this\s+)?(?:reframe|this)\s*[:\-]?\s*/i, '').replace(/^["'""''`]|["'""''`]$/g, '');
-        return toFirstPerson(cleaned.trim()).slice(0, 300);
+        const cleaned = sentence.replace(/^(?:this\s+)?(?:reframe|this)\s*[:\-]?\s*/i, '').replace(/^["'`]|["'`]$/g, '');
+        if (cleaned.trim().length > 10) {
+          return cleanReframeText(toFirstPerson(cleaned.trim())).slice(0, 300);
+        }
       }
     }
 

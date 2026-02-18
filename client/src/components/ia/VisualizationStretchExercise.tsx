@@ -13,7 +13,7 @@ interface IA33StepData {
 }
 
 export default function VisualizationStretchExercise() {
-  const { state, setState, loading } = useContinuity();
+  const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
   const newPerspectiveRef = React.useRef<HTMLTextAreaElement | null>(null);
 
@@ -108,6 +108,8 @@ export default function VisualizationStretchExercise() {
         },
       };
     });
+    // Save immediately so modal results survive refresh/navigation
+    setTimeout(() => saveNow(), 0);
     setModalOpen(false);
   }
 

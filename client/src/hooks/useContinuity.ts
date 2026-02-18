@@ -87,6 +87,10 @@ export function useContinuity() {
     }
   }, []);
 
+  // Keep a ref to the latest state so unmount can flush it
+  const stateRef = useRef(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
+
   // Debounced autosave when state changes and is marked dirty
   useEffect(() => {
     if (!dirtyRef.current) return;
@@ -98,6 +102,18 @@ export function useContinuity() {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+
+  // Flush any pending save on unmount so navigation doesn't lose data
+  useEffect(() => {
+    return () => {
+      if (dirtyRef.current) {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        save(stateRef.current);
+        dirtyRef.current = false;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Update helpers
   // Accept either a partial patch object OR a functional updater so callers can

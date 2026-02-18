@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ReframeModal } from './ReframeModal';
 
 export default function ReframeExercise() {
-  const { state, setState, loading } = useContinuity();
+  const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
   const newPerspectiveRef = React.useRef<HTMLTextAreaElement | null>(null);
 
@@ -67,6 +67,8 @@ export default function ReframeExercise() {
         },
       };
     });
+    // Save immediately so modal results survive refresh/navigation
+    setTimeout(() => saveNow(), 0);
     setModalOpen(false);
   }
 

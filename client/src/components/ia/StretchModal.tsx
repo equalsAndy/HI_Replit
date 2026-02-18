@@ -77,55 +77,70 @@ export function StretchModal({
     return t.replace(/\s+/g, ' ').trim();
   }
 
+  function cleanStretchText(text: string) {
+    let t = text.trim();
+    // Strip leading colons, dashes, quotes, and whitespace
+    t = t.replace(/^[:\-\s]+/, '').replace(/^["'""''`]+\s*/, '').replace(/["'""''`]+$/, '').trim();
+    // Ensure it ends with a period (if it doesn't already end with punctuation)
+    if (t.length > 0 && !/[.!?]$/.test(t)) {
+      t += '.';
+    }
+    return t;
+  }
+
   function extractStretch(raw: string) {
-    // First, try to find quoted stretches (most common pattern)
-    const quotedStretchPattern = /['"`]([^'"`.]*?)['"`]/g;
-    const quotedMatches = Array.from(raw.matchAll(quotedStretchPattern));
-    
+    // Normalize curly/smart quotes to straight quotes for easier matching
+    const normalized = raw
+      .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
+      .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
+
+    // 1. Try to find quoted stretches (most common AI pattern)
+    const quotedPattern = /"([^"]{15,})"/g;
+    const quotedMatches = Array.from(normalized.matchAll(quotedPattern));
+
     for (const match of quotedMatches) {
       const quote = match[1].trim();
-      // Skip short quotes, questions, or generic responses
-      if (quote.length > 15 && 
-          !quote.includes('?') && 
-          !quote.toLowerCase().includes('next level') &&
-          !quote.toLowerCase().includes('expand') &&
-          !quote.toLowerCase().includes('possibility') &&
-          (quote.includes('I') || quote.includes('you') || quote.includes('could') ||
-           quote.includes('become') || quote.includes('might') || quote.includes('would'))) {
-        return toFirstPerson(quote).slice(0, 300);
+      // Skip questions or generic filler
+      if (quote.endsWith('?')) continue;
+      // Accept if it contains first-person or second-person language
+      if (/\b(I'm|I am|I feel|I see|I shift|I lead|I can|I have|I need|I want|you're|you are|you could|you might|you shift|you lead)\b/i.test(quote)) {
+        return cleanStretchText(toFirstPerson(quote)).slice(0, 300);
       }
     }
 
-    // Look for specific stretch introduction patterns
+    // 2. Look for specific stretch introduction patterns
     const stretchIntroPatterns = [
-      /(?:what if|imagine if)\\s+you\\s+([^.!?]+)[.!?]/i,
-      /(?:you could|you might)\\s+([^.!?]+)[.!?]/i,
-      /(?:consider|picture|envision)\\s+([^.!?]+)[.!?]/i,
-      /(?:expand|stretch|take it to)\\s+([^.!?]+)[.!?]/i,
+      /(?:what if|imagine if)\s+you\s+([^.!?]+)[.!?]/i,
+      /(?:you could|you might)\s+([^.!?]+)[.!?]/i,
+      /(?:consider|picture|envision)\s+([^.!?]+)[.!?]/i,
+      /(?:expand|stretch|take it to)\s+([^.!?]+)[.!?]/i,
     ];
 
     for (const pattern of stretchIntroPatterns) {
-      const match = raw.match(pattern);
+      const match = normalized.match(pattern);
       if (match && match[1]) {
         const stretch = match[1].trim();
         if (stretch.length > 10) {
-          return toFirstPerson(stretch).slice(0, 300);
+          return cleanStretchText(toFirstPerson(stretch)).slice(0, 300);
         }
       }
     }
 
-    const sentences = raw.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    // 3. Sentence-level fallback
+    const sentences = normalized.split(/[.!?]+/).filter(s => s.trim().length > 20);
     for (const sentence of sentences) {
       if (sentence.includes('?') || sentence.trim().length < 20) continue;
-      
+
       const stretchIndicators = [
         'expand', 'stretch', 'next level', 'possibility', 'potential', 'could become',
-        'imagine', 'envision', 'what if', 'consider', 'elevate', 'amplify'
+        'imagine', 'envision', 'elevate', 'amplify', 'shift', 'catalyst', 'inspire'
       ];
-      
+
       if (stretchIndicators.some(indicator => sentence.toLowerCase().includes(indicator))) {
-        const cleaned = sentence.replace(/^(?:this\\s+)?(?:stretch|this)\\s*[:\\-]?\\s*/i, '').replace(/^["'""''`]|["'""''`]$/g, '');
-        return toFirstPerson(cleaned.trim()).slice(0, 300);
+        const cleaned = sentence.replace(/^(?:this\s+)?(?:stretch|this)\s*[:\-]?\s*/i, '').replace(/^["'`]|["'`]$/g, '');
+        if (cleaned.trim().length > 10) {
+          return cleanStretchText(toFirstPerson(cleaned.trim())).slice(0, 300);
+        }
       }
     }
 
@@ -197,7 +212,7 @@ export function StretchModal({
       
       setTranscript((prev) => [...prev, { 
         role: 'assistant', 
-        content: msg.replace(/\\s*Expansion\\s*[:\\-][\\s\\S]*$/i, '').trim(), 
+        content: msg.replace(/\s*Expansion\s*[:\-][\s\S]*$/i, '').trim(), 
         isStretchOffer
       }]);
     } else if (phase === 'expansion') {
@@ -211,14 +226,14 @@ export function StretchModal({
       
       setTranscript((prev) => [...prev, { 
         role: 'assistant', 
-        content: msg.replace(/\\s*Expansion\\s*[:\\-][\\s\\S]*$/i, '').trim(), 
+        content: msg.replace(/\s*Expansion\s*[:\-][\s\S]*$/i, '').trim(), 
         isExpansionSuggestion
       }]);
     } else {
       // Default for other phases
       setTranscript((prev) => [...prev, { 
         role: 'assistant', 
-        content: msg.replace(/\\s*Expansion\\s*[:\\-][\\s\\S]*$/i, '').trim()
+        content: msg.replace(/\s*Expansion\s*[:\-][\s\S]*$/i, '').trim()
       }]);
     }
   }, [phase]);
@@ -229,6 +244,10 @@ export function StretchModal({
 
   const onNext = () => {
     if (phase === 'stretch' && currentStretch.trim().length > 0) {
+      // Pre-populate visualization with the stretch so users can edit rather than start blank
+      if (!stretchVisualization.trim()) {
+        setStretchVisualization(currentStretch.trim());
+      }
       setPhase('visualize');
     } else if (phase === 'visualize' && stretchVisualization.trim().length > 0) {
       setPhase('resistance');
@@ -334,9 +353,10 @@ export function StretchModal({
 
         {/* Right Column: Results */}
         <div className="flex flex-col bg-white p-4 pt-16 overflow-y-auto">
+          {/* Expanded Vision from AI */}
           <section className="mb-6">
-            <h2 className="text-sm font-semibold uppercase mb-2">YOUR VISUALIZATION STRETCHED</h2>
-            <div className="min-h-[100px] p-3 border rounded bg-gray-50 text-sm mb-3">
+            <h2 className="text-sm font-semibold uppercase mb-2 text-purple-700">YOUR VISUALIZATION STRETCHED</h2>
+            <div className={`min-h-[100px] p-3 border rounded text-sm mb-3 ${currentStretch.trim() ? 'bg-purple-50 border-purple-200 text-gray-900 italic' : 'bg-gray-50 text-gray-500'}`}>
               {currentStretch.trim() ? currentStretch : 'Work with AI to stretch your visualization and it will appear here.'}
             </div>
             {phase === 'stretch' && (
@@ -351,17 +371,17 @@ export function StretchModal({
             <section className="mb-6">
               <h2 className="text-sm font-semibold uppercase mb-2">Visualize the Stretch</h2>
               <p className="text-xs text-gray-600 mb-3">
-                Take a moment to picture yourself stepping into that new version. What changes in your energy, approach, or impact?
+                Picture yourself stepping into this expanded version. Edit to make it yours.
               </p>
               <textarea
                 className="w-full min-h-[100px] p-3 border rounded bg-gray-50 text-sm mb-3 resize-none"
                 value={stretchVisualization}
                 onChange={(e) => setStretchVisualization(e.target.value)}
-                placeholder="Work with AI to articulate your vision or type it here."
+                placeholder="Describe how stepping into this stretch would feel..."
               />
               {phase === 'visualize' && (
                 <>
-                  <p className="text-xs italic text-gray-500 mb-3">You can work through this with AI or complete it yourself.</p>
+                  <p className="text-xs italic text-gray-500 mb-3">Refine with AI in the chat, or edit directly above.</p>
                   <div className="flex gap-2 mb-4">
                     <Button variant="secondary" onClick={onBack} size="sm" className="flex-1">Back to stretch</Button>
                     <Button onClick={onNext} disabled={!stretchVisualization.trim()} size="sm" className="flex-1">Continue to Resistance</Button>
