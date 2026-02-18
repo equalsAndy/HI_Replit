@@ -1,16 +1,16 @@
-import express from 'express';
-
-type UserKey = string; // session userId as string or demoUserId cookie
+import express, { Request, Response, NextFunction } from 'express';
+import { db } from '../db.js';
+import { eq, and, isNull, inArray } from 'drizzle-orm';
+import { workshopStepData } from '../../shared/schema.js';
 
 export type IAState = {
   ia_4_2: {
     original_thought: string;
     ai_reframe: string[];
-    user_shift: string; // normalized key
+    user_shift: string;
     tag: string;
     new_perspective: string;
     challenge?: string;
-    // legacy alias kept for backward compatibility in state snapshots
     shift?: string;
   };
   ia_4_3: {
@@ -23,8 +23,7 @@ export type IAState = {
     purpose_one_line: string;
     global_challenge: string;
     ai_perspectives: string[];
-    contribution: string; // normalized key
-    // legacy alias kept for backward compatibility
+    contribution: string;
     what_it_needs?: string;
   };
   ia_4_5: {
@@ -34,43 +33,89 @@ export type IAState = {
   updatedAt?: string;
 };
 
+const STEP_KEYS = ['ia_4_2', 'ia_4_3', 'ia_4_4', 'ia_4_5'] as const;
+const STEP_IDS = ['ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5'] as const;
+
+function stepKeyToId(key: string): string {
+  return key.replace(/_/g, '-');
+}
+
+function stepIdToKey(id: string): string {
+  return id.replace(/-/g, '_');
+}
+
+function defaultStepData(key: string): Record<string, any> {
+  switch (key) {
+    case 'ia_4_2': return { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '' };
+    case 'ia_4_3': return { frame_sentence: '', ai_stretch: '', stretch_vision: '', resistance: '' };
+    case 'ia_4_4': return { purpose_one_line: '', global_challenge: '', ai_perspectives: [], contribution: '', what_it_needs: '' };
+    case 'ia_4_5': return { interlude_cluster: '', muse_convo: '' };
+    default: return {};
+  }
+}
+
 function defaultState(): IAState {
   return {
-    ia_4_2: { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '' },
-    ia_4_3: { frame_sentence: '', ai_stretch: '', stretch_vision: '', resistance: '' },
-    ia_4_4: { purpose_one_line: '', global_challenge: '', ai_perspectives: [], contribution: '', what_it_needs: '' },
-    ia_4_5: { interlude_cluster: '', muse_convo: '' },
+    ia_4_2: defaultStepData('ia_4_2') as IAState['ia_4_2'],
+    ia_4_3: defaultStepData('ia_4_3') as IAState['ia_4_3'],
+    ia_4_4: defaultStepData('ia_4_4') as IAState['ia_4_4'],
+    ia_4_5: defaultStepData('ia_4_5') as IAState['ia_4_5'],
     updatedAt: new Date().toISOString(),
   };
 }
 
-// In-memory store for IA continuity
-const store = new Map<UserKey, IAState>();
-
-function getUserKey(req: express.Request): UserKey {
-  // Prefer session userId if present, otherwise use demoUserId cookie, else IP-based fallback
-  const sid = (req as any)?.session?.userId;
-  if (typeof sid === 'number' || typeof sid === 'string') return String(sid);
-  const demo = req.cookies?.demoUserId;
-  if (typeof demo === 'string' && demo.trim()) return `demo:${demo}`;
-  return `ip:${req.ip}`;
-}
+// Auth middleware - require session userId
+const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
+  const userId = (req.session as any)?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+  if (!userId) {
+    return res.status(401).json({ success: false, error: 'Authentication required' });
+  }
+  (req.session as any).userId = userId;
+  next();
+};
 
 const router = express.Router();
 
-router.get('/state', (req, res) => {
+router.get('/state', authenticateUser, async (req, res) => {
   try {
-    const key = getUserKey(req);
-    if (!store.has(key)) store.set(key, defaultState());
-    return res.json({ success: true, state: store.get(key), key });
+    const userId = (req.session as any).userId;
+
+    const rows = await db
+      .select()
+      .from(workshopStepData)
+      .where(and(
+        eq(workshopStepData.userId, userId),
+        eq(workshopStepData.workshopType, 'ia'),
+        inArray(workshopStepData.stepId, [...STEP_IDS]),
+        isNull(workshopStepData.deletedAt)
+      ));
+
+    // Assemble into IAState shape
+    const state = defaultState();
+    for (const row of rows) {
+      const key = stepIdToKey(row.stepId) as keyof IAState;
+      if (STEP_KEYS.includes(key as any) && row.data) {
+        (state as any)[key] = { ...defaultStepData(key), ...(row.data as Record<string, any>) };
+      }
+    }
+
+    // Use the most recent updatedAt from any row
+    const latest = rows.reduce((max, r) => {
+      const t = r.updatedAt ? new Date(r.updatedAt).getTime() : 0;
+      return t > max ? t : max;
+    }, 0);
+    if (latest > 0) state.updatedAt = new Date(latest).toISOString();
+
+    return res.json({ success: true, state });
   } catch (e: any) {
+    console.error('Error loading IA state:', e);
     return res.status(500).json({ success: false, error: e?.message || 'Failed to get IA state' });
   }
 });
 
-router.post('/saveProgress', express.json(), (req, res) => {
+router.post('/saveProgress', authenticateUser, express.json(), async (req, res) => {
   try {
-    const key = getUserKey(req);
+    const userId = (req.session as any).userId;
     const body = req.body || {};
     let patch: Partial<IAState> | undefined = body.patch;
 
@@ -99,20 +144,75 @@ router.post('/saveProgress', express.json(), (req, res) => {
         delete s.what_it_needs;
       }
     }
-    const current = store.get(key) ?? defaultState();
-    // Shallow merge per top-level step objects
-    const merged: IAState = {
-      ...current,
-      ...normalized,
-      ia_4_2: { ...current.ia_4_2, ...normalized.ia_4_2 },
-      ia_4_3: { ...current.ia_4_3, ...normalized.ia_4_3 },
-      ia_4_4: { ...current.ia_4_4, ...normalized.ia_4_4 },
-      ia_4_5: { ...current.ia_4_5, ...normalized.ia_4_5 },
-      updatedAt: new Date().toISOString(),
-    };
-    store.set(key, merged);
-    return res.json({ success: true, state: merged });
+
+    // Load existing data for steps being patched, then merge and upsert
+    const patchKeys = Object.keys(normalized).filter(k => STEP_KEYS.includes(k as any));
+    const patchStepIds = patchKeys.map(stepKeyToId);
+
+    // Load current DB data for these steps
+    const existing = patchStepIds.length > 0 ? await db
+      .select()
+      .from(workshopStepData)
+      .where(and(
+        eq(workshopStepData.userId, userId),
+        eq(workshopStepData.workshopType, 'ia'),
+        inArray(workshopStepData.stepId, patchStepIds),
+        isNull(workshopStepData.deletedAt)
+      )) : [];
+
+    const existingByStepId: Record<string, Record<string, any>> = {};
+    for (const row of existing) {
+      existingByStepId[row.stepId] = (row.data as Record<string, any>) || {};
+    }
+
+    // Upsert each patched step
+    for (const key of patchKeys) {
+      const stepId = stepKeyToId(key);
+      const currentData = existingByStepId[stepId] || defaultStepData(key);
+      const mergedData = { ...currentData, ...normalized[key] };
+
+      await db
+        .insert(workshopStepData)
+        .values({
+          userId,
+          workshopType: 'ia',
+          stepId,
+          data: mergedData,
+          updatedAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: [workshopStepData.userId, workshopStepData.workshopType, workshopStepData.stepId],
+          set: {
+            data: mergedData,
+            updatedAt: new Date(),
+            deletedAt: null
+          }
+        });
+    }
+
+    // Return full assembled state
+    const allRows = await db
+      .select()
+      .from(workshopStepData)
+      .where(and(
+        eq(workshopStepData.userId, userId),
+        eq(workshopStepData.workshopType, 'ia'),
+        inArray(workshopStepData.stepId, [...STEP_IDS]),
+        isNull(workshopStepData.deletedAt)
+      ));
+
+    const state = defaultState();
+    for (const row of allRows) {
+      const k = stepIdToKey(row.stepId) as keyof IAState;
+      if (STEP_KEYS.includes(k as any) && row.data) {
+        (state as any)[k] = { ...defaultStepData(k), ...(row.data as Record<string, any>) };
+      }
+    }
+    state.updatedAt = new Date().toISOString();
+
+    return res.json({ success: true, state });
   } catch (e: any) {
+    console.error('Error saving IA progress:', e);
     return res.status(500).json({ success: false, error: e?.message || 'Failed to save IA progress' });
   }
 });

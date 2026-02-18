@@ -181,11 +181,15 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          
-          {/* Universal Level - 2x2 Grid */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-3 text-center">UNIVERSAL (Everyone - Existentially)</h3>
-            <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
+
+          <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })} className="space-y-6">
+            <p className="text-sm font-medium text-gray-700 text-center">
+              Choose one mystery from any category below:
+            </p>
+
+            {/* Universal Level - 2x2 Grid */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="font-semibold text-blue-800 mb-3 text-center">UNIVERSAL (Everyone - Existentially)</h3>
               <div className="grid grid-cols-2 gap-4">
                 {mysteries.universal.map((mystery) => (
                   <div key={mystery} className="flex items-start space-x-2">
@@ -194,37 +198,33 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
                   </div>
                 ))}
               </div>
-            </RadioGroup>
-          </div>
+            </div>
 
-          {/* Popular Culture and Academic - Side by Side */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Popular Culture Level */}
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h3 className="font-semibold text-green-800 mb-3 text-center">POPULAR CULTURE (Global Audiences)</h3>
-              <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
+            {/* Popular Culture and Academic - Side by Side */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Popular Culture Level */}
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-3 text-center">POPULAR CULTURE (Global Audiences)</h3>
                 {mysteries.popular.map((mystery) => (
                   <div key={mystery} className="flex items-start space-x-2">
                     <RadioGroupItem value={mystery} id={mystery} className="mt-0.5 shrink-0" />
                     <Label htmlFor={mystery} className="text-sm leading-tight">{mystery}</Label>
                   </div>
                 ))}
-              </RadioGroup>
-            </div>
+              </div>
 
-            {/* Academic Level */}
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <h3 className="font-semibold text-purple-800 mb-3 text-center">ACADEMIC (Specialists)</h3>
-              <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
+              {/* Academic Level */}
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <h3 className="font-semibold text-purple-800 mb-3 text-center">ACADEMIC (Specialists)</h3>
                 {mysteries.academic.map((mystery) => (
                   <div key={mystery} className="flex items-start space-x-2">
                     <RadioGroupItem value={mystery} id={mystery} className="mt-0.5 shrink-0" />
                     <Label htmlFor={mystery} className="text-sm leading-tight">{mystery}</Label>
                   </div>
                 ))}
-              </RadioGroup>
+              </div>
             </div>
-          </div>
+          </RadioGroup>
 
           {data.selectedMystery && (
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
