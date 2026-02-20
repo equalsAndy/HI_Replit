@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Target, Lightbulb, Users } from 'lucide-react';
@@ -10,26 +9,6 @@ interface IA_2_2_ContentProps {
   onOpenAssessment?: () => void;
 }
 
-function getPrismShapeDescription(scores: {
-  imagination: number; curiosity: number; empathy: number; creativity: number; courage: number;
-}): string {
-  const caps = [
-    { name: 'Imagination', score: scores.imagination },
-    { name: 'Curiosity',   score: scores.curiosity },
-    { name: 'Caring',      score: scores.empathy },
-    { name: 'Creativity',  score: scores.creativity },
-    { name: 'Courage',     score: scores.courage },
-  ].sort((a, b) => b.score - a.score);
-
-  const spread = caps[0].score - caps[4].score;
-  if (spread < 0.5) {
-    return 'Your Prism is remarkably balanced — all five capabilities shine with similar strength.';
-  }
-
-  const topNames = caps.slice(0, 2).map(c => c.name).join(' and ');
-  const bottomName = caps[caps.length - 1].name;
-  return `Your Prism stretches furthest toward ${topNames}, with room to explore ${bottomName} more fully.`;
-}
 
 function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
   // Check if assessment is completed
@@ -89,33 +68,6 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
     }
   };
 
-  const dimensions = [
-    {
-      icon: Lightbulb,
-      label: 'Imagination',
-      description: 'Your ability to envision new possibilities and think beyond current constraints',
-      color: 'text-purple-600'
-    },
-    {
-      icon: Brain,
-      label: 'Innovation', 
-      description: 'Your capacity to create novel solutions and approaches to challenges',
-      color: 'text-blue-600'
-    },
-    {
-      icon: Target,
-      label: 'Insight',
-      description: 'Your skill in understanding deep patterns and gaining clarity from complexity',
-      color: 'text-green-600'
-    },
-    {
-      icon: Users,
-      label: 'Intuition',
-      description: 'Your ability to sense and trust inner wisdom and gut feelings',
-      color: 'text-orange-600'
-    }
-  ];
-
   // If assessment is completed, show radar chart
   if (isAssessmentCompleted && resultData) {
     return (
@@ -151,19 +103,20 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
                   {capacity: 'Creativity',  score: parseFloat(resultData.creativity)  || 0, icon: '/assets/Creativity_new.png',  color: 'bg-orange-50 border-orange-200'},
                   {capacity: 'Courage',     score: parseFloat(resultData.courage)     || 0, icon: '/assets/Courage_new.png',     color: 'bg-red-50 border-red-200'}
                 ].map(item => (
-                  <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[120px]`}>
-                    <div className="w-12 h-12 mb-2 flex items-center justify-center">
+                  <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[220px]`}>
+                    {/* Icon: 144×144px (3× the original 48px) */}
+                    <div className="w-36 h-36 mb-3 flex items-center justify-center">
                       <img
                         src={item.icon}
                         alt={item.capacity}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <h4 className="font-semibold text-gray-800 text-sm">{item.capacity}</h4>
-                    {/* Proportional bar — visual only */}
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                    <h4 className="font-semibold text-gray-800 text-sm mb-2">{item.capacity}</h4>
+                    {/* Proportional bar — same width as icon (w-36 = 144px) */}
+                    <div className="w-36 bg-gray-200 rounded-full h-2">
                       <div
-                        className="h-1.5 rounded-full"
+                        className="h-2 rounded-full"
                         style={{ width: `${(item.score / 5) * 100}%`, backgroundColor: item.score >= 4.0 ? '#10b981' : '#8b5cf6' }}
                       />
                     </div>
@@ -172,18 +125,6 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
               </div>
             </div>
 
-            {/* Qualitative shape description */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-              <p className="text-sm text-purple-800 italic font-medium">
-                {getPrismShapeDescription({
-                  imagination: parseFloat(resultData.imagination) || 0,
-                  curiosity:   parseFloat(resultData.curiosity)   || 0,
-                  empathy:     parseFloat(resultData.empathy)     || 0,
-                  creativity:  parseFloat(resultData.creativity)  || 0,
-                  courage:     parseFloat(resultData.courage)     || 0,
-                })}
-              </p>
-            </div>
           </CardContent>
         </Card>
 

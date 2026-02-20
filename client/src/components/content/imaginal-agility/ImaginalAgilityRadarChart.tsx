@@ -26,9 +26,9 @@ const ImaginalAgilityRadarChart: React.FC<RadarChartProps> = ({ data }) => {
         Your Capability Prism
       </h3>
 
-      <div className="h-64 w-full">
+      <div className="h-[420px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+          <RadarChart data={radarData} margin={{ top: 20, right: 50, bottom: 20, left: 50 }}>
             <defs>
               <radialGradient id="prismFill" cx="50%" cy="50%" r="50%">
                 <stop offset="0%"   stopColor="#10b981" stopOpacity={0.55} />
@@ -38,7 +38,7 @@ const ImaginalAgilityRadarChart: React.FC<RadarChartProps> = ({ data }) => {
             <PolarGrid stroke="#e5e7eb" />
             <PolarAngleAxis
               dataKey="capacity"
-              tick={{ fontSize: 12, fill: '#6b7280', fontWeight: 500 }}
+              tick={{ fontSize: 15, fill: '#4b5563', fontWeight: 600 }}
             />
             <Radar
               name="Score"

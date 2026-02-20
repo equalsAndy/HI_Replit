@@ -75,25 +75,6 @@ function getScoreColor(score: number) {
   return 'bg-red-100 text-red-800';
 }
 
-function getPrismShapeDescription(scores: AssessmentResults['radarChart']): string {
-  const caps = [
-    { name: 'Imagination', score: scores.imagination },
-    { name: 'Curiosity',   score: scores.curiosity },
-    { name: 'Caring',      score: scores.empathy },
-    { name: 'Creativity',  score: scores.creativity },
-    { name: 'Courage',     score: scores.courage },
-  ].sort((a, b) => b.score - a.score);
-
-  const spread = caps[0].score - caps[4].score;
-  if (spread < 0.5) {
-    return 'Your Prism is remarkably balanced — all five capabilities shine with similar strength.';
-  }
-
-  const topNames = caps.slice(0, 2).map(c => c.name).join(' and ');
-  const bottomName = caps[caps.length - 1].name;
-  return `Your Prism stretches furthest toward ${topNames}, with room to explore ${bottomName} more fully.`;
-}
-
 export function ImaginalAgilityResults({ results }: ImaginalAgilityResultsProps) {
   const radarData = [
     { capability: 'Imagination', score: results.radarChart.imagination, fullMark: 5 },
@@ -102,8 +83,6 @@ export function ImaginalAgilityResults({ results }: ImaginalAgilityResultsProps)
     { capability: 'Creativity',  score: results.radarChart.creativity,  fullMark: 5 },
     { capability: 'Courage',     score: results.radarChart.courage,     fullMark: 5 },
   ];
-
-  const shapeDescription = getPrismShapeDescription(results.radarChart);
 
   return (
     <div className="space-y-6">
@@ -126,7 +105,7 @@ export function ImaginalAgilityResults({ results }: ImaginalAgilityResultsProps)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
+          <div className="h-[420px]">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
                 <defs>
@@ -149,10 +128,6 @@ export function ImaginalAgilityResults({ results }: ImaginalAgilityResultsProps)
             </ResponsiveContainer>
           </div>
 
-          {/* Qualitative shape description */}
-          <p className="mt-4 text-center text-sm text-purple-700 italic font-medium">
-            {shapeDescription}
-          </p>
         </CardContent>
       </Card>
 
