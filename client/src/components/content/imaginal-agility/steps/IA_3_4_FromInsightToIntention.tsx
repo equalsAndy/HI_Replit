@@ -122,9 +122,6 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           <p className="text-gray-700 mb-3 italic">
             What do you care about deeply? What future would you like to help shape?
           </p>
-          <label className="block mb-2 text-gray-700 font-medium text-sm">
-            Who are your heroes? What are your ideals?
-          </label>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { FileText } from 'lucide-react';
@@ -27,9 +27,19 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
   
   // Use workshop step data persistence hook
   const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-4-6', initialData);
-  
+
   // Destructure data for easier access
   const { vision, wordCount } = data;
+
+  // Display mode: show saved vision as read-only after save; edit mode: show textarea
+  const [isEditing, setIsEditing] = useState(true);
+
+  // When data loads from DB, if a vision already exists show display mode
+  useEffect(() => {
+    if (loaded && data.vision.trim()) {
+      setIsEditing(false);
+    }
+  }, [loaded]);
 
   const handleVisionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -43,7 +53,7 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
   const handleSaveVision = async () => {
     try {
       await saveNow();
-      console.log('Vision saved successfully');
+      setIsEditing(false);
     } catch (error) {
       console.error('Failed to save vision:', error);
     }
@@ -141,38 +151,68 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
             </p>
           </div>
           
-          {/* Vision Input */}
+          {/* Vision Input / Display */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h4 className="text-lg font-semibold text-blue-800 mb-4">
               🌍 In 50 words or less, describe your imagined "save the world" solution.
             </h4>
-            <div className="space-y-3">
-              <p className="text-blue-700 text-sm">
-                Be brave. Be clear. Be poetic.<br/>
-                This is not a plan. It's a message from the person you've become.
-              </p>
-              
-              <div className="relative">
-                <Textarea
-                  placeholder="My 'What If' Vision..."
-                  value={vision}
-                  onChange={handleVisionChange}
-                  className={`w-full h-32 resize-none ${isOverLimit ? 'border-red-500 focus:border-red-500' : ''}`}
-                  maxLength={500} // Generous character limit to allow for the word limit
-                />
-                <div className={`absolute bottom-2 right-2 text-xs ${isOverLimit ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
-                  {wordCount}/50 words
+
+            {isEditing ? (
+              <div className="space-y-3">
+                <p className="text-blue-700 text-sm">
+                  Be brave. Be clear. Be poetic.<br/>
+                  This is not a plan. It's a message from the person you've become.
+                </p>
+
+                <div className="relative">
+                  <Textarea
+                    placeholder="My 'What If' Vision..."
+                    value={vision}
+                    onChange={handleVisionChange}
+                    className={`w-full h-32 resize-none ${isOverLimit ? 'border-red-500 focus:border-red-500' : ''}`}
+                    maxLength={500}
+                  />
+                  <div className={`absolute bottom-2 right-2 text-xs ${isOverLimit ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                    {wordCount}/50 words
+                  </div>
+                </div>
+
+                {isOverLimit && (
+                  <p className="text-red-600 text-sm font-medium">
+                    Please reduce your vision to 50 words or less.
+                  </p>
+                )}
+
+                <div className="flex gap-4 justify-center pt-2">
+                  <Button
+                    onClick={handleSaveVision}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
+                    disabled={!vision.trim() || isOverLimit || saving}
+                  >
+                    {saving ? 'Saving…' : 'Save Vision'}
+                  </Button>
                 </div>
               </div>
-              
-              {isOverLimit && (
-                <p className="text-red-600 text-sm font-medium">
-                  Please reduce your vision to 50 words or less.
-                </p>
-              )}
-            </div>
+            ) : (
+              <div className="space-y-3">
+                <blockquote className="border-l-4 border-purple-400 pl-5 py-3 bg-purple-50 rounded-r-lg">
+                  <p className="text-purple-900 italic text-lg leading-relaxed">{vision}</p>
+                </blockquote>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">{wordCount} words</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                  >
+                    Edit Vision
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
-          
+
           {/* Important Note */}
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <p className="text-orange-700 text-sm font-medium">
@@ -180,7 +220,7 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
               This is about your <strong>own</strong> inner vision.
             </p>
           </div>
-          
+
           {/* Closing */}
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
             <h4 className="text-lg font-semibold text-purple-800 mb-3">CLOSING</h4>
@@ -190,17 +230,6 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
               <p className="font-medium">There is no final answer—only a deeper beginning.</p>
               <p className="text-xl font-semibold">Thank you.</p>
             </div>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <Button
-              onClick={handleSaveVision}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-              disabled={!vision.trim() || isOverLimit}
-            >
-              Save Vision
-            </Button>
           </div>
         </div>
       </div>

@@ -74,7 +74,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   };
   
   // Use workshop step data persistence hook
-  const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-3-3', INITIAL_DATA);
+  const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-3-3', INITIAL_DATA, { debounceMs: 2000 });
   
   // Safe update data function that checks if component is mounted
   const safeUpdateData = useCallback((updates: Partial<IA33StepData>) => {
@@ -98,7 +98,9 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   const [searchError, setSearchError] = useState<string | null>(null);
   
   // State for tab management
-  const [activeTab, setActiveTab] = useState<'upload' | 'search'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'search'>('search');
+  // Collapse gallery after image selection, re-expand on new search
+  const [galleryCollapsed, setGalleryCollapsed] = useState(false);
 
   // Cleanup effect to prevent state updates after unmount
   useEffect(() => {
@@ -120,6 +122,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       const results = await searchUnsplash(query, 12); // Get 12 results
       console.log('🔍 Unsplash search results:', results);
       setSearchResults(results || []);
+      setGalleryCollapsed(false);
 
     } catch (error) {
       console.error('Error searching Unsplash:', error);
@@ -160,6 +163,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         }
       ];
       setSearchResults(fallbackResults);
+      setGalleryCollapsed(false);
     } finally {
       setSearchLoading(false);
     }
@@ -204,6 +208,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         selectedImage: url,
         uploadedImage: null // Clear uploaded image if selecting from bank
       });
+      setGalleryCollapsed(true);
     } catch (error) {
       console.error('Error updating image selection:', error);
     }
@@ -249,6 +254,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       setSearchResults([]);
       setSearchQuery('');
       setSearchError(null);
+      setGalleryCollapsed(false);
     } catch (error) {
       console.error('Error clearing image selection:', error);
     }
@@ -429,8 +435,8 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                 </div>
               )}
 
-              {/* Search Results */}
-              {searchResults.length > 0 && (
+              {/* Search Results - collapse after selection, re-expand on new search */}
+              {searchResults.length > 0 && !galleryCollapsed && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {searchResults.map((img) => (
                     <div key={img.id} className="space-y-2">
@@ -530,7 +536,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <Button
           onClick={handleContinue}
           className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
-          disabled={saving || !previewImage || !reflection || !imageTitle}
+          disabled={!previewImage || !reflection || !imageTitle}
         >
           {saving ? 'Saving...' : `Continue to ${getStepTitle('ia-3-4')}`}
         </Button>

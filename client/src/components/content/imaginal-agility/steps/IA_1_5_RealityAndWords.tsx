@@ -58,14 +58,14 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
         <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
 
           {/* Reality Discernment Gauge - Featured Section */}
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-8 my-8">
-            <div className="flex items-center gap-3 mb-6">
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-6 my-8">
+            <div className="flex items-center gap-3 mb-4">
               <AlertCircle className="w-8 h-8 text-orange-600 flex-shrink-0" />
               <h2 className="text-3xl font-bold text-orange-800">Reality Discernment Gauge</h2>
             </div>
 
             {/* 30-Second Action Graphic */}
-            <div className="flex justify-center my-6">
+            <div className="flex justify-center my-4">
               <img
                 src="/assets/ia-1-5-30sec.png"
                 alt="30-Second Reality Check"
@@ -73,13 +73,13 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
               />
             </div>
 
-            <p className="text-gray-800 text-lg mb-6">
+            <p className="text-gray-800 text-lg mb-4">
               This is a habit you can build — a fast, focused check-in to recover clarity and filter AI distortion before it spreads.
             </p>
 
-            <div className="bg-white rounded-lg p-6 space-y-3">
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold mt-0.5">
+            <div className="bg-white rounded-lg p-5 space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">
                   1
                 </div>
                 <div className="flex-1">
@@ -88,8 +88,8 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold mt-0.5">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">
                   2
                 </div>
                 <div className="flex-1">
@@ -98,8 +98,8 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold mt-0.5">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">
                   3
                 </div>
                 <div className="flex-1">

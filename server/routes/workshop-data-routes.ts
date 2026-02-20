@@ -149,12 +149,14 @@ const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
  * @param isWorkshopCompleted Whether the workshop is completed
  * @returns true if the module should be locked for editing
  */
-const isModuleLocked = (module: number, isWorkshopCompleted: boolean): boolean => {
+const isModuleLocked = (module: number, isWorkshopCompleted: boolean, workshopType: string = 'ast'): boolean => {
   if (module >= 1 && module <= 3) {
     // Modules 1-3: Lock AFTER workshop completion
     return isWorkshopCompleted;
   } else if (module >= 4 && module <= 5) {
-    // Modules 4-5: Lock BEFORE workshop completion (unlock AFTER completion)
+    // AST modules 4-5 are post-completion features (downloads, reports) — lock before completion
+    // IA modules 4-7 are active learning steps — never locked based on completion status
+    if (workshopType === 'ia') return false;
     return !isWorkshopCompleted;
   }
   return false;
@@ -188,7 +190,7 @@ const checkWorkshopLocked = async (req: Request, res: Response, next: NextFuncti
     if (stepId) {
       const module = getStepModule(stepId);
 
-      if (module && isModuleLocked(module, isWorkshopCompleted)) {
+      if (module && isModuleLocked(module, isWorkshopCompleted, appType)) {
         const lockReason = isWorkshopCompleted
           ? `Module ${module} is locked because the workshop is completed`
           : `Module ${module} is locked until the workshop is completed`;

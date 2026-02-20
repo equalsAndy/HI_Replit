@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import InlineChat from '@/components/ia/InlineChat';
+import InlineChat, { InlineChatHandle } from '@/components/ia/InlineChat';
 import { PROMPTS } from '@/constants/prompts';
 
 const TAG_OPTIONS = [
@@ -15,9 +15,12 @@ const TAG_OPTIONS = [
   { value: 'Other',    label: 'Other',    helper: 'Something else—name it later.' },
 ];
 
-type ChatMessage = { 
-  role: 'user' | 'assistant'; 
-  content: string; 
+const SHIFT_TEMPLATE = 'I went from [where you were] to [where you are now]';
+const SHIFT_SEED = `Here is what shifted for me: ${SHIFT_TEMPLATE}`;
+
+type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
   skipReframe?: boolean;
   isReframeOffer?: boolean;
   isShiftSuggestion?: boolean;
@@ -46,7 +49,13 @@ export function ReframeModal({
   const [tag, setTag] = React.useState(TAG_OPTIONS[0].value);
   const [currentReframe, setCurrentReframe] = React.useState('');
 
+  // Guided shift flow state
+  const [shiftAttempts, setShiftAttempts] = React.useState(0);
+  const [shiftStep, setShiftStep] = React.useState<'template' | 'askFrom' | 'askTo'>('template');
+  const [shiftFrom, setShiftFrom] = React.useState('');
+
   const chatStreamRef = React.useRef<HTMLDivElement | null>(null);
+  const chatRef = React.useRef<InlineChatHandle | null>(null);
 
   function toFirstPerson(text: string) {
     let t = text;
@@ -66,11 +75,19 @@ export function ReframeModal({
     t = t.replace(/\byou were\b/gi, 'I was');
     t = t.replace(/\byou have\b/gi, 'I have');
     t = t.replace(/\b(to|for|about|with|of|from|at|on|by|like) you\b/gi, (_m, p1) => `${p1} me`);
+    // Subject-position "you" at sentence start
     t = t.replace(/(^|[.!?]\s+)you\b/gi, (_m, p1) => `${p1}I`);
+    // Subject-position "you" after subordinators and conjunctions (if you, what if you, that you, etc.)
+    t = t.replace(/\b(if|that|when|while|because|although|whether|unless|until|once|before|after|where|so|and|but|or)\s+you\b/gi, (_m, p1) => `${p1} I`);
+    // Subject-position "you" after comma (", you expanded" → ", I expanded")
+    t = t.replace(/,\s+you\b/gi, ', I');
+    // Subject-position "you" after colon or semicolon
+    t = t.replace(/[;:]\s+you\b/gi, (m) => m.replace(/you/i, 'I'));
+    // Remaining "you" → "me" (object position)
     t = t.replace(/\byou\b/gi, 'me');
     t = t.replace(/\bI as I am\b/g, 'me as I am');
-    t = t.replace(/\bme am\b/g, 'I am');
-    t = t.replace(/\bme (?:have|was)\b/g, (m) => m.replace('me ', 'I '));
+    // Fix any "me" that ended up before a verb (should be "I")
+    t = t.replace(/\bme\s+(might|could|would|should|shall|will|can|may|did|do|had|has|have|was|were|am|are|is|need|want|think|feel|see|know|believe|recognize|understand|went|go|come|seem|appear|expanded|expand|try|tried|start|began|begin|become|became|find|found|make|made|take|took|get|got|give|gave|keep|kept|let|say|said|tell|told)\b/gi, (_m, verb) => `I ${verb}`);
     return t.replace(/\s+/g, ' ').trim();
   }
 
@@ -173,6 +190,19 @@ export function ReframeModal({
     return '';
   }
 
+  function cleanShiftPart(text: string) {
+    let t = text.trim();
+    // Strip leading "I was", "I felt", "I am", "I had", "that I", etc.
+    t = t.replace(/^I was\s+/i, '');
+    t = t.replace(/^I felt\s+/i, 'feeling ');
+    t = t.replace(/^I am\s+/i, '');
+    t = t.replace(/^I had\s+/i, 'having ');
+    t = t.replace(/^I have\s+/i, 'having ');
+    t = t.replace(/^that I\s+/i, '');
+    t = t.replace(/^I\s+/i, '');
+    return t.trim();
+  }
+
   function extractShiftSuggestion(raw: string) {
     const shiftPatterns = [
       /I went from ([^.!?]*) to ([^.!?]*[.!?]?)/i,
@@ -183,13 +213,17 @@ export function ReframeModal({
     for (const pattern of shiftPatterns) {
       const match = raw.match(pattern);
       if (match) {
-        const from = match[1].trim();
-        const to = match[2].trim().replace(/[.!?]*$/, '');
+        const from = cleanShiftPart(match[1]);
+        const to = cleanShiftPart(match[2].replace(/[.!?]*$/, ''));
         return `I went from ${from} to ${to}`;
       }
     }
 
     return '';
+  }
+
+  function hasBrackets(text: string) {
+    return text.includes('[') && text.includes(']');
   }
 
   React.useEffect(() => {
@@ -199,18 +233,24 @@ export function ReframeModal({
       setShiftBox('');
       setTag(TAG_OPTIONS[0].value);
       setCurrentReframe('');
+      setShiftAttempts(0);
+      setShiftStep('template');
+      setShiftFrom('');
     } else {
       // Initial opening - start with the challenge from props
       setPhase('reframe');
       setTranscript([
-        { 
-          role: 'assistant', 
-          content: 'Hi! I see you have a challenge. I put a starter prompt in the box below—feel free to edit and hit Send.', 
-          skipReframe: true 
+        {
+          role: 'assistant',
+          content: 'Hi! I see you have a challenge. I put a starter prompt in the box below—feel free to edit and hit Send.',
+          skipReframe: true
         },
       ]);
       setShiftBox('');
       setCurrentReframe('');
+      setShiftAttempts(0);
+      setShiftStep('template');
+      setShiftFrom('');
     }
   }, [open]);
 
@@ -227,34 +267,34 @@ export function ReframeModal({
     if (phase === 'reframe') {
       const potentialReframe = extractReframe(msg);
       const isReframeOffer = potentialReframe.length > 0;
-      
+
       if (isReframeOffer) {
         setCurrentReframe(potentialReframe);
       }
-      
-      setTranscript((prev) => [...prev, { 
-        role: 'assistant', 
-        content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(), 
+
+      setTranscript((prev) => [...prev, {
+        role: 'assistant',
+        content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(),
         isReframeOffer
       }]);
     } else if (phase === 'shift') {
       // During shift phase, look for shift suggestions
       const potentialShift = extractShiftSuggestion(msg);
       const isShiftSuggestion = potentialShift.length > 0;
-      
+
       if (isShiftSuggestion) {
         setShiftBox(potentialShift);
       }
-      
-      setTranscript((prev) => [...prev, { 
-        role: 'assistant', 
-        content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(), 
+
+      setTranscript((prev) => [...prev, {
+        role: 'assistant',
+        content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(),
         isShiftSuggestion
       }]);
     } else {
       // Default for other phases
-      setTranscript((prev) => [...prev, { 
-        role: 'assistant', 
+      setTranscript((prev) => [...prev, {
+        role: 'assistant',
         content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim()
       }]);
     }
@@ -264,15 +304,110 @@ export function ReframeModal({
     setTranscript(prev => [...prev, { role: 'user', content: msg }]);
   }, []);
 
+  // Intercept sends during shift phase for guided flow
+  const onBeforeSend = React.useCallback((text: string): boolean => {
+    if (phase !== 'shift') return true; // Let reframe phase sends go through to AI
+
+    // Template step: user has the pre-filled template
+    if (shiftStep === 'template') {
+      if (hasBrackets(text)) {
+        // They sent without filling in brackets
+        setTranscript(prev => [...prev, { role: 'user', content: text }]);
+        const attempts = shiftAttempts + 1;
+        setShiftAttempts(attempts);
+
+        if (attempts < 2) {
+          // First failed attempt — ask them to fill in the words
+          setTimeout(() => {
+            setTranscript(prev => [...prev, {
+              role: 'assistant',
+              content: "Try replacing the words in brackets with your own experience. For example: 'I went from feeling stuck to seeing new possibilities.'",
+              skipReframe: true
+            }]);
+            // Re-fill the input with the template so they can try again
+            chatRef.current?.setInput(SHIFT_SEED);
+          }, 300);
+        } else {
+          // Second failed attempt — break it down into two questions
+          setShiftStep('askFrom');
+          setTimeout(() => {
+            setTranscript(prev => [...prev, {
+              role: 'assistant',
+              content: 'If your framing of the challenge shifted, where did you start?',
+              skipReframe: true
+            }]);
+          }, 300);
+        }
+        return false; // Cancel AI call
+      }
+
+      // They filled it in — extract the shift and populate the box
+      const potentialShift = extractShiftSuggestion(text);
+      if (potentialShift) {
+        setShiftBox(potentialShift);
+      } else {
+        // They wrote something free-form, use it as the shift
+        const cleaned = text.replace(/^here is what shifted for me:\s*/i, '').trim();
+        setShiftBox(cleaned || text);
+      }
+      setTranscript(prev => [...prev, { role: 'user', content: text }]);
+      return false; // Don't need AI for this
+    }
+
+    // askFrom step: user answers "where did you start?"
+    if (shiftStep === 'askFrom') {
+      const fromAnswer = cleanShiftPart(text);
+      setShiftFrom(fromAnswer);
+      setTranscript(prev => [...prev, { role: 'user', content: text }]);
+      setShiftStep('askTo');
+
+      setTimeout(() => {
+        setTranscript(prev => [...prev, {
+          role: 'assistant',
+          content: `Got it — you started from "${fromAnswer}". Now, where did you end up?`,
+          skipReframe: true
+        }]);
+      }, 300);
+      return false; // Cancel AI call
+    }
+
+    // askTo step: user answers "where did you end up?"
+    if (shiftStep === 'askTo') {
+      const toAnswer = cleanShiftPart(text);
+      const fullShift = `I went from ${shiftFrom} to ${toAnswer}`;
+      setShiftBox(fullShift);
+      setTranscript(prev => [...prev, { role: 'user', content: text }]);
+
+      setTimeout(() => {
+        setTranscript(prev => [...prev, {
+          role: 'assistant',
+          content: `Your shift statement: "${fullShift}"`,
+          skipReframe: true
+        }]);
+      }, 300);
+      return false; // Cancel AI call
+    }
+
+    return true; // Fallback: let AI handle
+  }, [phase, shiftStep, shiftAttempts, shiftFrom]);
+
   const onNext = () => {
     if (phase === 'reframe' && currentReframe.trim().length > 0) {
       setPhase('shift');
-      // Pre-fill shift template and give AI a shift suggestion to start with
-      setShiftBox('I went from [where you were] to [where you are now]');
+      // Pre-fill shift template in the right-side box
+      setShiftBox(SHIFT_TEMPLATE);
+      // Reset guided shift state
+      setShiftAttempts(0);
+      setShiftStep('template');
+      setShiftFrom('');
       setTranscript((prev) => [
         ...prev,
-        { role: 'assistant', content: "Perfect! Now let's create your shift statement. I've put a template in the shift box. Replace the words in brackets with your specific experience. For example: 'I went from feeling overwhelmed to feeling capable.' What would you put in those brackets?", skipReframe: true },
+        { role: 'assistant', content: "Now let's capture what shifted for you. I've put a template in the box below — replace the words in brackets with your experience.", skipReframe: true },
       ]);
+      // Pre-fill the chat input with the shift seed
+      setTimeout(() => {
+        chatRef.current?.setInput(SHIFT_SEED);
+      }, 100);
     } else if (phase === 'shift' && shiftBox.trim().length > 0) {
       setPhase('tag');
     }
@@ -296,15 +431,18 @@ export function ReframeModal({
     if (confirm('Are you sure you want to start over? This will clear everything and start fresh.')) {
       setPhase('reframe');
       setTranscript([
-        { 
-          role: 'assistant', 
-          content: 'What challenge do you want to tackle today? I\'ll help you reframe it in a more empowering way.', 
-          skipReframe: true 
+        {
+          role: 'assistant',
+          content: 'What challenge do you want to tackle today? I\'ll help you reframe it in a more empowering way.',
+          skipReframe: true
         },
       ]);
       setShiftBox('');
       setCurrentReframe('');
       setTag(TAG_OPTIONS[0].value);
+      setShiftAttempts(0);
+      setShiftStep('template');
+      setShiftFrom('');
       // Don't close modal, just reset it
     }
   };
@@ -356,13 +494,16 @@ export function ReframeModal({
 
             {/* InlineChat for input only */}
             <InlineChat
+              ref={chatRef}
               trainingId="ia-4-2"
               systemPrompt={PROMPTS.IA_4_2}
               seed={`I need a new perspective. Help me reframe my challenge: "${challenge}"`}
               onUserSend={onChatUserSend}
               onReply={onChatReply}
+              onBeforeSend={onBeforeSend}
               hideHistory={true}
               className="border-0 p-0 bg-transparent"
+              placeholder={phase === 'shift' ? SHIFT_TEMPLATE : undefined}
             />
           </div>
         </div>
@@ -386,14 +527,14 @@ export function ReframeModal({
             <section className="mb-6">
               <h2 className="text-sm font-semibold uppercase mb-2">What shifted for you?</h2>
               <div className={`min-h-[80px] p-3 border rounded bg-gray-50 text-sm mb-3`}>
-                {shiftBox.trim() ? shiftBox : 'Work with AI to create your shift statement and it will appear here.'}
+                {shiftBox.trim() && !hasBrackets(shiftBox) ? shiftBox : ''}
               </div>
               {phase === 'shift' && (
                 <>
-                  <p className="text-xs italic text-gray-500 mb-3">Tell AI how to adjust your shift statement in the conversation.</p>
+                  <p className="text-xs italic text-gray-500 mb-3">Edit the template in the message box and hit Send, or tell AI how to adjust your shift statement.</p>
                   <div className="flex gap-2 mb-4">
                     <Button variant="secondary" onClick={onBack} size="sm" className="flex-1">Back to reframe</Button>
-                    <Button onClick={onNext} disabled={!shiftBox.trim() || shiftBox.includes('[') || shiftBox.includes(']')} size="sm" className="flex-1">Looks good</Button>
+                    <Button onClick={onNext} disabled={!shiftBox.trim() || hasBrackets(shiftBox)} size="sm" className="flex-1">Looks good</Button>
                   </div>
                 </>
               )}
