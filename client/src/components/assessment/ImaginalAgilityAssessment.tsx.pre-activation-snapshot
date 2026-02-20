@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Zap, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, BarChart3, FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 
 interface AssessmentQuestion {
@@ -13,7 +13,6 @@ interface AssessmentQuestion {
   text: string;
   category: string;
   subcategory?: string;
-  reverseScored?: boolean;
 }
 
 interface AssessmentResponse {
@@ -44,37 +43,47 @@ interface ImaginalAgilityAssessmentProps {
 }
 
 const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
-  // Imagination (6 items - subcategories preserved for best representatives)
-  { id: 1, text: "When facing a familiar problem, I often find myself reimagining it from an unexpected angle.", category: "imagination", subcategory: "generative_fluency" },
-  { id: 2, text: "I sometimes catch myself mentally rehearsing conversations or events that haven't happened yet.", category: "imagination", subcategory: "temporal_flexibility" },
-  { id: 3, text: "I find it natural to hold two contradictory ideas in mind and explore what emerges between them.", category: "imagination", subcategory: "ambiguity_tolerance" },
-  { id: 4, text: "When I read or hear about someone's experience very different from mine, I can almost feel what it would be like.", category: "imagination", subcategory: "perspectival_agility" },
-  { id: 5, text: "When I have a method that works, I rarely feel the urge to try a completely different approach.", category: "imagination", subcategory: "boundary_permeability", reverseScored: true },
-  { id: 6, text: "I often connect ideas from unrelated parts of my life in ways that surprise even me.", category: "imagination", subcategory: "boundary_permeability" },
-
-  // Curiosity (4 items)
-  { id: 7, text: "In the past week, I've followed a question or topic down an unexpected path just to see where it led.", category: "curiosity" },
-  { id: 8, text: "When someone gives me an answer, my instinct is to ask 'what else might be true?'", category: "curiosity" },
-  { id: 9, text: "When I find a satisfactory explanation for something, I usually move on rather than digging deeper.", category: "curiosity", reverseScored: true },
-  { id: 10, text: "I'm drawn to conversations where I understand the least.", category: "curiosity" },
-
-  // Caring/Empathy (4 items - stored as "empathy" in data for backward compatibility)
-  { id: 11, text: "When a colleague is struggling, I notice it in their tone or body language before they say anything.", category: "empathy" },
-  { id: 12, text: "I've changed my mind about something important because I genuinely listened to someone else's experience.", category: "empathy" },
-  { id: 13, text: "In group discussions, I tend to focus more on the strength of an argument than on how the person making it feels.", category: "empathy", reverseScored: true },
-  { id: 14, text: "I find myself thinking about how decisions I make might ripple out to affect people I'll never meet.", category: "empathy" },
-
-  // Creativity (4 items)
-  { id: 15, text: "I've recently made something — a solution, a phrase, an object, an approach — that didn't exist before I made it.", category: "creativity" },
-  { id: 16, text: "When constraints tighten, I tend to get more inventive rather than more frustrated.", category: "creativity" },
-  { id: 17, text: "I'd rather improve an existing approach than start from scratch with something untested.", category: "creativity", reverseScored: true },
-  { id: 18, text: "I notice unusual combinations — flavors, colors, ideas, people — that others seem to overlook.", category: "creativity" },
-
-  // Courage (4 items)
-  { id: 19, text: "I've recently said something I believed was important even though I knew it might not land well.", category: "courage" },
-  { id: 20, text: "When I feel the pull to play it safe, I can usually tell the difference between wisdom and fear.", category: "courage" },
-  { id: 21, text: "I generally prefer to gather more information before acting on an uncertain situation.", category: "courage", reverseScored: true },
-  { id: 22, text: "I've taken a meaningful risk in the past month — not reckless, but one that required genuine commitment.", category: "courage" },
+  // Imagination Category (12 questions)
+  // Generative Fluency (2 questions)
+  { id: 1, text: "I can easily come up with multiple, unconventional ideas.", category: "imagination", subcategory: "generative_fluency" },
+  { id: 2, text: "I often generate new ideas in my daily life.", category: "imagination", subcategory: "generative_fluency" },
+  
+  // Temporal Flexibility (2 questions)
+  { id: 3, text: "I can vividly imagine different possible futures or pasts.", category: "imagination", subcategory: "temporal_flexibility" },
+  { id: 4, text: "I often reflect on alternative outcomes before making decisions.", category: "imagination", subcategory: "temporal_flexibility" },
+  
+  // Perspectival Agility (2 questions)
+  { id: 5, text: "I can imagine experiences beyond my current reality.", category: "imagination", subcategory: "perspectival_agility" },
+  { id: 6, text: "I frequently consider other people's viewpoints in discussions.", category: "imagination", subcategory: "perspectival_agility" },
+  
+  // Boundary Permeability (2 questions)
+  { id: 7, text: "I'm comfortable blending ideas from different domains (e.g., science and art).", category: "imagination", subcategory: "boundary_permeability" },
+  { id: 8, text: "I actively seek inspiration from outside my usual field.", category: "imagination", subcategory: "boundary_permeability" },
+  
+  // Ambiguity Tolerance (2 questions)
+  { id: 9, text: "I can explore complex ideas without needing quick answers.", category: "imagination", subcategory: "ambiguity_tolerance" },
+  { id: 10, text: "I feel comfortable with uncertainty when solving problems.", category: "imagination", subcategory: "ambiguity_tolerance" },
+  
+  // Embodied Translation (2 questions)
+  { id: 11, text: "I can turn abstract ideas into tangible actions or prototypes.", category: "imagination", subcategory: "embodied_translation" },
+  { id: 12, text: "I regularly translate my ideas into practical applications.", category: "imagination", subcategory: "embodied_translation" },
+  
+  // Core Capabilities (8 questions)
+  // Curiosity (2 questions)
+  { id: 13, text: "I actively seek out new experiences and knowledge.", category: "curiosity" },
+  { id: 14, text: "I ask questions that challenge conventional thinking.", category: "curiosity" },
+  
+  // Empathy (2 questions)
+  { id: 15, text: "I can understand and relate to others' emotional experiences.", category: "empathy" },
+  { id: 16, text: "I consider multiple perspectives when making decisions.", category: "empathy" },
+  
+  // Creativity (2 questions)
+  { id: 17, text: "I enjoy finding novel solutions to complex problems.", category: "creativity" },
+  { id: 18, text: "I regularly engage in creative activities or thinking.", category: "creativity" },
+  
+  // Courage (2 questions)
+  { id: 19, text: "I'm willing to take calculated risks for meaningful outcomes.", category: "courage" },
+  { id: 20, text: "I speak up for what I believe in, even when it's difficult.", category: "courage" }
 ];
 
 const LIKERT_SCALE = [
@@ -92,17 +101,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   const [isLoading, setIsLoading] = useState(false);
   const { shouldShowDemoButtons } = useTestUser();
 
-  // Fisher-Yates shuffle, seeded per session
-  const [shuffledOrder] = useState<number[]>(() => {
-    const indices = ASSESSMENT_QUESTIONS.map((_, i) => i);
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-    return indices;
-  });
-
-  const currentQ = ASSESSMENT_QUESTIONS[shuffledOrder[currentQuestion]];
+  const currentQ = ASSESSMENT_QUESTIONS[currentQuestion];
   const progress = ((currentQuestion + 1) / ASSESSMENT_QUESTIONS.length) * 100;
   const isLastQuestion = currentQuestion === ASSESSMENT_QUESTIONS.length - 1;
   const canGoNext = responses[`q${currentQ.id}`] !== undefined;
@@ -111,7 +110,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   const handleResponseSelect = (value: number) => {
     const questionKey = `q${currentQ.id}`;
     setResponses(prev => ({ ...prev, [questionKey]: value }));
-
+    
     if (autoAdvance && !isLastQuestion) {
       setTimeout(() => {
         setCurrentQuestion(prev => prev + 1);
@@ -132,20 +131,32 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   };
 
   const handleDemoData = () => {
-    if (!shouldShowDemoButtons) return;
-
-    const demoResponses: AssessmentResponse = {};
-    const demoValues = [4, 3, 4, 3, 2, 4, 4, 3, 2, 4, 3, 4, 2, 3, 4, 4, 3, 3, 4, 3, 2, 4];
-    ASSESSMENT_QUESTIONS.forEach((q, i) => {
-      demoResponses[`q${q.id}`] = demoValues[i] || 3;
-    });
-
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    // Generate meaningful demo responses that create a balanced, realistic profile
+    const demoResponses: AssessmentResponse = {
+      // Imagination questions (higher scores for imaginative profile)
+      q1: 4, q2: 4, q3: 3, q4: 4, q5: 3, q6: 4, q7: 3, q8: 4, q9: 3, q10: 4, q11: 3, q12: 4,
+      // Curiosity questions (moderate-high scores)
+      q13: 4, q14: 3, q15: 4, q16: 3, q17: 4, q18: 3, q19: 4, q20: 3, q21: 4, q22: 3, q23: 4, q24: 3,
+      // Empathy questions (balanced scores)
+      q25: 3, q26: 4, q27: 3, q28: 4, q29: 3, q30: 4, q31: 3, q32: 4, q33: 3, q34: 4, q35: 3, q36: 4,
+      // Creativity questions (high scores)
+      q37: 4, q38: 4, q39: 3, q40: 4, q41: 3, q42: 4, q43: 3, q44: 4, q45: 3, q46: 4, q47: 3, q48: 4,
+      // Courage questions (moderate scores for realistic profile)
+      q49: 3, q50: 3, q51: 4, q52: 3, q53: 4, q54: 3, q55: 4, q56: 3, q57: 4, q58: 3, q59: 4, q60: 3
+    };
+    
     setResponses(demoResponses);
-    setCurrentQuestion(ASSESSMENT_QUESTIONS.length - 1);
-    console.log('IA Assessment filled with demo data (22 questions)');
+    setCurrentQuestion(ASSESSMENT_QUESTIONS.length - 1); // Go to last question
+    console.log('IA Assessment filled with meaningful demo data');
   };
 
   const calculateResults = (): AssessmentResults => {
+    // Calculate averages for each capability
     const imaginationQuestions = ASSESSMENT_QUESTIONS.filter(q => q.category === 'imagination');
     const curiosityQuestions = ASSESSMENT_QUESTIONS.filter(q => q.category === 'curiosity');
     const empathyQuestions = ASSESSMENT_QUESTIONS.filter(q => q.category === 'empathy');
@@ -153,12 +164,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
     const courageQuestions = ASSESSMENT_QUESTIONS.filter(q => q.category === 'courage');
 
     const calculateAverage = (questions: AssessmentQuestion[]) => {
-      const sum = questions.reduce((acc, q) => {
-        const rawValue = responses[`q${q.id}`] || 0;
-        // Reverse score: convert 1→5, 2→4, 3→3, 4→2, 5→1
-        const value = q.reverseScored ? (6 - rawValue) : rawValue;
-        return acc + value;
-      }, 0);
+      const sum = questions.reduce((acc, q) => acc + (responses[`q${q.id}`] || 0), 0);
       return Number((sum / questions.length).toFixed(1));
     };
 
@@ -188,16 +194,35 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
 
   const handleFinish = async () => {
     if (!canFinish) return;
-
+    
     setIsLoading(true);
     try {
       const results = calculateResults();
       onComplete(results);
-      onClose();
+      onClose(); // Close modal immediately - results will show on page
     } catch (error) {
       console.error('Error completing assessment:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'imagination': return 'bg-purple-500';
+      case 'curiosity': return 'bg-blue-500';
+      case 'empathy': return 'bg-green-500';
+      case 'creativity': return 'bg-orange-500';
+      case 'courage': return 'bg-red-500';
+      default: return 'bg-purple-500';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'imagination': return <Zap className="h-5 w-5" />;
+      case 'curiosity': return <BarChart3 className="h-5 w-5" />;
+      default: return <Zap className="h-5 w-5" />;
     }
   };
 
@@ -253,6 +278,23 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
           {/* Question Card */}
           <Card className="border-2 border-purple-100">
             <CardContent className="p-8">
+              {/* Category Badge */}
+              <div className="flex items-center gap-2 mb-6">
+                <div className={`p-2 rounded-lg text-white ${getCategoryColor(currentQ.category)}`}>
+                  {getCategoryIcon(currentQ.category)}
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-purple-700 capitalize">
+                    {currentQ.category}
+                  </span>
+                  {currentQ.subcategory && (
+                    <span className="text-xs text-gray-500 block">
+                      {currentQ.subcategory.replace('_', ' ')}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {/* Question Text */}
               <h3 className="text-lg font-medium text-gray-900 mb-8">
                 {currentQ.text}
@@ -264,7 +306,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
                   <span>Strongly Disagree</span>
                   <span>Strongly Agree</span>
                 </div>
-
+                
                 <div className="flex justify-between items-center gap-4">
                   {LIKERT_SCALE.map((option) => {
                     const isSelected = responses[`q${currentQ.id}`] === option.value;
@@ -274,8 +316,8 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
                           onClick={() => handleResponseSelect(option.value)}
                           className={`
                             w-12 h-12 rounded-full border-2 transition-all duration-200 mb-2
-                            ${isSelected
-                              ? 'bg-purple-500 border-purple-500 text-white scale-110 shadow-lg'
+                            ${isSelected 
+                              ? 'bg-purple-500 border-purple-500 text-white scale-110 shadow-lg' 
                               : 'border-gray-300 hover:border-purple-300 hover:bg-purple-50'
                             }
                           `}
