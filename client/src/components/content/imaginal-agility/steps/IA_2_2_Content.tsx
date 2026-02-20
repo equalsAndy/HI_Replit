@@ -10,6 +10,27 @@ interface IA_2_2_ContentProps {
   onOpenAssessment?: () => void;
 }
 
+function getPrismShapeDescription(scores: {
+  imagination: number; curiosity: number; empathy: number; creativity: number; courage: number;
+}): string {
+  const caps = [
+    { name: 'Imagination', score: scores.imagination },
+    { name: 'Curiosity',   score: scores.curiosity },
+    { name: 'Caring',      score: scores.empathy },
+    { name: 'Creativity',  score: scores.creativity },
+    { name: 'Courage',     score: scores.courage },
+  ].sort((a, b) => b.score - a.score);
+
+  const spread = caps[0].score - caps[4].score;
+  if (spread < 0.5) {
+    return 'Your Prism is remarkably balanced — all five capabilities shine with similar strength.';
+  }
+
+  const topNames = caps.slice(0, 2).map(c => c.name).join(' and ');
+  const bottomName = caps[caps.length - 1].name;
+  return `Your Prism stretches furthest toward ${topNames}, with room to explore ${bottomName} more fully.`;
+}
+
 function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
   // Check if assessment is completed
   const { data: assessmentData, refetch } = useQuery({
@@ -101,9 +122,9 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-purple-800">Your I4C Assessment Results</h1>
+          <h1 className="text-4xl font-bold text-purple-800">Your Capability Prism</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Here's your personal radar chart showing your strengths across the five core capabilities.
+            The shape of your Prism reflects how your five core capabilities show up right now.
           </p>
         </div>
 
@@ -120,49 +141,48 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
               }} />
             </div>
 
-            {/* Individual Capability Scores */}
+            {/* Capability icons — visual only, no numbers */}
             <div className="bg-white rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Your Capability Scores</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {[
                   {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/Imagination_new.png', color: 'bg-purple-50 border-purple-200'},
-                  {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/Curiosity_new.png', color: 'bg-blue-50 border-blue-200'},
-                  {capacity: 'Caring', score: parseFloat(resultData.empathy) || 0, icon: '/assets/Caring_new.png', color: 'bg-green-50 border-green-200'},
-                  {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/Creativity_new.png', color: 'bg-orange-50 border-orange-200'},
-                  {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/Courage_new.png', color: 'bg-red-50 border-red-200'}
+                  {capacity: 'Curiosity',   score: parseFloat(resultData.curiosity)   || 0, icon: '/assets/Curiosity_new.png',   color: 'bg-blue-50 border-blue-200'},
+                  {capacity: 'Caring',      score: parseFloat(resultData.empathy)     || 0, icon: '/assets/Caring_new.png',      color: 'bg-green-50 border-green-200'},
+                  {capacity: 'Creativity',  score: parseFloat(resultData.creativity)  || 0, icon: '/assets/Creativity_new.png',  color: 'bg-orange-50 border-orange-200'},
+                  {capacity: 'Courage',     score: parseFloat(resultData.courage)     || 0, icon: '/assets/Courage_new.png',     color: 'bg-red-50 border-red-200'}
                 ].map(item => (
                   <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[120px]`}>
                     <div className="w-12 h-12 mb-2 flex items-center justify-center">
-                      <img 
-                        src={item.icon} 
-                        alt={item.capacity} 
+                      <img
+                        src={item.icon}
+                        alt={item.capacity}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <h4 className="font-semibold text-gray-800 mb-1 text-sm">{item.capacity}</h4>
-                    <div className="text-lg font-bold text-purple-700">{item.score.toFixed(1)}</div>
-                    <div className="text-xs text-gray-600">
-                      {item.score >= 4.0 ? 'Strength' : item.score >= 3.5 ? 'Developing' : 'Growth Area'}
+                    <h4 className="font-semibold text-gray-800 text-sm">{item.capacity}</h4>
+                    {/* Proportional bar — visual only */}
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                      <div
+                        className="h-1.5 rounded-full"
+                        style={{ width: `${(item.score / 5) * 100}%`, backgroundColor: item.score >= 4.0 ? '#10b981' : '#8b5cf6' }}
+                      />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Understanding Results */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Understanding Your Results</h3>
-              <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium text-green-700">Strengths (4.0+):</span> Your natural superpowers - leverage these capabilities
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium text-blue-700">Developing (3.5-3.9):</span> Strong foundation - ready for advanced practice
-                </p>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium text-orange-700">Growth Areas (below 3.5):</span> Opportunities for intentional development
-                </p>
-              </div>
+            {/* Qualitative shape description */}
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+              <p className="text-sm text-purple-800 italic font-medium">
+                {getPrismShapeDescription({
+                  imagination: parseFloat(resultData.imagination) || 0,
+                  curiosity:   parseFloat(resultData.curiosity)   || 0,
+                  empathy:     parseFloat(resultData.empathy)     || 0,
+                  creativity:  parseFloat(resultData.creativity)  || 0,
+                  courage:     parseFloat(resultData.courage)     || 0,
+                })}
+              </p>
             </div>
           </CardContent>
         </Card>
