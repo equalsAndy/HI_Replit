@@ -103,9 +103,9 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
                   {capacity: 'Creativity',  score: parseFloat(resultData.creativity)  || 0, icon: '/assets/Creativity_new.png',  color: 'bg-orange-50 border-orange-200'},
                   {capacity: 'Courage',     score: parseFloat(resultData.courage)     || 0, icon: '/assets/Courage_new.png',     color: 'bg-red-50 border-red-200'}
                 ].map(item => (
-                  <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[220px]`}>
-                    {/* Icon: 144×144px (3× the original 48px) */}
-                    <div className="w-36 h-36 mb-3 flex items-center justify-center">
+                  <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[220px] overflow-hidden`}>
+                    {/* Icon fills card width, height fixed at 144px */}
+                    <div className="w-full h-36 mb-3 flex items-center justify-center">
                       <img
                         src={item.icon}
                         alt={item.capacity}
@@ -113,8 +113,8 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
                       />
                     </div>
                     <h4 className="font-semibold text-gray-800 text-sm mb-2">{item.capacity}</h4>
-                    {/* Proportional bar — same width as icon (w-36 = 144px) */}
-                    <div className="w-36 bg-gray-200 rounded-full h-2">
+                    {/* Proportional bar — full card width, stays inside rounded corners */}
+                    <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className="h-2 rounded-full"
                         style={{ width: `${(item.score / 5) * 100}%`, backgroundColor: item.score >= 4.0 ? '#10b981' : '#8b5cf6' }}
