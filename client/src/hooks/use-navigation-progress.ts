@@ -11,7 +11,8 @@ const CURRENT_PROGRESSION_MODE = 'simplified' as const;
 
 // Define step categories for proper handling
 const RESOURCE_STEPS = ['4-1', '4-2', '4-3', '4-4', '5-1', '5-2', '5-3'];
-const PROGRESSIVE_STEPS = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4'];
+// NOTE: Step 2-3 was removed from the workshop - progression goes directly from 2-2 to 2-4
+const PROGRESSIVE_STEPS = ['1-1', '1-2', '1-3', '2-1', '2-2', '2-4', '3-1', '3-2', '3-3', '3-4'];
 
 const isResourceStep = (stepId: string): boolean => {
   return RESOURCE_STEPS.includes(stepId);
@@ -134,9 +135,9 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
   // IA progression sequence - Updated structure matching actual navigation
   if (appType === 'ia') {
     const iaSequence = [
-      // Welcome & Orientation
-      'ia-1-1', 'ia-1-2',
-      // The I4C Model  
+      // Welcome & Orientation (Module 1)
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      // The I4C Model (Module 2)
       'ia-2-1', 'ia-2-2',
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
@@ -163,12 +164,28 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
     }
     
     // Special unlock rules:
+    // ia-5-1, ia-5-2, ia-5-3 (Outcomes and Teams section) - unlocked after ia-4-6 completion
+    if (completedSteps.includes('ia-4-6')) {
+      if (!unlocked.includes('ia-5-1')) {
+        unlocked.push('ia-5-1');
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-1`);
+      }
+      if (!unlocked.includes('ia-5-2')) {
+        unlocked.push('ia-5-2');
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-2`);
+      }
+      if (!unlocked.includes('ia-5-3')) {
+        unlocked.push('ia-5-3');
+        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-3`);
+      }
+    }
+
     // ia-6-1 (Quarterly Tune-up) - always accessible
     if (!unlocked.includes('ia-6-1')) {
       unlocked.push('ia-6-1');
       console.log(`🔓 IA: ia-6-1 always accessible`);
     }
-    
+
     // ia-7-1 and ia-7-2 (Team Ladder) - unlocked after ia-4-6 completion
     if (completedSteps.includes('ia-4-6')) {
       if (!unlocked.includes('ia-7-1')) {
@@ -238,59 +255,62 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
   console.log(`🎯 CALCULATING SECTION EXPANSION for ${appType} - Current: ${currentStepId}, Workshop Completed: ${workshopCompleted}`);
   
   if (appType === 'ia') {
-    // IA Section progression rules
-    const currentSection = getSectionFromStepId(currentStepId, 'ia');
-    
-    // Default expansion state for IA
-    const expansion = {
-      '1': true,  // Welcome - always expanded initially
-      '2': true,  // I4C Model - always expanded initially
-      '3': true,  // Ladder of Imagination - expanded initially
-      '4': true,  // Advanced Ladder - expanded initially
-      '5': false, // Outcomes & Benefits
-      '6': false, // Quarterly Tune-up
-      '7': false  // Team Ladder - only expanded after ia-4-6 completion
+    // IA Section expansion rules:
+    // Initial: 1, 2, 3 open
+    // After section 2 complete: 1 closes, 4 opens → 2, 3, 4
+    // After section 3 complete: 2 closes, 5 opens → 3, 4, 5
+    // After section 4 complete: 3 closes, 6+7 open → 4, 5, 6, 7
+
+    // Helper: check if all steps in a section are completed
+    const iaSectionSteps: Record<string, string[]> = {
+      '1': ['ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5'],
+      '2': ['ia-2-1', 'ia-2-2'],
+      '3': ['ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6'],
+      '4': ['ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6'],
+      '5': ['ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5'],
+      '6': ['ia-6-1', 'ia-6-2'],
+      '7': ['ia-7-1']
     };
-    
-    // Special unlock: ia-4-6 completion unlocks Outcomes & Benefits and Team Ladder sections
-    if (completedSteps.includes('ia-4-6')) {
-      expansion['5'] = true;
-      expansion['7'] = true;
-      console.log(`🎯 IA MODE: ia-4-6 completed → expanded Outcomes & Benefits section 5 and Team Ladder section 7`);
+    const isSectionComplete = (sectionId: string) =>
+      iaSectionSteps[sectionId]?.every(step => completedSteps.includes(step)) ?? false;
+
+    const sec2Done = isSectionComplete('2');
+    const sec3Done = isSectionComplete('3');
+    const sec4Done = isSectionComplete('4');
+
+    // Start with initial state: 1, 2, 3 open; rest collapsed
+    const expansion: Record<string, boolean> = {
+      '1': true,
+      '2': true,
+      '3': true,
+      '4': false,
+      '5': false,
+      '6': false,
+      '7': false
+    };
+
+    // After section 2 complete: close 1, open 4
+    if (sec2Done) {
+      expansion['1'] = false;
+      expansion['4'] = true;
+      console.log(`📖 IA: Section 2 complete → closed 1, opened 4`);
     }
-    
-    // KAN-112: Workshop completion unlocks sections 5, 6, 7 permanently
-    if (workshopCompleted) {
+
+    // After section 3 complete: close 2, open 5
+    if (sec3Done) {
+      expansion['2'] = false;
       expansion['5'] = true;
+      console.log(`📖 IA: Section 3 complete → closed 2, opened 5`);
+    }
+
+    // After section 4 complete: close 3, open 6 and 7
+    if (sec4Done) {
+      expansion['3'] = false;
       expansion['6'] = true;
       expansion['7'] = true;
-      expansion['4'] = false; // Collapse section 4 when workshop complete
-      console.log(`🏆 IA Workshop completed - unlocked sections 5, 6, 7, collapsed section 4`);
-      return expansion;
+      console.log(`📖 IA: Section 4 complete → closed 3, opened 6 & 7`);
     }
-    
-    // KAN-112: Progressive expansion based on current section
-    if (currentSection >= 5) {
-      // Section 5 entry: Expand Section 5, collapse Section 3, keep Section 4
-      expansion['1'] = false;
-      expansion['2'] = false;
-      expansion['3'] = false;
-      expansion['4'] = true;
-      expansion['5'] = true;
-      console.log(`📖 IA Section 5+ entry: Collapsed 1,2,3, expanded 4,5`);
-    } else if (currentSection >= 4) {
-      // Section 4 entry: Expand Section 4, collapse Sections 1 & 2, keep Section 3
-      expansion['1'] = false;
-      expansion['2'] = false;
-      expansion['3'] = true;
-      expansion['4'] = true;
-      console.log(`📖 IA Section 4+ entry: Collapsed 1&2, expanded 3&4`);
-    } else if (currentSection >= 3) {
-      // In section 3: keep 1, 2, 3 expanded
-      expansion['3'] = true;
-      console.log(`📖 IA Section 3: Sections 1,2,3 expanded`);
-    }
-    
+
     return expansion;
   }
   
@@ -484,10 +504,15 @@ const getNextStepFromCompletedSteps = (completedSteps: string[], appType: 'ast' 
   if (appType === 'ia') {
     // IA progression sequence
     const iaMainSequence = [
-      'ia-1-1', 'ia-1-2',
+      // Module 1: WELCOME (5 steps)
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      // Module 2: THE I4C MODEL
       'ia-2-1', 'ia-2-2',
+      // Module 3: LADDER OF IMAGINATION
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      // Module 4: ADVANCED LADDER OF IMAGINATION
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      // Module 5: OUTCOMES & BENEFITS
       'ia-5-1'
     ];
 
@@ -550,8 +575,8 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     lastVisitedAt: new Date().toISOString(),
     unlockedSteps: appType === 'ia' ? ['ia-1-1'] : ['1-1'],
     videoProgress: {},
-    sectionExpansion: appType === 'ia' ? 
-      { '1': true, '2': true, '3': true, '4': true, '5': false, '6': false, '7': false } :
+    sectionExpansion: appType === 'ia' ?
+      { '1': true, '2': true, '3': true, '4': false, '5': false, '6': false, '7': false } :
       { '1': true, '2': true, '3': true, '4': false, '5': false },
     workshopCompleted: false
   });
@@ -901,10 +926,12 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     console.log(`🔄 SIMPLIFIED MODE: Navigating to step ${stepId}`);
 
     setProgress(prev => {
+      // Don't recalculate section expansion on navigation - only on step completion
+      // This preserves the user's manual section open/close choices
       const newProgress = {
         ...prev,
         currentStepId: stepId,
-        lastVisitedAt: new Date().toISOString()
+        lastVisitedAt: new Date().toISOString(),
       };
 
       // If navigating to a resource step, mark it as visited

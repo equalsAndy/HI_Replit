@@ -81,6 +81,7 @@ interface Video {
   sortOrder?: number;
   contentMode?: 'student' | 'professional' | 'both';
   requiredWatchPercentage?: number;
+  enforceWatchRequirement?: boolean;
   transcriptMd?: string;
   glossary?: Array<{ term: string; definition: string; }>;
 }
@@ -98,6 +99,8 @@ const videoEditFormSchema = z.object({
     term: z.string().min(1, 'Term is required'),
     definition: z.string().min(1, 'Definition is required'),
   })).optional(),
+  enforceWatchRequirement: z.boolean().default(false),
+  requiredWatchPercentage: z.number().min(1).max(100).default(75),
 });
 
 type VideoEditFormData = z.infer<typeof videoEditFormSchema>;
@@ -394,6 +397,8 @@ export function SimpleVideoManagement() {
           url: newUrl,
           transcriptMd: data.transcriptMd || '',
           glossary: data.glossary || [],
+          enforceWatchRequirement: data.enforceWatchRequirement || false,
+          requiredWatchPercentage: data.requiredWatchPercentage || 75,
         }),
       });
 
@@ -402,14 +407,16 @@ export function SimpleVideoManagement() {
       }
 
       // Update local state
-      setVideos(prev => prev.map(video => 
-        video.id === selectedVideo.id 
-          ? { 
-              ...video, 
-              editableId: data.editableId, 
+      setVideos(prev => prev.map(video =>
+        video.id === selectedVideo.id
+          ? {
+              ...video,
+              editableId: data.editableId,
               url: newUrl,
               transcriptMd: data.transcriptMd,
-              glossary: data.glossary
+              glossary: data.glossary,
+              enforceWatchRequirement: data.enforceWatchRequirement,
+              requiredWatchPercentage: data.requiredWatchPercentage
             }
           : video
       ));
@@ -445,6 +452,8 @@ export function SimpleVideoManagement() {
       editableId: videoId,
       transcriptMd: video.transcriptMd || '',
       glossary: video.glossary || [],
+      enforceWatchRequirement: video.enforceWatchRequirement || false,
+      requiredWatchPercentage: video.requiredWatchPercentage || 75,
     });
     
     setIsEditDialogOpen(true);
@@ -710,6 +719,71 @@ export function SimpleVideoManagement() {
                           {selectedVideo?.url}
                         </p>
                       </div>
+
+                      {/* Watch Requirements - only show if feature flag is enabled */}
+                      {import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true' && (
+                        <div className="space-y-4 pt-4 border-t">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold">Video Watch Requirements</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Control whether users must watch this video before progressing to the next step
+                            </p>
+                          </div>
+
+                          {/* Enforce Watch Requirement Toggle */}
+                          <FormField
+                            control={form.control}
+                            name="enforceWatchRequirement"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">
+                                    Block Next Step
+                                  </FormLabel>
+                                  <FormDescription>
+                                    Require users to watch {form.watch('requiredWatchPercentage') || 75}% before proceeding
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* Required Watch Percentage */}
+                          <FormField
+                            control={form.control}
+                            name="requiredWatchPercentage"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Required Watch Percentage</FormLabel>
+                                <FormControl>
+                                  <div className="flex items-center gap-4">
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      max={100}
+                                      value={field.value || 75}
+                                      onChange={(e) => field.onChange(parseInt(e.target.value) || 75)}
+                                      disabled={!form.watch('enforceWatchRequirement')}
+                                      className="w-24"
+                                    />
+                                    <span className="text-sm text-muted-foreground">%</span>
+                                  </div>
+                                </FormControl>
+                                <FormDescription>
+                                  Percentage of video that must be watched (1-100)
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
                     </TabsContent>
 
                     <TabsContent value="transcript" className="space-y-4 p-1">
@@ -826,7 +900,7 @@ export function SimpleVideoManagement() {
                   </div>
                 </TableHead>
                 <TableHead>Video ID</TableHead>
-                <TableHead 
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('requiredWatchPercentage')}
                 >
@@ -835,7 +909,10 @@ export function SimpleVideoManagement() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead 
+                {import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true' && (
+                  <TableHead>Enforcement</TableHead>
+                )}
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('autoplay')}
                 >
@@ -878,6 +955,19 @@ export function SimpleVideoManagement() {
                         {video.requiredWatchPercentage || 75}%
                       </span>
                     </TableCell>
+                    {import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true' && (
+                      <TableCell>
+                        {video.enforceWatchRequirement ? (
+                          <Badge variant="destructive">
+                            Blocking
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            Optional
+                          </Badge>
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {video.autoplay ? (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">

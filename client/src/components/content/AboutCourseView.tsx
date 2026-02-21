@@ -4,6 +4,7 @@ import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import '@/styles/section-headers.css';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface AboutCourseViewProps {
   navigate?: any;
@@ -130,6 +131,11 @@ const AboutCourseView: React.FC<AboutCourseViewProps> = ({
 
   return (
     <>
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
 
       <div className="prose max-w-none">

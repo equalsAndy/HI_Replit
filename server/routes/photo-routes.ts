@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { photoStorageService } from '../services/photo-storage-service';
+import { photoStorageService, ImageType } from '../services/photo-storage-service';
 import { safeConsoleLog } from '../../shared/photo-data-filter';
 import { db } from '../db.js';
 import { users } from '../../shared/schema.js';
@@ -284,26 +284,36 @@ photoRouter.delete('/:id', async (req: Request, res: Response) => {
  */
 photoRouter.post('/starcard', requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.session?.userId;
+    // Allow admin to save for other users
+    const requestingUserId = req.session?.userId;
+    const { imageData, filename, userId: targetUserId } = req.body;
+
+    // Use target user ID if provided (admin mode), otherwise use requesting user
+    const userId = targetUserId || requestingUserId;
+
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { imageData, filename } = req.body;
-    
     if (!imageData) {
       return res.status(400).json({ error: 'Image data is required' });
     }
 
-    console.log(`🖼️ Saving StarCard for user ${userId} (NOT changing profile picture)...`);
+    console.log(`🖼️ Saving StarCard for user ${userId}${targetUserId ? ` (admin request by ${requestingUserId})` : ''} (NOT changing profile picture)...`);
 
-    // Store the StarCard image with StarCard-specific filename
+    // Store the StarCard image with StarCard-specific filename and type
     const starCardFilename = filename || `Star_Card-user-${userId}-${Date.now()}.png`;
-    const photoId = await photoStorageService.storePhoto(imageData, userId, true, starCardFilename);
-    
+    const photoId = await photoStorageService.storePhoto(
+      imageData,
+      userId,
+      true,
+      starCardFilename,
+      ImageType.STARCARD_GENERATED
+    );
+
     // DO NOT update user's profile picture - this was the bug!
     // The star card should just be saved, not set as profile picture
-    
+
     console.log(`✅ StarCard saved as photo ID ${photoId} (profile picture unchanged)`);
 
     res.json({

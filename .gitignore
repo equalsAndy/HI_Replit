@@ -1,6 +1,10 @@
 node_modules
 dist
 .DS_Store
+.venv
+venv/
+*.pyc
+__pycache__/
 server/public
 vite.config.ts.*
 *.tar.gz
@@ -36,6 +40,9 @@ pages_cleanup_*.txt
 codex_auth0_migration_kit_*/
 /src/
 # client/src/styles/ # Commented out - we want to track client/src/
+
+# Jira ticket templates (created locally, manually added to Jira)
+JiraTickets/
 
 # Version and build artifacts (these are managed by versioning system)
 public/version.json
@@ -225,3 +232,17 @@ server/services/*-processor-fixed*.ts
 
 # Search and cleanup prompts
 find_and_remove_*.md
+landing-page-package/
+
+# Demo account setup files
+MAX-HEADROOM-DEMO-ACCOUNT.md
+add-max-headroom-to-auth0.ts
+create-max-headroom-demo.ts
+max-headroom-complete-answers.md
+
+# OpenAI reference files
+OpenAI files/
+
+# Archived IA step files
+*.archive
+archived-sections-6-7-8/

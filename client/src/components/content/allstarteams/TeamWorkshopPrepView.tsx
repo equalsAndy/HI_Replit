@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { trpc } from "@/utils/trpc";
 import VideoTranscriptGlossary from '../../common/VideoTranscriptGlossary';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface TeamWorkshopPrepViewProps {
   navigate: (path: string) => void;
@@ -40,6 +41,12 @@ export default function TeamWorkshopPrepView({
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <div className="space-y-6">
         {/* Header */}
         <div className="space-y-4">

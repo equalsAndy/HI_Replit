@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Brain, ChevronRight } from 'lucide-react';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface NeuroscienceViewProps {
   navigate: (path: string) => void;
@@ -22,6 +23,12 @@ export default function NeuroscienceView({
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard, Key, Lock } from 'lucide-react';
+import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard, Key, Lock, ArrowLeftRight, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -15,9 +15,11 @@ import { useLocation } from 'wouter';
 interface ProfileEditorProps {
   user: any;
   onLogout: () => void;
+  currentApp?: 'allstarteams' | 'imaginal-agility';
+  onToggleWorkshop?: () => void;
 }
 
-export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
+export default function ProfileEditor({ user, onLogout, currentApp, onToggleWorkshop }: ProfileEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -180,10 +182,10 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         title: 'Data reset successful',
         description: 'All your workshop data has been reset. Redirecting to home page...',
       });
-      
+
       // Clear React Query cache
       queryClient.clear();
-      
+
       // Redirect to home page after brief delay
       setTimeout(() => {
         window.location.href = '/';
@@ -193,6 +195,41 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
       toast({
         title: 'Reset failed',
         description: error.message || 'Failed to reset your data. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Demo account workshop reset mutation
+  const resetDemoWorkshopMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/admin/demo-accounts/restore/ast', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to reset workshop');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Workshop reset',
+        description: 'Demo workshop data has been restored. The page will reload now.',
+      });
+
+      // Clear React Query cache
+      queryClient.clear();
+
+      // Reload page after brief delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Reset failed',
+        description: error.message || 'Failed to reset workshop. Please try again.',
         variant: 'destructive',
       });
     },
@@ -623,11 +660,69 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
                     Test User Dashboard
                   </Button>
                 )}
+
+                {/* Workshop Switch Button - only for users with both workshop access */}
+                {user?.astAccess && user?.iaAccess && onToggleWorkshop && currentApp && (
+                  <div className="border-t pt-4">
+                    <Button
+                      onClick={() => {
+                        onToggleWorkshop();
+                        setIsOpen(false);
+                      }}
+                      variant="outline"
+                      className="w-full flex items-center gap-3 justify-start"
+                    >
+                      <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
+                      <span className="flex items-center gap-2">
+                        <span>Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}</span>
+                        <img
+                          src={currentApp === 'allstarteams' ? '/assets/imaginal_agility_logo_sq.png' : '/assets/all-star-teams-logo-square.png'}
+                          alt={currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
+                          className="h-6 w-auto"
+                        />
+                      </span>
+                    </Button>
+                  </div>
+                )}
               </>
             )}
 
+            {/* Reset Workshop Button - only for demo accounts */}
+            {!isEditing && user?.isDemoAccount && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center gap-2 border-green-500 text-green-700 hover:bg-green-50"
+                    title="Reset workshop to original demo data"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset Workshop
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset Workshop to Beginning?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will delete all current workshop progress and return you to the start.
+                      You can use "Use Demo Data" buttons on each step to quickly fill in responses.
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => resetDemoWorkshopMutation.mutate()}
+                      disabled={resetDemoWorkshopMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {resetDemoWorkshopMutation.isPending ? 'Resetting...' : 'Reset Workshop'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
 
-            
             <Button
               variant="destructive"
               onClick={onLogout}

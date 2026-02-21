@@ -41,6 +41,12 @@ export const featureFlags: Record<string, FeatureFlag> = {
     environment: 'all',
     description: 'Enhanced video management and progress tracking'
   },
+  videoWatchRequirements: {
+    enabled: process.env.FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true',
+    environment: 'all',
+    description: 'Enforce video watching requirements before step progression',
+    dependencies: ['videoManagement']
+  },
   debugPanel: {
     enabled: process.env.FEATURE_DEBUG_PANEL === 'true',
     environment: 'development',

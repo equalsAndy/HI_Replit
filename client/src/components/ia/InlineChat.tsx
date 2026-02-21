@@ -22,12 +22,18 @@ type InlineChatProps = {
   modelOverride?: string;
   onReply?: (text: string) => void;
   onUserSend?: (text: string) => void;
+  onBeforeSend?: (text: string) => boolean;
   hideHistory?: boolean;
   hideSystemMessages?: boolean;
   className?: string;
+  placeholder?: string;
 };
 
-export const InlineChat: React.FC<InlineChatProps> = ({
+export interface InlineChatHandle {
+  setInput: (val: string) => void;
+}
+
+export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
   trainingId,
   systemPrompt,
   seed,
@@ -36,16 +42,22 @@ export const InlineChat: React.FC<InlineChatProps> = ({
   modelOverride,
   onReply,
   onUserSend,
+  onBeforeSend,
   hideHistory = false,
   hideSystemMessages = true,
   className,
-}) => {
+  placeholder: placeholderProp,
+}, ref) => {
   const [messages, setMessages] = React.useState<Msg[]>([]);
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [style, setStyle] = React.useState<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useImperativeHandle(ref, () => ({
+    setInput: (val: string) => setInput(val),
+  }));
 
   // initialize with system + optional seed
   React.useEffect(() => {
@@ -63,16 +75,24 @@ export const InlineChat: React.FC<InlineChatProps> = ({
 
   const send = async () => {
     if (!input.trim() || isLoading) return;
-    setIsLoading(true);
-    setError(null);
 
     // Attach style tag if selected
     const text = style ? `[Style: ${style}]\n${input.trim()}` : input.trim();
+
+    // Allow parent to intercept and cancel the send
+    if (onBeforeSend && onBeforeSend(text) === false) {
+      setInput('');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
     const user: Msg = { role: 'user', content: text, ts: Date.now() };
     const outMessages = [...messages, user];
     setMessages(outMessages);
     setInput('');
-    
+
     // Call onUserSend if provided
     if (onUserSend) onUserSend(text);
 
@@ -153,7 +173,7 @@ export const InlineChat: React.FC<InlineChatProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder={useRetrieval ? 'Type message via RAG stub' : 'Type message'}
+          placeholder={placeholderProp || (useRetrieval ? 'Type message via RAG stub' : 'Type message')}
           rows={3}
         />
         <div className="flex items-center justify-between">
@@ -170,6 +190,8 @@ export const InlineChat: React.FC<InlineChatProps> = ({
       </div>
     </div>
   );
-};
+});
+
+InlineChat.displayName = 'InlineChat';
 
 export default InlineChat;

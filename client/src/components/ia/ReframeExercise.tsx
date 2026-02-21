@@ -6,7 +6,7 @@ import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
 
 export default function ReframeExercise() {
-  const { state, setState, loading } = useContinuity();
+  const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
   const newPerspectiveRef = React.useRef<HTMLTextAreaElement | null>(null);
 
@@ -69,6 +69,8 @@ export default function ReframeExercise() {
         },
       };
     });
+    // Save immediately so modal results survive refresh/navigation
+    setTimeout(() => saveNow(), 0);
     setModalOpen(false);
   }
 
@@ -116,7 +118,7 @@ export default function ReframeExercise() {
           }
           aria-describedby="challenge-hint"
         />
-        <p id="challenge-hint" className="mt-1 text-xs text-gray-600">
+        <p id="challenge-hint" className="mt-1 text-sm text-gray-600">
           Write your challenge first. When you're ready, invite AI to help you reframe it.
         </p>
       </div>
@@ -143,15 +145,15 @@ export default function ReframeExercise() {
           
           {ia.user_shift && (
             <div className="mb-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-1">What Shifted:</h4>
-              <p className="text-sm text-gray-800 italic">"{ia.user_shift}"</p>
+              <h4 className="text-base font-medium text-gray-700 mb-1">What Shifted:</h4>
+              <p className="text-base text-gray-800 italic">"{ia.user_shift}"</p>
             </div>
           )}
-          
+
           {ia.tag && (
             <div className="mb-3">
-              <h4 className="text-sm font-medium text-gray-700 mb-1">Tag:</h4>
-              <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+              <h4 className="text-base font-medium text-gray-700 mb-1">Tag:</h4>
+              <span className="inline-block bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded">
                 {ia.tag}
               </span>
             </div>
@@ -204,7 +206,7 @@ export default function ReframeExercise() {
             }
             aria-describedby="new-perspective-desc"
           />
-          <p id="new-perspective-desc" className="mt-1 text-xs text-gray-600">
+          <p id="new-perspective-desc" className="mt-1 text-sm text-gray-600">
             Edit your new perspective as needed.
           </p>
         </div>

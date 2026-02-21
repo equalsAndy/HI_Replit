@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useToast } from '@/hooks/use-toast';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface BeyondASTViewProps {
   navigate?: (path: string) => void;
@@ -23,11 +24,6 @@ interface InterestData {
   interest_disc: boolean;
   interest_other_assessment_names: string;
   interest_ai_coach: boolean;
-  interest_positive_psychology: boolean;
-  interest_neuroscience: boolean;
-  interest_imagination: boolean;
-  interest_happiness_wellbeing: boolean;
-  other_interests_feedback: string;
   preferred_email: string;
   use_existing_email: boolean;
 }
@@ -49,11 +45,6 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
     interest_disc: false,
     interest_other_assessment_names: '',
     interest_ai_coach: false,
-    interest_positive_psychology: false,
-    interest_neuroscience: false,
-    interest_imagination: false,
-    interest_happiness_wellbeing: false,
-    other_interests_feedback: '',
     preferred_email: '',
     use_existing_email: true
   });
@@ -165,18 +156,66 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       {/* Header */}
       <div className="text-center space-y-3">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
           Beyond AllStarTeams
         </h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          This is our laboratory — a space where we're exploring new ideas and features to help you grow.
-        </p>
-        <p className="text-base text-gray-500 max-w-2xl mx-auto">
-          <strong>Access coming soon.</strong> In the meantime, what interests you?
+          We are working on some activities beyond the workshop where you can create an About Me page
+          for teammates to understand how to work and collaborate with you.
         </p>
       </div>
+
+      {/* What We're Building */}
+      <Card>
+        <CardHeader>
+          <CardTitle>What We're Building</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-gray-700">
+            We would also like to augment your report with other assessments you may have done or are
+            interested in, such as:
+          </p>
+
+          <ul className="space-y-2 text-gray-700 ml-4">
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-1">•</span>
+              <span><strong>Myers-Briggs (MBTI)</strong> — 16 personality types</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-1">•</span>
+              <span><strong>Enneagram</strong> — 9 types focused on core motivations</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-1">•</span>
+              <span><strong>CliftonStrengths</strong> — Your top natural talents</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-1">•</span>
+              <span><strong>DISC Assessment</strong> — Behavioral communication styles</span>
+            </li>
+          </ul>
+
+          <p className="text-gray-700 mt-4">
+            And maybe even build an AI assistant that can take this information about you and help you
+            in your day-to-day life at work and beyond.
+          </p>
+
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg mt-4">
+            <p className="text-blue-900 text-sm">
+              <strong>Privacy First:</strong> You control what's shared with your org, your team, or kept
+              completely private. Your data, your choices.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Interest Collection Form */}
       <Card>
@@ -206,7 +245,7 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
                   onCheckedChange={() => handleCheckboxChange('interest_other_assessments')}
                 />
                 <Label htmlFor="other-assessments" className="text-base cursor-pointer">
-                  Add other assessments for more insights
+                  Add other assessments
                 </Label>
               </div>
 
@@ -285,80 +324,9 @@ const BeyondASTView: React.FC<BeyondASTViewProps> = ({
               />
               <div className="flex-1">
                 <Label htmlFor="ai-coach" className="text-base cursor-pointer block">
-                  A trustable (you own the data) personalized AI that can help you at work or outside of work
+                  Personal Data protected AI coach where you own the data and only share what you wish to
                 </Label>
               </div>
-            </div>
-          </div>
-
-          {/* Content Topics of Interest */}
-          <div className="border-t pt-6 space-y-4">
-            <h3 className="font-semibold text-gray-900">Content Topics You'd Like to See More Of</h3>
-
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="positive-psychology"
-                  checked={interests.interest_positive_psychology}
-                  onCheckedChange={() => handleCheckboxChange('interest_positive_psychology')}
-                />
-                <Label htmlFor="positive-psychology" className="text-base cursor-pointer">
-                  Positive Psychology
-                </Label>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="neuroscience"
-                  checked={interests.interest_neuroscience}
-                  onCheckedChange={() => handleCheckboxChange('interest_neuroscience')}
-                />
-                <Label htmlFor="neuroscience" className="text-base cursor-pointer">
-                  Neuroscience
-                </Label>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="imagination"
-                  checked={interests.interest_imagination}
-                  onCheckedChange={() => handleCheckboxChange('interest_imagination')}
-                />
-                <Label htmlFor="imagination" className="text-base cursor-pointer">
-                  Imagination
-                </Label>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="happiness-wellbeing"
-                  checked={interests.interest_happiness_wellbeing}
-                  onCheckedChange={() => handleCheckboxChange('interest_happiness_wellbeing')}
-                />
-                <Label htmlFor="happiness-wellbeing" className="text-base cursor-pointer">
-                  Happiness and Wellbeing
-                </Label>
-              </div>
-            </div>
-          </div>
-
-          {/* Other Interests/Feedback */}
-          <div className="border-t pt-6 space-y-4">
-            <h3 className="font-semibold text-gray-900">Anything Else You'd Like to See?</h3>
-            <div className="space-y-2">
-              <Label htmlFor="other-feedback" className="text-sm text-gray-700">
-                Share any other topics, features, or ideas you'd like us to explore:
-              </Label>
-              <textarea
-                id="other-feedback"
-                className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Tell us what you'd like to see..."
-                value={interests.other_interests_feedback}
-                onChange={(e) => setInterests(prev => ({
-                  ...prev,
-                  other_interests_feedback: e.target.value
-                }))}
-              />
             </div>
           </div>
 

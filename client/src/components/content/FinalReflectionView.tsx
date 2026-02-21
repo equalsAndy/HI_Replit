@@ -9,6 +9,7 @@ import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useApplication } from '@/hooks/use-application';
 import { BetaFinalReflectionModal } from '@/components/beta-testing/BetaFinalReflectionModal';
 import { LockedInputWrapper } from '@/components/ui/LockedInputWrapper';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -150,7 +151,7 @@ export default function FinalReflectionView({
       }, 1000); // Increased delay to ensure DOM updates
 
       // Navigate to workshop recap (step 3-4) for all users
-      setCurrentContent('finish-workshop');
+      setCurrentContent('workshop-recap');
       
     } catch (error) {
       console.error('Failed to save final reflection:', error);
@@ -187,8 +188,12 @@ export default function FinalReflectionView({
 
   return (
     <>
-
-
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
 
       <div className="final-reflection-container">
         <div className="content-layout">
@@ -290,7 +295,7 @@ export default function FinalReflectionView({
                     </div>
 
                     <button
-                      onClick={() => setCurrentContent('finish-workshop')}
+                      onClick={() => setCurrentContent('workshop-recap')}
                       className="continue-button enabled"
                     >
                       Continue to Workshop Recap

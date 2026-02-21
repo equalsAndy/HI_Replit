@@ -523,7 +523,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
             >
               <FileText className="w-4 h-4 mr-2" />
-              Add Demo Data
+              Use Demo Data
             </Button>
           )}
           <Button 

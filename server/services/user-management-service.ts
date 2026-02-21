@@ -35,6 +35,10 @@ class UserManagementService {
     profilePicture?: string | null;
     invitedBy?: number | null;
     isBetaTester?: boolean;
+    astAccess?: boolean;
+    iaAccess?: boolean;
+    showDemoDataButtons?: boolean;
+    contentAccess?: 'student' | 'professional' | 'both';
   }) {
     try {
       // Hash the password
@@ -43,8 +47,25 @@ class UserManagementService {
 
       // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
-        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${(data as any).isTestUser || false}, ${data.isBetaTester || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
+        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, show_demo_data_buttons, invited_by, created_at, updated_at)
+        VALUES (
+          ${data.username},
+          ${hashedPassword},
+          ${data.name},
+          ${data.email.toLowerCase()},
+          ${data.role},
+          ${data.organization || null},
+          ${data.jobTitle || null},
+          ${(data as any).isTestUser || false},
+          ${data.isBetaTester || false},
+          ${data.contentAccess || 'professional'},
+          ${data.astAccess ?? true},
+          ${data.iaAccess ?? true},
+          ${data.showDemoDataButtons ?? false},
+          ${data.invitedBy || null},
+          NOW(),
+          NOW()
+        )
         RETURNING *
       `);
 
@@ -239,6 +260,7 @@ class UserManagementService {
     title?: string | null; // For admin route compatibility
     profilePicture?: string | null;
     isTestUser?: boolean;
+    isDemoAccount?: boolean;
     isBetaTester?: boolean;
     showDemoDataButtons?: boolean;
     role?: 'admin' | 'facilitator' | 'participant' | 'student';
@@ -260,6 +282,10 @@ class UserManagementService {
       if (data.title !== undefined) updateData.jobTitle = data.title; // Map title to jobTitle
       if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
       if (data.isTestUser !== undefined) updateData.isTestUser = data.isTestUser;
+      if (data.isDemoAccount !== undefined) {
+        console.log(`🔍 DEBUG: Updating isDemoAccount for user ${id} to ${data.isDemoAccount}`);
+        updateData.isDemoAccount = data.isDemoAccount;
+      }
       if (data.isBetaTester !== undefined) {
         console.log(`🔍 DEBUG: Updating isBetaTester for user ${id} from ${data.isBetaTester}`);
         updateData.isBetaTester = data.isBetaTester;
@@ -766,6 +792,8 @@ class UserManagementService {
       if (data.sort_order !== undefined) updateData.sortOrder = data.sort_order;
       if (data.requiredWatchPercentage !== undefined) updateData.requiredWatchPercentage = data.requiredWatchPercentage;
       if (data.required_watch_percentage !== undefined) updateData.requiredWatchPercentage = data.required_watch_percentage;
+      if (data.enforceWatchRequirement !== undefined) updateData.enforceWatchRequirement = data.enforceWatchRequirement;
+      if (data.enforce_watch_requirement !== undefined) updateData.enforceWatchRequirement = data.enforce_watch_requirement;
       if (data.transcriptMd !== undefined)             updateData.transcriptMd            = data.transcriptMd;
       if (data.glossary !== undefined)                updateData.glossary               = data.glossary;
       
@@ -801,6 +829,7 @@ class UserManagementService {
           autoplay: updatedVideo.autoplay,
           sortOrder: updatedVideo.sortOrder,
           requiredWatchPercentage: updatedVideo.requiredWatchPercentage,
+          enforceWatchRequirement: updatedVideo.enforceWatchRequirement,
           transcriptMd:        updatedVideo.transcriptMd,
           glossary:            updatedVideo.glossary
         }
@@ -1520,14 +1549,17 @@ class UserManagementService {
 
   /**
    * Mark welcome video as seen for a user
+   * @param showOnStartup - Whether to show the video on future logins (default: true)
    */
-  async markWelcomeVideoAsSeen(userId: number) {
+  async markWelcomeVideoAsSeen(userId: number, showOnStartup: boolean = true) {
     try {
       const result = await db.execute(sql`
         UPDATE users
-        SET has_seen_welcome_video = true, updated_at = NOW()
+        SET has_seen_welcome_video = true,
+            show_welcome_video_on_startup = ${showOnStartup},
+            updated_at = NOW()
         WHERE id = ${userId}
-        RETURNING id, username, name, email, has_seen_welcome_video
+        RETURNING id, username, name, email, has_seen_welcome_video, show_welcome_video_on_startup
       `);
 
       if (!result || result.length === 0) {

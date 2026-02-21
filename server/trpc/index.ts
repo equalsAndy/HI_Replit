@@ -117,6 +117,33 @@ const lessonRouter = router({
         glossary: row.glossary,
       };
     }),
+  bySection: publicProcedure
+    .input(z.object({ workshop: z.string(), section: z.string() }))
+    .query(async ({ input }) => {
+      const records = await db
+        .select()
+        .from(schema.videos)
+        .where(
+          and(
+            eq(schema.videos.workshopType, input.workshop),
+            eq(schema.videos.section, input.section)
+          )
+        )
+        .orderBy(schema.videos.sortOrder)
+        .limit(1);
+      const row = records[0];
+      if (!row) {
+        throw new TRPCError({ code: "NOT_FOUND", message: `Video for section ${input.section} not found` });
+      }
+      return {
+        workshop: row.workshopType,
+        section: row.section,
+        youtubeId: row.editableId ?? row.url,
+        title: row.title,
+        transcriptMd: row.transcriptMd,
+        glossary: row.glossary,
+      };
+    }),
 });
 
 // Reflection-specific routes

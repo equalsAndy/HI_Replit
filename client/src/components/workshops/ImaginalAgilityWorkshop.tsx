@@ -16,6 +16,10 @@ import { NavBar } from '@/components/layout/NavBar';
 import { useApplication } from '@/hooks/use-application';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import DiscernmentModal from '@/components/imaginal-agility/DiscernmentModal';
+import { useWelcomeVideo } from '@/hooks/useWelcomeVideo';
+import ImaginalAgilityWelcomeVideoModal from '@/components/modals/ImaginalAgilityWelcomeVideoModal';
+import { useStepContextSafe } from '@/contexts/StepContext';
+import ContactModal from '@/components/modals/ContactModal';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -26,10 +30,19 @@ export default function ImaginalAgilityWorkshop() {
   const [currentStep, setCurrentStepState] = useState("ia-1-1");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(true);
-  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
+  const { setCurrentStepId } = useStepContextSafe();
+
+  // Welcome video modal for first-time users
+  const {
+    showWelcomeModal,
+    handleCloseModal,
+    handleGetStarted,
+    triggerWelcomeVideo,
+  } = useWelcomeVideo();
 
   // Use navigation progress system like AST
   const {
@@ -159,13 +172,21 @@ export default function ImaginalAgilityWorkshop() {
     }
   }, []);
 
+  // Update StepContext whenever currentContent changes (for beta tester modal)
+  useEffect(() => {
+    if (currentContent && currentContent.startsWith('ia-')) {
+      setCurrentStepId(currentContent);
+      console.log('🔍 IA Workshop: Updated StepContext to:', currentContent);
+    }
+  }, [currentContent, setCurrentStepId]);
+
   // FIXED: Auto-navigate to current step based on navigation progress
   useEffect(() => {
     if (!navProgress?.currentStepId) return;
 
     const navigationCurrentStep = navProgress.currentStepId;
     console.log(`🧭IA Auto-nav: Navigation says current step is ${navigationCurrentStep}, component state is ${currentStep}`);
-    
+
     // Only update if navigation state differs from component state
     if (navigationCurrentStep !== currentStep && navigationCurrentStep.startsWith('ia-')) {
       console.log(`🔄 IA Auto-navigating: ${currentStep} → ${navigationCurrentStep}`);
@@ -214,33 +235,32 @@ export default function ImaginalAgilityWorkshop() {
     // Always allow access to the first step
     if (stepId === 'ia-1-1') return true;
 
-    // Special unlock rules
-    if (stepId === 'ia-6-1') return true; // Always accessible from start
-    if (stepId === 'ia-7-1') {
-      // Unlock after workshop completion (final submission on ia-4-6)
-      return completedSteps.includes('ia-4-6');
+    // Sections 6 & 7 (TEAMWORK, ORGANIZATION) - all unlock after Module 5 completion
+    if (stepId === 'ia-6-1' || stepId === 'ia-6-2' || stepId === 'ia-7-1') {
+      return completedSteps.includes('ia-5-5');
     }
-    if (stepId === 'ia-7-2') return false; // Locked for now
-    if (stepId === 'ia-6-coming-soon') return false; // Quarterly tune-up locked
 
-    // FIXED: Allow navigation to any completed step (for revisiting)
+    // Allow navigation to any completed step (for revisiting)
     if (completedSteps.includes(stepId)) {
       return true;
     }
 
     // Define the main progression order for IA
     const iaStepOrder = [
-      // Welcome & Orientation
-      'ia-1-1', 'ia-1-2',
-      // The I4C Model
-      'ia-2-1', 'ia-2-2', 
-      // Ladder of Imagination (Basics)
+      // Welcome & Orientation (Module 1)
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      // The I4C Model (Module 2)
+      'ia-2-1', 'ia-2-2',
+      // Ladder of Imagination (Module 3)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
-      // Advanced Ladder of Imagination
+      // Advanced Ladder of Imagination (Module 4)
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
-      // Outcomes & Benefits
-      'ia-5-1'
-      // Note: Section 6 and 7 handled by special rules above
+      // Review & Plan (Module 5)
+      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+      // Teamwork (Section 6)
+      'ia-6-1', 'ia-6-2',
+      // Organization (Section 7)
+      'ia-7-1'
     ];
 
     const currentStepIndex = iaStepOrder.indexOf(stepId);
@@ -248,7 +268,7 @@ export default function ImaginalAgilityWorkshop() {
 
     // For new steps: Check if previous step is completed
     if (currentStepIndex === 0) return true; // First step is always accessible
-    
+
     const previousStepId = iaStepOrder[currentStepIndex - 1];
     return completedSteps.includes(previousStepId);
   };
@@ -303,10 +323,21 @@ export default function ImaginalAgilityWorkshop() {
     }
   }, [currentContent, navProgress?.currentStepId]);
 
+  // Toggle drawer open/closed state
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Navigation */}
       <NavBar />
+
+      {/* Welcome Video Modal */}
+      <ImaginalAgilityWelcomeVideoModal
+        isOpen={showWelcomeModal}
+        onClose={handleCloseModal}
+        onGetStarted={handleGetStarted}
+        showCloseButton={true}
+      />
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
@@ -323,27 +354,30 @@ export default function ImaginalAgilityWorkshop() {
           isImaginalAgility={true}
           navigation={{
             progress: navProgress,
-            currentStepId: navProgress?.currentStepId || 'ia-1-1',
+            currentStepId: currentContent,
             completedSteps: completedSteps,
-            isStepCurrent: (stepId: string) => navProgress?.currentStepId === stepId,
+            isStepCurrent: (stepId: string) => currentContent === stepId,
             getStepVisualState: (stepId: string) => {
-              const isCurrent = navProgress?.currentStepId === stepId;
+              const isCurrent = currentContent === stepId;
               const isCompleted = completedSteps.includes(stepId);
               const isAccessible = isStepAccessible('', stepId);
               
               // Find next unfinished step for pulsating dot logic
               const iaStepOrder = [
-                'ia-1-1', 'ia-1-2', 'ia-2-1', 'ia-2-2', 
+                'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+                'ia-2-1', 'ia-2-2',
                 'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
                 'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
-                'ia-5-1'
+                'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+                'ia-6-1', 'ia-6-2',
+                'ia-7-1'
               ];
-              const nextUnfinishedStep = iaStepOrder.find(step => 
+              const nextUnfinishedStep = iaStepOrder.find(step =>
                 !completedSteps.includes(step) && isStepAccessible('', step)
               );
               const isNextUnfinished = stepId === nextUnfinishedStep;
-              const currentStepIsCompleted = completedSteps.includes(navProgress?.currentStepId || '');
-              const userNavigatedBack = currentStepIsCompleted && nextUnfinishedStep !== navProgress?.currentStepId;
+              const currentStepIsCompleted = completedSteps.includes(currentContent);
+              const userNavigatedBack = currentStepIsCompleted && nextUnfinishedStep !== currentContent;
               
               // IA Workshop Visual Logic (matching AST):
               // - Purple highlight: Current step being viewed
@@ -377,6 +411,7 @@ export default function ImaginalAgilityWorkshop() {
             isImaginalAgility={true}
             showDiscernmentModal={showDiscernmentModal}
             setShowDiscernmentModal={setShowDiscernmentModal}
+            onOpenContactModal={() => setIsContactModalOpen(true)}
           />
 
           {/* Imaginal Agility Assessment */}
@@ -481,6 +516,12 @@ export default function ImaginalAgilityWorkshop() {
       <DiscernmentModal
         isOpen={showDiscernmentModal}
         onClose={() => setShowDiscernmentModal(false)}
+      />
+
+      {/* Contact Modal - Rendered at page level */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
       />
     </div>
   );

@@ -15,6 +15,7 @@ import { ChevronRight } from "lucide-react";
 import WellBeingReflections from './WellBeingReflections';
 import WellBeingLadderSvg from "../visualization/WellBeingLadderSvg";
 import VideoPlayer from "./VideoPlayer";
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 const WellBeingView: React.FC<ContentViewProps> = ({
   navigate,
@@ -113,7 +114,12 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   return (
     <>
-
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
 
       {/* Step Completion Banner */}
       {isStepLocked && (

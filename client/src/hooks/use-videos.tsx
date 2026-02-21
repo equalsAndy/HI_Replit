@@ -97,13 +97,35 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
   };
 }
 
+// Hook to get ALL videos for a specific step (returns array, not single video)
+export function useVideosByStepId(workshopType: string, stepId: string) {
+  const videosQuery = useVideosByWorkshop(workshopType);
+  const userAccess = useCurrentUserAccess();
+
+  // Filter videos by stepId and user's content access mode
+  const applicableVideos = videosQuery.data?.filter(v =>
+    v.stepId === stepId &&
+    (v.contentMode === 'both' || v.contentMode === userAccess)
+  );
+
+  // Sort by sortOrder
+  const sortedVideos = applicableVideos?.sort((a, b) =>
+    (a.sortOrder || 0) - (b.sortOrder || 0)
+  ) || [];
+
+  return {
+    ...videosQuery,
+    data: sortedVideos,
+  };
+}
+
 // Alias for compatibility with existing components
 export function useVideoByStep(stepId: string) {
   // Determine workshop type based on step ID pattern
   const workshopType = stepId.includes('-') ? 'allstarteams' : 'imaginal-agility';
   // Debug logging disabled by default - set VITE_DEBUG_VIDEOS=true to enable
   if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
-    console.log(`🎥 useVideoByStep: stepId "${stepId}" -> workshopType "${workshopType}"`);  
+    console.log(`🎥 useVideoByStep: stepId "${stepId}" -> workshopType "${workshopType}"`);
   }
   return useVideoByStepId(workshopType, stepId);
 }
