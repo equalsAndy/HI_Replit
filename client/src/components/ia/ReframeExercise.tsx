@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useContinuity } from '@/hooks/useContinuity';
 import { Button } from '@/components/ui/button';
 import { ReframeModal } from './ReframeModal';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 
 export default function ReframeExercise() {
   const { state, setState, loading } = useContinuity();
@@ -154,9 +156,22 @@ export default function ReframeExercise() {
             </div>
           )}
           
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <CapabilitySelector
+            mode="single"
+            selected={ia.capability_stretched || null}
+            onSelect={(val) =>
+              setState((prev) => ({
+                ...prev,
+                ia_4_2: { ...(prev.ia_4_2 || {}), capability_stretched: val as CapabilityType },
+              }))
+            }
+            prompt="Which of your capabilities was most stretched by this exchange?"
+            className="mt-4 mb-2"
+          />
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={openModal}
             className="mt-2"
           >

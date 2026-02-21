@@ -1,33 +1,91 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
 
 interface IA51ContentProps {
   onNext?: (stepId: string) => void;
 }
 
-const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
-  // Get video data for debugging
-  const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-5-1');
+type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
 
-  // Helper function to extract YouTube ID from video URL
+const CAPABILITIES: CapabilityKey[] = ['imagination', 'curiosity', 'caring', 'creativity', 'courage'];
+
+const CAPABILITY_COLORS: Record<CapabilityKey, string> = {
+  imagination: '#8b5cf6',
+  curiosity:   '#3b82f6',
+  caring:      '#10b981',
+  creativity:  '#f59e0b',
+  courage:     '#ef4444',
+};
+
+const CAPABILITY_LABELS: Record<CapabilityKey, string> = {
+  imagination: 'Imagination',
+  curiosity:   'Curiosity',
+  caring:      'Caring',
+  creativity:  'Creativity',
+  courage:     'Courage',
+};
+
+function Dots({ count, color }: { count: number; color: string }) {
+  const filled = Math.min(Math.round(count), 4);
+  return (
+    <div className="flex gap-1 justify-center">
+      {[0, 1, 2, 3].map(i => (
+        <span
+          key={i}
+          className="inline-block w-3 h-3 rounded-full"
+          style={{ backgroundColor: i < filled ? color : '#e5e7eb' }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MovementIndicator({ solo, ai }: { solo: number; ai: number }) {
+  const diff = ai - solo;
+  if (diff >= 2) return <span className="text-green-600 font-bold text-lg">↑↑</span>;
+  if (diff >= 1) return <span className="text-green-500 font-bold text-lg">↑</span>;
+  if (diff <= -1) return <span className="text-gray-400 font-bold text-lg">↓</span>;
+  return <span className="text-amber-500 font-bold text-lg">→</span>;
+}
+
+const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
+  const { data: videoData, isLoading: videoLoading } = useVideoByStepId('ia', 'ia-5-1');
+
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
     const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
-  // Simple debug logging for video data
   React.useEffect(() => {
-    if (videoData) {
-      console.log('🎬 IA-5-1 Video found:', videoData.title);
-    } else if (!isLoading) {
-      console.log('🎬 IA-5-1 No video data found for step ia-5-1');
-    }
-  }, [videoData, isLoading]);
+    if (videoData) console.log('🎬 IA-5-1 Video found:', videoData.title);
+    else if (!videoLoading) console.log('🎬 IA-5-1 No video data found for step ia-5-1');
+  }, [videoData, videoLoading]);
+
+  // Fetch activation snapshot
+  const { data: snapshotResponse, isLoading: snapshotLoading } = useQuery({
+    queryKey: ['/api/ia/activation-snapshot'],
+    queryFn: async () => {
+      const res = await fetch('/api/ia/activation-snapshot', { credentials: 'include' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    },
+    retry: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
+
+  const snapshot = snapshotResponse?.snapshot;
+  const prism: Record<CapabilityKey, number> | null = snapshot?.prism ?? null;
+  const soloActivations: Record<CapabilityKey, number> = snapshot?.soloActivations ?? { imagination: 0, curiosity: 0, caring: 0, creativity: 0, courage: 0 };
+  const aiActivations: Record<CapabilityKey, number> = snapshot?.aiActivations ?? { imagination: 0, curiosity: 0, caring: 0, creativity: 0, courage: 0 };
+  const completeness = snapshot?.completeness;
 
   const RungPreview: React.FC<{ n: 1 | 2 | 3 | 4 | 5 }> = ({ n }) => (
     <div className="flex items-center gap-2 md:gap-3">
@@ -50,16 +108,135 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         Outcomes and Benefits
       </h1>
-      
-      {/* Video Section using VideoTranscriptGlossary component like AST */}
+
+      {/* Video Section */}
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
         title={videoData?.title || "Outcomes and Benefits Overview"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={null}
+        glossary={null}
       />
 
-      {/* Interactive Outcomes & Benefits */}
+      {/* ── Activation Snapshot Card ───────────────────────────────────────── */}
+      <Card className="mb-8 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
+        <CardHeader>
+          <CardTitle className="text-xl text-purple-800">Your Activation Snapshot</CardTitle>
+          <p className="text-sm text-gray-600">
+            Your Prism showed your capabilities as you understood them at the start.
+            The Activation columns show which capabilities you drew on — first working
+            solo, then in partnership with AI. Notice where the pattern shifted.
+          </p>
+        </CardHeader>
+
+        <CardContent>
+          {snapshotLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <Loader2 className="w-6 h-6 animate-spin text-purple-600 mr-2" />
+              <span className="text-gray-600">Loading your snapshot…</span>
+            </div>
+          ) : (
+            <>
+              {!completeness?.hasPrism && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+                  Complete the I4C Self-Assessment (Module 2) to see your Prism scores.
+                </div>
+              )}
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 pr-4 font-semibold text-gray-700 w-28">Capability</th>
+                      <th className="text-center py-2 px-3 font-semibold text-gray-700 w-20">Prism</th>
+                      <th className="text-center py-2 px-3 font-semibold text-purple-700 w-24">Solo</th>
+                      <th className="text-center py-2 px-3 font-semibold text-indigo-700 w-28">AI-Partnered</th>
+                      <th className="text-center py-2 px-3 font-semibold text-gray-700 w-20">Movement</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CAPABILITIES.map(cap => (
+                      <tr key={cap} className="border-b border-gray-100">
+                        <td className="py-3 pr-4">
+                          <span className="font-medium" style={{ color: CAPABILITY_COLORS[cap] }}>
+                            {CAPABILITY_LABELS[cap]}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          {prism
+                            ? <span className="text-gray-700 font-mono text-sm">{prism[cap].toFixed(1)}</span>
+                            : <span className="text-gray-300">—</span>
+                          }
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <Dots count={soloActivations[cap]} color="#8b5cf6" />
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <Dots count={aiActivations[cap]} color="#6366f1" />
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <MovementIndicator
+                            solo={soloActivations[cap]}
+                            ai={aiActivations[cap]}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Completeness notes */}
+              <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-500">
+                {completeness && (
+                  <>
+                    <span>Solo: {completeness.soloStepsCompleted}/{completeness.soloStepsTotal} exercises tracked</span>
+                    <span>·</span>
+                    <span>AI: {completeness.aiStepsCompleted}/{completeness.aiStepsTotal} exercises tracked</span>
+                  </>
+                )}
+              </div>
+
+              {/* Dot legend */}
+              <div className="mt-3 flex items-center gap-6 text-xs text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-3 h-3 rounded-full bg-purple-500" /> Solo activation
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-3 h-3 rounded-full bg-indigo-500" /> AI activation
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-3 h-3 rounded-full bg-gray-200" /> Not activated
+                </span>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Capstone Callout ─────────────────────────────────────────────────── */}
+      {(snapshot?.capstoneVision || snapshot?.capstoneReflection) && (
+        <Card className="mb-8 border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="text-lg text-green-800">Your Capstone Vision</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {snapshot.capstoneVision && (
+              <blockquote className="border-l-4 border-green-400 pl-4 text-green-800 italic">
+                "{snapshot.capstoneVision}"
+              </blockquote>
+            )}
+            {snapshot.capstoneReflection && (
+              <div>
+                <p className="text-sm font-medium text-green-700 mb-1">What it required of you:</p>
+                <p className="text-green-800 text-sm">{snapshot.capstoneReflection}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Interactive Outcomes & Benefits ────────────────────────────────── */}
       <div className="space-y-6">
         <h2 className="text-2xl font-semibold text-purple-700">Click each set of rungs to see some of the benefits.</h2>
 

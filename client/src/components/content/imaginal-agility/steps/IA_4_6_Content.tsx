@@ -13,6 +13,7 @@ interface IA_4_6_ContentProps {
 interface IA46StepData {
   vision: string;
   wordCount: number;
+  capstone_reflection?: string;
 }
 
 const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
@@ -21,7 +22,8 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
   // Initialize with empty data structure
   const initialData: IA46StepData = {
     vision: '',
-    wordCount: 0
+    wordCount: 0,
+    capstone_reflection: ''
   };
   
   // Use workshop step data persistence hook
@@ -174,6 +176,24 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
             </p>
           </div>
           
+          {/* Capstone Reflection */}
+          {vision.trim() && !isOverLimit && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+              <h4 className="text-lg font-semibold text-indigo-800 mb-3">
+                Reflect on the Process
+              </h4>
+              <label className="block text-indigo-700 text-sm mb-3">
+                Writing your vision without AI support — what did that require of you?
+              </label>
+              <Textarea
+                placeholder="What this brought up for me..."
+                value={data.capstone_reflection || ''}
+                onChange={(e) => updateData({ capstone_reflection: e.target.value })}
+                className="w-full h-24 resize-none"
+              />
+            </div>
+          )}
+
           {/* Closing */}
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
             <h4 className="text-lg font-semibold text-purple-800 mb-3">CLOSING</h4>

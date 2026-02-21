@@ -9,6 +9,8 @@ import { FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useVideoByStepId } from '@/hooks/use-videos';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 
 interface IA36ContentProps {
   onNext?: (stepId: string) => void;
@@ -19,6 +21,7 @@ interface IA36StepData {
   selectedMystery: string;
   visionText: string;
   reflectionText: string;
+  capability_activation?: CapabilityType;
 }
 
 const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
@@ -52,7 +55,8 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
   const initialData: IA36StepData = {
     selectedMystery: '',
     visionText: '',
-    reflectionText: ''
+    reflectionText: '',
+    capability_activation: undefined
   };
   
   // Use the new persistence hook
@@ -387,6 +391,17 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
             </blockquote>
           </CardContent>
         </Card>
+      )}
+
+      {/* Capability Selector */}
+      {data.selectedMystery && data.reflectionText && (
+        <CapabilitySelector
+          mode="single"
+          selected={data.capability_activation || null}
+          onSelect={(val) => updateData({ capability_activation: val as CapabilityType })}
+          prompt="Which capability felt most alive as you sat with this mystery?"
+          className="mb-8"
+        />
       )}
 
       <div className="flex justify-between mt-8">

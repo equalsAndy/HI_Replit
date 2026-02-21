@@ -55,6 +55,15 @@ function getUserKey(req: express.Request): UserKey {
 
 const router = express.Router();
 
+// Exported for use by snapshot route
+export function getUserKeyForReq(req: express.Request): UserKey {
+  return getUserKey(req);
+}
+
+export function getIAStateByKey(key: string): IAState | undefined {
+  return store.get(key);
+}
+
 router.get('/state', (req, res) => {
   try {
     const key = getUserKey(req);

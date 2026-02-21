@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 
 interface IA34ContentProps {
   onNext?: (stepId: string) => void;
@@ -14,6 +16,7 @@ interface IA34StepData {
   howReflection: string;
   whatReflection: string;
   nextStep: string;
+  capability_activations?: CapabilityType[];
 }
 
 const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
@@ -24,7 +27,8 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
     whyReflection: '',
     howReflection: '',
     whatReflection: '',
-    nextStep: ''
+    nextStep: '',
+    capability_activations: []
   };
   
   // Use workshop step data persistence hook
@@ -179,13 +183,16 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         />
       </div>
 
-      {/* I4C In Action Recognition */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-8 border border-purple-200 mb-8">
-        <h2 className="text-xl font-semibold text-purple-700 mb-4">Your I4C In Action</h2>
-        <p className="text-gray-700 leading-relaxed">
-          <strong>Kudos!</strong> You may not have noticed, but you've applied your unique I4C skillset. By clarifying your Higher Purpose and choosing a next step, you've already applied <strong>imagination, curiosity, caring, creativity and courage</strong>. That's Imaginal Agility in action!
-        </p>
-      </div>
+      {/* Capability Selector */}
+      {isFormComplete && (
+        <CapabilitySelector
+          mode="dual"
+          selected={data.capability_activations || []}
+          onSelect={(val) => updateData({ capability_activations: val as CapabilityType[] })}
+          prompt="You just applied your I4C capabilities. Which two felt strongest as you worked through this?"
+          className="mb-8"
+        />
+      )}
 
       {/* Save & Next */}
       <div className="flex justify-end items-center gap-3 mt-8">
@@ -203,7 +210,7 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         <Button
           onClick={handleSave}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-          disabled={saving || !isFormComplete}
+          disabled={saving || !isFormComplete || !data.capability_activations || data.capability_activations.length !== 2}
         >
           {saving ? 'Saving...' : 'Continue to Inspiration'}
         </Button>
