@@ -74,7 +74,8 @@ router.put('/ia/steps/:stepId', requireAuth, express.json(), async (req, res) =>
         set: {
           data: sql`excluded.data`,
           version: sql`${workshopStepData.version} + 1`,
-          updatedAt: sql`now()`
+          updatedAt: sql`now()`,
+          deletedAt: null // Clear soft-delete so GET /workshop-data/step can find the record
         }
       });
 

@@ -54,6 +54,7 @@ export function StretchModal({
   function toFirstPerson(text: string) {
     let t = text;
     t = t.replace(/[""]/g, '"');
+    t = t.replace(/['']/g, "'");
     t = t.replace(/\bthe way you\b/gi, 'the way I');
     t = t.replace(/\byou show yourself\b/gi, 'I show myself');
     t = t.replace(/\bshow yourself\b/gi, 'show myself');
@@ -92,7 +93,7 @@ export function StretchModal({
           !quote.toLowerCase().includes('possibility') &&
           (quote.includes('I') || quote.includes('you') || quote.includes('could') ||
            quote.includes('become') || quote.includes('might') || quote.includes('would'))) {
-        return toFirstPerson(quote).slice(0, 300);
+        return toFirstPerson(quote).slice(0, 600);
       }
     }
 
@@ -109,7 +110,7 @@ export function StretchModal({
       if (match && match[1]) {
         const stretch = match[1].trim();
         if (stretch.length > 10) {
-          return toFirstPerson(stretch).slice(0, 300);
+          return toFirstPerson(stretch).slice(0, 600);
         }
       }
     }
@@ -125,7 +126,7 @@ export function StretchModal({
       
       if (stretchIndicators.some(indicator => sentence.toLowerCase().includes(indicator))) {
         const cleaned = sentence.replace(/^(?:this\\s+)?(?:stretch|this)\\s*[:\\-]?\\s*/i, '').replace(/^["'""''`]|["'""''`]$/g, '');
-        return toFirstPerson(cleaned.trim()).slice(0, 300);
+        return toFirstPerson(cleaned.trim()).slice(0, 600);
       }
     }
 
@@ -336,7 +337,7 @@ export function StretchModal({
         <div className="flex flex-col bg-white p-4 pt-16 overflow-y-auto">
           <section className="mb-6">
             <h2 className="text-sm font-semibold uppercase mb-2">YOUR VISUALIZATION STRETCHED</h2>
-            <div className="min-h-[100px] p-3 border rounded bg-gray-50 text-sm mb-3">
+            <div className="min-h-[100px] max-h-[220px] overflow-y-auto p-3 border rounded bg-gray-50 text-sm mb-3">
               {currentStretch.trim() ? currentStretch : 'Work with AI to stretch your visualization and it will appear here.'}
             </div>
             {phase === 'stretch' && (

@@ -27,7 +27,7 @@ export interface ReframeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   challenge: string;
-  onApply: (result: { transcript: string[]; shift: string; tag: string }) => void;
+  onApply: (result: { transcript: string[]; shift: string; tag: string; reframe: string }) => void;
   onStartOver: () => void;
   onKeepContext?: () => void;
 }
@@ -51,6 +51,7 @@ export function ReframeModal({
   function toFirstPerson(text: string) {
     let t = text;
     t = t.replace(/[""]/g, '"');
+    t = t.replace(/['']/g, "'");
     t = t.replace(/\bthe way you\b/gi, 'the way I');
     t = t.replace(/\byou show yourself\b/gi, 'I show myself');
     t = t.replace(/\bshow yourself\b/gi, 'show myself');
@@ -270,7 +271,7 @@ export function ReframeModal({
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
-    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag });
+    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag, reframe: currentReframe.trim() });
     onOpenChange(false);
   };
 
