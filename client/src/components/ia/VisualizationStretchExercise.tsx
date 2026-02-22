@@ -236,7 +236,7 @@ export default function VisualizationStretchExercise() {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-1">Resistance Identified:</h4>
                 <p className="text-sm text-gray-800 bg-white p-3 rounded border">
-                  {ia.resistance_type === 'Other' ? ia.resistance_custom : ia.resistance_type}
+                  {ia.resistance_type === 'Name your own...' ? ia.resistance_custom : ia.resistance_type}
                 </p>
               </div>
             </div>

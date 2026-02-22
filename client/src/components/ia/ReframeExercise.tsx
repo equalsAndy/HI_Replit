@@ -98,14 +98,42 @@ export default function ReframeExercise() {
 
   return (
     <>
-      <div className="mb-4">
-        <label htmlFor="challenge-textarea" className="block mb-1 font-medium text-gray-900">
-          Your work challenge
-        </label>
+      {/* Step 1: Settle — echoes ia-3-2 step box style */}
+      <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 mb-4">
+        <h3 className="font-semibold text-purple-700 mb-3">1. Settle (15 seconds)</h3>
+        <p className="text-gray-700">Sit comfortably.</p>
+        <p className="text-gray-700">Take one slow breath in… and out.</p>
+        <p className="text-gray-700 mt-2 text-sm italic">
+          In your first Autoflow exercise, you practiced noticing whatever arose — without directing it. Anything was fine.
+          This exercise uses that same settling skill, but now you&apos;re bringing it somewhere specific.
+        </p>
+      </div>
+
+      {/* Step 2: Notice */}
+      <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 mb-4">
+        <h3 className="font-semibold text-purple-700 mb-3">2. Notice (20–30 seconds)</h3>
+        <p className="text-gray-700 mb-2">Let your attention drift toward work or school.</p>
+        <p className="text-gray-700 mb-2">Think of something that feels unresolved — a situation, a relationship, a project, or a pattern that keeps coming up.</p>
+        <p className="text-gray-700 mb-2">It might be:</p>
+        <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-3">
+          <li>A dynamic with someone that feels difficult</li>
+          <li>A project or role that feels draining or stuck</li>
+          <li>Something you&apos;re not sure how to move through</li>
+          <li>A situation that keeps coming back to you</li>
+        </ul>
+        <p className="text-gray-700 italic">Notice the one that has a little weight to it.</p>
+      </div>
+
+      {/* Step 3: Describe — textarea with privacy note as caption */}
+      <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 mb-6">
+        <h3 className="font-semibold text-purple-700 mb-3">3. Describe your challenge (2–3 sentences)</h3>
+        <p className="text-gray-700 mb-4">
+          Write enough that the AI can understand the situation. Don&apos;t edit — just capture it plainly.
+        </p>
         <textarea
           id="challenge-textarea"
-          className="w-full border border-gray-300 rounded p-2 resize-y"
-          rows={4}
+          className="w-full border border-gray-300 rounded p-2 resize-y bg-white"
+          rows={5}
           value={challenge}
           onChange={(e) =>
             setState((prev) => ({
@@ -118,8 +146,13 @@ export default function ReframeExercise() {
           }
           aria-describedby="challenge-hint"
         />
-        <p id="challenge-hint" className="mt-1 text-sm text-gray-600">
-          Write your challenge first. When you're ready, invite AI to help you reframe it.
+        <p id="challenge-hint" className="mt-2 text-sm text-gray-500 flex items-start gap-1">
+          <span>🔒</span>
+          <span>
+            <strong className="text-gray-700">This is private</strong> — never visible to your manager, instructor, or colleagues.
+            Still, it is always wise to use general terms rather than names: &ldquo;a colleague,&rdquo; &ldquo;my team,&rdquo; &ldquo;a project I&apos;m on.&rdquo;
+            People&apos;s names can get in the way of solutions, and AI doesn&apos;t know anything about them that you don&apos;t tell it.
+          </span>
         </p>
       </div>
 
@@ -159,6 +192,11 @@ export default function ReframeExercise() {
             </div>
           )}
           
+          {!ia.capability_stretched && (
+            <p className="mt-4 mb-1 text-xs font-semibold text-amber-600 flex items-center gap-1">
+              <span>⚠</span> Required to continue — select one below
+            </p>
+          )}
           <CapabilitySelector
             mode="single"
             selected={ia.capability_stretched || null}
@@ -169,17 +207,9 @@ export default function ReframeExercise() {
               }))
             }
             prompt="Which of your capabilities was most stretched by this exchange?"
-            className="mt-4 mb-2"
+            className={ia.capability_stretched ? 'mt-4 mb-2' : 'mt-1 mb-2 ring-2 ring-amber-400'}
           />
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={openModal}
-            className="mt-2"
-          >
-            Refine with AI again
-          </Button>
         </div>
       )}
 

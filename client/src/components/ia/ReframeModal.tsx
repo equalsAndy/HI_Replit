@@ -12,7 +12,7 @@ const TAG_OPTIONS = [
   { value: 'Humor',    label: 'Humor',    helper: "It lightened; there's play here." },
   { value: 'Calm',     label: 'Calm',     helper: 'Less noise, more ease.' },
   { value: 'Insight',  label: 'Insight',  helper: 'A fresh understanding landed.' },
-  { value: 'Other',    label: 'Other',    helper: 'Something else—name it later.' },
+  { value: 'Other',    label: 'Other',    helper: 'Something else — name it here.' },
 ];
 
 const SHIFT_TEMPLATE = 'I went from [where you were] to [where you are now]';
@@ -47,6 +47,7 @@ export function ReframeModal({
   const [transcript, setTranscript] = React.useState<ChatMessage[]>([]);
   const [shiftBox, setShiftBox] = React.useState('');
   const [tag, setTag] = React.useState(TAG_OPTIONS[0].value);
+  const [tagCustom, setTagCustom] = React.useState('');
   const [currentReframe, setCurrentReframe] = React.useState('');
 
   // Guided shift flow state
@@ -233,6 +234,7 @@ export function ReframeModal({
       setTranscript([]);
       setShiftBox('');
       setTag(TAG_OPTIONS[0].value);
+      setTagCustom('');
       setCurrentReframe('');
       setShiftAttempts(0);
       setShiftStep('template');
@@ -421,10 +423,12 @@ export function ReframeModal({
 
   const onApplyClick = () => {
     if (!shiftBox.trim() || !tag) return;
+    if (tag === 'Other' && !tagCustom.trim()) return;
+    const effectiveTag = tag === 'Other' ? tagCustom.trim() : tag;
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
-    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag, reframe: currentReframe.trim() });
+    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag: effectiveTag, reframe: currentReframe.trim() });
     onOpenChange(false);
   };
 
@@ -546,7 +550,7 @@ export function ReframeModal({
           {phase === 'tag' && (
             <section>
               <h2 className="text-sm font-semibold uppercase mb-2">Tag this shift</h2>
-              <div className="grid grid-cols-1 gap-2 mb-4">
+              <div className="grid grid-cols-1 gap-2 mb-3">
                 {TAG_OPTIONS.map(({ value, label, helper }) => (
                   <label
                     key={value}
@@ -567,9 +571,24 @@ export function ReframeModal({
                   </label>
                 ))}
               </div>
+              {tag === 'Other' && (
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Name this shift..."
+                  value={tagCustom}
+                  onChange={(e) => setTagCustom(e.target.value)}
+                  className="w-full p-2 border rounded text-sm mb-3"
+                />
+              )}
               <div className="flex gap-2">
                 <Button variant="secondary" onClick={onBack} size="sm" className="flex-1">Back</Button>
-                <Button onClick={onApplyClick} disabled={!shiftBox.trim() || !tag} size="sm" className="flex-1">
+                <Button
+                  onClick={onApplyClick}
+                  disabled={!shiftBox.trim() || !tag || (tag === 'Other' && !tagCustom.trim())}
+                  size="sm"
+                  className="flex-1"
+                >
                   I'm done
                 </Button>
               </div>

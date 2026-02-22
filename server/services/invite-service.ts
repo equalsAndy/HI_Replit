@@ -245,55 +245,6 @@ class InviteService {
   }
 
   /**
-   * Update an invite (pending only)
-   */
-  async updateInvite(id: number, updates: {
-    name?: string;
-    role?: 'admin' | 'facilitator' | 'participant' | 'student';
-    isBetaTester?: boolean;
-    astAccess?: boolean;
-    iaAccess?: boolean;
-    showDemoDataButtons?: boolean;
-  }) {
-    try {
-      // Build dynamic set clauses
-      const setClauses: any[] = [];
-      if (updates.name !== undefined) setClauses.push(sql`name = ${updates.name}`);
-      if (updates.role !== undefined) setClauses.push(sql`role = ${updates.role}`);
-      if (updates.isBetaTester !== undefined) setClauses.push(sql`is_beta_tester = ${updates.isBetaTester}`);
-      if (updates.astAccess !== undefined) setClauses.push(sql`ast_access = ${updates.astAccess}`);
-      if (updates.iaAccess !== undefined) setClauses.push(sql`ia_access = ${updates.iaAccess}`);
-      if (updates.showDemoDataButtons !== undefined) setClauses.push(sql`show_demo_data_buttons = ${updates.showDemoDataButtons}`);
-
-      if (setClauses.length === 0) {
-        return { success: false, error: 'No fields provided for update' };
-      }
-
-      const query = sql`
-        UPDATE invites
-        SET ${sql.join(setClauses, sql`, `)}
-        WHERE id = ${id} AND used_at IS NULL
-        RETURNING *
-      `;
-
-      const result = await db.execute(query);
-      const inviteData = (result as any)[0] || (result as any).rows?.[0];
-
-      if (!inviteData) {
-        return { success: false, error: 'Invite not found or already used' };
-      }
-
-      return { success: true, invite: inviteData };
-    } catch (error) {
-      console.error('Error updating invite:', error);
-      return {
-        success: false,
-        error: 'Failed to update invite'
-      };
-    }
-  }
-  
-  /**
    * Mark an invite as used
    */
   async markInviteAsUsed(inviteCode: string, userId: number) {

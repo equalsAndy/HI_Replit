@@ -49,10 +49,10 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
     }
     
     updateData({
-      whyReflection: "I want to develop my imagination because I believe it's the key to solving complex problems in my work and creating meaningful innovations. In a world increasingly dominated by AI, my unique human capacity for imaginative thinking gives me purpose and keeps me engaged with challenges that matter.",
-      howReflection: "I'll practice daily visualization exercises, engage in creative brainstorming sessions with my team, and regularly challenge myself to think beyond conventional solutions. I'll also seek out diverse perspectives and experiences that stretch my thinking patterns and expand my creative capacity.",
-      whatReflection: "I envision myself as someone who consistently generates breakthrough ideas, helps others see new possibilities, and creates value through imaginative solutions. I want to be known as a creative problem-solver who brings fresh perspectives to every challenge and inspires others to think differently.",
-      nextStep: "I'll start by dedicating 15 minutes each morning to imagination exercises, join a creative thinking group in my organization, and commit to proposing at least one innovative solution each month for the challenges I encounter in my work."
+      whyReflection: "I keep coming back to the gap between how organizations talk about innovation and how they actually make decisions. Too many teams default to incremental thinking when the problems they face require genuine imagination.",
+      howReflection: "I'm in a position to influence how my team approaches complex problems — I lead our planning process and I have credibility with leadership. I also mentor two junior colleagues who are eager to think differently.",
+      whatReflection: "I'd want them to say I helped the team get comfortable with uncertainty and that I brought creative approaches to problems everyone else was stuck on.",
+      nextStep: "Block 30 minutes this week to map one current project challenge using a different thinking framework than we usually default to."
     });
     
     console.log('IA 3-4 Content filled with demo data');
@@ -104,13 +104,10 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
               PURPOSE:
             </p>
             <p className="text-lg leading-relaxed">
-              This exercise transforms your potential vision of yourself worth growing into. Now, let's explore where that vision might be pointing. Reflect on your I4C Radar Map and the capacities you're developing.
+              You've been exploring your capabilities and visualizing your potential. Now let's give that direction. This rung is about naming what matters to you — in your work, your field, or the wider world — and identifying where you're positioned to act on it.
             </p>
             <p className="text-lg leading-relaxed">
-              This is the moment to give your vision direction — by identifying a purpose that matters to you. It might be something new, or something you're already part of.
-            </p>
-            <p className="text-lg leading-relaxed font-medium text-purple-700">
-              Either way, this rung on the Ladder is a chance to reflect, renew, or begin.
+              Your answers here will carry forward into later exercises, so be honest rather than aspirational. Start where you are.
             </p>
           </div>
         </div>
@@ -124,7 +121,7 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">WHY</h3>
           <p className="text-gray-700 mb-3 italic">
-            What do you care about deeply? What future would you like to help shape?
+            What problem, question, or cause keeps pulling your attention — at work, in your field, or in the wider world?
           </p>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
@@ -139,11 +136,8 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">HOW</h3>
           <p className="text-gray-700 mb-3 italic">
-            How will you move toward that future?
+            Where are you positioned to make a difference — through your role, your skills, or the people you work with?
           </p>
-          <label className="block mb-2 text-gray-700 font-medium text-sm">
-            What do you do to bring that to life — habits, skills, or ways of showing up?
-          </label>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
@@ -157,11 +151,8 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">WHAT</h3>
           <p className="text-gray-700 mb-3 italic">
-            What might a first step look like?
+            If colleagues described your impact a year from now, what would you want them to say?
           </p>
-          <label className="block mb-2 text-gray-700 font-medium text-sm">
-            How does this align with the person you're becoming?
-          </label>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
@@ -176,7 +167,7 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
       <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200 mb-8">
         <h2 className="text-xl font-semibold text-purple-700 mb-4">Immediate Next Step</h2>
         <p className="text-gray-700 mb-4 italic">
-          Identify one immediate practical next step this week, small or big.
+          What's one small action you could take this week to move in that direction?
         </p>
         <textarea
           className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"

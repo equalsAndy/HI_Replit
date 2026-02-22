@@ -262,6 +262,7 @@ export function StretchModal({
 
   const onApplyClick = () => {
     if (!stretchVisualization.trim() || !resistanceType.trim()) return;
+    if (resistanceType === 'Name your own...' && !resistanceCustom.trim()) return;
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
@@ -271,7 +272,7 @@ export function StretchModal({
       tag: '', // No tagging
       stretch_visualization: stretchVisualization.trim(),
       resistance_type: resistanceType,
-      resistance_custom: resistanceType === 'Other' ? resistanceCustom : undefined
+      resistance_custom: resistanceType === 'Name your own...' ? resistanceCustom : undefined
     });
     onOpenChange(false);
   };
@@ -399,7 +400,7 @@ export function StretchModal({
               <h2 className="text-sm font-semibold uppercase mb-2">Identify the Resistance</h2>
               <p className="text-xs text-gray-600 mb-3">What's holding you back from stretching into this expanded role?</p>
               <div className="space-y-2 mb-3">
-                {['Fear of judgment', 'Habit', 'Lack of time', 'Identity attachment', 'Other'].map((option) => (
+                {['Fear of judgment', 'Habit', 'Lack of time', 'Identity attachment', 'Name your own...'].map((option) => (
                   <label key={option} className="flex items-center text-sm cursor-pointer">
                     <input
                       type="radio"
@@ -413,10 +414,11 @@ export function StretchModal({
                   </label>
                 ))}
               </div>
-              {resistanceType === 'Other' && (
+              {resistanceType === 'Name your own...' && (
                 <input
                   type="text"
-                  placeholder="Specify other resistance..."
+                  autoFocus
+                  placeholder="Name this resistance..."
                   value={resistanceCustom}
                   onChange={(e) => setResistanceCustom(e.target.value)}
                   className="w-full p-2 border rounded text-sm mb-3"
@@ -424,7 +426,7 @@ export function StretchModal({
               )}
               <div className="flex gap-2 mb-4">
                 <Button variant="secondary" onClick={onBack} size="sm" className="flex-1">Back</Button>
-                <Button onClick={onApplyClick} disabled={!resistanceType || (resistanceType === 'Other' && !resistanceCustom.trim())} size="sm" className="flex-1">
+                <Button onClick={onApplyClick} disabled={!resistanceType || (resistanceType === 'Name your own...' && !resistanceCustom.trim())} size="sm" className="flex-1">
                   Complete Exercise
                 </Button>
               </div>
