@@ -353,8 +353,8 @@ export function ActionPlanningModal({
             )}
           </div>
           
-          {/* Complete Button */}
-          <div className="pt-4 border-t border-gray-200 mt-4">
+          {/* Action Buttons */}
+          <div className="pt-4 border-t border-gray-200 mt-4 space-y-2">
             <Button
               onClick={handleSaveStep}
               disabled={!currentAction.trim()}
@@ -363,6 +363,15 @@ export function ActionPlanningModal({
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Add Action Step
             </Button>
+            {actionSteps.length > 0 && (
+              <Button
+                onClick={handleComplete}
+                variant="outline"
+                className="w-full text-sm py-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                Done — close this exercise
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

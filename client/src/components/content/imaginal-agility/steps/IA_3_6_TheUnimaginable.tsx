@@ -477,93 +477,76 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
       {data.reflectionText.trim() && (
         <Card className="mb-8 border-purple-200">
           <CardHeader className="bg-purple-50">
-            <CardTitle className="text-purple-800">Reconnecting to Your I4C</CardTitle>
+            <CardTitle className="text-purple-800 text-xl">Reconnecting to Your I4C</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <p className="text-gray-700 mb-6">
+            {/* Summary of what they did */}
+            <div className="bg-purple-50 rounded-lg p-4 mb-6 border border-purple-200">
+              <p className="text-purple-800 font-semibold text-base mb-2">Your Mystery & Leap:</p>
+              <p className="text-purple-700 text-base">
+                <span className="font-semibold">Mystery:</span> {data.selectedMystery}
+              </p>
+              {data.selectedQuestion && (
+                <p className="text-purple-700 text-base mt-1 italic">
+                  <span className="font-semibold not-italic">Question:</span> "{data.selectedQuestion}"
+                </p>
+              )}
+            </div>
+
+            <p className="text-gray-700 mb-5 text-base">
               That leap required more than imagination alone. Look at what you actually did:
             </p>
 
-            {/* I4C Graphics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-              {/* Imagination */}
-              <div className="flex flex-col items-center text-center">
-                <img
-                  src="/assets/Imagination_new.png"
-                  alt="Imagination"
-                  className="w-16 h-16 mb-2"
-                  onError={(e) => {
-                    console.error('❌ Failed to load Imagination graphic');
-                    e.currentTarget.src = '/assets/Imagination_sq.png'; // Fallback
-                  }}
-                />
-                <h4 className="font-semibold text-purple-700 mb-1">Imagination</h4>
-                <p className="text-sm text-gray-600">You constructed a scenario with no existing template to follow.</p>
-              </div>
-
-              {/* Curiosity */}
-              <div className="flex flex-col items-center text-center">
-                <img
-                  src="/assets/Curiosity_new.png"
-                  alt="Curiosity"
-                  className="w-16 h-16 mb-2"
-                  onError={(e) => {
-                    console.error('❌ Failed to load Curiosity graphic');
-                    e.currentTarget.src = '/assets/Curiosity_sq.png'; // Fallback
-                  }}
-                />
-                <h4 className="font-semibold text-purple-700 mb-1">Curiosity</h4>
-                <p className="text-sm text-gray-600">You chose a question without a known answer — and stayed with it.</p>
-              </div>
-
-              {/* Caring */}
-              <div className="flex flex-col items-center text-center">
-                <img
-                  src="/assets/Caring_new.png"
-                  alt="Caring"
-                  className="w-16 h-16 mb-2"
-                  onError={(e) => {
-                    console.error('❌ Failed to load Caring graphic');
-                    e.currentTarget.src = '/assets/Caring_sq.png'; // Fallback
-                  }}
-                />
-                <h4 className="font-semibold text-purple-700 mb-1">Caring</h4>
-                <p className="text-sm text-gray-600">You engaged with something that matters beyond your immediate world.</p>
-              </div>
-
-              {/* Courage */}
-              <div className="flex flex-col items-center text-center">
-                <img
-                  src="/assets/Courage_new.png"
-                  alt="Courage"
-                  className="w-16 h-16 mb-2"
-                  onError={(e) => {
-                    console.error('❌ Failed to load Courage graphic');
-                    e.currentTarget.src = '/assets/courage_sq.png'; // Fallback
-                  }}
-                />
-                <h4 className="font-semibold text-purple-700 mb-1">Courage</h4>
-                <p className="text-sm text-gray-600">You put down ideas that might feel strange or unfinished — and kept going.</p>
-              </div>
+            {/* I4C Capabilities — Horizontal Cards */}
+            <div className="space-y-3 mb-6">
+              {[
+                {
+                  src: '/assets/Imagination_new.png',
+                  fallback: '/assets/Imagination_sq.png',
+                  name: 'Imagination',
+                  desc: 'You constructed a scenario with no existing template to follow.'
+                },
+                {
+                  src: '/assets/Curiosity_new.png',
+                  fallback: '/assets/Curiosity_sq.png',
+                  name: 'Curiosity',
+                  desc: 'You chose a question without a known answer — and stayed with it.'
+                },
+                {
+                  src: '/assets/Caring_new.png',
+                  fallback: '/assets/Caring_sq.png',
+                  name: 'Caring',
+                  desc: 'You engaged with something that matters beyond your immediate world.'
+                },
+                {
+                  src: '/assets/Courage_new.png',
+                  fallback: '/assets/courage_sq.png',
+                  name: 'Courage',
+                  desc: 'You put down ideas that might feel strange or unfinished — and kept going.'
+                },
+                {
+                  src: '/assets/Creativity_new.png',
+                  fallback: '/assets/Creativity_sq.png',
+                  name: 'Creativity',
+                  desc: "You generated something that didn't exist before you wrote it."
+                },
+              ].map(({ src, fallback, name, desc }) => (
+                <div key={name} className="flex items-center gap-5 bg-white rounded-xl p-4 border border-purple-100 shadow-sm">
+                  <img
+                    src={src}
+                    alt={name}
+                    className="w-16 h-16 shrink-0"
+                    onError={(e) => { e.currentTarget.src = fallback; }}
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-purple-700 text-lg mb-1">{name}</h4>
+                    <p className="text-gray-600 text-base leading-snug">{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Add Creativity as 5th element */}
-            <div className="flex justify-center mb-6">
-              <div className="flex flex-col items-center text-center">
-                <img
-                  src="/assets/Creativity_new.png"
-                  alt="Creativity"
-                  className="w-16 h-16 mb-2"
-                  onError={(e) => {
-                    console.error('❌ Failed to load Creativity graphic');
-                    e.currentTarget.src = '/assets/Creativity_sq.png'; // Fallback
-                  }}
-                />
-                <h4 className="font-semibold text-purple-700 mb-1">Creativity</h4>
-                <p className="text-sm text-gray-600">You generated something that didn't exist before you wrote it.</p>
-              </div>
-            </div>
-            <p className="text-purple-700 font-medium mt-4 text-center">
+            <p className="text-purple-700 font-medium mt-4 text-center text-base">
               You likely felt some of these more than others — that's normal. The question below asks which one was most alive for you.
             </p>
             <blockquote className="text-center text-lg italic text-purple-600 mt-6">

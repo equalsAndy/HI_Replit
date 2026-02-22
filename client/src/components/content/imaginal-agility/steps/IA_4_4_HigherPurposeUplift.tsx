@@ -105,7 +105,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
           onClick={() => onNext && onNext('ia-4-5')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to Next Step
+          Continue to Inspiration Support
         </Button>
       </div>
     </div>
