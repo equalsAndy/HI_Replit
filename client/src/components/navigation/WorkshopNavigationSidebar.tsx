@@ -504,13 +504,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   "rounded-md p-2 flex items-center text-sm transition",
                                   // FIXED: Use visual state for highlight instead of isCurrent
                                   visualState.showRoundedHighlight
-                                    ? (isImaginalAgility 
-                                        ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium" 
-                                        : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium") 
+                                    ? (isImaginalAgility
+                                        ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium"
+                                        : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium")
                                     : "",
                                   // Completed steps get green styling
-                                  isCompleted 
-                                    ? "text-green-700 bg-green-50" 
+                                  isCompleted
+                                    ? "text-green-700 bg-green-50"
                                     : isAccessible
                                       ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
                                       : "text-gray-400 cursor-not-allowed"

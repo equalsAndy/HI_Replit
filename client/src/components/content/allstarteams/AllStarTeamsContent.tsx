@@ -278,20 +278,12 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
       );
 
     case 'workshop-recap':
-      return (
-        <WorkshopRecap 
-          setCurrentContent={setCurrentContent}
-          markStepCompleted={markStepCompleted}
-        />
-      );
-
     case 'finish-workshop':
     case '3-4':
       return (
-        <FinishWorkshopView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
+        <WorkshopRecap
           setCurrentContent={setCurrentContent}
+          markStepCompleted={markStepCompleted}
         />
       );
 
@@ -426,13 +418,24 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'more-fun-stuff':
     case 'personal-profile':
-      return (
-        <PersonalProfileContainer
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-        />
-      );
+      // Show PersonalProfileContainer for admins, BeyondASTView for non-admins
+      if (user?.role === 'admin') {
+        return (
+          <PersonalProfileContainer
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      } else {
+        return (
+          <BeyondASTView
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      }
 
     case 'more-imaginal-agility':
       return (

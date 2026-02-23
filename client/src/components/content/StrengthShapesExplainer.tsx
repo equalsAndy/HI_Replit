@@ -94,7 +94,7 @@ export const StrengthShapesExplainer: React.FC<StrengthShapesExplainerProps> = (
                     }}
                   >
                     <span
-                      className="text-[10px] font-medium text-center mb-2"
+                      className="text-sm font-bold text-center mb-2"
                       style={{
                         writingMode: 'vertical-rl',
                         textOrientation: 'mixed',

@@ -102,8 +102,8 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
       const updateContext = () => {
         const urlStepId = getStepIdFromUrl();
         const effectiveStepId = currentStepId || urlStepId;
-        // Reduced logging to prevent console spam
-        // console.log('🔄 Updating context for step:', effectiveStepId, 'URL:', window.location.pathname, 'URL changed:', currentUrl !== window.location.pathname);
+        // Debug logging to verify step detection is working
+        console.log('🔄 BetaTesterNotesModal - Updating context for step:', effectiveStepId, 'stepContextId:', stepContextId, 'navProgress:', navProgress?.currentStepId);
         
         // Get current page context using effective step ID
         const context = detectCurrentPage(effectiveStepId || undefined);
@@ -175,7 +175,7 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
         history.replaceState = originalReplaceState;
       };
     }
-  }, [isOpen, currentStepId]); // This should re-run when currentStepId changes
+  }, [isOpen, currentStepId, stepContextId]); // Re-run when stepContextId changes
 
   // Reset form when modal opens (ready for new note)
   useEffect(() => {

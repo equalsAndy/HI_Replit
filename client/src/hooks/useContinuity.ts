@@ -5,163 +5,197 @@ import type { IAState as CanonicalIAState } from '@/lib/types';
 export type IAState = CanonicalIAState;
 
 const DEFAULT_STATE: IAState = {
-  ia_4_2: { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '' },
-  ia_4_3: { assumptions: '', ai_assumptions: [], user_insight: '', tag: '', updated_perspective: '' },
-  ia_4_4: { positive_outcome: '', ai_outcome: [], user_possibility: '', tag: '', expanded_vision: '', global_bridges: [], completed: false },
-  ia_4_5: { next_step: '', ai_action: [], user_clarity: '', tag: '', commitment: '', action_steps: [], completed: false },
+  ia_4_2: { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '', capability_stretched: undefined },
+  ia_4_3: { assumptions: '', ai_assumptions: [], user_insight: '', tag: '', updated_perspective: '', capability_stretched: undefined },
+  ia_4_4: { positive_outcome: '', ai_outcome: [], user_possibility: '', tag: '', expanded_vision: '', global_bridges: [], completed: false, capability_stretched: undefined },
+  ia_4_5: { next_step: '', ai_action: [], user_clarity: '', tag: '', commitment: '', action_steps: [], completed: false, capability_stretched: undefined },
 };
+
+// ── Module-level shared state ─────────────────────────────────────────────────
+// All components calling useContinuity() on the same page share this state so
+// parent/child pairs (e.g. IA_4_2 + ReframeExercise) always see the same data
+// and the parent's canContinue check reflects child-driven updates immediately.
+let _sharedState: IAState = { ...DEFAULT_STATE };
+let _sharedLoading = true;
+let _sharedError: string | null = null;
+let _initialized = false;
+let _initPromise: Promise<void> | null = null;
+
+const _listeners = new Set<() => void>();
+
+function _notifyListeners() {
+  _listeners.forEach(fn => fn());
+}
+
+function _applyPatch(
+  p: Partial<IAState> | ((prev: IAState) => Partial<IAState> | IAState)
+) {
+  if (typeof p === 'function') {
+    const result = (p as (prev: IAState) => Partial<IAState> | IAState)(_sharedState) || {};
+    const isFullState = Object.keys(result).some(k => (_sharedState as any)[k] !== undefined);
+    _sharedState = isFullState
+      ? ({ ...(result as IAState), updatedAt: new Date().toISOString() } as IAState)
+      : ({ ..._sharedState, ...(result as Partial<IAState>), updatedAt: new Date().toISOString() } as IAState);
+  } else {
+    _sharedState = { ..._sharedState, ...(p as Partial<IAState>), updatedAt: new Date().toISOString() };
+  }
+  _notifyListeners();
+}
+
+async function _saveToServer(stateSnapshot: IAState): Promise<boolean> {
+  try {
+    const res = await fetch('/api/ia/saveProgress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ patch: stateSnapshot }),
+    });
+    const data = await res.json();
+    if (!data?.success) throw new Error(data?.error || 'Failed to save');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function _initSharedState(): Promise<void> {
+  if (_initialized) return _initPromise!;
+  _initialized = true;
+
+  // Migrate any drifted localStorage keys before first server load
+  try {
+    const raw = localStorage.getItem('IA_STATE');
+    if (raw) {
+      let obj: any = JSON.parse(raw);
+      let changed = false;
+      if (obj?.ia_4_2 && typeof obj.ia_4_2 === 'object') {
+        if ('shift' in obj.ia_4_2 && !('user_shift' in obj.ia_4_2)) {
+          obj.ia_4_2.user_shift = obj.ia_4_2.shift;
+          delete obj.ia_4_2.shift;
+          changed = true;
+        }
+      }
+      if (obj?.ia_4_4 && typeof obj.ia_4_4 === 'object') {
+        if ('what_it_needs' in obj.ia_4_4 && !('contribution' in obj.ia_4_4)) {
+          obj.ia_4_4.contribution = obj.ia_4_4.what_it_needs;
+          delete obj.ia_4_4.what_it_needs;
+          changed = true;
+        }
+      }
+      if (changed) {
+        localStorage.setItem('IA_STATE', JSON.stringify(obj));
+      }
+    }
+  } catch {}
+
+  _initPromise = (async () => {
+    try {
+      _sharedLoading = true;
+      _notifyListeners();
+      const res = await fetch('/api/ia/state', { credentials: 'include' });
+      const data = await res.json();
+      if (data?.success && data?.state) {
+        _sharedState = data.state as IAState;
+        _sharedError = null;
+      } else {
+        throw new Error(data?.error || 'Failed to load state');
+      }
+    } catch (e: any) {
+      _sharedError = e?.message || 'Failed to load state';
+    } finally {
+      _sharedLoading = false;
+      _notifyListeners();
+    }
+  })();
+
+  return _initPromise;
+}
 
 export function useContinuity() {
   const SAVE_DEBOUNCE_MS = Number((import.meta as any).env?.VITE_IA_SAVE_DEBOUNCE_MS || 2000);
-  const [state, setState] = useState<IAState>(DEFAULT_STATE);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // Local render counter — incremented whenever shared state changes
+  const [, forceUpdate] = useState(0);
   const dirtyRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Keep a ref to the current snapshot for unmount/visibility flushes
+  const stateRef = useRef(_sharedState);
 
-  // Load on mount
+  // Subscribe to shared state notifications and kick off the initial load
   useEffect(() => {
-    let active = true;
-    // Phase 0I: migrate any drifted keys in localStorage before loading
-    try {
-      const raw = localStorage.getItem('IA_STATE');
-      if (raw) {
-        let obj: any = JSON.parse(raw);
-        let changed = false;
-        if (obj?.ia_4_2 && typeof obj.ia_4_2 === 'object') {
-          if ('shift' in obj.ia_4_2 && !('user_shift' in obj.ia_4_2)) {
-            obj.ia_4_2.user_shift = obj.ia_4_2.shift;
-            delete obj.ia_4_2.shift;
-            changed = true;
-          }
-        }
-        if (obj?.ia_4_4 && typeof obj.ia_4_4 === 'object') {
-          if ('what_it_needs' in obj.ia_4_4 && !('contribution' in obj.ia_4_4)) {
-            obj.ia_4_4.contribution = obj.ia_4_4.what_it_needs;
-            delete obj.ia_4_4.what_it_needs;
-            changed = true;
-          }
-        }
-        if (changed) {
-          localStorage.setItem('IA_STATE', JSON.stringify(obj));
-        }
-      }
-    } catch {}
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/ia/state', { credentials: 'include' });
-        const data = await res.json();
-        if (data?.success && data?.state) {
-          if (!active) return;
-          setState(data.state as IAState);
-          setError(null);
-        } else {
-          throw new Error(data?.error || 'Failed to load state');
-        }
-      } catch (e: any) {
-        if (!active) return;
-        setError(e?.message || 'Failed to load state');
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => { active = false; };
+    const listener = () => {
+      stateRef.current = _sharedState;
+      forceUpdate(n => n + 1);
+    };
+    _listeners.add(listener);
+    _initSharedState();
+    return () => {
+      _listeners.delete(listener);
+    };
   }, []);
 
-  const save = useCallback(async (patch: Partial<IAState>) => {
-    try {
-      const res = await fetch('/api/ia/saveProgress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ patch }),
-      });
-      const data = await res.json();
-      if (!data?.success) throw new Error(data?.error || 'Failed to save');
-      setError(null);
-      return true;
-    } catch (e: any) {
-      setError(e?.message || 'Failed to save');
-      return false;
-    }
-  }, []);
-
-  // Keep a ref to the latest state so unmount can flush it
-  const stateRef = useRef(state);
-  useEffect(() => { stateRef.current = state; }, [state]);
-
-  // Debounced autosave when state changes and is marked dirty
-  useEffect(() => {
-    if (!dirtyRef.current) return;
+  const scheduleSave = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      save(state);
+      _saveToServer(_sharedState);
       dirtyRef.current = false;
     }, SAVE_DEBOUNCE_MS);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  }, [SAVE_DEBOUNCE_MS]);
 
-  // Flush any pending save on unmount so navigation doesn't lose data
+  // Flush pending save on unmount so navigation doesn't lose data
   useEffect(() => {
     return () => {
       if (dirtyRef.current) {
         if (timerRef.current) clearTimeout(timerRef.current);
-        save(stateRef.current);
+        _saveToServer(stateRef.current);
         dirtyRef.current = false;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update helpers
-  // Accept either a partial patch object OR a functional updater so callers can
-  // use the same API shape as React's setState (prev => ...). Some components
-  // call `setState` with a function expecting it to behave like React's
-  // functional updater — support that to avoid controlled inputs becoming
-  // read-only.
-  function patch(
-    p: Partial<IAState> | ((prev: IAState) => Partial<IAState> | IAState)
-  ) {
-    if (typeof p === 'function') {
-      setState(prev => {
-        const result = (p as (prev: IAState) => Partial<IAState> | IAState)(prev) || {};
-        // If the updater returned a full state object (has top-level IA keys),
-        // use it as the new state; otherwise merge the returned partial.
-        const isFullState = Object.keys(result).some(k => (prev as any)[k] !== undefined);
-        return isFullState
-          ? ({ ...(result as IAState), updatedAt: new Date().toISOString() } as IAState)
-          : ({ ...prev, ...(result as Partial<IAState>), updatedAt: new Date().toISOString() } as IAState);
-      });
-    } else {
-      setState(prev => ({ ...prev, ...(p as Partial<IAState>), updatedAt: new Date().toISOString() }));
-    }
-    dirtyRef.current = true;
-  }
-
-  function setStep<K extends keyof IAState>(step: K, value: IAState[K]) {
-    setState(prev => ({ ...prev, [step]: value, updatedAt: new Date().toISOString() } as IAState));
-    dirtyRef.current = true;
-  }
-
-  // Explicit saveNow if needed
-  async function saveNow() {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    dirtyRef.current = false;
-    return save(state);
-  }
-
   // Save on tab hide to avoid losing progress
   useEffect(() => {
     const handler = () => {
-      if (document.hidden) {
+      if (document.hidden && dirtyRef.current) {
         saveNow();
       }
     };
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
-  }, [saveNow]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return { state, setState: patch, set: patch, setStep, loading, error, saveNow };
+  // Accept either a partial patch object OR a functional updater so callers can
+  // use the same API shape as React's setState (prev => ...).
+  function patch(
+    p: Partial<IAState> | ((prev: IAState) => Partial<IAState> | IAState)
+  ) {
+    _applyPatch(p);
+    dirtyRef.current = true;
+    scheduleSave();
+  }
+
+  function setStep<K extends keyof IAState>(step: K, value: IAState[K]) {
+    _sharedState = { ..._sharedState, [step]: value, updatedAt: new Date().toISOString() } as IAState;
+    _notifyListeners();
+    dirtyRef.current = true;
+    scheduleSave();
+  }
+
+  async function saveNow() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    dirtyRef.current = false;
+    return _saveToServer(_sharedState);
+  }
+
+  return {
+    state: _sharedState,
+    setState: patch,
+    set: patch,
+    setStep,
+    loading: _sharedLoading,
+    error: _sharedError,
+    saveNow,
+  };
 }

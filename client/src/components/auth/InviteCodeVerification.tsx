@@ -43,6 +43,8 @@ interface InviteVerificationProps {
     inviteCode: string;
     name: string;
     email: string;
+    jobTitle?: string;
+    organization?: string;
     expiresAt: string;
   }) => void;
 }
@@ -92,6 +94,8 @@ export function InviteCodeVerification({ onVerified }: InviteVerificationProps) 
           inviteCode: form.getValues('inviteCode'),
           name: data.invite.name,
           email: data.invite.email,
+          jobTitle: data.invite.jobTitle,
+          organization: data.invite.organization,
           expiresAt: data.invite.expiresAt
         });
       }

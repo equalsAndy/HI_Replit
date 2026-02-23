@@ -21,10 +21,12 @@ export interface RMLVisualDeclaration {
   future_level?: number;
   user_id?: number;
   pattern_number?: number;
-  quote?: string;      // For reflection blockquotes
-  author?: string;     // Optional attribution for quotes
-  photo_id?: number;   // Database photo ID (for stored images)
-  image_url?: string;  // External image URL (for Unsplash, etc.)
+  quote?: string;         // For reflection blockquotes
+  author?: string;        // Optional attribution for quotes
+  photo_id?: number;      // Database photo ID (for stored images)
+  image_url?: string;     // External image URL (for Unsplash, etc.)
+  attribution?: string;   // Image attribution (photographer name, etc.)
+  source_url?: string;    // Source URL for attribution link
 }
 
 export class RMLParser {
@@ -129,6 +131,18 @@ export class RMLParser {
       const authorMatch = attributesString.match(/author="([^"]+)"/);
       if (authorMatch) {
         declaration.author = authorMatch[1];
+      }
+
+      // Extract image attribution (for Unsplash images, etc.)
+      const attributionMatch = attributesString.match(/attribution="([^"]+)"/);
+      if (attributionMatch) {
+        declaration.attribution = attributionMatch[1];
+      }
+
+      // Extract source URL (for attribution links)
+      const sourceUrlMatch = attributesString.match(/source_url="([^"]+)"/);
+      if (sourceUrlMatch) {
+        declaration.source_url = sourceUrlMatch[1];
       }
 
       return declaration as RMLVisualDeclaration;

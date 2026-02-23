@@ -1,5 +1,34 @@
 // Canonical IA continuity types for client-side usage
 
+// 5C Capability types for Activation Snapshot system
+export type CapabilityType = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
+
+export const CAPABILITY_LABELS: Record<CapabilityType, string> = {
+  imagination: 'Imagination',
+  curiosity: 'Curiosity',
+  caring: 'Caring',
+  creativity: 'Creativity',
+  courage: 'Courage',
+};
+
+export const CAPABILITY_COLORS: Record<CapabilityType, string> = {
+  imagination: 'purple',
+  curiosity: 'blue',
+  caring: 'green',
+  creativity: 'orange',
+  courage: 'red',
+};
+
+// Maps CapabilityType keys to the category strings used in assessment data.
+// 'caring' maps to 'empathy' for backward compatibility with existing saved data.
+export const CAPABILITY_CATEGORY_MAP: Record<CapabilityType, string> = {
+  imagination: 'imagination',
+  curiosity: 'curiosity',
+  caring: 'empathy',
+  creativity: 'creativity',
+  courage: 'courage',
+};
+
 export type IAState = {
   ia_4_2: {
     original_thought: string;
@@ -9,6 +38,7 @@ export type IAState = {
     new_perspective: string;      // canonical downstream field
     // legacy alias kept for compatibility
     shift?: string;
+    capability_stretched?: CapabilityType;
   };
   // IA-4-3: Exploring Underlying Assumptions
   ia_4_3: {
@@ -22,6 +52,7 @@ export type IAState = {
     ai_stretch?: string;
     stretch_vision?: string;
     resistance?: string;
+    capability_stretched?: CapabilityType;
   };
   // IA-4-4: Global Purpose Bridge
   ia_4_4: {
@@ -69,6 +100,7 @@ export type IAState = {
     pattern_notes?: string;
     muse_chat?: string[];
     muse_name?: string;
+    capability_stretched?: CapabilityType;
   };
   // IA-4-5: Action Planning
   ia_4_5: {
@@ -97,6 +129,7 @@ export type IAState = {
     contribution?: string;
     bridge_name?: string;
     scale_global?: string;
+    capability_stretched?: CapabilityType;
   };
   updatedAt?: string;
 };

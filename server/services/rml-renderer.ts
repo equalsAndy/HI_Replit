@@ -118,9 +118,9 @@ export class RMLRenderer {
     return `
       <div class="rml-strength-squares">
         ${squares.map(s => `
-          <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${s.color}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="width: 80px; height: 80px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: bold; color: white; background-color: ${s.color}; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 3px;">
             <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-              <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">${s.label}</span>
+              <span style="text-align: center; line-height: 1.1; position: relative; z-index: 10;">${s.label}</span>
             </div>
           </div>
         `).join('')}
@@ -680,19 +680,19 @@ export class RMLRenderer {
     const strengthType = this.getFlowAttributeColor(attributeValue);
     const color = this.colors[strengthType as keyof typeof this.colors];
 
-    // Scale font size based on word length
+    // Scale font size based on word length for 80px square
     const wordLength = attributeValue.length;
-    let fontSize = '0.75rem'; // 12px default (text-xs)
+    let fontSize = '0.625rem'; // 10px default
     if (wordLength > 12) {
       fontSize = '0.5rem'; // 8px for very long words like COLLABORATIVE
     } else if (wordLength > 10) {
-      fontSize = '0.625rem'; // 10px for long words
+      fontSize = '0.5625rem'; // 9px for long words
     }
 
     return `
-      <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; background-color: ${color}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 0 0.25rem;">
-          <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10; font-size: ${fontSize};">${attributeValue.toUpperCase()}</span>
+      <div style="width: 80px; height: 80px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; background-color: ${color}; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 3px;">
+        <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+          <span style="text-align: center; line-height: 1.1; position: relative; z-index: 10; font-size: ${fontSize};">${attributeValue.toUpperCase()}</span>
         </div>
       </div>
     `;
@@ -736,7 +736,7 @@ export class RMLRenderer {
    * Image number is extracted from the ID (e.g., "vision1" -> 1)
    */
   private renderVisionImage(decl: RMLVisualDeclaration): string {
-    const { photo_id, image_url, id } = decl;
+    const { photo_id, image_url, id, attribution, source_url } = decl;
 
     // Check if we have either a photo_id or image_url
     if (!photo_id && !image_url) {
@@ -751,6 +751,13 @@ export class RMLRenderer {
     // Use photo_id if available (database photo), otherwise use external image_url
     const imageSource = photo_id ? `/api/photos/${photo_id}` : image_url;
 
+    // Create attribution text if provided
+    const attributionHtml = attribution ? `
+      <p class="rml-image-attribution">
+        ${source_url ? `<a href="${source_url}" target="_blank" rel="noopener noreferrer">${attribution}</a>` : attribution}
+      </p>
+    ` : '';
+
     return `
       <div class="rml-vision-image">
         <img
@@ -759,6 +766,7 @@ export class RMLRenderer {
           class="rml-vision-img"
           onerror="this.style.display='none'; this.parentElement.innerHTML='<p class=\\'rml-error\\'>Image not available</p>';"
         />
+        ${attributionHtml}
       </div>
     `;
   }
@@ -768,7 +776,7 @@ export class RMLRenderer {
    * Uses photo URLs from the database (/api/photos/{photoId})
    */
   private renderFutureSelfImage(decl: RMLVisualDeclaration): string {
-    const { photo_id, caption } = decl;
+    const { photo_id, caption, attribution, source_url } = decl;
 
     if (!photo_id) {
       return '<div class="rml-error">Missing photo_id for future self image</div>';
@@ -776,6 +784,13 @@ export class RMLRenderer {
 
     const photoUrl = `/api/photos/${photo_id}`;
     const captionText = caption || '';
+
+    // Create attribution text if provided
+    const attributionHtml = attribution ? `
+      <p class="rml-image-attribution">
+        ${source_url ? `<a href="${source_url}" target="_blank" rel="noopener noreferrer">${attribution}</a>` : attribution}
+      </p>
+    ` : '';
 
     return `
       <div class="rml-future-self-image">
@@ -786,6 +801,7 @@ export class RMLRenderer {
           onerror="this.style.display='none'; this.parentElement.innerHTML='<p class=\\'rml-error\\'>Image not available</p>';"
         />
         ${captionText ? `<p class="rml-future-caption">${captionText}</p>` : ''}
+        ${attributionHtml}
       </div>
     `;
   }
@@ -931,9 +947,9 @@ export class RMLRenderer {
   private renderThinkingSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.thinking}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="width: 80px; height: 80px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: bold; color: white; background-color: ${this.colors.thinking}; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 3px;">
           <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">THINKING</span>
+            <span style="text-align: center; line-height: 1.1; position: relative; z-index: 10;">THINKING</span>
           </div>
         </div>
       </div>
@@ -946,9 +962,9 @@ export class RMLRenderer {
   private renderFeelingSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.feeling}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="width: 80px; height: 80px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: bold; color: white; background-color: ${this.colors.feeling}; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 3px;">
           <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">FEELING</span>
+            <span style="text-align: center; line-height: 1.1; position: relative; z-index: 10;">FEELING</span>
           </div>
         </div>
       </div>
@@ -961,9 +977,9 @@ export class RMLRenderer {
   private renderActingSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.acting}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="width: 80px; height: 80px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: bold; color: white; background-color: ${this.colors.acting}; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 3px;">
           <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">ACTING</span>
+            <span style="text-align: center; line-height: 1.1; position: relative; z-index: 10;">ACTING</span>
           </div>
         </div>
       </div>
@@ -976,9 +992,9 @@ export class RMLRenderer {
   private renderPlanningSquare(decl: RMLVisualDeclaration): string {
     return `
       <div style="display: flex; justify-content: center; margin: 20px auto;">
-        <div style="width: 120px; height: 120px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: white; background-color: ${this.colors.planning}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="width: 80px; height: 80px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: bold; color: white; background-color: ${this.colors.planning}; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 3px;">
           <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-            <span style="text-align: center; line-height: 1.2; position: relative; z-index: 10;">PLANNING</span>
+            <span style="text-align: center; line-height: 1.1; position: relative; z-index: 10;">PLANNING</span>
           </div>
         </div>
       </div>
@@ -1682,6 +1698,34 @@ export class RMLRenderer {
           .rml-reflection-quote:before {
             font-size: 3.5em;
             left: 10px;
+          }
+        }
+
+        /* Image Attribution Styles */
+        .rml-image-attribution {
+          margin-top: 6px;
+          font-size: 10px;
+          color: #9ca3af;
+          text-align: center;
+          font-style: italic;
+          line-height: 1.3;
+        }
+
+        .rml-image-attribution a {
+          color: #9ca3af;
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+
+        .rml-image-attribution a:hover {
+          color: #6b7280;
+          text-decoration: underline;
+        }
+
+        /* Responsive adjustments for attribution */
+        @media (max-width: 768px) {
+          .rml-image-attribution {
+            font-size: 9px;
           }
         }
       </style>

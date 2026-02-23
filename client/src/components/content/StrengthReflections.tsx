@@ -22,7 +22,7 @@ const getStrengthColors = (label: string) => {
     case 'ACTING':   return { bg: '', text: 'text-white', name: 'ACTING', style: { backgroundColor: 'rgb(241, 64, 64)' } };
     case 'FEELING':  return { bg: '', text: 'text-white', name: 'FEELING', style: { backgroundColor: 'rgb(22, 126, 253)' } };
     case 'PLANNING': return { bg: '', text: 'text-white', name: 'PLANNING', style: { backgroundColor: 'rgb(255, 203, 47)' } };
-    default:         return { bg: 'bg-gray-500', text: 'text-white', name: label.toUpperCase() };
+    default:         return { bg: '', text: 'text-white', name: label.toUpperCase(), style: { backgroundColor: 'rgb(107, 114, 128)' } };
   }
 };
 

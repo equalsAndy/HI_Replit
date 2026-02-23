@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, Check, HelpCircle } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useToast } from '@/hooks/use-toast';
@@ -222,6 +222,28 @@ const FlowAssessmentModal = ({ isOpen, onClose, onComplete }: FlowAssessmentModa
   const isAnswered = answers[currentQ?.id] !== undefined;
   const allQuestionsAnswered = Object.keys(answers).length === flowQuestions.length;
 
+  // Debug logging
+  console.log('🔍 FlowAssessmentModal state:', {
+    currentQuestion,
+    totalQuestions: flowQuestions.length,
+    hasCurrentQ: !!currentQ,
+    showResults,
+    answersCount: Object.keys(answers).length
+  });
+
+  // Safety check - if currentQ is undefined, reset the modal state
+  if (!currentQ && !showResults) {
+    console.error('❌ FlowAssessmentModal: Invalid state - resetting to question 0');
+    // Reset to first question instead of showing error
+    setCurrentQuestion(0);
+    setShowResults(false);
+
+    // If still no question after reset, close modal
+    if (currentQuestion !== 0) {
+      return null; // Return null briefly while state updates
+    }
+  }
+
   // Results view
   if (showResults) {
     const totalScore = calculateScore();
@@ -232,6 +254,7 @@ const FlowAssessmentModal = ({ isOpen, onClose, onComplete }: FlowAssessmentModa
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-blue-900">Your Flow Assessment Results</DialogTitle>
+            <DialogDescription>Review your flow state assessment score and detailed responses</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
@@ -267,7 +290,9 @@ const FlowAssessmentModal = ({ isOpen, onClose, onComplete }: FlowAssessmentModa
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Responses Summary</h3>
               <div className="max-h-60 overflow-y-auto">
                 <div className="space-y-2">
-                  {flowQuestions.map((q) => (
+                  {flowQuestions
+                    .filter(q => q && q.text) // Filter out any invalid questions
+                    .map((q) => (
                     <div key={q.id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
                       <div className="flex-1 pr-4">
                         <span className="text-sm font-medium text-gray-900">Q{q.id}:</span>
@@ -316,9 +341,9 @@ const FlowAssessmentModal = ({ isOpen, onClose, onComplete }: FlowAssessmentModa
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <DialogTitle className="text-2xl font-bold text-blue-900">Flow State Self-Assessment</DialogTitle>
-              <p className="text-gray-600 mt-2">
+              <DialogDescription>
                 Rate your agreement with each statement. Answer with a specific activity or task in mind where you most often seek or experience flow.
-              </p>
+              </DialogDescription>
             </div>
             {shouldShowDemoButtons && (
               <button

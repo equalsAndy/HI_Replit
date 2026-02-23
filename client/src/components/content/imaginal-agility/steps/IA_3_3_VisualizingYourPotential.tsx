@@ -10,6 +10,8 @@ import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { searchUnsplash } from '@/services/api-services';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA33ContentProps {
@@ -22,6 +24,7 @@ interface IA33StepData {
   uploadedImage: string | null;
   reflection: string;
   imageTitle: string;
+  capability_activation?: CapabilityType;
 }
 
 // Inspirational themes for search functionality
@@ -41,7 +44,8 @@ const INITIAL_DATA: IA33StepData = {
   selectedImage: null,
   uploadedImage: null,
   reflection: '',
-  imageTitle: ''
+  imageTitle: '',
+  capability_activation: undefined
 };
 
 // Helper function to get step title from navigation data
@@ -519,6 +523,17 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         />
       </div>
 
+      {/* Capability Selector */}
+      {reflection && imageTitle && previewImage && (
+        <CapabilitySelector
+          mode="single"
+          selected={data.capability_activation || null}
+          onSelect={(val) => safeUpdateData({ capability_activation: val as CapabilityType })}
+          prompt="Looking at what you just created — which capability felt most present?"
+          className="mb-8"
+        />
+      )}
+
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-4 mt-8">
         {shouldShowDemoButtons && (
@@ -536,7 +551,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <Button
           onClick={handleContinue}
           className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
-          disabled={!previewImage || !reflection || !imageTitle}
+          disabled={saving || !previewImage || !reflection || !imageTitle || !data.capability_activation}
         >
           {saving ? 'Saving...' : `Continue to ${getStepTitle('ia-3-4')}`}
         </Button>

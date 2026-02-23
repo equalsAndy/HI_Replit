@@ -74,6 +74,15 @@ export class RMLProcessor {
               decl.image_url = imageData.url;
               console.log(`🎯 Auto-injected image_url for ${decl.id} (image ${imageNumber}): ${imageData.url.substring(0, 50)}...`);
             }
+
+            // Include attribution data if available (for Unsplash images)
+            if (imageData.photographer) {
+              decl.attribution = `Photo by ${imageData.photographer}`;
+              if (imageData.sourceUrl) {
+                decl.source_url = imageData.sourceUrl;
+              }
+              console.log(`🎯 Auto-injected attribution for ${decl.id}: ${decl.attribution}`);
+            }
           }
         } else if (decl.type === 'starcard' && options?.userId) {
           decl.user_id = options.userId;

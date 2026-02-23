@@ -3,6 +3,8 @@ import { useContinuity } from '@/hooks/useContinuity';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { Button } from '@/components/ui/button';
 import { StretchModal } from './StretchModal';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 
 // IA-3-3 data structure for proper typing
 interface IA33StepData {
@@ -234,11 +236,24 @@ export default function VisualizationStretchExercise() {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-1">Resistance Identified:</h4>
                 <p className="text-sm text-gray-800 bg-white p-3 rounded border">
-                  {ia.resistance_type === 'Other' ? ia.resistance_custom : ia.resistance_type}
+                  {ia.resistance_type === 'Name your own...' ? ia.resistance_custom : ia.resistance_type}
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Capability Selector */}
+          <CapabilitySelector
+            mode="single"
+            selected={ia.capability_stretched || null}
+            onSelect={(val) =>
+              setState((prev) => ({
+                ...prev,
+                ia_4_3: { ...(prev.ia_4_3 || {}), capability_stretched: val as CapabilityType },
+              }))
+            }
+            prompt="Which of your capabilities was most stretched by this exchange?"
+          />
 
           {/* Name the Stretch - appears after all steps complete */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Target, Lightbulb, Users } from 'lucide-react';
@@ -10,6 +9,7 @@ interface IA_2_2_ContentProps {
   onNext?: (stepId: string) => void;
   onOpenAssessment?: () => void;
 }
+
 
 function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
   // Check if assessment is completed
@@ -69,33 +69,6 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
     }
   };
 
-  const dimensions = [
-    {
-      icon: Lightbulb,
-      label: 'Imagination',
-      description: 'Your ability to envision new possibilities and think beyond current constraints',
-      color: 'text-purple-600'
-    },
-    {
-      icon: Brain,
-      label: 'Innovation', 
-      description: 'Your capacity to create novel solutions and approaches to challenges',
-      color: 'text-blue-600'
-    },
-    {
-      icon: Target,
-      label: 'Insight',
-      description: 'Your skill in understanding deep patterns and gaining clarity from complexity',
-      color: 'text-green-600'
-    },
-    {
-      icon: Users,
-      label: 'Intuition',
-      description: 'Your ability to sense and trust inner wisdom and gut feelings',
-      color: 'text-orange-600'
-    }
-  ];
-
   // If assessment is completed, show radar chart
   if (isAssessmentCompleted && resultData) {
     return (
@@ -136,6 +109,37 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
                   creativity: resultData.creativity || 0,
                   courage: resultData.courage || 0
                 }} />
+              </div>
+
+              {/* Capability icons — visual only, no numbers */}
+              <div className="bg-white rounded-lg p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                  {[
+                    {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/Imagination_new.png', color: 'bg-purple-50 border-purple-200'},
+                    {capacity: 'Curiosity',   score: parseFloat(resultData.curiosity)   || 0, icon: '/assets/Curiosity_new.png',   color: 'bg-blue-50 border-blue-200'},
+                    {capacity: 'Caring',      score: parseFloat(resultData.empathy)     || 0, icon: '/assets/Caring_new.png',      color: 'bg-green-50 border-green-200'},
+                    {capacity: 'Creativity',  score: parseFloat(resultData.creativity)  || 0, icon: '/assets/Creativity_new.png',  color: 'bg-orange-50 border-orange-200'},
+                    {capacity: 'Courage',     score: parseFloat(resultData.courage)     || 0, icon: '/assets/Courage_new.png',     color: 'bg-red-50 border-red-200'}
+                  ].map(item => (
+                    <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[220px] overflow-hidden`}>
+                      <div className="w-full h-36 mb-3 flex items-center justify-center">
+                        <img
+                          src={item.icon}
+                          alt={item.capacity}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <h4 className="font-semibold text-gray-800 text-sm mb-2">{item.capacity}</h4>
+                      {/* Proportional bar — full card width, stays inside rounded corners */}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full"
+                          style={{ width: `${(item.score / 5) * 100}%`, backgroundColor: item.score >= 4.0 ? '#10b981' : '#8b5cf6' }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

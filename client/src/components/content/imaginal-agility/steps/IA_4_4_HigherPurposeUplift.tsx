@@ -72,8 +72,10 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed mb-4">
-            Challenge yourself to imagine how your deeper purpose might serve a world in crisis.
-            Building on your higher purpose from Insight to Intention, explore how personal intention intersects with global challenges.
+            Earlier you identified what drives you and where you have influence. Now let's stretch that thinking — what happens when you connect your purpose to challenges that affect everyone?
+          </p>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            This isn't about having all the answers. It's an imagination exercise: where might your intention and skills meet one of the world's bigger needs?
           </p>
           <div className="bg-purple-100 border border-purple-300 rounded-lg p-4">
             <p className="text-lg font-medium text-purple-800 text-center">
@@ -103,7 +105,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
           onClick={() => onNext && onNext('ia-4-5')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to Next Step
+          Continue to Inspiration Support
         </Button>
       </div>
     </div>

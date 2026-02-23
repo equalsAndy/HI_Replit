@@ -58,12 +58,12 @@ export const useTestUser = () => {
   const hasTestAccess = isTestUser || isDemoAccount || isAdmin;
 
   // Demo buttons visibility logic:
-  // - Test users see demo buttons by default (for quick testing)
-  // - Demo accounts see demo buttons (for presentations)
+  // - Only shown when explicitly enabled via admin console toggle (showDemoDataButtons)
+  // - Admin users always see them (for testing/demo purposes)
+  // - Test users do NOT automatically see them (must be enabled by admin)
   // - Beta testers do NOT see demo buttons (they provide real data)
-  // - Admin can grant permission via showDemoDataButtons for special cases
   // - Regular participants never see demo buttons
-  const shouldShowDemoButtons = isAdmin || isTestUser || isDemoAccount || (user?.showDemoDataButtons === true);
+  const shouldShowDemoButtons = isAdmin || (user?.showDemoDataButtons === true);
   
   // Debug test user access (single log to verify fix)
   if (user && !sessionStorage.getItem('demo-buttons-logged')) {

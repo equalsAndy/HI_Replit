@@ -343,7 +343,7 @@ export default function ImaginalAgilityWorkshop() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
         <UserHomeNavigation
-          key={`ia-nav-${completedSteps.length}`}
+          key="ia-nav"
           drawerOpen={drawerOpen}
           toggleDrawer={toggleDrawer}
           navigationSections={imaginalAgilityNavigationSections}

@@ -20,11 +20,13 @@ const inviteFormSchema = z.object({
 type InviteFormValues = z.infer<typeof inviteFormSchema>;
 
 interface InviteVerificationProps {
-  onVerified: (inviteData: { 
-    inviteCode: string; 
-    email: string; 
+  onVerified: (inviteData: {
+    inviteCode: string;
+    email: string;
     role: string;
-    name?: string; 
+    name?: string;
+    jobTitle?: string;
+    organization?: string;
   }) => void;
 }
 
@@ -74,7 +76,9 @@ const InviteVerification: React.FC<InviteVerificationProps> = ({ onVerified }) =
         inviteCode: formattedCode,
         email: result.invite.email,
         role: result.invite.role,
-        name: result.invite.name
+        name: result.invite.name,
+        jobTitle: result.invite.jobTitle,
+        organization: result.invite.organization
       });
       
       toast({

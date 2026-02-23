@@ -5,6 +5,8 @@ import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useContinuity } from '@/hooks/useContinuity';
 import { ActionPlanningModal, type Interlude, type ActionStep } from './ActionPlanningModal';
 import { Zap, Clock, Users, Target } from 'lucide-react';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 
 // IA-3-5 data structure for proper typing
 interface IA35StepData {
@@ -246,6 +248,18 @@ export default function ActionPlanningExercise() {
                 </Card>
               ))}
             </div>
+
+            <CapabilitySelector
+              mode="single"
+              selected={ia45.capability_stretched || null}
+              onSelect={(val) =>
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_5: { ...(prev.ia_4_5 || {}), capability_stretched: val as CapabilityType },
+                }))
+              }
+              prompt="Which of your capabilities was most stretched by this exchange?"
+            />
 
             <div className="text-center">
               <Button

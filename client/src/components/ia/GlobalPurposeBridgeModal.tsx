@@ -130,6 +130,15 @@ export function GlobalPurposeBridgeModal({
     }
   };
 
+  // Derive current phase from form state (perspectives → bridge → naming → worldgame)
+  const bridgePhase = bridgeName.trim()
+    ? 'worldgame'
+    : modestContribution.trim()
+    ? 'naming'
+    : chosenPerspective.trim()
+    ? 'bridge'
+    : 'perspectives';
+
   // Complete and save bridge
   const handleComplete = () => {
     if (!modestContribution.trim() || !bridgeName.trim()) return;
@@ -168,7 +177,7 @@ export function GlobalPurposeBridgeModal({
         <header className="absolute top-0 left-0 w-full bg-white border-b border-gray-200 flex items-center gap-4 p-3 z-10">
           <img src="/assets/adv_rung3_split.png" alt="Rung 3" className="h-8 flex-shrink-0" />
           <DialogTitle className="text-base font-semibold flex-grow">
-            Autoflow Mindful Prompts — Global Purpose Bridge
+            Higher Purpose Uplift — AI Partner
           </DialogTitle>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
@@ -213,10 +222,19 @@ export function GlobalPurposeBridgeModal({
             </div>
 
             {/* InlineChat for input */}
+            {/* TODO (Task 3 — cross-exercise context): inject reframe + stretch results here.
+                Data shape needed: {
+                  reframe: { challenge, reframe, shift, tag },
+                  stretch: { originalFrame, stretchedFrame, expansion }
+                }
+                Source: parent component should pass saved IA-4-2 and IA-4-3 outputs as props.
+                Usage: import { buildCrossExerciseContext } from '@/constants/prompts';
+                       const ctx = buildCrossExerciseContext({ reframe: ..., stretch: ... });
+                       Append ctx to systemPrompt before CURRENT_PHASE. */}
             <InlineChat
               key={chatKey}
               trainingId="ia-4-4"
-              systemPrompt={`${PROMPTS.IA_4_4}\n\nCONTEXT:\nUser's Higher Purpose: ${higherPurpose}\nGlobal Challenge: ${globalChallenge}`}
+              systemPrompt={`${PROMPTS.IA_4_4}\n\nCONTEXT:\nUser's Higher Purpose: ${higherPurpose}\nGlobal Challenge: ${globalChallenge}\n\nCURRENT_PHASE: ${bridgePhase}`}
               seed={initialPrompt}
               onReply={handleChatResponse}
               onUserSend={handleUserSend}

@@ -14,6 +14,11 @@ interface IA_4_2_ContentProps {
 const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
   const { state, set } = useContinuity();
 
+  const ia = state?.ia_4_2 ?? {};
+  const hasReframeResult = !!(ia.user_shift || ia.tag);
+  const capabilityAnswered = !!ia.capability_stretched;
+  const canContinue = !hasReframeResult || capabilityAnswered;
+
   // One-time migration from any legacy storage to continuity
   useEffect(() => {
     if (!state.ia_4_2.original_thought) {
@@ -67,8 +72,13 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed mb-4">
-            This exercise strengthens your capacity for meta-awareness. It builds directly on Autoflow by asking you to notice and 
-            disrupt habitual thought loops—especially in work-related situations—using a simple, interactive prompt.
+            This exercise builds on Autoflow by bringing your noticing skill to a real challenge — something at work or school
+            that feels stuck or unresolved. You'll use AI as a thinking partner to help you reframe it.
+          </p>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            AI can be genuinely useful here — it can help you articulate what you're feeling, suggest a different angle,
+            or offer a perspective you hadn't considered. But it's still just a tool. The insight, the recognition,
+            the shift that actually lands — that comes from you. The magic is yours.
           </p>
           <div className="bg-purple-100 border border-purple-300 rounded-lg p-4">
             <p className="text-lg font-medium text-purple-800 text-center">
@@ -91,28 +101,48 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
             </div>
           </div>
           
-          {/* Example */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-            <h4 className="text-lg font-semibold text-green-800 mb-3">💡 EXAMPLE</h4>
-            <div className="space-y-2 text-green-700">
-              <p><strong>Challenge:</strong> "My team never listens to me."</p>
-              <p><strong>AI Response:</strong> "What if their silence means reflection, not dismissal?"</p>
-              <p><strong>Shift:</strong> "Curiosity"</p>
-              <p><strong>New Perspective:</strong> "I'll ask one question in tomorrow's meeting, then pause."</p>
-            </div>
-          </div>
-          
           {/* Action Buttons removed; continuity autosaves */}
         </div>
       </div>
       
-      <div className="flex justify-end items-center gap-3 mt-8">
-        <Button 
-          onClick={() => onNext && onNext('ia-4-3')}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-        >
-          Continue to Visualization Stretch
-        </Button>
+      <div className="flex flex-col items-end gap-2 mt-8">
+        {hasReframeResult && !capabilityAnswered && (
+          <p className="text-sm text-amber-600 font-medium">
+            Select a capability above before continuing.
+          </p>
+        )}
+        <div className="flex items-center gap-3">
+          {hasReframeResult && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (window.confirm('Are you sure you want to start over? This will clear your challenge and AI chat.')) {
+                  set({
+                    ia_4_2: {
+                      original_thought: '',
+                      ai_reframe: '',
+                      user_shift: '',
+                      tag: '',
+                      new_perspective: '',
+                      shift: '',
+                      capability_stretched: undefined,
+                    },
+                  });
+                }
+              }}
+              className="text-gray-600 border-gray-300"
+            >
+              Start over with this exercise
+            </Button>
+          )}
+          <Button
+            onClick={() => onNext && onNext('ia-4-3')}
+            disabled={!canContinue}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Continue to Visualization Stretch
+          </Button>
+        </div>
       </div>
     </div>
   );

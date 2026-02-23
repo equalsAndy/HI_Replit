@@ -6,6 +6,8 @@ import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useContinuity } from '@/hooks/useContinuity';
 import { GlobalPurposeBridgeModal, type GlobalBridge } from './GlobalPurposeBridgeModal';
 import { Globe, Target, ArrowRight } from 'lucide-react';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 
 // IA-3-4 data structure for higher purpose
 interface IA34StepData {
@@ -300,6 +302,23 @@ export default function GlobalPurposeBridgeExercise() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {/* Capability Selector */}
+      {isCompleted && (
+        <div className="mt-8">
+          <CapabilitySelector
+            mode="single"
+            selected={ia44.capability_stretched || null}
+            onSelect={(val) =>
+              setState((prev) => ({
+                ...prev,
+                ia_4_4: { ...prev.ia_4_4, capability_stretched: val as CapabilityType },
+              }))
+            }
+            prompt="Which of your capabilities was most stretched by this exchange?"
+          />
         </div>
       )}
 

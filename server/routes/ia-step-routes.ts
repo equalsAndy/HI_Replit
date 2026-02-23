@@ -2,7 +2,7 @@ import express from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../db.js';
 import { workshopStepData } from '../../shared/schema.js';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -26,7 +26,8 @@ router.get('/ia/steps/:stepId', requireAuth, async (req, res) => {
       .where(and(
         eq(workshopStepData.userId, userId),
         eq(workshopStepData.workshopType, 'ia'),
-        eq(workshopStepData.stepId, stepId)
+        eq(workshopStepData.stepId, stepId),
+        isNull(workshopStepData.deletedAt)
       ));
 
     if (!rows.length) {
@@ -74,7 +75,8 @@ router.put('/ia/steps/:stepId', requireAuth, express.json(), async (req, res) =>
         set: {
           data: sql`excluded.data`,
           version: sql`${workshopStepData.version} + 1`,
-          updatedAt: sql`now()`
+          updatedAt: sql`now()`,
+          deletedAt: null // Clear soft-delete so GET /workshop-data/step can find the record
         }
       });
 

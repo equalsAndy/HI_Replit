@@ -82,21 +82,35 @@ export function ActionPlanningModal({
     return categoryMap[id] || 'awe';
   }
 
-  // Extract action suggestions from AI response
-  function extractActionSuggestions(text: string): string[] {
-    const suggestions: string[] = [];
-    const lines = text.split('\n').map(line => line.trim());
-    
-    for (const line of lines) {
-      // Look for action-oriented sentences
-      if (line.length > 20 && 
-          (line.includes('could') || line.includes('might') || line.includes('try') || 
-           line.includes('consider') || line.includes('start') || line.includes('begin'))) {
-        suggestions.push(line.replace(/^[-•*]\s*/, '').trim());
+  // Extract the AI-suggested action step from a response.
+  // The IA_4_5 prompt instructs: "I will..." / "I'm going to..." / "I commit to ... by ..."
+  // Also checks sub-clauses after colons (AI often writes "let me sharpen it: I will...")
+  function extractActionFromAI(text: string): string {
+    // 1. Commitment statement — highest priority
+    const commitMatch = text.match(/I commit to ([^.!?\n]{10,}(?:by [^.!?\n]+)?)/i);
+    if (commitMatch) {
+      return `I commit to ${commitMatch[1]}`.replace(/[.!?]+$/, '').trim();
+    }
+
+    // 2. Split into sentence blocks and also check sub-clauses after colons
+    const sentenceBlocks = text.match(/[^.!?]+[.!?]*/g) || [];
+    const candidates: string[] = [];
+    for (const block of sentenceBlocks) {
+      candidates.push(block.trim());
+      const colonParts = block.split(':');
+      if (colonParts.length > 1) {
+        colonParts.slice(1).forEach(p => candidates.push(p.trim()));
       }
     }
-    
-    return suggestions.slice(0, 3); // Return up to 3 suggestions
+
+    for (const s of candidates) {
+      if (s.length < 15 || s.endsWith('?')) continue;
+      if (/^(I will\b|I'm going to\b|I'll\b)/i.test(s)) {
+        return s.replace(/[.!?]+$/, '').trim();
+      }
+    }
+
+    return '';
   }
 
   // Color scheme for different interlude types
@@ -115,8 +129,9 @@ export function ActionPlanningModal({
     setSelectedInterlude(interlude);
     setPhase('exploration');
     
-    // Initialize AI conversation
-    const greeting = `I see you've captured ${interludes.length} moments of inspiration. You selected "${interlude.title}" - that feels alive for you right now. Tell me more about this ${interlude.type} moment. What made it special? What stirred in you?`;
+    // Initialize AI conversation — reference the actual inspiration content, not just the category
+    const preview = interlude.response?.trim() || '';
+    const greeting = `You selected "${interlude.title}" — and here's what you captured:\n\n"${preview}"\n\nSend any message — even just "go" — and AI will suggest a concrete action based on this moment.`;
     
     setChatHistory([{
       id: `msg-${Date.now()}`,
@@ -148,9 +163,9 @@ export function ActionPlanningModal({
     setChatHistory(prev => [...prev, newMessage]);
     
     // Try to extract suggested action from AI response
-    const actionSuggestions = extractActionSuggestions(response);
-    if (actionSuggestions.length > 0 && !currentAction.trim()) {
-      setCurrentAction(actionSuggestions[0]);
+    const extracted = extractActionFromAI(response);
+    if (extracted && !currentAction.trim()) {
+      setCurrentAction(extracted);
     }
   };
 
@@ -229,7 +244,7 @@ export function ActionPlanningModal({
         <header className="absolute top-0 left-0 w-full bg-white border-b border-gray-200 flex items-center gap-4 p-3 z-10">
           <img src="/assets/adv_rung4_split.png" alt="Rung 4" className="h-8 flex-shrink-0" />
           <DialogTitle className="text-base font-semibold flex-grow">
-            Autoflow Mindful Prompts — Action Planning
+            Inspiration Support — AI Partner
           </DialogTitle>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
@@ -280,12 +295,22 @@ export function ActionPlanningModal({
             {selectedInterlude && (
               <InlineChat
                 trainingId="ia-4-5"
-                systemPrompt={`${PROMPTS.IA_4_5}\n\nCONTEXT:\nInterlude: ${selectedInterlude.title}\nUser's Response: ${selectedInterlude.response}`}
+                // TODO (Task 3 — cross-exercise context): inject reframe + stretch + bridge results here.
+              // Data shape needed: {
+              //   reframe: { challenge, reframe, shift, tag },
+              //   stretch: { originalFrame, stretchedFrame, expansion },
+              //   bridge: { purpose, challenge, bridgeName, worldGameStretch }
+              // }
+              // Source: parent component should pass saved IA-4-2, IA-4-3, IA-4-4 outputs as props.
+              // Usage: import { buildCrossExerciseContext } from '@/constants/prompts';
+              //        const ctx = buildCrossExerciseContext({ reframe: ..., stretch: ..., bridge: ... });
+              //        Prepend ctx before CURRENT_PHASE in systemPrompt.
+              systemPrompt={`${PROMPTS.IA_4_5}\n\nCONTEXT:\nInterlude: ${selectedInterlude.title}\nUser's Response: ${selectedInterlude.response}\n\nCURRENT_PHASE: ${phase}`}
                 onReply={handleAIResponse}
                 onUserSend={handleUserSend}
                 hideHistory={true}
                 className="border-0 p-0 bg-transparent"
-                placeholder="Ask AI about turning this inspiration into action..."
+                placeholder={`Type anything — or just "go" — to get an action suggestion`}
               />
             )}
           </div>
@@ -353,8 +378,8 @@ export function ActionPlanningModal({
             )}
           </div>
           
-          {/* Complete Button */}
-          <div className="pt-4 border-t border-gray-200 mt-4">
+          {/* Action Buttons */}
+          <div className="pt-4 border-t border-gray-200 mt-4 space-y-2">
             <Button
               onClick={handleSaveStep}
               disabled={!currentAction.trim()}
@@ -363,6 +388,15 @@ export function ActionPlanningModal({
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Add Action Step
             </Button>
+            {actionSteps.length > 0 && (
+              <Button
+                onClick={handleComplete}
+                variant="outline"
+                className="w-full text-sm py-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                Done — close this exercise
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

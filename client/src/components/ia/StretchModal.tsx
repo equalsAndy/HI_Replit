@@ -54,6 +54,7 @@ export function StretchModal({
   function toFirstPerson(text: string) {
     let t = text;
     t = t.replace(/[""]/g, '"');
+    t = t.replace(/['']/g, "'");
     t = t.replace(/\bthe way you\b/gi, 'the way I');
     t = t.replace(/\byou show yourself\b/gi, 'I show myself');
     t = t.replace(/\bshow yourself\b/gi, 'show myself');
@@ -104,7 +105,7 @@ export function StretchModal({
       if (quote.endsWith('?')) continue;
       // Accept if it contains first-person or second-person language
       if (/\b(I'm|I am|I feel|I see|I shift|I lead|I can|I have|I need|I want|you're|you are|you could|you might|you shift|you lead)\b/i.test(quote)) {
-        return cleanStretchText(toFirstPerson(quote)).slice(0, 300);
+        return cleanStretchText(toFirstPerson(quote)).slice(0, 600);
       }
     }
 
@@ -121,7 +122,7 @@ export function StretchModal({
       if (match && match[1]) {
         const stretch = match[1].trim();
         if (stretch.length > 10) {
-          return cleanStretchText(toFirstPerson(stretch)).slice(0, 300);
+          return cleanStretchText(toFirstPerson(stretch)).slice(0, 600);
         }
       }
     }
@@ -139,7 +140,7 @@ export function StretchModal({
       if (stretchIndicators.some(indicator => sentence.toLowerCase().includes(indicator))) {
         const cleaned = sentence.replace(/^(?:this\s+)?(?:stretch|this)\s*[:\-]?\s*/i, '').replace(/^["'`]|["'`]$/g, '');
         if (cleaned.trim().length > 10) {
-          return cleanStretchText(toFirstPerson(cleaned.trim())).slice(0, 300);
+          return cleanStretchText(toFirstPerson(cleaned.trim())).slice(0, 600);
         }
       }
     }
@@ -261,6 +262,7 @@ export function StretchModal({
 
   const onApplyClick = () => {
     if (!stretchVisualization.trim() || !resistanceType.trim()) return;
+    if (resistanceType === 'Name your own...' && !resistanceCustom.trim()) return;
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
@@ -270,7 +272,7 @@ export function StretchModal({
       tag: '', // No tagging
       stretch_visualization: stretchVisualization.trim(),
       resistance_type: resistanceType,
-      resistance_custom: resistanceType === 'Other' ? resistanceCustom : undefined
+      resistance_custom: resistanceType === 'Name your own...' ? resistanceCustom : undefined
     });
     onOpenChange(false);
   };
@@ -339,9 +341,15 @@ export function StretchModal({
             </div>
 
             {/* InlineChat for input only */}
+            {/* TODO (Task 3 — cross-exercise context): inject reframe results from IA-4-2 here.
+                Data shape needed: { reframe: { challenge, reframe, shift, tag } }
+                Source: parent component should pass saved IA-4-2 output as a prop.
+                Usage: import { buildCrossExerciseContext } from '@/constants/prompts';
+                       const ctx = buildCrossExerciseContext({ reframe: savedReframeData });
+                       systemPrompt={`${PROMPTS.IA_4_3}\n\n${ctx}\n\nCURRENT_PHASE: ${phase}`} */}
             <InlineChat
               trainingId="ia-4-3"
-              systemPrompt={PROMPTS.IA_4_3}
+              systemPrompt={`${PROMPTS.IA_4_3}\n\nCURRENT_PHASE: ${phase}`}
               seed={`What's one possibility I haven't considered that would expand this visualization or move it to the next level: "${currentFrame}"`}
               onUserSend={onChatUserSend}
               onReply={onChatReply}
@@ -356,9 +364,15 @@ export function StretchModal({
           {/* Expanded Vision from AI */}
           <section className="mb-6">
             <h2 className="text-sm font-semibold uppercase mb-2 text-purple-700">YOUR VISUALIZATION STRETCHED</h2>
-            <div className={`min-h-[100px] p-3 border rounded text-sm mb-3 ${currentStretch.trim() ? 'bg-purple-50 border-purple-200 text-gray-900 italic' : 'bg-gray-50 text-gray-500'}`}>
-              {currentStretch.trim() ? currentStretch : 'Work with AI to stretch your visualization and it will appear here.'}
-            </div>
+            <textarea
+              className={`w-full min-h-[100px] max-h-[220px] p-3 border rounded text-sm mb-1 resize-none ${currentStretch.trim() ? 'bg-purple-50 border-purple-200 text-gray-900 italic' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+              value={currentStretch}
+              onChange={(e) => setCurrentStretch(e.target.value)}
+              placeholder="Work with AI to stretch your visualization, or paste/type it here."
+            />
+            {!currentStretch.trim() && (
+              <p className="text-xs text-gray-400 mb-2">If the stretch doesn't auto-populate, paste it from the chat.</p>
+            )}
             {phase === 'stretch' && (
               <Button onClick={onNext} disabled={!currentStretch.trim()} className="w-full">
                 This looks good
@@ -398,7 +412,7 @@ export function StretchModal({
               <h2 className="text-sm font-semibold uppercase mb-2">Identify the Resistance</h2>
               <p className="text-xs text-gray-600 mb-3">What's holding you back from stretching into this expanded role?</p>
               <div className="space-y-2 mb-3">
-                {['Fear of judgment', 'Habit', 'Lack of time', 'Identity attachment', 'Other'].map((option) => (
+                {['Fear of judgment', 'Habit', 'Lack of time', 'Identity attachment', 'Name your own...'].map((option) => (
                   <label key={option} className="flex items-center text-sm cursor-pointer">
                     <input
                       type="radio"
@@ -412,10 +426,11 @@ export function StretchModal({
                   </label>
                 ))}
               </div>
-              {resistanceType === 'Other' && (
+              {resistanceType === 'Name your own...' && (
                 <input
                   type="text"
-                  placeholder="Specify other resistance..."
+                  autoFocus
+                  placeholder="Name this resistance..."
                   value={resistanceCustom}
                   onChange={(e) => setResistanceCustom(e.target.value)}
                   className="w-full p-2 border rounded text-sm mb-3"
@@ -423,7 +438,7 @@ export function StretchModal({
               )}
               <div className="flex gap-2 mb-4">
                 <Button variant="secondary" onClick={onBack} size="sm" className="flex-1">Back</Button>
-                <Button onClick={onApplyClick} disabled={!resistanceType || (resistanceType === 'Other' && !resistanceCustom.trim())} size="sm" className="flex-1">
+                <Button onClick={onApplyClick} disabled={!resistanceType || (resistanceType === 'Name your own...' && !resistanceCustom.trim())} size="sm" className="flex-1">
                   Complete Exercise
                 </Button>
               </div>

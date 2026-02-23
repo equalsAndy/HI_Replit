@@ -3,6 +3,21 @@
 # Semantic Version Manager
 # Usage: ./version-manager.sh [environment] [version_type]
 # version_type: major, minor, patch, or specific version like "2.1.3"
+#
+# Semantic Versioning (SemVer) — MAJOR.MINOR.PATCH
+# ─────────────────────────────────────────────────
+#  MAJOR  — Breaking changes or significant rewrites (e.g. 2.x.x → 3.0.0)
+#            Resets MINOR and PATCH to 0. Reset build number to 1.
+#  MINOR  — New features added, backwards-compatible  (e.g. 2.7.x → 2.8.0)
+#            Resets PATCH to 0. Reset build number to 1.
+#  PATCH  — Bug fixes and small patches               (e.g. 2.8.0 → 2.8.1)
+#            Build number increments; no resets needed.
+# ─────────────────────────────────────────────────
+# Examples:
+#   ./version-manager.sh staging minor   → bumps 2.7.x to 2.8.0, build resets to 1
+#   ./version-manager.sh staging patch   → bumps 2.8.0 to 2.8.1, build increments
+#   ./version-manager.sh staging major   → bumps 2.x.x to 3.0.0, build resets to 1
+#   ./version-manager.sh staging 2.8.0  → sets exact version
 
 ENVIRONMENT=${1:-development}
 VERSION_TYPE=${2:-patch}

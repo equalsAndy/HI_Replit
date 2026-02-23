@@ -16,6 +16,8 @@ type InviteData = {
   email: string;
   role: string;
   name?: string;
+  jobTitle?: string;
+  organization?: string;
 };
 
 const InviteRegistrationPage: React.FC = () => {
