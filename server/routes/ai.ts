@@ -1,6 +1,7 @@
 import express from 'express';
 import OpenAI from 'openai';
 import { getTraining, getApiKeyForTraining, TrainingId } from '../config/trainings.js';
+import { getTrainingDoc } from '../config/training-doc-loader.js';
 
 const router = express.Router();
 
@@ -43,6 +44,19 @@ router.post('/chat/plain', express.json(), async (req, res) => {
     const apiKey = getApiKeyForTraining(training);
     if (!apiKey) {
       return res.status(500).json({ success: false, error: `Missing API key: ${training.api_key_env}` });
+    }
+
+    // Inject training doc into system message if one exists for this exercise
+    const trainingDoc = getTrainingDoc(training_id);
+    if (trainingDoc) {
+      const systemIdx = normalized.findIndex(m => m.role === 'system');
+      if (systemIdx >= 0) {
+        normalized[systemIdx] = {
+          ...normalized[systemIdx],
+          content: `--- EXERCISE TRAINING GUIDE ---\n${trainingDoc}\n--- END TRAINING GUIDE ---\n\n${normalized[systemIdx].content}`,
+        };
+        console.log(`[ai/chat/plain] Injected training doc for ${training_id}. Combined system prompt length: ${normalized[systemIdx].content.length} chars`);
+      }
     }
 
     // For IA exercises, use the Imaginal Agility project ID

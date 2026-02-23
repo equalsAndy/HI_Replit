@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
@@ -105,9 +106,10 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-purple-700 mb-8">
-        Outcomes and Benefits
+      <h1 className="text-3xl font-bold text-purple-700 mb-2">
+        Your Activation Pattern
       </h1>
+      <p className="text-lg text-gray-600 mb-8">Here's what emerged from your work.</p>
 
       {/* Video Section */}
       <VideoTranscriptGlossary
@@ -238,7 +240,10 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
 
       {/* ── Interactive Outcomes & Benefits ────────────────────────────────── */}
       <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-purple-700">Click each set of rungs to see some of the benefits.</h2>
+        <div>
+          <h2 className="text-2xl font-semibold text-purple-700 mb-1">Outcomes &amp; Benefits</h2>
+          <p className="text-gray-600">Click each set of rungs to see the psychological and neurocognitive benefits.</p>
+        </div>
 
         <Accordion type="single" collapsible className="w-full space-y-3">
           {/* 1. AUTO-FLOW / PROMPT YOUR FLOW */}
@@ -428,6 +433,16 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
           <li><strong>INSPIRATION → INVITING THE MUSE</strong>: Enhancing overall well-being</li>
           <li><strong>UNIMAGINED → WHAT IF...</strong>: Achieving meta-cognitive transcendence</li>
         </ol>
+      </div>
+
+      {/* Continue Button */}
+      <div className="flex justify-end mt-8">
+        <Button
+          onClick={() => onNext?.('ia-5-2')}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+        >
+          Continue to Capability Commitment →
+        </Button>
       </div>
     </div>
   );

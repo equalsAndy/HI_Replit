@@ -341,9 +341,15 @@ export function StretchModal({
             </div>
 
             {/* InlineChat for input only */}
+            {/* TODO (Task 3 — cross-exercise context): inject reframe results from IA-4-2 here.
+                Data shape needed: { reframe: { challenge, reframe, shift, tag } }
+                Source: parent component should pass saved IA-4-2 output as a prop.
+                Usage: import { buildCrossExerciseContext } from '@/constants/prompts';
+                       const ctx = buildCrossExerciseContext({ reframe: savedReframeData });
+                       systemPrompt={`${PROMPTS.IA_4_3}\n\n${ctx}\n\nCURRENT_PHASE: ${phase}`} */}
             <InlineChat
               trainingId="ia-4-3"
-              systemPrompt={PROMPTS.IA_4_3}
+              systemPrompt={`${PROMPTS.IA_4_3}\n\nCURRENT_PHASE: ${phase}`}
               seed={`What's one possibility I haven't considered that would expand this visualization or move it to the next level: "${currentFrame}"`}
               onUserSend={onChatUserSend}
               onReply={onChatReply}
@@ -358,9 +364,15 @@ export function StretchModal({
           {/* Expanded Vision from AI */}
           <section className="mb-6">
             <h2 className="text-sm font-semibold uppercase mb-2 text-purple-700">YOUR VISUALIZATION STRETCHED</h2>
-            <div className={`min-h-[100px] max-h-[220px] overflow-y-auto p-3 border rounded text-sm mb-3 ${currentStretch.trim() ? 'bg-purple-50 border-purple-200 text-gray-900 italic' : 'bg-gray-50 text-gray-500'}`}>
-              {currentStretch.trim() ? currentStretch : 'Work with AI to stretch your visualization and it will appear here.'}
-            </div>
+            <textarea
+              className={`w-full min-h-[100px] max-h-[220px] p-3 border rounded text-sm mb-1 resize-none ${currentStretch.trim() ? 'bg-purple-50 border-purple-200 text-gray-900 italic' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+              value={currentStretch}
+              onChange={(e) => setCurrentStretch(e.target.value)}
+              placeholder="Work with AI to stretch your visualization, or paste/type it here."
+            />
+            {!currentStretch.trim() && (
+              <p className="text-xs text-gray-400 mb-2">If the stretch doesn't auto-populate, paste it from the chat.</p>
+            )}
             {phase === 'stretch' && (
               <Button onClick={onNext} disabled={!currentStretch.trim()} className="w-full">
                 This looks good

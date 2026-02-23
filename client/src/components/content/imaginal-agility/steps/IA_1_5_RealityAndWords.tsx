@@ -264,9 +264,6 @@ const IA_1_5_RealityAndWords: React.FC<IA15RealityAndWordsProps> = ({ onNext }) 
                               <span className="font-bold text-purple-700 mr-2">{opt.key}:</span>
                               <span className="text-gray-800">{opt.text}</span>
                             </div>
-                            {correctChoice && !chosen && (
-                              <span className="ml-auto text-xs text-gray-400">hint</span>
-                            )}
                           </button>
                         );
                       })}

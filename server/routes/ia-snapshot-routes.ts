@@ -1,9 +1,8 @@
 import express from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../db.js';
-import { workshopStepData } from '../../shared/schema.js';
+import { workshopStepData, userAssessments } from '../../shared/schema.js';
 import { and, eq, inArray } from 'drizzle-orm';
-import { getUserKeyForReq, getIAStateByKey } from './ia.js';
 
 const router = express.Router();
 
@@ -39,21 +38,34 @@ router.get('/activation-snapshot', requireAuth, async (req, res) => {
 
     // Fetch all relevant workshopStepData rows in one query
     const stepIds = [
-      'ia-assessment',
       'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5',
       'ia-4-6',
     ];
 
-    const rows = await db
-      .select()
-      .from(workshopStepData)
-      .where(
-        and(
-          eq(workshopStepData.userId, userId),
-          eq(workshopStepData.workshopType, 'ia'),
-          inArray(workshopStepData.stepId, stepIds)
+    const [rows, assessmentRows] = await Promise.all([
+      db
+        .select()
+        .from(workshopStepData)
+        .where(
+          and(
+            eq(workshopStepData.userId, userId),
+            eq(workshopStepData.workshopType, 'ia'),
+            inArray(workshopStepData.stepId, stepIds)
+          )
+        ),
+      // The I4C assessment is stored in userAssessments table, not workshopStepData
+      db
+        .select()
+        .from(userAssessments)
+        .where(
+          and(
+            eq(userAssessments.userId, userId),
+            eq(userAssessments.assessmentType, 'iaCoreCapabilities')
+          )
         )
-      );
+        .limit(1),
+    ]);
 
     // Index rows by stepId for easy access
     const byStep: Record<string, any> = {};
@@ -62,21 +74,24 @@ router.get('/activation-snapshot', requireAuth, async (req, res) => {
       byStep[row.stepId] = typeof d === 'string' ? JSON.parse(d) : (d ?? {});
     }
 
-    // ── Prism (from ia-assessment) ──────────────────────────────────────────
+    // ── Prism (from userAssessments table) ──────────────────────────────────
     let prism: Record<CapabilityKey, number> | null = null;
-    const assessmentData = byStep['ia-assessment'];
-    if (assessmentData) {
-      const results = assessmentData.results ?? assessmentData;
-      const parsed = typeof results === 'string' ? JSON.parse(results) : results;
-      if (parsed && typeof parsed === 'object') {
-        prism = {
-          imagination: parseFloat(parsed.imagination) || 0,
-          curiosity:   parseFloat(parsed.curiosity)   || 0,
-          caring:      parseFloat(parsed.empathy ?? parsed.caring) || 0,
-          creativity:  parseFloat(parsed.creativity)  || 0,
-          courage:     parseFloat(parsed.courage)     || 0,
-        };
-      }
+    const assessmentRow = assessmentRows[0];
+    if (assessmentRow?.results) {
+      try {
+        const parsed = typeof assessmentRow.results === 'string'
+          ? JSON.parse(assessmentRow.results)
+          : assessmentRow.results;
+        if (parsed && typeof parsed === 'object') {
+          prism = {
+            imagination: parseFloat(parsed.imagination) || 0,
+            curiosity:   parseFloat(parsed.curiosity)   || 0,
+            caring:      parseFloat(parsed.empathy ?? parsed.caring) || 0,
+            creativity:  parseFloat(parsed.creativity)  || 0,
+            courage:     parseFloat(parsed.courage)     || 0,
+          };
+        }
+      } catch { /* malformed results — leave prism as null */ }
     }
 
     // ── Solo activations (Module 3) ─────────────────────────────────────────
@@ -116,25 +131,16 @@ router.get('/activation-snapshot', requireAuth, async (req, res) => {
       soloStepsCompleted++;
     }
 
-    // ── AI-partnered activations (Module 4, from in-memory store) ──────────
+    // ── AI-partnered activations (Module 4, from database) ─────────────────
     const aiActivations = zeroCounts();
     let aiStepsCompleted = 0;
 
-    const userKey = getUserKeyForReq(req);
-    const m4State = getIAStateByKey(userKey);
-
-    if (m4State) {
-      const fields: Array<{ obj: any; field: string }> = [
-        { obj: m4State.ia_4_2, field: 'ia_4_2' },
-        { obj: m4State.ia_4_3, field: 'ia_4_3' },
-        { obj: m4State.ia_4_4, field: 'ia_4_4' },
-        { obj: m4State.ia_4_5, field: 'ia_4_5' },
-      ];
-      for (const { obj } of fields) {
-        if (obj?.capability_stretched) {
-          addCount(aiActivations, obj.capability_stretched);
-          aiStepsCompleted++;
-        }
+    const aiStepKeys = ['ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5'] as const;
+    for (const stepId of aiStepKeys) {
+      const stepData = byStep[stepId];
+      if (stepData?.capability_stretched) {
+        addCount(aiActivations, stepData.capability_stretched);
+        aiStepsCompleted++;
       }
     }
 

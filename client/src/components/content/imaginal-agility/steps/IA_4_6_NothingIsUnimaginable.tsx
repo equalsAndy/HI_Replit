@@ -163,7 +163,7 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
               <div className="space-y-3">
                 <p className="text-blue-700 text-sm">
                   Be brave. Be clear. Be poetic.<br/>
-                  This is not a plan. It's a message from the person you've become.
+                  This is not a plan. It's a message from the imaginative you.
                 </p>
 
                 <div className="relative">

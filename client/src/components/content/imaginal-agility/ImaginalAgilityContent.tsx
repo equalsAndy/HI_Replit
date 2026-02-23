@@ -26,6 +26,7 @@ import IA_4_4_HigherPurposeUplift from './steps/IA_4_4_HigherPurposeUplift';
 import IA_4_5_InspirationSupport from './steps/IA_4_5_InspirationSupport';
 import IA_4_6_NothingIsUnimaginable from './steps/IA_4_6_NothingIsUnimaginable';
 import IA_5_1_Overview from './steps/IA_5_1_Overview';
+import IA_5_1_Content from './steps/IA_5_1_Content';
 import IA_5_2_CapabilityCommitment from './steps/IA_5_2_CapabilityCommitment';
 import IA_5_3_MonthlySignal from './steps/IA_5_3_MonthlySignal';
 import IA_5_4_HaiQ from './steps/IA_5_4_HaiQ';
@@ -342,7 +343,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
       case 'ia-4-6':
         return <IA_4_6_NothingIsUnimaginable onNext={onNext} />;
       case 'ia-5-1':
-        return <IA_5_1_Overview onNext={onNext} />;
+        return <IA_5_1_Content onNext={onNext} />;
       case 'ia-5-2':
         return <IA_5_2_CapabilityCommitment onNext={onNext} />;
       case 'ia-5-3':

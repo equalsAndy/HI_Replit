@@ -76,15 +76,6 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
 
 const router = express.Router();
 
-// Exported for use by snapshot route
-export function getUserKeyForReq(req: express.Request): UserKey {
-  return getUserKey(req);
-}
-
-export function getIAStateByKey(key: string): IAState | undefined {
-  return store.get(key);
-}
-
 router.get('/state', authenticateUser, async (req, res) => {
   try {
     const userId = (req.session as any).userId;

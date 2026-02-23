@@ -200,12 +200,14 @@ export default function ReframeExercise() {
           <CapabilitySelector
             mode="single"
             selected={ia.capability_stretched || null}
-            onSelect={(val) =>
+            onSelect={(val) => {
               setState((prev) => ({
                 ...prev,
                 ia_4_2: { ...(prev.ia_4_2 || {}), capability_stretched: val as CapabilityType },
-              }))
-            }
+              }));
+              // Persist immediately so "Continue" never sees stale data
+              setTimeout(() => saveNow(), 0);
+            }}
             prompt="Which of your capabilities was most stretched by this exchange?"
             className={ia.capability_stretched ? 'mt-4 mb-2' : 'mt-1 mb-2 ring-2 ring-amber-400'}
           />

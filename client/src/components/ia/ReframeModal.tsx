@@ -110,6 +110,33 @@ export function ReframeModal({
       .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')   // curly double quotes → "
       .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");  // curly single quotes → '
 
+    // Meta-conversation phrases that are never reframes
+    const isMetaPhrase = (s: string) =>
+      /\b(how does that|how does it|would you like|I can adjust|I can try|different angle|land with|adjust the angle|feel free|try a different|sounds like|that sounds|let me know|does that (feel|resonate|land|work|sound)|should I (try|adjust|offer))\b/i.test(s);
+
+    // First-person verbs that signal a reframe statement
+    const firstPersonPattern = /^(I\s+am\b|I\s+feel\b|I\s+see\b|I\s+have\b|I\s+notice\b|I\s+find\b|I\s+hold\b|I\s+recognize\b|I\s+understand\b|I\s+believe\b|I\s+'?m\b|I\s+can\b|I\s+know\b|I\s+choose\b|I\s+bring\b|I\s+keep\b|I\s+discover\b|I\s+carry\b)/i;
+
+    // 0. First-person standalone sentence (new prompt format: no quotes, no prefix)
+    // Also check sub-clauses after colons — AI often writes "Here's a way to hold it: I am..."
+    const sentenceBlocksRaw = raw.match(/[^.!?]+[.!?]*/g) || [];
+    const blocks0: string[] = [];
+    for (const block of sentenceBlocksRaw) {
+      blocks0.push(block.trim());
+      // Extract sub-clauses after colons so "intro phrase: I am..." is also checked
+      const colonParts = block.split(':');
+      if (colonParts.length > 1) {
+        colonParts.slice(1).forEach(p => blocks0.push(p.trim()));
+      }
+    }
+    for (const s of blocks0) {
+      if (s.length < 20 || s.endsWith('?')) continue;
+      if (isMetaPhrase(s)) continue;
+      if (firstPersonPattern.test(s)) {
+        return cleanReframeText(toFirstPerson(s)).slice(0, 300);
+      }
+    }
+
     // 1. Try to find quoted reframes (most common AI pattern)
     // Allow periods inside quotes since reframes are full sentences
     const quotedReframePattern = /"([^"]{15,})"/g;
@@ -171,13 +198,15 @@ export function ReframeModal({
       }
     }
 
-    // 4. Sentence-level fallback
-    const sentences = normalized.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    for (const sentence of sentences) {
-      if (sentence.includes('?') || sentence.trim().length < 20) continue;
+    // 4. Sentence-level fallback — use match() to preserve delimiters for proper question detection
+    const sentenceBlocks = normalized.match(/[^.!?]+[.!?]*/g) || [];
+    for (const block of sentenceBlocks) {
+      const sentence = block.trim();
+      if (sentence.length < 20 || sentence.endsWith('?')) continue;
+      if (isMetaPhrase(sentence)) continue;
 
       const reframeIndicators = [
-        'instead', 'rather', 'reframe', 'perspective', 'view',
+        'instead', 'rather', 'perspective', 'view',
         'opportunity', 'chance', 'possibility', 'potential', 'growth', 'learning'
       ];
 
@@ -463,7 +492,7 @@ export function ReframeModal({
         <header className="absolute top-0 left-0 w-full bg-white border-b border-gray-200 flex items-center gap-4 p-3 z-10">
           <img src="/assets/adv_rung1_split.png" alt="Rung 1" className="h-8 flex-shrink-0" />
           <DialogTitle className="text-base font-semibold flex-grow">
-            Autoflow Mindful Prompts — Guided Reframe
+            Guided Reframe — AI Partner
           </DialogTitle>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={handleStartOverClick}>Start Over</Button>
@@ -501,7 +530,7 @@ export function ReframeModal({
             <InlineChat
               ref={chatRef}
               trainingId="ia-4-2"
-              systemPrompt={PROMPTS.IA_4_2}
+              systemPrompt={`${PROMPTS.IA_4_2}\n\nCURRENT_PHASE: ${phase}`}
               seed={`I need a new perspective. Help me reframe my challenge: "${challenge}"`}
               onUserSend={onChatUserSend}
               onReply={onChatReply}
