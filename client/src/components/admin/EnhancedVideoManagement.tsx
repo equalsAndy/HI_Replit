@@ -125,6 +125,8 @@ export function EnhancedVideoManagement() {
       case 'allstarteams':
         return { label: 'AST', bgColor: '#dbeafe', textColor: '#1e40af' };
       case 'ia':
+      case 'imaginal-agility':
+      case 'imaginalagility':
         return { label: 'IA', bgColor: '#f3e8ff', textColor: '#7c3aed' };
       case 'general':
         return { label: 'General', bgColor: '#f3f4f6', textColor: '#6b7280' };
@@ -159,7 +161,11 @@ export function EnhancedVideoManagement() {
       // Convert snake_case API response to camelCase for frontend
       const convertedVideos = result.map((video: any) => ({
         ...video,
-        workshopType: video.workshop_type || video.workshopType,
+        workshopType: (() => {
+          const raw = video.workshop_type || video.workshopType || '';
+          if (raw === 'imaginal-agility' || raw === 'imaginalagility' || raw === 'imaginal agility') return 'ia';
+          return raw;
+        })(),
         stepId: video.step_id || video.stepId,
         editableId: video.editable_id || video.editableId,
         sortOrder: video.sort_order || video.sortOrder,
@@ -664,7 +670,7 @@ export function EnhancedVideoManagement() {
           >
             <option value="all">All Workshops</option>
             <option value="allstarteams">AllStarTeams (AST)</option>
-            <option value="imaginal-agility">Imaginal Agility (IA)</option>
+            <option value="ia">Imaginal Agility (IA)</option>
           </select>
         </div>
         
@@ -907,7 +913,7 @@ export function EnhancedVideoManagement() {
                     required
                   >
                     <option value="allstarteams">AllStarTeams</option>
-                    <option value="imaginal-agility">Imaginal Agility</option>
+                    <option value="ia">Imaginal Agility</option>
                   </select>
                 </div>
 

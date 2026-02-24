@@ -94,6 +94,7 @@ interface GlossaryTerm {
 // Form schema for video editing
 const videoEditFormSchema = z.object({
   editableId: z.string().min(1, 'Video ID is required'),
+  workshopType: z.string().min(1, 'Workshop type is required'),
   transcriptMd: z.string().optional(),
   glossary: z.array(z.object({
     term: z.string().min(1, 'Term is required'),
@@ -202,6 +203,7 @@ export function SimpleVideoManagement() {
     resolver: zodResolver(videoEditFormSchema),
     defaultValues: {
       editableId: '',
+      workshopType: 'allstarteams',
       transcriptMd: '',
       glossary: [],
     },
@@ -283,7 +285,12 @@ export function SimpleVideoManagement() {
 
     // Apply workshop filter
     if (filterWorkshop !== 'all') {
-      filtered = filtered.filter(video => video.workshop_type === filterWorkshop);
+      filtered = filtered.filter(video => {
+        if (filterWorkshop === 'ia') {
+          return video.workshop_type === 'ia' || video.workshop_type === 'imaginalagility' || video.workshop_type === 'imaginal-agility' || video.workshop_type === 'imaginal agility';
+        }
+        return video.workshop_type === filterWorkshop;
+      });
     }
 
     // Apply search filter
@@ -394,6 +401,7 @@ export function SimpleVideoManagement() {
         credentials: 'include',
         body: JSON.stringify({
           editableId: data.editableId,
+          workshopType: data.workshopType,
           url: newUrl,
           transcriptMd: data.transcriptMd || '',
           glossary: data.glossary || [],
@@ -412,6 +420,7 @@ export function SimpleVideoManagement() {
           ? {
               ...video,
               editableId: data.editableId,
+              workshop_type: data.workshopType,
               url: newUrl,
               transcriptMd: data.transcriptMd,
               glossary: data.glossary,
@@ -448,13 +457,17 @@ export function SimpleVideoManagement() {
     setPreviewUrl(generatePreviewUrl(videoId)); // Use preview URL (no autoplay)
     
     // Populate form with video data
+    const workshopType = video.workshop_type || 'allstarteams';
     form.reset({
       editableId: videoId,
+      workshopType,
       transcriptMd: video.transcriptMd || '',
       glossary: video.glossary || [],
       enforceWatchRequirement: video.enforceWatchRequirement || false,
       requiredWatchPercentage: video.requiredWatchPercentage || 75,
     });
+    // Explicitly set workshopType after reset — Radix Select needs this to reflect the value
+    form.setValue('workshopType', workshopType);
     
     setIsEditDialogOpen(true);
   };
@@ -591,9 +604,8 @@ export function SimpleVideoManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Workshops</SelectItem>
-                  <SelectItem value="allstarteams">AllStarTeams</SelectItem>
-                  <SelectItem value="ast">AST</SelectItem>
-                  <SelectItem value="ia">Imaginal Agility</SelectItem>
+                  <SelectItem value="allstarteams">AST - AllStarTeams</SelectItem>
+                  <SelectItem value="ia">IA - Imaginal Agility</SelectItem>
                   <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
@@ -609,9 +621,8 @@ export function SimpleVideoManagement() {
               {filterWorkshop !== 'all' && (
                 <Badge variant="secondary">
                   <Filter className="h-3 w-3 mr-1" />
-                  {filterWorkshop === 'allstarteams' ? 'AllStarTeams' : 
-                   filterWorkshop === 'ast' ? 'AST' :
-                   filterWorkshop === 'ia' ? 'Imaginal Agility' : 
+                  {filterWorkshop === 'allstarteams' ? 'AST - AllStarTeams' :
+                   filterWorkshop === 'ia' ? 'IA - Imaginal Agility' :
                    filterWorkshop}
                 </Badge>
               )}
@@ -650,31 +661,58 @@ export function SimpleVideoManagement() {
                   
                   <div className="flex-1 overflow-y-auto">
                     <TabsContent value="video" className="space-y-6 p-1">
-                      {/* Video ID Input */}
-                      <FormField
-                        control={form.control}
-                        name="editableId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Video ID</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field}
-                                onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                  handlePreviewIdChange(e.target.value);
-                                }}
-                                placeholder="e.g., nFQPqSwzOLw"
-                                className="font-mono"
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Enter the YouTube video ID (the part after v= or /embed/)
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {/* Video ID and Workshop Type */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="editableId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Video ID</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    handlePreviewIdChange(e.target.value);
+                                  }}
+                                  placeholder="e.g., nFQPqSwzOLw"
+                                  className="font-mono"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                YouTube video ID (the part after v= or /embed/)
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="workshopType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Workshop Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select workshop" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="allstarteams">AST - AllStarTeams</SelectItem>
+                                  <SelectItem value="ia">IA - Imaginal Agility</SelectItem>
+                                  <SelectItem value="general">General</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Which workshop this video belongs to
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       {/* Live Video Preview and Embed Code Side-by-Side */}
                       {previewUrl && (
@@ -933,13 +971,13 @@ export function SimpleVideoManagement() {
                     <TableCell>
                       <Badge variant={
                         video.workshop_type === 'allstarteams' ? 'default' :
-                        video.workshop_type === 'ia' ? 'secondary' :
+                        (video.workshop_type === 'ia' || video.workshop_type === 'imaginalagility' || video.workshop_type === 'imaginal-agility' || video.workshop_type === 'imaginal agility') ? 'secondary' :
                         'outline'
                       }>
-                        {video.workshop_type === 'allstarteams' ? 'AST' : 
-                         video.workshop_type === 'ia' ? 'IA' : 
+                        {video.workshop_type === 'allstarteams' ? 'AST' :
+                         (video.workshop_type === 'ia' || video.workshop_type === 'imaginalagility' || video.workshop_type === 'imaginal-agility' || video.workshop_type === 'imaginal agility') ? 'IA' :
                          video.workshop_type === 'general' ? 'General' :
-                         'Landing'}
+                         video.workshop_type}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono text-sm">
