@@ -200,7 +200,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-5-5',
-        title: 'Development Arc',
+        title: 'Development Path',
         type: 'interactive',
         contentKey: 'ia-5-5'
       }

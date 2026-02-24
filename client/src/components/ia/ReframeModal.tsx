@@ -104,121 +104,21 @@ export function ReframeModal({
     return t;
   }
 
-  function extractReframe(raw: string) {
-    // Normalize curly/smart quotes to straight quotes for easier matching
-    const normalized = raw
-      .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')   // curly double quotes → "
-      .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");  // curly single quotes → '
-
-    // Meta-conversation phrases that are never reframes
-    const isMetaPhrase = (s: string) =>
-      /\b(how does that|how does it|would you like|I can adjust|I can try|different angle|land with|adjust the angle|feel free|try a different|sounds like|that sounds|let me know|does that (feel|resonate|land|work|sound)|should I (try|adjust|offer))\b/i.test(s);
-
-    // First-person verbs that signal a reframe statement
-    const firstPersonPattern = /^(I\s+am\b|I\s+feel\b|I\s+see\b|I\s+have\b|I\s+notice\b|I\s+find\b|I\s+hold\b|I\s+recognize\b|I\s+understand\b|I\s+believe\b|I\s+'?m\b|I\s+can\b|I\s+know\b|I\s+choose\b|I\s+bring\b|I\s+keep\b|I\s+discover\b|I\s+carry\b)/i;
-
-    // 0. First-person standalone sentence (new prompt format: no quotes, no prefix)
-    // Also check sub-clauses after colons — AI often writes "Here's a way to hold it: I am..."
-    const sentenceBlocksRaw = raw.match(/[^.!?]+[.!?]*/g) || [];
-    const blocks0: string[] = [];
-    for (const block of sentenceBlocksRaw) {
-      blocks0.push(block.trim());
-      // Extract sub-clauses after colons so "intro phrase: I am..." is also checked
-      const colonParts = block.split(':');
-      if (colonParts.length > 1) {
-        colonParts.slice(1).forEach(p => blocks0.push(p.trim()));
-      }
+  function extractMarkedReframe(raw: string): string {
+    const markerMatch = raw.match(/\[REFRAME\]\s*([\s\S]+)/i);
+    if (!markerMatch) return '';
+    const afterMarker = markerMatch[1].trim();
+    // Collect non-question sentences (the reframe is always a statement)
+    const sentences = afterMarker.match(/[^.!?]+[.!?]*/g) || [];
+    const reframeSentences: string[] = [];
+    for (const s of sentences) {
+      if (s.trim().endsWith('?')) break;
+      if (s.trim().length > 5) reframeSentences.push(s.trim());
+      if (reframeSentences.length >= 3) break;
     }
-    for (const s of blocks0) {
-      if (s.length < 20 || s.endsWith('?')) continue;
-      if (isMetaPhrase(s)) continue;
-      if (firstPersonPattern.test(s)) {
-        return cleanReframeText(toFirstPerson(s)).slice(0, 300);
-      }
-    }
-
-    // 1. Try to find quoted reframes (most common AI pattern)
-    // Allow periods inside quotes since reframes are full sentences
-    const quotedReframePattern = /"([^"]{15,})"/g;
-    const quotedMatches = Array.from(normalized.matchAll(quotedReframePattern));
-
-    for (const match of quotedMatches) {
-      const quote = match[1].trim();
-      // Skip questions or generic filler responses
-      if (quote.endsWith('?') ||
-          quote.toLowerCase().includes('something else') ||
-          quote.toLowerCase().includes('more hopeful') ||
-          quote.toLowerCase().includes('more practical')) continue;
-      // Accept if it contains first-person language (or will after conversion)
-      if (/\b(I'm|I am|I feel|I see|I've|I have|I recognize|I can|I need|I want|you're|you are|you need|you have|you can)\b/i.test(quote)) {
-        return cleanReframeText(toFirstPerson(quote)).slice(0, 300);
-      }
-    }
-
-    // 2. Look for specific reframe introduction patterns
-    const reframeIntroPatterns = [
-      /(?:here'?s|here is)\s+(?:a\s+)?(?:quick\s+)?reframe[:\s]+"([^"]+)"/i,
-      /(?:how about|what about)\s+this(?:\s+as)?(?:\s+a)?\s*(?:fresh\s+)?reframe[:\s]+"([^"]+)"/i,
-      /(?:try\s+this|consider\s+this)[:\s]+"([^"]+)"/i,
-    ];
-
-    for (const pattern of reframeIntroPatterns) {
-      const match = normalized.match(pattern);
-      if (match && match[1]) {
-        const reframe = match[1].trim();
-        if (reframe.length > 10) {
-          return cleanReframeText(toFirstPerson(reframe)).slice(0, 300);
-        }
-      }
-    }
-
-    // 3. Pattern-based extraction (no quotes)
-    const reframePatterns = [
-      /instead of[^,.]*,?\s*(?:you might|try|consider|what if|perhaps)\s*([^.!?]*[.!?])/i,
-      /rather than[^,.]*,?\s*(?:you could|try|consider|what if|perhaps)\s*([^.!?]*[.!?])/i,
-      /what if (?:you|we)\s*([^.!?]*[.!?])/i,
-      /try (?:thinking|seeing|viewing)\s*([^.!?]*[.!?])/i,
-      /consider (?:that)?\s*([^.!?]*[.!?])/i,
-      /perhaps\s*([^.!?]*[.!?])/i,
-      /maybe\s*([^.!?]*[.!?])/i,
-      /^I\s+(?:am|feel|see|think|believe|recognize|understand)\s*([^.!?]*[.!?])/i,
-    ];
-
-    for (const pattern of reframePatterns) {
-      const match = normalized.match(pattern);
-      if (match) {
-        let reframe = match[1] || match[0];
-        if (/^(I|you)\s/i.test(reframe)) {
-          reframe = match[0];
-        }
-        reframe = reframe.replace(/^(?:this\s+)?(?:reframe|this)\s*[:\-]?\s*/i, '').replace(/^["'`]|["'`]$/g, '');
-        if (reframe.trim().length > 10) {
-          return cleanReframeText(toFirstPerson(reframe.trim())).slice(0, 300);
-        }
-      }
-    }
-
-    // 4. Sentence-level fallback — use match() to preserve delimiters for proper question detection
-    const sentenceBlocks = normalized.match(/[^.!?]+[.!?]*/g) || [];
-    for (const block of sentenceBlocks) {
-      const sentence = block.trim();
-      if (sentence.length < 20 || sentence.endsWith('?')) continue;
-      if (isMetaPhrase(sentence)) continue;
-
-      const reframeIndicators = [
-        'instead', 'rather', 'perspective', 'view',
-        'opportunity', 'chance', 'possibility', 'potential', 'growth', 'learning'
-      ];
-
-      if (reframeIndicators.some(indicator => sentence.toLowerCase().includes(indicator))) {
-        const cleaned = sentence.replace(/^(?:this\s+)?(?:reframe|this)\s*[:\-]?\s*/i, '').replace(/^["'`]|["'`]$/g, '');
-        if (cleaned.trim().length > 10) {
-          return cleanReframeText(toFirstPerson(cleaned.trim())).slice(0, 300);
-        }
-      }
-    }
-
-    return '';
+    const reframeText = reframeSentences.join(' ').trim();
+    if (reframeText.length < 10) return '';
+    return cleanReframeText(toFirstPerson(reframeText)).slice(0, 300);
   }
 
   function cleanShiftPart(text: string) {
@@ -295,39 +195,49 @@ export function ReframeModal({
   }, [transcript]);
 
   const onChatReply = React.useCallback((msg: string) => {
-    // Only process reframes during reframe phase
-    if (phase === 'reframe') {
-      const potentialReframe = extractReframe(msg);
-      const isReframeOffer = potentialReframe.length > 0;
+    // Detect off-topic redirect
+    const isRedirect = /^\[REDIRECT\]/i.test(msg.trimStart());
 
-      if (isReframeOffer) {
-        setCurrentReframe(potentialReframe);
+    // Strip all protocol markers from chat display — [REDIRECT] and [REFRAME] are internal signals only
+    const displayContent = msg
+      .replace(/^\[REDIRECT\]\s*/i, '')
+      .replace(/\[REFRAME\]\s*/gi, '')
+      .trim();
+
+    if (phase === 'reframe') {
+      // Only update the reframe box when the AI explicitly marks a reframe with [REFRAME]
+      if (!isRedirect) {
+        const markedReframe = extractMarkedReframe(msg);
+        if (markedReframe.length > 0) {
+          setCurrentReframe(markedReframe);
+        }
       }
 
       setTranscript((prev) => [...prev, {
         role: 'assistant',
-        content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(),
-        isReframeOffer
+        content: displayContent.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(),
+        isReframeOffer: !isRedirect && /\[REFRAME\]/i.test(msg),
+        skipReframe: isRedirect,
       }]);
     } else if (phase === 'shift') {
-      // During shift phase, look for shift suggestions
-      const potentialShift = extractShiftSuggestion(msg);
-      const isShiftSuggestion = potentialShift.length > 0;
-
-      if (isShiftSuggestion) {
-        setShiftBox(potentialShift);
+      // Only update the shift box for genuine shift suggestions, not redirects
+      if (!isRedirect) {
+        const potentialShift = extractShiftSuggestion(displayContent);
+        if (potentialShift.length > 0) {
+          setShiftBox(potentialShift);
+        }
       }
 
       setTranscript((prev) => [...prev, {
         role: 'assistant',
-        content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(),
-        isShiftSuggestion
+        content: displayContent.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(),
+        isShiftSuggestion: !isRedirect && extractShiftSuggestion(displayContent).length > 0,
+        skipReframe: isRedirect,
       }]);
     } else {
-      // Default for other phases
       setTranscript((prev) => [...prev, {
         role: 'assistant',
-        content: msg.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim()
+        content: displayContent.replace(/\s*Shift\s*[:\-][\s\S]*$/i, '').trim(),
       }]);
     }
   }, [phase]);

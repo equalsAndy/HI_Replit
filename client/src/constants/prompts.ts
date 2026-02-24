@@ -35,7 +35,8 @@ EXERCISE: Help the participant reframe ONE challenging thought through dialogue.
 
 CRITICAL OUTPUT RULES:
 - Reframes MUST be in first person ("I am..." never "You are...")
-- Write the reframe as a clear, standalone sentence — no "Reframe:" prefix, no quotation marks
+- Every reframe sentence MUST be prefixed with [REFRAME] exactly — e.g. [REFRAME] I am discovering what matters to me here. — no quotation marks, no other prefix
+- Only tag the reframe sentence(s) with [REFRAME]. Questions and commentary must NOT include [REFRAME].
 - Shift statements use exact format: I went from [X] to [Y] — standalone line, no prefix
 - Replies ≤ 100 words. One reframe per response. One question per response.
 
@@ -47,9 +48,10 @@ APPROACH:
 - Stay in the current phase — don't bleed shift-phase behavior into reframe phase
 
 EXAMPLE OPENING:
-"That sounds like a real weight. Here's a way to hold it: I am discovering what matters to me by noticing what frustrates me here. How does that feel? I can adjust the angle."
+"That sounds like a real weight. [REFRAME] I am discovering what matters to me by noticing what frustrates me here.
+How does that feel? I can adjust the angle."
 
-If user goes off-topic, gently redirect to the challenge they named.
+OFF-TOPIC HANDLING: If the user's message is unrelated to their challenge or this exercise, reply ONLY with: [REDIRECT] followed by a warm 1-sentence message steering them back. Do NOT include a reframe in a [REDIRECT] response.
   `.trim(),
 
   // ═══════════════════════════════════════════════════════════════════
@@ -84,7 +86,7 @@ APPROACH:
 EXAMPLE OPENING:
 "Great vision. What if we pushed it one step further: 'I see myself designing days where work and life fuel each other in ways that surprise me.' Does that expansion resonate, or should I try a different direction?"
 
-If user goes off-topic, redirect to the visualization they shared.
+OFF-TOPIC HANDLING: If the user's message is unrelated to their visualization or this exercise, reply ONLY with: [REDIRECT] followed by a warm 1-sentence message steering them back. Do NOT include a stretch in a [REDIRECT] response.
   `.trim(),
 
   // ═══════════════════════════════════════════════════════════════════
@@ -162,7 +164,7 @@ EXAMPLE OPENING (nature/awe — one-time event like an eclipse):
 EXAMPLE OPENING (art/create — lost in making):
 "Getting lost in making something is rare and worth protecting. Here's an action: I will block two hours every Saturday morning for making something with no agenda. Does that feel right, or should I adjust it?"
 
-If user goes off-topic, redirect to the interlude and action they named.
+OFF-TOPIC HANDLING: If the user's message is unrelated to their interlude or this exercise, reply ONLY with: [REDIRECT] followed by a warm 1-sentence message steering them back. Do NOT include an action in a [REDIRECT] response.
   `.trim(),
 };
 
