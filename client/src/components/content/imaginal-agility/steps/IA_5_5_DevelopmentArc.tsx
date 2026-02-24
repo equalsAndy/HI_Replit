@@ -1,11 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useQuery } from '@tanstack/react-query';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
-import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
-import { useVideoByStepId } from '@/hooks/use-videos';
 
 interface IA55ContentProps {
   onNext?: (stepId: string) => void;
@@ -21,57 +18,13 @@ const INITIAL_DATA: IA55StepData = {
   workshop_completed_at: '',
 };
 
-const JOURNEY_ITEMS = [
-  'Mapped your capabilities (Prism)',
-  'Practiced solo (5 Ladder rungs)',
-  'Partnered with AI (5 Advanced rungs)',
-  'Saw your activation pattern',
-];
-
 const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
-  const { data: videoData } = useVideoByStepId('ia', 'ia-5-5');
-
-  const extractYouTubeId = (url: string): string | null => {
-    if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-    return match ? match[1] : null;
-  };
-
   const { data, updateData, saving } = useWorkshopStepData<IA55StepData>(
     'ia',
     'ia-5-5',
     INITIAL_DATA,
     { debounceMs: 1500, enableAutoSave: true }
   );
-
-  // Fetch ia-5-2 commitment data
-  const { data: commitmentResponse } = useQuery({
-    queryKey: ['/api/workshop-data/ia/ia-5-2'],
-    queryFn: async () => {
-      const res = await fetch('/api/workshop-data/ia/ia-5-2', { credentials: 'include' });
-      if (!res.ok) return null;
-      return res.json();
-    },
-    retry: false,
-  });
-  const commitmentData = (commitmentResponse as any)?.data || {};
-
-  // Fetch ia-4-6 capstone data
-  const { data: capstoneResponse } = useQuery({
-    queryKey: ['/api/workshop-data/ia/ia-4-6'],
-    queryFn: async () => {
-      const res = await fetch('/api/workshop-data/ia/ia-4-6', { credentials: 'include' });
-      if (!res.ok) return null;
-      return res.json();
-    },
-    retry: false,
-  });
-  const capstoneData = (capstoneResponse as any)?.data || {};
-
-  const focusCapability = commitmentData.selected_capability
-    ? (commitmentData.selected_capability as string).charAt(0).toUpperCase() +
-      (commitmentData.selected_capability as string).slice(1)
-    : '—';
 
   const handleComplete = () => {
     updateData({ workshop_completed_at: new Date().toISOString() });
@@ -83,57 +36,16 @@ const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
     <div className="max-w-4xl mx-auto p-6">
       <ScrollIndicator idleTime={3000} position="nav-adjacent" colorScheme="purple" />
 
-      <h1 className="text-3xl font-bold text-purple-700 mb-2">Your Development Arc</h1>
-      <p className="text-lg text-muted-foreground mb-8">One full cycle — and a direction forward.</p>
+      <h1 className="text-3xl font-bold text-purple-700 mb-2">Your Development Path</h1>
+      <p className="text-lg text-muted-foreground mb-6">Sustained agency with AI emerges from structured practice, intentional commitment, and monthly signal refinement.</p>
 
-      {/* Video */}
-      <VideoTranscriptGlossary
-        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
-        title={videoData?.title || 'Your Development Arc'}
-        transcriptMd={null}
-        glossary={null}
-      />
-
-      {/* Journey Summary */}
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-6">
-        <p className="text-lg font-semibold text-gray-800 mb-5">You completed one full cycle:</p>
-        <div className="space-y-3">
-          {JOURNEY_ITEMS.map(item => (
-            <div key={item} className="flex items-start gap-3">
-              <span className="text-green-500 font-bold text-lg leading-tight mt-0.5">✓</span>
-              <span className="text-gray-700">{item}</span>
-            </div>
-          ))}
-          <div className="flex items-start gap-3">
-            <span className="text-green-500 font-bold text-lg leading-tight mt-0.5">✓</span>
-            <span className="text-gray-700">
-              Chose your focus:{' '}
-              <span className="font-medium text-purple-700">{focusCapability}</span>
-            </span>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-green-500 font-bold text-lg leading-tight mt-0.5">✓</span>
-            <span className="text-gray-700">
-              Set your commitment:{' '}
-              {commitmentData.commitment_text
-                ? <span className="italic text-gray-600">"{commitmentData.commitment_text}"</span>
-                : <span className="text-gray-400">—</span>
-              }
-            </span>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-green-500 font-bold text-lg leading-tight mt-0.5">✓</span>
-            <span className="text-gray-700">Completed your first monthly signal</span>
-          </div>
-          {capstoneData.vision && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-500 mb-1">Your capstone vision:</p>
-              <blockquote className="border-l-4 border-purple-300 pl-4 text-gray-700 italic text-sm">
-                "{capstoneData.vision}"
-              </blockquote>
-            </div>
-          )}
-        </div>
+      {/* Hero Image */}
+      <div className="mb-8 flex justify-center">
+        <img
+          src="/assets/Dev_path1.jpg"
+          alt="Development Path"
+          className="w-1/2 rounded-xl shadow-md"
+        />
       </div>
 
       {/* The Repeatable Structure — component-built cycle diagram */}

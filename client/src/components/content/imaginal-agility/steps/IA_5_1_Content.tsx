@@ -2,11 +2,12 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
-import { useVideoByStepId } from '@/hooks/use-videos';
+import { useVideosByStepId } from '@/hooks/use-videos';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
+import ActivationMatrix from '../ActivationMatrix';
 
 interface IA51ContentProps {
   onNext?: (stepId: string) => void;
@@ -14,49 +15,9 @@ interface IA51ContentProps {
 
 type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
 
-const CAPABILITIES: CapabilityKey[] = ['imagination', 'curiosity', 'caring', 'creativity', 'courage'];
-
-const CAPABILITY_COLORS: Record<CapabilityKey, string> = {
-  imagination: '#8b5cf6',
-  curiosity:   '#3b82f6',
-  caring:      '#10b981',
-  creativity:  '#f59e0b',
-  courage:     '#ef4444',
-};
-
-const CAPABILITY_LABELS: Record<CapabilityKey, string> = {
-  imagination: 'Imagination',
-  curiosity:   'Curiosity',
-  caring:      'Caring',
-  creativity:  'Creativity',
-  courage:     'Courage',
-};
-
-function Dots({ count, color }: { count: number; color: string }) {
-  const filled = Math.min(Math.round(count), 4);
-  return (
-    <div className="flex gap-1 justify-center">
-      {[0, 1, 2, 3].map(i => (
-        <span
-          key={i}
-          className="inline-block w-3 h-3 rounded-full"
-          style={{ backgroundColor: i < filled ? color : '#e5e7eb' }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function MovementIndicator({ solo, ai }: { solo: number; ai: number }) {
-  const diff = ai - solo;
-  if (diff >= 2) return <span className="text-green-600 font-bold text-lg">↑↑</span>;
-  if (diff >= 1) return <span className="text-green-500 font-bold text-lg">↑</span>;
-  if (diff <= -1) return <span className="text-gray-400 font-bold text-lg">↓</span>;
-  return <span className="text-amber-500 font-bold text-lg">→</span>;
-}
-
 const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
-  const { data: videoData, isLoading: videoLoading } = useVideoByStepId('ia', 'ia-5-1');
+  const { data: videosData, isLoading: videoLoading } = useVideosByStepId('ia', 'ia-5-1');
+  const [introVideo, matrixVideo] = videosData ?? [];
 
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
@@ -65,9 +26,10 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
   };
 
   React.useEffect(() => {
-    if (videoData) console.log('🎬 IA-5-1 Video found:', videoData.title);
-    else if (!videoLoading) console.log('🎬 IA-5-1 No video data found for step ia-5-1');
-  }, [videoData, videoLoading]);
+    if (introVideo) console.log('🎬 IA-5-1 Video 1 found:', introVideo.title);
+    if (matrixVideo) console.log('🎬 IA-5-1 Video 2 found:', matrixVideo.title);
+    if (!videoLoading && !introVideo) console.log('🎬 IA-5-1 No videos found for step ia-5-1');
+  }, [introVideo, matrixVideo, videoLoading]);
 
   // Fetch activation snapshot
   const { data: snapshotResponse, isLoading: snapshotLoading } = useQuery({
@@ -109,112 +71,42 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <h1 className="text-3xl font-bold text-purple-700 mb-2">
         Your Activation Pattern
       </h1>
-      <p className="text-lg text-gray-600 mb-8">Here's what emerged from your work.</p>
+      <p className="text-lg text-gray-600 mb-8">Your Prism baseline meets your exercise patterns. See what you reached for.</p>
 
-      {/* Video Section */}
+      {/* Video 1: Introduction to Module 5 */}
       <VideoTranscriptGlossary
-        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
-        title={videoData?.title || "Outcomes and Benefits Overview"}
+        youtubeId={introVideo?.url ? extractYouTubeId(introVideo.url) : undefined}
+        title={introVideo?.title || "Introduction to Module 5"}
         transcriptMd={null}
         glossary={null}
       />
 
-      {/* ── Activation Snapshot Card ───────────────────────────────────────── */}
-      <Card className="mb-8 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
-        <CardHeader>
-          <CardTitle className="text-xl text-purple-800">Your Activation Snapshot</CardTitle>
-          <p className="text-sm text-gray-600">
-            Your Prism showed your capabilities as you understood them at the start.
-            The Activation columns show which capabilities you drew on — first working
-            solo, then in partnership with AI. Notice where the pattern shifted.
-          </p>
-        </CardHeader>
+      {/* Video 2: The Imaginal Agility Matrix */}
+      <VideoTranscriptGlossary
+        youtubeId={matrixVideo?.url ? extractYouTubeId(matrixVideo.url) : undefined}
+        title={matrixVideo?.title || "The Imaginal Agility Matrix"}
+        transcriptMd={null}
+        glossary={null}
+      />
 
-        <CardContent>
-          {snapshotLoading ? (
-            <div className="flex justify-center items-center h-32">
-              <Loader2 className="w-6 h-6 animate-spin text-purple-600 mr-2" />
-              <span className="text-gray-600">Loading your snapshot…</span>
-            </div>
-          ) : (
-            <>
-              {!completeness?.hasPrism && (
-                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
-                  Complete the I4C Self-Assessment (Module 2) to see your Prism scores.
-                </div>
-              )}
-
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 pr-4 font-semibold text-gray-700 w-28">Capability</th>
-                      <th className="text-center py-2 px-3 font-semibold text-gray-700 w-20">Prism</th>
-                      <th className="text-center py-2 px-3 font-semibold text-purple-700 w-24">Solo</th>
-                      <th className="text-center py-2 px-3 font-semibold text-indigo-700 w-28">AI-Partnered</th>
-                      <th className="text-center py-2 px-3 font-semibold text-gray-700 w-20">Movement</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {CAPABILITIES.map(cap => (
-                      <tr key={cap} className="border-b border-gray-100">
-                        <td className="py-3 pr-4">
-                          <span className="font-medium" style={{ color: CAPABILITY_COLORS[cap] }}>
-                            {CAPABILITY_LABELS[cap]}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-center">
-                          {prism
-                            ? <span className="text-gray-700 font-mono text-sm">{prism[cap].toFixed(1)}</span>
-                            : <span className="text-gray-300">—</span>
-                          }
-                        </td>
-                        <td className="py-3 px-3 text-center">
-                          <Dots count={soloActivations[cap]} color="#8b5cf6" />
-                        </td>
-                        <td className="py-3 px-3 text-center">
-                          <Dots count={aiActivations[cap]} color="#6366f1" />
-                        </td>
-                        <td className="py-3 px-3 text-center">
-                          <MovementIndicator
-                            solo={soloActivations[cap]}
-                            ai={aiActivations[cap]}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Completeness notes */}
-              <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-500">
-                {completeness && (
-                  <>
-                    <span>Solo: {completeness.soloStepsCompleted}/{completeness.soloStepsTotal} exercises tracked</span>
-                    <span>·</span>
-                    <span>AI: {completeness.aiStepsCompleted}/{completeness.aiStepsTotal} exercises tracked</span>
-                  </>
-                )}
-              </div>
-
-              {/* Dot legend */}
-              <div className="mt-3 flex items-center gap-6 text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded-full bg-purple-500" /> Solo activation
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded-full bg-indigo-500" /> AI activation
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded-full bg-gray-200" /> Not activated
-                </span>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      {/* ── Activation Matrix ─────────────────────────────────────────────────── */}
+      {snapshotLoading ? (
+        <div className="flex justify-center items-center h-32 mb-8">
+          <Loader2 className="w-6 h-6 animate-spin text-purple-600 mr-2" />
+          <span className="text-gray-600">Loading your snapshot…</span>
+        </div>
+      ) : prism ? (
+        <ActivationMatrix
+          prism={prism}
+          soloActivations={soloActivations}
+          aiActivations={aiActivations}
+          completeness={completeness}
+        />
+      ) : (
+        <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+          Complete the I4C Self-Assessment (Module 2) to see your Activation Matrix.
+        </div>
+      )}
 
       {/* ── Capstone Callout ─────────────────────────────────────────────────── */}
       {(snapshot?.capstoneVision || snapshot?.capstoneReflection) && (
@@ -242,10 +134,10 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-purple-700 mb-1">Outcomes &amp; Benefits</h2>
-          <p className="text-gray-600">Click each set of rungs to see the psychological and neurocognitive benefits.</p>
+          <p className="text-gray-600">Expand each set of rungs to discover the psychological and neurocognitive benefits — click the first one below to get started.</p>
         </div>
 
-        <Accordion type="single" collapsible className="w-full space-y-3">
+        <Accordion type="single" collapsible defaultValue="item-1" className="w-full space-y-3">
           {/* 1. AUTO-FLOW / PROMPT YOUR FLOW */}
           <AccordionItem value="item-1" className="border rounded-lg">
             <AccordionTrigger className="px-4">

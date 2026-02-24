@@ -33,6 +33,14 @@ const CAPABILITIES: { key: CapabilityKey; label: string; color: string }[] = [
   { key: 'courage',     label: 'Courage',     color: '#ef4444' },
 ];
 
+const CAPABILITY_SIGNALS: Record<CapabilityKey, string> = {
+  imagination: 'Generating possibilities, seeing beyond what exists, asking "what if"',
+  curiosity: 'Asking questions, exploring unfamiliar territory, seeking to understand',
+  caring: "Noticing others' needs, building trust, considering impact on people",
+  creativity: "Combining ideas in new ways, prototyping, making something that didn't exist",
+  courage: 'Speaking up, taking risks, acting despite uncertainty',
+};
+
 const MONTH_LABELS = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
 
 const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
@@ -61,9 +69,9 @@ const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
 
   // Read ia-5-2 commitment data
   const { data: commitmentResponse } = useQuery({
-    queryKey: ['/api/workshop-data/ia/ia-5-2'],
+    queryKey: ['/api/workshop-data/step/ia/ia-5-2'],
     queryFn: async () => {
-      const res = await fetch('/api/workshop-data/ia/ia-5-2', { credentials: 'include' });
+      const res = await fetch('/api/workshop-data/step/ia/ia-5-2', { credentials: 'include' });
       if (!res.ok) return null;
       return res.json();
     },
@@ -123,33 +131,35 @@ const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
           </p>
         </div>
 
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-6">
           {/* Capability Ratings */}
           <div>
-            <p className="text-sm font-semibold text-gray-700 mb-4">How present was each capability this month?</p>
-            <div className="space-y-3">
+            <p className="text-base font-semibold text-gray-700 mb-4">How present was each capability this month?</p>
+            <div className="space-y-1">
               {CAPABILITIES.map(({ key, label, color }) => {
                 const isFocus = commitmentData.selected_capability === key;
                 const currentRating = data.signal_ratings[key] || 0;
                 return (
                   <div
                     key={key}
-                    className={`flex items-center gap-4 px-3 py-2 rounded-lg ${isFocus ? 'bg-purple-50' : ''}`}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg ${isFocus ? 'bg-purple-50' : ''}`}
                   >
-                    <span
-                      className="w-24 text-sm font-medium flex-shrink-0"
-                      style={{ color }}
-                    >
-                      {label}
-                      {isFocus && <span className="ml-1 text-xs text-purple-500">★</span>}
-                    </span>
+                    <div className="w-52 flex-shrink-0">
+                      <span className="text-base font-semibold" style={{ color }}>
+                        {label}
+                        {isFocus && <span className="ml-1 text-sm text-purple-500">★</span>}
+                      </span>
+                      <p className="text-sm text-gray-500 leading-snug mt-0.5">
+                        {CAPABILITY_SIGNALS[key]}
+                      </p>
+                    </div>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map(n => (
                         <button
                           key={n}
                           type="button"
                           onClick={() => setRating(key, n)}
-                          className="w-8 h-8 rounded-full border-2 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
+                          className="w-10 h-10 rounded-full border-2 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
                           style={{
                             backgroundColor: n <= currentRating ? color : 'transparent',
                             borderColor: n <= currentRating ? color : '#d1d5db',
@@ -158,7 +168,7 @@ const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
                         />
                       ))}
                     </div>
-                    <span className="text-xs text-gray-400 ml-1">{currentRating > 0 ? currentRating : '—'}</span>
+                    <span className="text-sm font-medium text-gray-500 ml-1 w-4">{currentRating > 0 ? currentRating : '—'}</span>
                   </div>
                 );
               })}
