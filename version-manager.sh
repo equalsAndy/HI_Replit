@@ -22,27 +22,27 @@
 ENVIRONMENT=${1:-development}
 VERSION_TYPE=${2:-patch}
 
-# Staging semantic versioning file
-VERSION_FILE="staging-version.txt"
+# Single source of truth: version.json (managed by update-version.sh)
+VERSION_JSON="version.json"
 
-# Initialize version file if it doesn't exist
-if [ ! -f "$VERSION_FILE" ]; then
-    echo "2.0.1" > "$VERSION_FILE"
+# Read current version from version.json
+if [ -f "$VERSION_JSON" ]; then
+    CURRENT_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('$VERSION_JSON', 'utf8')).version")
+else
+    CURRENT_VERSION="2.0.1"
+    echo "Warning: version.json not found, using default $CURRENT_VERSION"
 fi
-
-# Read current staging version
-CURRENT_VERSION=$(cat "$VERSION_FILE")
 
 # Function to increment version
 increment_version() {
     local version=$1
     local type=$2
-    
+
     IFS='.' read -ra VERSION_PARTS <<< "$version"
     local major=${VERSION_PARTS[0]}
     local minor=${VERSION_PARTS[1]}
     local patch=${VERSION_PARTS[2]}
-    
+
     case $type in
         major)
             major=$((major + 1))
@@ -62,7 +62,7 @@ increment_version() {
             return
             ;;
     esac
-    
+
     echo "${major}.${minor}.${patch}"
 }
 
@@ -75,16 +75,13 @@ if [ "$ENVIRONMENT" = "staging" ]; then
         # Increment version
         NEW_VERSION=$(increment_version "$CURRENT_VERSION" "$VERSION_TYPE")
     fi
-    
-    # Save new staging version
-    echo "$NEW_VERSION" > "$VERSION_FILE"
-    
+
     VERSION="$NEW_VERSION"
     echo "🚀 Staging version: v$VERSION"
 elif [ "$ENVIRONMENT" = "production" ]; then
-    # Production uses current staging version
-    VERSION=$(cat "$VERSION_FILE")
-    echo "🎯 Production version: v$VERSION (from staging)"
+    # Production uses current version from version.json
+    VERSION="$CURRENT_VERSION"
+    echo "🎯 Production version: v$VERSION (from version.json)"
 else
     # Development uses date-based versioning
     VERSION=$(date +%Y.%m.%d)
