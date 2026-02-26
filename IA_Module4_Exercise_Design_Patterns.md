@@ -61,10 +61,11 @@ These are rungs on the Module 4 "Adventure Ladder." Each teaches a different ski
 **Where capabilities naturally live:** Not inherently embedded — the reframing process works regardless of which capability you're using. Capabilities need a separate activation step.
 
 ### ia-4-3: Visualization Stretch (Rung 2)
-**What it teaches:** You can take a vision you already hold and push it further — bigger scope, longer timeline, deeper impact.
-**Core AI interaction:** Expanding a visualization frame from Module 3
-**Current phases:** Stretch → Expansion → Resistance → Done
-**Where capabilities naturally live:** Imagination and courage are named in the training doc. The exercise asks participants to go beyond their comfort zone, which is inherently courageous. But does the participant FEEL those capabilities activate, or is the AI doing the stretching for them?
+**What it teaches:** You can take a vision you already hold and push it further — bigger scope, longer timeline, deeper impact — without losing what makes it yours.
+**Core AI interaction:** AI asks a provocative question; participant writes their own stretched vision. AI iterates on what they wrote.
+**Phases:** Stretch → Iterate → Expansion → Tag → Done
+**Where capabilities naturally live:** Stretching IS imagination and courage in action — the participant is doing the imaginative work when they write their stretch. No separate capability test needed in modal. Capabilities in Action lives in the content area as a required reflection (multi-select + "I imagine...").
+**AI failure mode:** Embellish instead of stretch — making the same idea sound bigger/prettier rather than changing the game. Test: could they say "yeah, I already wanted that"? = embellishment. "Huh, I hadn't gone there"? = stretch.
 
 ### ia-4-4: Global Purpose Bridge (Rung 3)
 **What it teaches:** Your personal purpose has global relevance — there's a genuine bridge between what drives you and what the world needs.
@@ -214,10 +215,17 @@ Each modal manages its own phase state. When adding phases, update: phase type u
 - 🔲 Capability test step in modal (`CC_Prompt_IA42_Modal_Capability_Test.txt`)
 - 🔲 Claude Code execution and testing
 
-### ia-4-3 (Stretch) — Needs exploration
-- Has training doc (`ia-4-3-stretch.md`) and system prompt
-- Start by running the exercise and evaluating AI output quality
-- Work through the questions in section 4
+### ia-4-3 (Stretch) — Redesigned, pending execution
+- ✅ Training doc rewritten: embellish-vs-stretch distinction, provocative question archetypes, audience-specific examples
+- ✅ System prompt rewritten: AI asks questions, doesn't generate stretches
+- ✅ Tag redesign: 4 outcome-based tags (bigger horizon, permission, an edge, energy)
+- ✅ Resistance step removed — replaced by outcome-based tags
+- ✅ Core interaction flipped: AI provokes, participant writes (Option A)
+- ✅ Content area: "What you just did" + expansion statement + tag + Capabilities in Action (required, multi) + Name the Stretch
+- ✅ Redesign spec: `CC_Prompt_IA43_Redesign_Spec.md`
+- 🔲 Modal component redesign (`CC_Prompt_IA43_Modal_ContentArea.txt`)
+- 🔲 Content area component redesign
+- 🔲 Claude Code execution and testing
 
 ### ia-4-4 (Global Purpose Bridge) — Needs exploration
 - Has training doc (`ia-4-4-global-purpose-bridge.md`) and system prompt
@@ -264,4 +272,9 @@ Let's work through the questions in section 4 of the guide:
 | Tags name what the tool delivers | Old tags described emotions; new tags teach the exercise is a learnable skill | ia-4-2 (others TBD) | 2025-02-26 |
 | Capabilities in Action is required (ia-4-2) | If optional, people skip where the learning lives | ia-4-2 | 2025-02-26 |
 | Exercise order reversal is deliberate | Pre-commitment to capabilities before acting is harder than labeling after | ia-4-2 | 2025-02-26 |
-| No "Other" tag option | Custom text adds noise; clear options teach better | ia-4-2 (others TBD) | 2025-02-26 |
+| No "Other" tag option | Custom text adds noise; clear options teach better | ia-4-2, ia-4-3 | 2025-02-26 |
+| AI provokes, participant writes (ia-4-3) | Old design: AI generated stretch, participant approved. New: AI asks a question, participant writes their own stretch. The stretch belongs to them. | ia-4-3 | 2025-02-26 |
+| Embellish ≠ stretch | Embellishment = same idea, prettier words ("I already wanted that"). Stretch = changes the game ("I hadn't gone there"). Parallel to reframe ≠ reword. | ia-4-3 | 2025-02-26 |
+| Resistance replaced with outcome tags (ia-4-3) | Resistance names what blocked you (generic change awareness). Tags name what the tool delivered (teaches stretching is a learnable skill). Tags: bigger horizon, permission, an edge, energy. | ia-4-3 | 2025-02-26 |
+| No capability test in modal (ia-4-3) | Stretching IS imagination/courage in action — a mid-modal test would interrupt what the participant is already doing. Capabilities in Action stays in content area as required reflection. | ia-4-3 | 2025-02-26 |
+| Capabilities in Action required + multi (ia-4-3) | Same pattern as ia-4-2: multi-select + "I imagine..." — not optional. Prompt: "Which capabilities did you draw on to stretch your vision?" | ia-4-3 | 2025-02-26 |
