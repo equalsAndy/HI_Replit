@@ -214,8 +214,8 @@ const ImaginalAgilityAssessmentModal = ({ isOpen, onClose, onComplete }: Imagina
 
   const categoryColors = {
     imagination: 'bg-purple-500',
-    curiosity: 'bg-blue-500',
-    empathy: 'bg-green-500',
+    curiosity: 'bg-green-500',   // green — matches icon
+    empathy: 'bg-blue-500',      // blue — matches icon (empathy = caring)
     creativity: 'bg-orange-500',
     courage: 'bg-red-500'
   };

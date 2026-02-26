@@ -73,7 +73,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   // Helper function to extract YouTube ID from video URL
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
   

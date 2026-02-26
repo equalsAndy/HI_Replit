@@ -27,8 +27,8 @@ type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'co
 
 const CAPABILITIES: { key: CapabilityKey; label: string; color: string }[] = [
   { key: 'imagination', label: 'Imagination', color: '#8b5cf6' },
-  { key: 'curiosity',   label: 'Curiosity',   color: '#3b82f6' },
-  { key: 'caring',      label: 'Caring',      color: '#10b981' },
+  { key: 'curiosity',   label: 'Curiosity',   color: '#10b981' },  // green — matches icon
+  { key: 'caring',      label: 'Caring',      color: '#3b82f6' },  // blue — matches icon
   { key: 'creativity',  label: 'Creativity',  color: '#f59e0b' },
   { key: 'courage',     label: 'Courage',     color: '#ef4444' },
 ];
@@ -48,7 +48,7 @@ const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
 
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 

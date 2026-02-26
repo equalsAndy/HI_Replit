@@ -18,7 +18,7 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
   // Helper function to extract YouTube ID from video URL
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
@@ -33,8 +33,8 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
     );
   }
 
-  // Extract YouTube ID from video URL, no fallback for ia-2-1 (not in migration)
-  const youtubeId = videoData?.url ? extractYouTubeId(videoData.url) : null;
+  // Use editableId first (direct YouTube ID from DB), fall back to URL extraction
+  const youtubeId = videoData?.editableId || (videoData?.url ? extractYouTubeId(videoData.url) : null);
 
   // Debug logging
   console.log('🎬 IA-2-1 Debug:', {

@@ -21,7 +21,7 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
 
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
@@ -68,10 +68,9 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-purple-700 mb-2">
-        Your Activation Pattern
+      <h1 className="text-3xl font-bold text-purple-700 mb-8">
+        Introduction
       </h1>
-      <p className="text-lg text-gray-600 mb-8">Your Prism baseline meets your exercise patterns. See what you reached for.</p>
 
       {/* Video 1: Introduction to Module 5 */}
       <VideoTranscriptGlossary
@@ -80,6 +79,11 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
         transcriptMd={null}
         glossary={null}
       />
+
+      <h2 className="text-2xl font-semibold text-purple-700 mt-8 mb-2">
+        Your Activation Pattern
+      </h2>
+      <p className="text-lg text-gray-600 mb-8">Your Prism baseline meets your exercise patterns. See what you reached for.</p>
 
       {/* Video 2: The Imaginal Agility Matrix */}
       <VideoTranscriptGlossary

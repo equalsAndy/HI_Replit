@@ -13,8 +13,8 @@ export const CAPABILITY_LABELS: Record<CapabilityType, string> = {
 
 export const CAPABILITY_COLORS: Record<CapabilityType, string> = {
   imagination: 'purple',
-  curiosity: 'blue',
-  caring: 'green',
+  curiosity: 'green',      // matches green magnifying glass icon
+  caring: 'blue',           // matches blue two-faces icon
   creativity: 'orange',
   courage: 'red',
 };

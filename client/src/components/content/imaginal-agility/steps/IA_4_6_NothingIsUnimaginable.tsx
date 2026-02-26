@@ -267,10 +267,10 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
           </Button>
         )}
         <Button 
-          onClick={() => onNext && onNext('ia-5-1')}
+          onClick={() => onNext && onNext('ia-4-7')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to Imaginal Agility Matrix
+          Continue →
         </Button>
       </div>
     </div>

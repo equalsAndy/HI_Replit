@@ -138,11 +138,11 @@ export function EnhancedVideoManagement() {
 
   // Extract YouTube video ID from URL
   const extractYouTubeId = (url: string): string => {
-    const embedRegex = /youtube\.com\/embed\/([^?&/]+)/;
+    const embedRegex = /youtube(?:-nocookie)?\.com\/embed\/([^?&/]+)/;
     const embedMatch = url.match(embedRegex);
     if (embedMatch && embedMatch[1]) return embedMatch[1];
-    
-    const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+
+    const watchRegex = /youtube(?:-nocookie)?\.com\/watch\?v=([^&]+)/;
     const watchMatch = url.match(watchRegex);
     if (watchMatch && watchMatch[1]) return watchMatch[1];
     
@@ -729,6 +729,7 @@ export function EnhancedVideoManagement() {
             <th style={{...styles.th, cursor: 'pointer', userSelect: 'none'}} onClick={() => handleSort('sortOrder')}>
               Order {getSortIcon('sortOrder')}
             </th>
+            <th style={{...styles.th, textAlign: 'center' as const}}>Transcript</th>
             <th style={styles.th}>Actions</th>
           </tr>
         </thead>
@@ -790,6 +791,33 @@ export function EnhancedVideoManagement() {
                     </code>
                   </td>
                   <td style={styles.td}>{video.sortOrder}</td>
+                  <td style={{...styles.td, textAlign: 'center'}}>
+                    {video.transcriptMd && video.transcriptMd.trim().length > 0 ? (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        backgroundColor: '#dcfce7',
+                        color: '#166534'
+                      }}>
+                        Yes
+                      </span>
+                    ) : (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        backgroundColor: '#f3f4f6',
+                        color: '#9ca3af'
+                      }}>
+                        No
+                      </span>
+                    )}
+                  </td>
                   <td style={styles.td}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       <button
@@ -826,7 +854,7 @@ export function EnhancedVideoManagement() {
               ))
           ) : (
             <tr>
-              <td colSpan={7} style={{ ...styles.td, textAlign: 'center', padding: '40px' }}>
+              <td colSpan={8} style={{ ...styles.td, textAlign: 'center', padding: '40px' }}>
                 {videos.length === 0 
                   ? 'No videos found. Add your first video to get started.'
                   : 'No videos match the current filters.'

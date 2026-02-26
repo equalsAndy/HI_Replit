@@ -19,12 +19,14 @@ import IA_3_3_VisualizingYourPotential from './steps/IA_3_3_VisualizingYourPoten
 import IA_3_4_FromInsightToIntention from './steps/IA_3_4_FromInsightToIntention';
 import IA_3_5_Inspiration from './steps/IA_3_5_Inspiration';
 import IA_3_6_TheUnimaginable from './steps/IA_3_6_TheUnimaginable';
+import IA_3_7_ModuleReflection from './steps/IA_3_7_ModuleReflection';
 import IA_4_1_AdvancedLadderOverview from './steps/IA_4_1_AdvancedLadderOverview';
 import IA_4_2_AutoflowMindfulPrompts from './steps/IA_4_2_AutoflowMindfulPrompts';
 import IA_4_3_VisualizationStretch from './steps/IA_4_3_VisualizationStretch';
 import IA_4_4_HigherPurposeUplift from './steps/IA_4_4_HigherPurposeUplift';
 import IA_4_5_InspirationSupport from './steps/IA_4_5_InspirationSupport';
 import IA_4_6_NothingIsUnimaginable from './steps/IA_4_6_NothingIsUnimaginable';
+import IA_4_7_ModuleReflection from './steps/IA_4_7_ModuleReflection';
 import IA_5_1_Overview from './steps/IA_5_1_Overview';
 import IA_5_1_Content from './steps/IA_5_1_Content';
 import IA_5_2_CapabilityCommitment from './steps/IA_5_2_CapabilityCommitment';
@@ -44,7 +46,7 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
   // Helper function to extract YouTube ID from video URL
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
@@ -330,6 +332,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
         return <IA_3_5_Inspiration onNext={onNext} />;
       case 'ia-3-6':
         return <IA_3_6_TheUnimaginable onNext={onNext} />;
+      case 'ia-3-7':
+        return <IA_3_7_ModuleReflection onNext={onNext} />;
       case 'ia-4-1':
         return <IA_4_1_AdvancedLadderOverview onNext={onNext} />;
       case 'ia-4-2':
@@ -342,6 +346,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
         return <IA_4_5_InspirationSupport onNext={onNext} />;
       case 'ia-4-6':
         return <IA_4_6_NothingIsUnimaginable onNext={onNext} />;
+      case 'ia-4-7':
+        return <IA_4_7_ModuleReflection onNext={onNext} />;
       case 'ia-5-1':
         return <IA_5_1_Content onNext={onNext} />;
       case 'ia-5-2':

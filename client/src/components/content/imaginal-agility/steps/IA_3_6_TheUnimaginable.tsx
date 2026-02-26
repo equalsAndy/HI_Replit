@@ -136,7 +136,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
   // Helper function to extract YouTube ID from video URL
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
@@ -600,11 +600,11 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           )}
         </div>
         <Button
-          onClick={() => onNext && onNext('ia-4-1')}
+          onClick={() => onNext && onNext('ia-3-7')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
           disabled={saving || !data.visionText.trim() || !data.reflectionText.trim()}
         >
-          {saving ? 'Saving...' : 'Complete the Ladder'}
+          {saving ? 'Saving...' : 'Continue →'}
         </Button>
       </div>
     </div>

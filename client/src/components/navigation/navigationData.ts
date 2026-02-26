@@ -121,6 +121,12 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         title: 'The Unimaginable',
         type: 'video',
         contentKey: 'ia-3-6'
+      },
+      {
+        id: 'ia-3-7',
+        title: 'Module Reflection',
+        type: 'reflection',
+        contentKey: 'ia-3-7'
       }
     ]
   },
@@ -165,6 +171,12 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         title: 'Nothing is Unimaginable',
         type: 'video',
         contentKey: 'ia-4-6'
+      },
+      {
+        id: 'ia-4-7',
+        title: 'Module Reflection',
+        type: 'interactive',
+        contentKey: 'ia-4-7'
       }
     ]
   },

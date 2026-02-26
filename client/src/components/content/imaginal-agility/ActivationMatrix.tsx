@@ -10,8 +10,8 @@ const CAPABILITIES: CapabilityKey[] = ['imagination', 'curiosity', 'caring', 'cr
 
 const CAPABILITY_COLORS: Record<CapabilityKey, string> = {
   imagination: '#8b5cf6',
-  curiosity:   '#3b82f6',
-  caring:      '#10b981',
+  curiosity:   '#10b981',  // green — matches icon
+  caring:      '#3b82f6',  // blue — matches icon
   creativity:  '#f59e0b',
   courage:     '#ef4444',
 };
@@ -26,8 +26,8 @@ const CAPABILITY_LABELS: Record<CapabilityKey, string> = {
 
 const PILL_STYLES: Record<CapabilityKey, { bg: string; text: string }> = {
   imagination: { bg: '#ede9fe', text: '#6d28d9' },
-  curiosity:   { bg: '#dbeafe', text: '#1d4ed8' },
-  caring:      { bg: '#d1fae5', text: '#047857' },
+  curiosity:   { bg: '#d1fae5', text: '#047857' },  // green — matches icon
+  caring:      { bg: '#dbeafe', text: '#1d4ed8' },  // blue — matches icon
   creativity:  { bg: '#fef3c7', text: '#b45309' },
   courage:     { bg: '#fee2e2', text: '#b91c1c' },
 };
