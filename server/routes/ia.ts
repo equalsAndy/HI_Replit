@@ -46,7 +46,7 @@ function stepIdToKey(id: string): string {
 
 function defaultStepData(key: string): Record<string, any> {
   switch (key) {
-    case 'ia_4_2': return { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '' };
+    case 'ia_4_2': return { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '', capability_stretched: undefined, capabilities_applied: [], capabilities_imagine: '', tested_capability: '', capability_insight: '' };
     case 'ia_4_3': return { frame_sentence: '', ai_stretch: '', stretch_vision: '', resistance: '' };
     case 'ia_4_4': return { purpose_one_line: '', global_challenge: '', ai_perspectives: [], contribution: '', what_it_needs: '' };
     case 'ia_4_5': return { interlude_cluster: '', muse_convo: '' };

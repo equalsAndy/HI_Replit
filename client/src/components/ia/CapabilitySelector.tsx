@@ -4,11 +4,12 @@ import { CapabilityType, CAPABILITY_LABELS } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface CapabilitySelectorProps {
-  mode: 'single' | 'dual';
+  mode: 'single' | 'dual' | 'multi';
   selected: CapabilityType | CapabilityType[] | null;
   onSelect: (value: CapabilityType | CapabilityType[]) => void;
   prompt?: string;
   className?: string;
+  minSelections?: number;
 }
 
 const CAPABILITY_ICONS: Record<CapabilityType, React.ReactNode> = {
@@ -27,13 +28,16 @@ export function CapabilitySelector({
   onSelect,
   prompt,
   className,
+  minSelections,
 }: CapabilitySelectorProps) {
   // Track selection order for dual mode (oldest first)
   const [selectionOrder, setSelectionOrder] = useState<CapabilityType[]>([]);
 
   const defaultPrompt = mode === 'single'
     ? 'Which capability felt most present?'
-    : 'Which two capabilities felt strongest?';
+    : mode === 'dual'
+    ? 'Which two capabilities felt strongest?'
+    : `Which capabilities would you bring? Pick at least ${minSelections ?? 2}.`;
 
   const isSelected = (cap: CapabilityType): boolean => {
     if (!selected) return false;
@@ -44,6 +48,14 @@ export function CapabilitySelector({
   const handleClick = (cap: CapabilityType) => {
     if (mode === 'single') {
       onSelect(isSelected(cap) ? (null as unknown as CapabilityType) : cap);
+    } else if (mode === 'multi') {
+      const currentSelected = Array.isArray(selected) ? selected : selected ? [selected] : [];
+      const isCurrentlySelected = currentSelected.includes(cap);
+      if (isCurrentlySelected) {
+        onSelect(currentSelected.filter(c => c !== cap));
+      } else {
+        onSelect([...currentSelected, cap]);
+      }
     } else {
       // dual mode
       const currentSelected = Array.isArray(selected) ? selected : selected ? [selected] : [];
@@ -98,6 +110,13 @@ export function CapabilitySelector({
           );
         })}
       </div>
+      {mode === 'multi' && (
+        <p className="mt-2 text-xs text-gray-500">
+          {Array.isArray(selected) && selected.length > 0
+            ? `${selected.length} selected${selected.length < (minSelections ?? 2) ? ` — pick at least ${minSelections ?? 2}` : ''}`
+            : `Pick at least ${minSelections ?? 2}`}
+        </p>
+      )}
     </div>
   );
 }

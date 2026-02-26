@@ -38,7 +38,11 @@ export type IAState = {
     new_perspective: string;      // canonical downstream field
     // legacy alias kept for compatibility
     shift?: string;
-    capability_stretched?: CapabilityType;
+    capability_stretched?: CapabilityType; // legacy — replaced by capabilities_applied
+    capabilities_applied?: CapabilityType[];
+    capabilities_imagine?: string;
+    tested_capability?: string;
+    capability_insight?: string;
   };
   // IA-4-3: Exploring Underlying Assumptions
   ia_4_3: {

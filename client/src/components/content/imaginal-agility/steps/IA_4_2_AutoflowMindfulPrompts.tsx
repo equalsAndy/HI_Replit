@@ -16,8 +16,10 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
 
   const ia = state?.ia_4_2 ?? {};
   const hasReframeResult = !!(ia.user_shift || ia.tag);
-  const capabilityAnswered = !!ia.capability_stretched;
-  const canContinue = !hasReframeResult || capabilityAnswered;
+  const capsApplied = Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length >= 2;
+  const imagineWordCount = (ia.capabilities_imagine ?? '').trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+  const capsComplete = capsApplied && imagineWordCount >= 15;
+  const canContinue = !hasReframeResult || capsComplete;
 
   // One-time migration from any legacy storage to continuity
   useEffect(() => {
@@ -106,9 +108,9 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
       </div>
       
       <div className="flex flex-col items-end gap-2 mt-8">
-        {hasReframeResult && !capabilityAnswered && (
+        {hasReframeResult && !capsComplete && (
           <p className="text-sm text-amber-600 font-medium">
-            Select a capability above before continuing.
+            Complete the Capabilities in Action section above before continuing.
           </p>
         )}
         <div className="flex items-center gap-3">
@@ -126,6 +128,10 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
                       new_perspective: '',
                       shift: '',
                       capability_stretched: undefined,
+                      capabilities_applied: [],
+                      capabilities_imagine: '',
+                      tested_capability: '',
+                      capability_insight: '',
                     },
                   });
                 }

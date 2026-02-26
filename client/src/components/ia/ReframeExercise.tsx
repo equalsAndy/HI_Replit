@@ -5,6 +5,18 @@ import { ReframeModal } from './ReframeModal';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
 
+function formatCapabilityList(caps: string[]): string {
+  if (caps.length === 0) return '';
+  if (caps.length === 1) return caps[0];
+  if (caps.length === 2) return `${caps[0]} and ${caps[1]}`;
+  return caps.slice(0, -1).join(', ') + ', and ' + caps[caps.length - 1];
+}
+
+function wordCount(text?: string): number {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
 export default function ReframeExercise() {
   const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -47,7 +59,7 @@ export default function ReframeExercise() {
     setModalOpen(open);
   }
 
-  function onModalApply(result: { transcript: string[]; shift: string; tag: string; reframe: string }) {
+  function onModalApply(result: { transcript: string[]; shift: string; tag: string; reframe: string; testedCapability: string; capabilityInsight: string }) {
     setState((prev) => {
       const prevIA = prev.ia_4_2 || {};
       return {
@@ -66,6 +78,8 @@ export default function ReframeExercise() {
           tag: result.tag,
           new_perspective: result.reframe,
           original_thought: challenge,
+          tested_capability: result.testedCapability,
+          capability_insight: result.capabilityInsight,
         },
       };
     });
@@ -86,6 +100,10 @@ export default function ReframeExercise() {
           new_perspective: '',
           shift: '',
           challenge: '',
+          capabilities_applied: [],
+          capabilities_imagine: '',
+          tested_capability: '',
+          capability_insight: '',
         },
       }));
       setModalOpen(false);
@@ -171,77 +189,134 @@ export default function ReframeExercise() {
         onKeepContext={onModalKeepContext}
       />
 
-      {/* Display AI reframe results if available */}
-      {(ia.user_shift || ia.tag) && (
-        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <h3 className="font-semibold text-gray-900 mb-3">Your AI Reframe Results</h3>
-          
+      {/* Post-modal content — only show after modal completion */}
+      {(ia.new_perspective || ia.user_shift || ia.tag) && (
+        <>
+          {/* Exercise summary — what just happened */}
+          <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+            <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              You took a real challenge and worked with AI to <strong>reframe</strong> it — not to make it disappear,
+              but to see it from an angle that reveals something useful: leverage, clarity, or a better question.
+              Then you named what shifted and tested what one of your capabilities could do with that new perspective.
+              Below is everything that came out of that process. You can edit your new perspective if you want to refine it.
+            </p>
+          </div>
+
+          {/* 1. New Perspective */}
+          <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">New Perspective</h3>
+            <textarea
+              ref={newPerspectiveRef}
+              className="w-full border border-gray-300 rounded p-2 resize-y bg-white"
+              rows={3}
+              value={ia.new_perspective ?? ''}
+              onChange={(e) =>
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_2: { ...(prev.ia_4_2 || {}), new_perspective: e.target.value },
+                }))
+              }
+            />
+            <p className="mt-1 text-xs text-gray-500">Edit if you'd like to refine the wording.</p>
+          </div>
+
+          {/* 2. What Shifted */}
           {ia.user_shift && (
-            <div className="mb-3">
-              <h4 className="text-base font-medium text-gray-700 mb-1">What Shifted:</h4>
+            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h3 className="text-sm font-semibold uppercase text-gray-600 mb-2">What Shifted</h3>
               <p className="text-base text-gray-800 italic">"{ia.user_shift}"</p>
             </div>
           )}
 
+          {/* 3. What Reframing Gave You */}
           {ia.tag && (
-            <div className="mb-3">
-              <h4 className="text-base font-medium text-gray-700 mb-1">Tag:</h4>
-              <span className="inline-block bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded">
+            <div className="mb-6 p-3 bg-purple-50/50 border border-purple-100 rounded-lg">
+              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-1">What reframing gave you</h3>
+              <span className="inline-block bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full font-medium">
                 {ia.tag}
               </span>
             </div>
           )}
-          
-          {!ia.capability_stretched && (
-            <p className="mt-4 mb-1 text-xs font-semibold text-amber-600 flex items-center gap-1">
-              <span>⚠</span> Required to continue — select one below
-            </p>
+
+          {/* 3b. Capability you explored in the modal */}
+          {ia.tested_capability && ia.capability_insight && (
+            <div className="mb-4 p-3 bg-purple-50/50 border border-purple-100 rounded-lg">
+              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-1">
+                You explored: {ia.tested_capability}
+              </h3>
+              <p className="text-sm text-gray-700 italic">"{ia.capability_insight}"</p>
+            </div>
           )}
-          <CapabilitySelector
-            mode="single"
-            selected={ia.capability_stretched || null}
-            onSelect={(val) => {
-              setState((prev) => ({
-                ...prev,
-                ia_4_2: { ...(prev.ia_4_2 || {}), capability_stretched: val as CapabilityType },
-              }));
-              // Persist immediately so "Continue" never sees stale data
-              setTimeout(() => saveNow(), 0);
-            }}
-            prompt="Which of your capabilities was most stretched by this exchange?"
-            className={ia.capability_stretched ? 'mt-4 mb-2' : 'mt-1 mb-2 ring-2 ring-amber-400'}
-          />
 
-        </div>
-      )}
+          {/* 4. Capabilities in Action — REQUIRED */}
+          <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
+            <h3 className="font-semibold text-purple-700 mb-1">Capabilities in Action</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              In real life, capabilities don&apos;t work in isolation — and most of the time we act
+              without thinking about which ones we&apos;re drawing on. This exercise reverses that on purpose.
+              In the reframe conversation you tested one. Now pick at least two and imagine what
+              happens when you deliberately combine them.
+            </p>
 
-      {/* New perspective section - only show after modal completion */}
-      {(ia.user_shift || ia.tag) && (
-        <div className="mb-4">
-          <label htmlFor="new-perspective" className="block mb-1 font-medium text-gray-900">
-            Your new perspective
-          </label>
-          <textarea
-            id="new-perspective"
-            ref={newPerspectiveRef}
-            className="w-full border border-gray-300 rounded p-2 resize-y"
-            rows={4}
-            value={ia.new_perspective ?? ''}
-            onChange={(e) =>
-              setState((prev) => ({
-                ...prev,
-                ia_4_2: {
-                  ...(prev.ia_4_2 || {}),
-                  new_perspective: e.target.value,
-                },
-              }))
-            }
-            aria-describedby="new-perspective-desc"
-          />
-          <p id="new-perspective-desc" className="mt-1 text-sm text-gray-600">
-            Edit your new perspective as needed.
-          </p>
-        </div>
+            <CapabilitySelector
+              mode="multi"
+              minSelections={2}
+              selected={ia.capabilities_applied ?? []}
+              onSelect={(val) => {
+                const caps = Array.isArray(val) ? val : [val];
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_2: { ...(prev.ia_4_2 || {}), capabilities_applied: caps as CapabilityType[] },
+                }));
+                setTimeout(() => saveNow(), 0);
+              }}
+              prompt="Which capabilities would you bring to this challenge?"
+              className="mb-4"
+            />
+
+            {/* Dynamic "I imagine" prompt — appears after 2+ capabilities selected */}
+            {Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length >= 2 && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  If I brought{' '}
+                  <span className="font-semibold text-purple-700">
+                    {formatCapabilityList(ia.capabilities_applied)}
+                  </span>
+                  {' '}to this challenge, I imagine...
+                </label>
+                <textarea
+                  className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
+                  rows={4}
+                  placeholder="Complete this thought — what do you imagine might happen?"
+                  value={ia.capabilities_imagine ?? ''}
+                  onChange={(e) =>
+                    setState((prev) => ({
+                      ...prev,
+                      ia_4_2: { ...(prev.ia_4_2 || {}), capabilities_imagine: e.target.value },
+                    }))
+                  }
+                  onBlur={() => saveNow()}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {wordCount(ia.capabilities_imagine) < 15
+                    ? `${wordCount(ia.capabilities_imagine)} words — write at least 15`
+                    : `${wordCount(ia.capabilities_imagine)} words`}
+                </p>
+              </div>
+            )}
+
+            {/* Completion gate warning */}
+            {(!ia.capabilities_applied ||
+              (Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length < 2) ||
+              !ia.capabilities_imagine ||
+              wordCount(ia.capabilities_imagine) < 15) && (
+              <p className="mt-3 text-xs font-semibold text-amber-600 flex items-center gap-1">
+                <span>⚠</span> Required to continue
+              </p>
+            )}
+          </div>
+        </>
       )}
     </>
   );
