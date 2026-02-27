@@ -2,12 +2,16 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import VisualizationStretchExercise from '@/components/ia/VisualizationStretchExercise';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { useContinuity } from '@/hooks/useContinuity';
 
 interface IA_4_3_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
 const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
+  const { state } = useContinuity();
+  const isComplete = Boolean(state?.ia_4_3?.completed);
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Scroll Indicator - appears when user is idle */}
@@ -68,10 +72,14 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
       <div className="flex justify-end items-center gap-3 mt-8">
         <Button
           onClick={() => onNext && onNext('ia-4-4')}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+          disabled={!isComplete}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continue to Higher Purpose Uplift
         </Button>
+        {!isComplete && (
+          <p className="text-xs text-gray-500">Complete the exercise above to continue</p>
+        )}
       </div>
     </div>
   );

@@ -68,9 +68,11 @@ const PHASE_LABELS: Record<Phase, string> = {
   discover: 'Exploring your image',
   new_image: 'Finding a second image',
   story: 'Writing your story',
-  capability: 'Capability',
-  tag: 'Tag',
+  capability: 'What you drew on',
+  tag: 'What this gave you',
 };
+
+const PHASE_ORDER: Phase[] = ['discover', 'new_image', 'story', 'capability', 'tag'];
 
 export function StretchModal({
   open,
@@ -120,6 +122,7 @@ export function StretchModal({
       setStory('');
       setCapability(null);
       setTag('');
+      setCompleting(false);
     }
   }, [open]);
 
@@ -132,17 +135,22 @@ export function StretchModal({
 
   const runSearches = async (terms: string[]) => {
     setSearchLoading(true);
-    const allResults: SearchGroup[] = [];
+    const newResults: SearchGroup[] = [];
     for (const term of terms) {
       try {
         const results = await searchUnsplash(term, 4);
-        allResults.push({ term, results: results || [] });
+        newResults.push({ term, results: results || [] });
       } catch (err) {
         console.error(`Search failed for "${term}":`, err);
-        allResults.push({ term, results: [] });
+        newResults.push({ term, results: [] });
       }
     }
-    setSearchGroups(allResults);
+    setSearchGroups(prev => {
+      // Avoid duplicating terms already displayed
+      const existingTerms = new Set(prev.map(g => g.term));
+      const unique = newResults.filter(g => !existingTerms.has(g.term));
+      return [...prev, ...unique];
+    });
     setSearchLoading(false);
   };
 
@@ -172,7 +180,30 @@ export function StretchModal({
   // Phase navigation
   const handleFindSecondImage = () => {
     // Parse AI's last message for SEARCH: suggestions
-    const suggestions = parseSearchSuggestions(transcript);
+    let suggestions = parseSearchSuggestions(transcript);
+    
+    // Fallback: if AI didn't produce SEARCH: lines, generate from conversation
+    if (suggestions.length === 0) {
+      // Extract keywords from user messages (skip the seed)
+      const userMessages = transcript
+        .filter(m => m.role === 'user')
+        .slice(1) // skip seed message
+        .map(m => m.content)
+        .join(' ');
+      
+      // Generate basic search terms from the conversation gap
+      const fallbackTerms: string[] = [];
+      if (userMessages.trim()) {
+        // Use first meaningful user reply as a search concept
+        const words = userMessages.split(/\s+/).filter(w => w.length > 3).slice(0, 3);
+        if (words.length > 0) fallbackTerms.push(words.join(' '));
+      }
+      // Always include a generic option based on the title
+      fallbackTerms.push(`beyond ${ia33Title}`);
+      fallbackTerms.push(`opposite of ${ia33Title}`);
+      suggestions = fallbackTerms;
+    }
+    
     setSearchPills(suggestions);
     setPhase('new_image');
     if (suggestions.length > 0) {
@@ -187,7 +218,7 @@ export function StretchModal({
   };
 
   const handleStoryNext = () => {
-    if (wordCount(story) >= 10) {
+    if (wordCount(story) >= 20) {
       setPhase('capability');
     }
   };
@@ -198,22 +229,29 @@ export function StretchModal({
     }
   };
 
+  const [completing, setCompleting] = React.useState(false);
+
   const handleApply = () => {
     if (!tag || !capability) return;
+    setCompleting(true);
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
-    onApply({
-      transcript: transcriptLines,
-      original_image: ia33Image || '',
-      original_title: ia33Title,
-      new_image: selectedNewImage || '',
-      new_title: newTitle,
-      story,
-      capability,
-      tag,
-    });
-    onOpenChange(false);
+    // Brief visual confirmation before closing
+    setTimeout(() => {
+      onApply({
+        transcript: transcriptLines,
+        original_image: ia33Image || '',
+        original_title: ia33Title,
+        new_image: selectedNewImage || '',
+        new_title: newTitle,
+        story,
+        capability,
+        tag,
+      });
+      setCompleting(false);
+      onOpenChange(false);
+    }, 800);
   };
 
   const handleStartOver = () => {
@@ -246,7 +284,21 @@ export function StretchModal({
             <DialogTitle className="text-base font-semibold">
               Visualization Stretch
             </DialogTitle>
-            <p className="text-xs text-gray-500">{PHASE_LABELS[phase]}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-500">{PHASE_LABELS[phase]}</p>
+              <div className="flex gap-1 ml-2">
+                {PHASE_ORDER.map((p, i) => (
+                  <div
+                    key={p}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      i <= PHASE_ORDER.indexOf(phase)
+                        ? 'bg-purple-600'
+                        : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={handleStartOver}>Start Over</Button>
@@ -258,55 +310,58 @@ export function StretchModal({
         <div className="flex flex-col bg-gray-50 p-4 pt-16 min-h-0">
 
           {/* ===== PHASE 1: DISCOVER ===== */}
-          {phase === 'discover' && (
-            <div className="flex flex-col flex-1 min-h-0">
-              {/* ia-3-3 image compact */}
-              {ia33Image && (
-                <div className="flex items-center gap-3 mb-3 flex-shrink-0">
-                  <img
-                    src={ia33Image}
-                    alt={ia33Title}
-                    className="w-24 h-24 object-cover rounded-lg border-2 border-purple-300"
-                  />
-                  <p className="text-sm font-semibold text-purple-800">&ldquo;{ia33Title}&rdquo;</p>
-                </div>
-              )}
-
-              {/* Chat bubbles */}
-              <div
-                ref={chatStreamRef}
-                className="flex-1 overflow-y-auto p-3 space-y-2 bg-white/60 rounded mb-3"
-                style={{ maxHeight: '400px' }}
-              >
-                {transcript.map((m, i) => (
-                  <div
-                    key={i}
-                    className={
-                      m.role === 'user'
-                        ? 'max-w-[75%] ml-auto rounded-xl border bg-blue-50 px-3 py-2 text-sm'
-                        : 'max-w-[75%] mr-auto rounded-xl border bg-white px-3 py-2 text-sm'
-                    }
-                  >
-                    {m.content}
-                  </div>
-                ))}
+          {/* Always mounted to preserve InlineChat state; hidden when not active */}
+          <div className={`flex flex-col flex-1 min-h-0 ${phase !== 'discover' ? 'hidden' : ''}`}>
+            {/* ia-3-3 image compact */}
+            {ia33Image && (
+              <div className="flex items-center gap-3 mb-3 flex-shrink-0">
+                <img
+                  src={ia33Image}
+                  alt={ia33Title}
+                  className="w-24 h-24 object-cover rounded-lg border-2 border-purple-300"
+                />
+                <p className="text-sm font-semibold text-purple-800">&ldquo;{ia33Title}&rdquo;</p>
               </div>
+            )}
 
-              {/* InlineChat — active only in discover */}
+            {/* Chat bubbles */}
+            <div
+              ref={chatStreamRef}
+              className="flex-1 overflow-y-auto p-3 space-y-2 bg-white/60 rounded mb-3"
+            >
+              {transcript.map((m, i) => (
+                <div
+                  key={i}
+                  className={
+                    m.role === 'user'
+                      ? 'max-w-[75%] ml-auto rounded-xl border bg-blue-50 px-3 py-2 text-sm'
+                      : 'max-w-[75%] mr-auto rounded-xl border bg-white px-3 py-2 text-sm'
+                  }
+                >
+                  {m.role === 'assistant' && (
+                    <span className="text-[10px] font-medium text-purple-500 block mb-1">AI</span>
+                  )}
+                  {m.content}
+                </div>
+              ))}
+            </div>
+
+            {/* Pinned bottom: InlineChat + navigation */}
+            <div className="mt-auto flex-shrink-0 space-y-2">
               <InlineChat
                 ref={chatRef}
                 trainingId="ia-4-3"
                 systemPrompt={`${PROMPTS.IA_4_3}\n\nCURRENT_PHASE: discover`}
-                seed={`My image is titled "${ia33Title}". My reflection was: "${ia33Reflection}"`}
+                seed={`My image is titled "${ia33Title}". My reflection was: "${ia33Reflection.split(' ').slice(0, 30).join(' ')}${ia33Reflection.split(' ').length > 30 ? '...' : ''}"`}
                 onUserSend={onChatUserSend}
                 onReply={onChatReply}
                 hideHistory
-                className="border-0 p-0 bg-transparent flex-shrink-0"
+                className="border-0 p-0 bg-transparent"
               />
 
               {/* Navigation — after 2+ user messages */}
               {userMessageCount >= 2 && (
-                <div className="pt-3 border-t border-gray-200 flex-shrink-0">
+                <div className="pt-2 border-t border-gray-200">
                   <Button
                     onClick={handleFindSecondImage}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
@@ -316,7 +371,7 @@ export function StretchModal({
                 </div>
               )}
             </div>
-          )}
+          </div>
 
           {/* ===== PHASE 2: NEW_IMAGE ===== */}
           {phase === 'new_image' && (
@@ -342,10 +397,7 @@ export function StretchModal({
                     <button
                       key={i}
                       type="button"
-                      onClick={() => {
-                        setSearchGroups([]);
-                        runSearches([pill]);
-                      }}
+                      onClick={() => runSearches([pill])}
                       className="px-3 py-1.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full border border-purple-200 hover:bg-purple-200 transition-colors"
                     >
                       {pill}
@@ -423,30 +475,15 @@ export function StretchModal({
           {/* ===== PHASE 3: STORY ===== */}
           {phase === 'story' && (
             <div className="flex flex-col flex-1 min-h-0">
-              {/* Image pair display */}
-              <div className="flex justify-center items-start gap-4 mb-4 flex-shrink-0">
-                <div className="flex flex-col items-center">
-                  <img
-                    src={ia33Image || ''}
-                    alt={ia33Title}
-                    className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 shadow"
-                  />
-                  <p className="mt-1 text-xs font-semibold text-gray-700">&ldquo;{ia33Title}&rdquo;</p>
-                </div>
-                <div className="flex items-center pt-12 text-2xl font-light text-purple-400">+</div>
-                <div className="flex flex-col items-center">
-                  <img
-                    src={selectedNewImage || ''}
-                    alt={newTitle}
-                    className="w-32 h-32 object-cover rounded-lg border-2 border-purple-400 shadow"
-                  />
-                  <p className="mt-1 text-xs font-semibold text-purple-800">&ldquo;{newTitle}&rdquo;</p>
-                </div>
+              {/* Guidance — images are visible in right column */}
+              <div className="p-4 bg-purple-50/60 border border-purple-100 rounded-lg mb-4">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Look at your two images in the panel to the right. What do they reveal <strong>together</strong> about your potential that neither shows alone?
+                </p>
+                <p className="text-xs text-gray-500 mt-2 italic">
+                  Start with what's different between them. Then ask: what shows up when I hold both at once?
+                </p>
               </div>
-
-              <p className="text-sm text-gray-700 mb-2">
-                What do these two images reveal together about your potential that neither shows alone?
-              </p>
 
               <div className="flex gap-2 mt-auto flex-shrink-0">
                 <Button variant="secondary" size="sm" onClick={handleBack}>Back</Button>
@@ -470,7 +507,6 @@ export function StretchModal({
                 mode="single"
                 selected={capability}
                 onSelect={(val) => setCapability(val as CapabilityType)}
-                prompt="Which capability felt most present?"
               />
 
               <div className="flex gap-2 mt-auto pt-4 flex-shrink-0">
@@ -519,11 +555,11 @@ export function StretchModal({
                 <Button variant="secondary" size="sm" onClick={handleBack}>Back</Button>
                 <Button
                   onClick={handleApply}
-                  disabled={!tag}
+                  disabled={!tag || completing}
                   size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className={completing ? 'bg-green-600 text-white' : 'bg-purple-600 hover:bg-purple-700 text-white'}
                 >
-                  Complete Exercise
+                  {completing ? '✓ Done!' : 'Complete Exercise'}
                 </Button>
               </div>
             </div>
@@ -619,14 +655,14 @@ export function StretchModal({
               />
               <div className="flex justify-between items-center mt-1">
                 <p className="text-xs text-gray-500">
-                  {wordCount(story) < 10
-                    ? `${wordCount(story)}/10 words minimum`
+                  {wordCount(story) < 20
+                    ? `${wordCount(story)}/20 words minimum`
                     : `${wordCount(story)} words`}
                 </p>
                 {phase === 'story' && (
                   <Button
                     onClick={handleStoryNext}
-                    disabled={wordCount(story) < 10}
+                    disabled={wordCount(story) < 20}
                     size="sm"
                     className="bg-purple-600 hover:bg-purple-700 text-white"
                   >

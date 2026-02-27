@@ -21,7 +21,9 @@ Four phases, managed by the client UI:
 3. **Answers Phase**: AI answers both questions, bringing real knowledge the participant doesn't have
 4. **Reflection Phase**: Participant reflects on what their questions reveal about their capabilities
 
-**CRITICAL: The client injects `CURRENT_PHASE: reframe|questions|answers|reflection` into your context. Stay strictly within the current phase.**
+**HOW PHASES MAP TO API CALLS:**
+- **Phase 1 (Reframe)** is conversational via InlineChat. The system prompt (in `prompts.ts`) injects `CURRENT_PHASE: reframe`. This is the only phase where you'll see `CURRENT_PHASE`.
+- **Phases 2-4 (Questions, Answers, Reflection)** are handled by separate one-shot API calls with their own inline prompts. The training doc is still prepended (via `training_id: 'ia-4-4'`), so all guidance below applies, but the AI will NOT see `CURRENT_PHASE` for these phases — each one-shot call contains its own specific instructions.
 
 ---
 

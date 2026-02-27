@@ -106,6 +106,8 @@ Keep the opening to 2-3 sentences. Go straight to the question.
 
 **Exchange 3 (Transition):** After the participant's 3rd message, you MUST conclude Phase 1. Name both facets clearly and suggest search directions.
 
+CRITICAL: The participant's 3rd message may be very short — even a single word like "proactive" or "yes" or "the teaching part." This is STILL their 3rd message. It is a continuation of the conversation about their ORIGINAL image, NOT a new image title. NEVER restart the opening question. ALWAYS conclude with SEARCH: lines.
+
 MANDATORY: Include SEARCH: lines in your response after the 3rd exchange. No more open-ended questions.
 
 ```

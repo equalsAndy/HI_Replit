@@ -2,16 +2,9 @@ import * as React from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import InlineChat, { InlineChatHandle } from '@/components/ia/InlineChat';
 import { PROMPTS } from '@/constants/prompts';
-
-const TAG_OPTIONS = [
-  { value: 'A Way In',           label: 'A way in',                  helper: 'I can engage with something bigger than my normal scope.' },
-  { value: 'Better Questions',   label: 'Better questions',          helper: 'I found questions I wouldn\'t have thought to ask before.' },
-  { value: 'My Capabilities',    label: 'My capabilities at work',   helper: 'I can see which capabilities I reach for when it matters.' },
-  { value: 'A Partnership',      label: 'A partnership',             helper: 'I experienced what human intention + AI knowledge can do together.' },
-];
 
 export interface GlobalPurposeBridgeModalProps {
   open: boolean;
@@ -25,7 +18,6 @@ export interface GlobalPurposeBridgeModalProps {
     aiAnswer1: string;
     aiAnswer2: string;
     aiReflection: string;
-    tag: string;
     transcript: string[];
   }) => void;
 }
@@ -37,38 +29,32 @@ export function GlobalPurposeBridgeModal({
   globalChallenge,
   onComplete,
 }: GlobalPurposeBridgeModalProps) {
-  // Phase management
-  const [phase, setPhase] = React.useState<'reframe' | 'questions' | 'answers' | 'tag'>('reframe');
+  // ── Phase: 'reframe' | 'questions' ──
+  const [phase, setPhase] = React.useState<'reframe' | 'questions'>('reframe');
 
-  // Transcript for AI conversation
-  type ChatMessage = { role: 'user' | 'assistant'; content: string; };
-  const [transcript, setTranscript] = React.useState<ChatMessage[]>([]);
+  // Transcript (all AI + user messages for passing to content area)
+  type ChatMsg = { role: 'user' | 'assistant'; content: string };
+  const [transcript, setTranscript] = React.useState<ChatMsg[]>([]);
 
-  // Phase 1: Reframe
+  // ── Right column state (accumulates across phases) ──
+  // Phase 1 output
   const [reframedView, setReframedView] = React.useState('');
-
-  // Phase 2: Questions
+  // Phase 2 inputs
   const [question1, setQuestion1] = React.useState('');
   const [question2, setQuestion2] = React.useState('');
-
-  // Phase 3: Answers
+  // Phase 2 AI outputs (displayed on LEFT)
   const [aiAnswer1, setAiAnswer1] = React.useState('');
   const [aiAnswer2, setAiAnswer2] = React.useState('');
-  const [answersLoading, setAnswersLoading] = React.useState(false);
-
-  // Phase 3→4: AI Reflection (one-shot)
   const [aiReflection, setAiReflection] = React.useState('');
+  const [answersLoading, setAnswersLoading] = React.useState(false);
+  const [answersLoaded, setAnswersLoaded] = React.useState(false);
 
-  // Phase 4: Tag
-  const [tag, setTag] = React.useState(TAG_OPTIONS[0].value);
-
-  // InlineChat ref
+  // InlineChat
   const chatRef = React.useRef<InlineChatHandle | null>(null);
-
-  // Chat key for forcing remount
+  const chatStreamRef = React.useRef<HTMLDivElement | null>(null);
   const [chatKey, setChatKey] = React.useState(0);
 
-  // Reset everything when modal closes
+  // ── Reset on close ──
   React.useEffect(() => {
     if (!open) {
       setPhase('reframe');
@@ -78,62 +64,93 @@ export function GlobalPurposeBridgeModal({
       setQuestion2('');
       setAiAnswer1('');
       setAiAnswer2('');
-      setAnswersLoading(false);
       setAiReflection('');
-      setTag(TAG_OPTIONS[0].value);
+      setAnswersLoading(false);
+      setAnswersLoaded(false);
       setChatKey(0);
+    } else {
+      // Fresh open
+      setChatKey(prev => prev + 1);
     }
   }, [open]);
 
-  // When modal opens, set initial seed
+  // ── Auto-scroll chat ──
   React.useEffect(() => {
-    if (open && higherPurpose && globalChallenge) {
-      setChatKey(prev => prev + 1);
-    }
-  }, [open, higherPurpose, globalChallenge]);
+    const el = chatStreamRef.current;
+    if (!el) return;
+    setTimeout(() => { el.scrollTop = el.scrollHeight; }, 100);
+  }, [transcript, aiAnswer1, aiAnswer2, aiReflection]);
 
-  // Phase transitions
+  // ── Phase 1: InlineChat callbacks ──
+  const onChatReply = React.useCallback((msg: string) => {
+    setTranscript(prev => [...prev, { role: 'assistant', content: msg }]);
+
+    // Auto-extract reframed view from AI response using [BRIDGE] tag
+    if (phase === 'reframe') {
+      const bridgeMatch = msg.match(/\[BRIDGE\]\s*([\s\S]+?)(?:\n\n|$)/);
+      if (bridgeMatch) {
+        // Take the paragraph after [BRIDGE], strip trailing question
+        const raw = bridgeMatch[1].trim();
+        const cleaned = raw.replace(/Does this feel like[\s\S]*$/i, '').trim();
+        setReframedView(cleaned || raw);
+      } else {
+        // Fallback: look for paragraph before "Does this feel like"
+        const feelMatch = msg.match(/^([\s\S]+?)(?:\n\n)?Does this feel like/i);
+        if (feelMatch) {
+          setReframedView(feelMatch[1].trim());
+        } else if (!reframedView.trim()) {
+          const lines = msg.split('\n').filter(l => l.trim());
+          const nonQ = lines.filter(l => !l.trim().endsWith('?'));
+          if (nonQ.length > 0) setReframedView(nonQ.join(' ').trim());
+        }
+      }
+    }
+  }, [phase, reframedView]);
+
+  const onChatUserSend = React.useCallback((msg: string) => {
+    setTranscript(prev => [...prev, { role: 'user', content: msg }]);
+  }, []);
+
+  // ── Phase transition: reframe → questions ──
   const onNext = () => {
     if (phase === 'reframe' && reframedView.trim()) {
       setPhase('questions');
-    } else if (phase === 'questions' && question1.trim() && question2.trim()) {
-      setPhase('answers');
-      fetchAnswers();
-    } else if (phase === 'answers' && aiAnswer1 && aiAnswer2) {
-      setPhase('tag');
+      // Add transition message to transcript (shows on LEFT)
+      setTranscript(prev => [...prev, {
+        role: 'assistant',
+        content: `You're looking at ${globalChallenge.toLowerCase()} through the lens of your intention.\n\nIf this were actually your challenge to work on — and AI was your research partner — what two questions would you ask to figure out where to start?\n\nWrite them on the right. They don't need to be perfect.`
+      }]);
     }
   };
 
   const onBack = () => {
-    if (phase === 'tag') setPhase('answers');
-    else if (phase === 'answers') setPhase('questions');
-    else if (phase === 'questions') setPhase('reframe');
+    if (phase === 'questions' && !answersLoaded) {
+      setPhase('reframe');
+    }
   };
 
-  // AI Answer Fetcher (Phase 2→3 transition)
+  // ── Phase 2: Fetch AI answers (one-shot) ──
   const fetchAnswers = async () => {
+    if (!question1.trim() || !question2.trim()) return;
     setAnswersLoading(true);
-    setAiAnswer1('');
-    setAiAnswer2('');
-    setAiReflection('');
 
     try {
-      // 1. Fetch answers to both questions
+      // 1. Answer both questions
       const answerPrompt = `You are answering two questions from a participant in the Imaginal Agility workshop.
 
 PARTICIPANT'S INTENTION: "${higherPurpose}"
 GLOBAL CHALLENGE: ${globalChallenge}
-REFRAMED VIEW (how they see this challenge through their intention): "${reframedView}"
+REFRAMED VIEW: "${reframedView}"
 
 QUESTION 1: "${question1}"
 QUESTION 2: "${question2}"
 
 RULES:
 - Answer each question in ~150 words with real, substantive knowledge
-- Cite specific approaches, organizations, research, or frameworks
+- Cite specific approaches, organizations, research, or frameworks where relevant
 - Thread their intention through naturally — don't force it
 - Be direct, not hedging
-- Use this exact format:
+- Use this exact format with the divider:
 
 **Question 1: ${question1}**
 
@@ -143,7 +160,9 @@ RULES:
 
 **Question 2: ${question2}**
 
-[~150 word answer]`;
+[~150 word answer]
+
+End with: "Look at the two questions you asked. We'll come back to what they tell you about how you think."`;
 
       const answerResp = await fetch('/api/ai/chat/plain', {
         method: 'POST',
@@ -162,20 +181,20 @@ RULES:
       if (answerData?.success && answerData.reply) {
         const fullAnswer = answerData.reply.trim();
 
-        // Split on the divider
+        // Split answers
         const parts = fullAnswer.split('---SPLIT---');
         if (parts.length >= 2) {
           setAiAnswer1(parts[0].trim());
           setAiAnswer2(parts[1].trim());
         } else {
-          // Fallback: try to split on "Question 2" header
-          const q2Index = fullAnswer.indexOf('**Question 2');
-          if (q2Index > 0) {
-            setAiAnswer1(fullAnswer.substring(0, q2Index).trim());
-            setAiAnswer2(fullAnswer.substring(q2Index).trim());
+          // Fallback: split on "Question 2" header
+          const q2Idx = fullAnswer.indexOf('**Question 2');
+          if (q2Idx > 0) {
+            setAiAnswer1(fullAnswer.substring(0, q2Idx).trim());
+            setAiAnswer2(fullAnswer.substring(q2Idx).trim());
           } else {
             setAiAnswer1(fullAnswer);
-            setAiAnswer2('(Answer could not be split — see above for both answers.)');
+            setAiAnswer2('');
           }
         }
 
@@ -186,7 +205,8 @@ RULES:
           { role: 'assistant', content: fullAnswer },
         ]);
 
-        // 2. Fetch capability reflection
+        // 2. Fetch capability reflection (brief delay so participant can read answers)
+        await new Promise(resolve => setTimeout(resolve, 2500));
         const reflectPrompt = `You are reflecting on what a participant's questions reveal about their capabilities.
 
 PARTICIPANT'S INTENTION: "${higherPurpose}"
@@ -198,10 +218,10 @@ The five capabilities are: imagination, curiosity, caring, creativity, courage.
 
 RULES:
 - In 2-3 sentences, name which 2-3 capabilities showed up in their specific questions
-- Quote or reference their actual questions
+- Quote or reference their actual questions — be specific
 - Don't list all five — only the ones that genuinely appeared
-- Don't use generic praise like "Great questions!"
-- End with: "What did this exercise give you? The UI will ask you to choose."`;
+- Don't use generic praise
+- End with: "What did this exercise give you? Choose below when you're ready."`;
 
         const reflectResp = await fetch('/api/ai/chat/plain', {
           method: 'POST',
@@ -219,11 +239,10 @@ RULES:
         const reflectData = await reflectResp.json();
         if (reflectData?.success && reflectData.reply) {
           setAiReflection(reflectData.reply.trim());
-          setTranscript(prev => [
-            ...prev,
-            { role: 'assistant', content: reflectData.reply.trim() },
-          ]);
+          setTranscript(prev => [...prev, { role: 'assistant', content: reflectData.reply.trim() }]);
         }
+
+        setAnswersLoaded(true);
       }
     } catch (err) {
       console.error('IA-4-4 answer fetch error:', err);
@@ -233,32 +252,7 @@ RULES:
     }
   };
 
-  // Capture reframe from AI response (Phase 1)
-  const onChatReply = (text: string) => {
-    setTranscript(prev => [...prev, { role: 'assistant', content: text }]);
-
-    // In reframe phase, extract the reframed view
-    if (phase === 'reframe') {
-      // The reframe is the main paragraph before "Does this feel like YOUR way..."
-      const feelMatch = text.match(/^([\s\S]+?)(?:\n\n)?Does this feel like/i);
-      if (feelMatch) {
-        setReframedView(feelMatch[1].trim());
-      } else if (!reframedView.trim()) {
-        // Fallback: use the full response minus any question at the end
-        const lines = text.split('\n').filter(l => l.trim());
-        const nonQuestionLines = lines.filter(l => !l.trim().endsWith('?'));
-        if (nonQuestionLines.length > 0) {
-          setReframedView(nonQuestionLines.join(' ').trim());
-        }
-      }
-    }
-  };
-
-  const onChatUserSend = (text: string) => {
-    setTranscript(prev => [...prev, { role: 'user', content: text }]);
-  };
-
-  // Handle complete
+  // ── Complete ──
   const handleComplete = () => {
     onComplete({
       reframedView: reframedView.trim(),
@@ -267,10 +261,29 @@ RULES:
       aiAnswer1,
       aiAnswer2,
       aiReflection,
-      tag,
       transcript: transcript.map(m => `${m.role}: ${m.content}`),
     });
     onOpenChange(false);
+  };
+
+  // ── Start Over ──
+  const handleStartOver = () => {
+    if (confirm('Start over? This will clear everything.')) {
+      setPhase('reframe');
+      setTranscript([]);
+      setReframedView('');
+      setQuestion1('');
+      setQuestion2('');
+      setAiAnswer1('');
+      setAiAnswer2('');
+      setAiReflection('');
+      setAnswersLoading(false);
+      setAnswersLoaded(false);
+      setChatKey(prev => prev + 1);
+      setTimeout(() => {
+        chatRef.current?.setInput(`Show me what ${globalChallenge.toLowerCase()} looks like through the lens of my intention.`);
+      }, 100);
+    }
   };
 
   return (
@@ -278,36 +291,29 @@ RULES:
       <DialogContent
         hideClose
         style={{ top: '1rem', transform: 'translateX(-50%) translateY(0)' }}
-        className="max-w-[900px] w-full grid grid-cols-[1fr_0.75fr] gap-0 p-0 h-[800px] rounded-lg shadow-lg overflow-hidden"
+        className="max-w-[900px] w-full grid grid-cols-[1fr_0.75fr] gap-4 p-0 h-[800px] rounded-lg shadow-lg overflow-hidden"
       >
-        {/* Header */}
+        {/* ── Header ── */}
         <header className="absolute top-0 left-0 w-full bg-white border-b border-gray-200 flex items-center gap-4 p-3 z-10">
           <img src="/assets/adv_rung3_split.png" alt="Rung 3" className="h-8 flex-shrink-0" />
           <DialogTitle className="text-base font-semibold flex-grow">
             Global Purpose Bridge — AI Partner
           </DialogTitle>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            {/* Phase indicators */}
-            {(['reframe', 'questions', 'answers', 'tag'] as const).map((p, i) => (
-              <span key={p} className={`px-2 py-0.5 rounded-full text-xs ${
-                phase === p ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-400'
-              }`}>
-                {i + 1}. {p === 'reframe' ? 'Reframe' : p === 'questions' ? 'Questions' : p === 'answers' ? 'Answers' : 'Tag'}
-              </span>
-            ))}
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" onClick={handleStartOver}>Start Over</Button>
+            <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
         </header>
 
-        {/* ═══════════ LEFT COLUMN: AI Side ═══════════ */}
-        <div className="flex flex-col bg-gray-50 p-4 pt-16 min-h-0 border-r border-gray-200">
+        {/* ═══════════ LEFT COLUMN: Always AI ═══════════ */}
+        <div className="flex flex-col bg-gray-50 p-4 pt-16 min-h-0">
           {/* Context banner */}
           <div className="rounded-md bg-purple-50/60 border border-purple-100 px-3 py-2 text-xs text-gray-700 shadow-sm mb-4">
             <div><strong>Intention:</strong> {higherPurpose.length > 120 ? `${higherPurpose.slice(0, 120)}...` : higherPurpose}</div>
             <div className="mt-1"><strong>Challenge:</strong> {globalChallenge}</div>
           </div>
 
-          {/* Phase 1: InlineChat for reframe conversation */}
+          {/* Phase 1: Live AI conversation */}
           {phase === 'reframe' && (
             <div className="flex-1 flex flex-col min-h-0">
               <InlineChat
@@ -325,35 +331,18 @@ RULES:
             </div>
           )}
 
-          {/* Phase 2: Questions prompt (minimal AI, mostly participant) */}
+          {/* Phase 2: Chat history (read-only) + AI answers + reflection */}
           {phase === 'questions' && (
-            <div className="flex-1 overflow-y-auto space-y-4">
-              <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-800 leading-relaxed">
-                  You're looking at <strong>{globalChallenge.toLowerCase()}</strong> through the lens of your intention.
-                </p>
-                <p className="text-sm text-gray-800 mt-3 leading-relaxed">
-                  If this were actually your challenge to work on — and AI was your research partner — what two questions
-                  would you ask to figure out where to start?
-                </p>
-                <p className="text-xs text-gray-500 mt-2 italic">
-                  They don't need to be perfect. Your questions will reveal something about how you think.
-                </p>
-              </div>
-
-              {reframedView && (
-                <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                  <h4 className="text-xs font-semibold uppercase text-purple-600 mb-1">Your reframed view</h4>
-                  <p className="text-sm text-gray-700 italic">{reframedView}</p>
+            <div ref={chatStreamRef} className="flex-1 overflow-y-auto space-y-3">
+              {/* Show the reframe conversation as read-only context */}
+              {transcript.filter(m => m.role === 'assistant').slice(-1).map((m, i) => (
+                <div key={`ctx-${i}`} className="max-w-[90%] mr-auto rounded-xl border bg-white px-3 py-2 text-sm text-gray-700">
+                  {m.content}
                 </div>
-              )}
-            </div>
-          )}
+              ))}
 
-          {/* Phase 3: AI Answers display */}
-          {phase === 'answers' && (
-            <div className="flex-1 overflow-y-auto space-y-4">
-              {answersLoading ? (
+              {/* AI answers (appear after fetch) */}
+              {answersLoading && (
                 <div className="p-4 bg-white border border-gray-200 rounded-lg animate-pulse">
                   <p className="text-sm text-gray-500">Researching your questions...</p>
                   <div className="mt-3 space-y-2">
@@ -362,94 +351,64 @@ RULES:
                     <div className="h-3 bg-gray-200 rounded w-4/6"></div>
                   </div>
                 </div>
-              ) : (
-                <>
-                  {aiAnswer1 && (
-                    <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                      <div className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">{aiAnswer1}</div>
-                    </div>
-                  )}
-                  {aiAnswer2 && (
-                    <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                      <div className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">{aiAnswer2}</div>
-                    </div>
-                  )}
-                  {aiReflection && (
-                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                      <h4 className="text-xs font-semibold uppercase text-purple-600 mb-2">What your questions reveal</h4>
-                      <p className="text-sm text-gray-800 leading-relaxed">{aiReflection}</p>
-                    </div>
-                  )}
-                </>
               )}
-            </div>
-          )}
 
-          {/* Phase 4: Tag selection (AI side shows reflection) */}
-          {phase === 'tag' && (
-            <div className="flex-1 overflow-y-auto space-y-4">
-              {aiReflection && (
+              {aiAnswer1 && !answersLoading && (
+                <div className="p-4 bg-white border border-gray-200 rounded-lg">
+                  <div className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">{aiAnswer1}</div>
+                </div>
+              )}
+              {aiAnswer2 && !answersLoading && (
+                <div className="p-4 bg-white border border-gray-200 rounded-lg">
+                  <div className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">{aiAnswer2}</div>
+                </div>
+              )}
+              {aiReflection && !answersLoading && (
                 <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
                   <h4 className="text-xs font-semibold uppercase text-purple-600 mb-2">What your questions reveal</h4>
                   <p className="text-sm text-gray-800 leading-relaxed">{aiReflection}</p>
                 </div>
               )}
-              <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-600">
-                  Your questions told us something about how you approach big challenges. Now name what this exercise gave you.
-                </p>
-              </div>
             </div>
           )}
         </div>
 
-        {/* ═══════════ RIGHT COLUMN: Participant workspace ═══════════ */}
-        <div className="flex flex-col bg-white p-4 pt-16 min-h-0">
+        {/* ═══════════ RIGHT COLUMN: Participant workspace (accumulates) ═══════════ */}
+        <div className="flex flex-col bg-white p-4 pt-16 overflow-y-auto">
 
-          {/* Phase 1: Reframed view capture */}
-          {phase === 'reframe' && (
-            <div className="flex-1 flex flex-col">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">How you see this challenge</h3>
-              <p className="text-xs text-gray-500 mb-3">
-                When the AI shows you a view that resonates, it'll appear here. You can also write your own.
-              </p>
-              <Textarea
-                value={reframedView}
-                onChange={(e) => setReframedView(e.target.value)}
-                placeholder="The reframed view will appear here from the AI conversation, or write your own..."
-                rows={5}
-                className="text-sm resize-none flex-1"
-              />
-              <div className="pt-4 mt-auto flex gap-2">
-                <Button
-                  onClick={onNext}
-                  disabled={!reframedView.trim()}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700"
-                >
-                  This resonates — next
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
+          {/* Section 1: Reframed view (always visible once populated) */}
+          <section className="mb-6">
+            <h2 className="text-sm font-semibold uppercase mb-2">How you see this challenge</h2>
+            <div className={`min-h-[80px] p-3 border rounded text-sm mb-3 ${
+              reframedView.trim() ? 'bg-gray-50 text-gray-900' : 'bg-gray-50 text-gray-400'
+            }`}>
+              {reframedView.trim() || 'Work with AI to see the challenge through your intention. The reframed view will appear here.'}
             </div>
-          )}
+            {phase === 'reframe' && (
+              <Button onClick={onNext} disabled={!reframedView.trim()} className="w-full">
+                This resonates — next
+              </Button>
+            )}
+          </section>
 
-          {/* Phase 2: Two questions */}
+          {/* Section 2: Questions (appears in phase 2, accumulates below reframe) */}
           {phase === 'questions' && (
-            <div className="flex-1 flex flex-col">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Your two questions</h3>
+            <section className="mb-6">
+              <h2 className="text-sm font-semibold uppercase mb-2">Your two questions</h2>
               <p className="text-xs text-gray-500 mb-3">
-                What would you ask AI to figure out where to start?
+                What would you ask AI to figure out where to start on this challenge?
               </p>
 
-              <div className="space-y-4 flex-1">
+              <div className="space-y-3 mb-4">
                 <div>
                   <label className="text-xs font-medium text-gray-600 mb-1 block">Question 1</label>
                   <Textarea
                     value={question1}
                     onChange={(e) => setQuestion1(e.target.value)}
                     placeholder="Your first question..."
-                    rows={3}
+                    rows={2}
                     className="text-sm resize-none"
+                    disabled={answersLoaded}
                   />
                 </div>
                 <div>
@@ -458,118 +417,50 @@ RULES:
                     value={question2}
                     onChange={(e) => setQuestion2(e.target.value)}
                     placeholder="Your second question..."
-                    rows={3}
+                    rows={2}
                     className="text-sm resize-none"
+                    disabled={answersLoaded}
                   />
                 </div>
               </div>
 
-              <div className="pt-4 mt-auto flex gap-2">
-                <Button variant="secondary" size="sm" onClick={onBack} className="flex-1">
-                  Back
-                </Button>
-                <Button
-                  onClick={onNext}
-                  disabled={!question1.trim() || !question2.trim()}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Ask AI
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Phase 3: Review answers */}
-          {phase === 'answers' && (
-            <div className="flex-1 flex flex-col">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Your questions</h3>
-              <div className="space-y-3 mb-4">
-                <div className="p-2 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700">
-                  1. {question1}
-                </div>
-                <div className="p-2 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700">
-                  2. {question2}
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <p className="text-xs text-gray-500 italic">
-                  {answersLoading
-                    ? 'AI is researching your questions...'
-                    : aiAnswer1
-                    ? 'Read the answers on the left. When you\'re ready, continue.'
-                    : 'Waiting for answers...'}
-                </p>
-              </div>
-
-              <div className="pt-4 mt-auto flex gap-2">
-                <Button variant="secondary" size="sm" onClick={onBack} className="flex-1">
-                  Back
-                </Button>
-                <Button
-                  onClick={onNext}
-                  disabled={answersLoading || !aiAnswer1 || !aiAnswer2}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700"
-                >
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Phase 4: Tag selection */}
-          {phase === 'tag' && (
-            <div className="flex-1 flex flex-col">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">What did this give you?</h3>
-              <p className="text-xs text-gray-500 mb-4">
-                Pick the one that fits best.
-              </p>
-
-              <div className="space-y-2 flex-1">
-                {TAG_OPTIONS.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`block p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      tag === option.value
-                        ? 'border-purple-500 bg-purple-50 shadow-sm'
-                        : 'border-gray-200 hover:border-purple-300'
-                    }`}
+              {/* Buttons: Ask AI → then I'm done */}
+              <div className="flex gap-2">
+                {!answersLoaded && (
+                  <Button variant="secondary" size="sm" onClick={onBack} className="flex-1">
+                    Back
+                  </Button>
+                )}
+                {!answersLoaded ? (
+                  <Button
+                    onClick={fetchAnswers}
+                    disabled={!question1.trim() || !question2.trim() || answersLoading}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
                   >
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name="tag44"
-                        value={option.value}
-                        checked={tag === option.value}
-                        onChange={() => setTag(option.value)}
-                        className="mt-1"
-                      />
-                      <div>
-                        <span className="text-sm font-medium text-gray-800">{option.label}</span>
-                        <p className="text-xs text-gray-500 mt-0.5">{option.helper}</p>
-                      </div>
-                    </div>
-                  </label>
-                ))}
+                    {answersLoading ? (
+                      'Researching...'
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Ask AI
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleComplete}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    I'm done
+                  </Button>
+                )}
               </div>
-
-              <div className="pt-4 mt-auto flex gap-2">
-                <Button variant="secondary" size="sm" onClick={onBack} className="flex-1">
-                  Back
-                </Button>
-                <Button
-                  onClick={handleComplete}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                >
-                  I'm done
-                </Button>
-              </div>
-            </div>
+            </section>
           )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
+export default GlobalPurposeBridgeModal;
