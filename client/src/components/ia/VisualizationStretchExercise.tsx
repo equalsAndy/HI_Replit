@@ -2,9 +2,9 @@ import * as React from 'react';
 import { useContinuity } from '@/hooks/useContinuity';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { Button } from '@/components/ui/button';
-import { StretchModal } from './StretchModal';
-import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
-import { CapabilityType } from '@/lib/types';
+import { StretchModal, TAG_OPTIONS } from './StretchModal';
+import type { StretchResult } from './StretchModal';
+import { CapabilityType, CAPABILITY_LABELS } from '@/lib/types';
 
 // IA-3-3 data structure for proper typing
 interface IA33StepData {
@@ -14,128 +14,78 @@ interface IA33StepData {
   imageTitle: string;
 }
 
+function wordCount(text?: string): number {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
 export default function VisualizationStretchExercise() {
   const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
-  const newPerspectiveRef = React.useRef<HTMLTextAreaElement | null>(null);
 
   // Access IA-3-3 data using the workshop step data hook
   const { data: ia33Data } = useWorkshopStepData<IA33StepData>('ia', 'ia-3-3', {
     selectedImage: null,
     uploadedImage: null,
     reflection: '',
-    imageTitle: ''
+    imageTitle: '',
   });
 
-  // Normalize ia_4_3 with a fallback (safe access even if state is null)
+  // Normalize ia_4_3 with a fallback
   const ia = state?.ia_4_3 ?? {};
-  
-  // Extract IA-3-3 data with proper field names (from workshop step data)
+
+  // Extract IA-3-3 data
   const ia33Image = ia33Data?.uploadedImage || ia33Data?.selectedImage;
-  const ia33ImageTitle = ia33Data?.imageTitle || '';
+  const ia33Title = ia33Data?.imageTitle || '';
   const ia33Reflection = ia33Data?.reflection || '';
-
-  // Ensure ai_stretch is always an array
-  React.useEffect(() => {
-    if (state && !Array.isArray(ia.ai_stretch)) {
-      setState((prev) => ({
-        ...prev,
-        ia_4_3: {
-          ...(prev.ia_4_3 || {}),
-          ai_stretch: typeof ia.ai_stretch === 'string' ? [ia.ai_stretch] : [],
-        },
-      }));
-    }
-  }, [ia.ai_stretch, state]);
-
-  // Pre-populate current_frame from IA-3-3 if available and not already set
-  React.useEffect(() => {
-    if (state && ia33Reflection && ia33ImageTitle && !ia.current_frame) {
-      // Create a visualization frame from IA-3-3 data
-      const visualizationFrame = `I see myself embodying "${ia33ImageTitle}" - ${ia33Reflection}`;
-      setState((prev) => ({
-        ...prev,
-        ia_4_3: {
-          ...(prev.ia_4_3 || {}),
-          current_frame: visualizationFrame,
-        },
-      }));
-    }
-  }, [ia33Reflection, ia33ImageTitle, ia.current_frame, state]);
-
-  React.useEffect(() => {
-    if (!modalOpen && newPerspectiveRef.current) {
-      newPerspectiveRef.current.focus();
-    }
-  }, [modalOpen]);
 
   // Early return AFTER all hooks are called
   if (loading || !state) return null;
 
-  const currentFrame = (ia.current_frame ?? '').toString();
-  const isFrameValid = currentFrame.trim().length >= 10;
-  
-  // Check if we have IA-3-3 data to display
-  const hasIA33Data = ia33Image && ia33ImageTitle && ia33Reflection;
+  const hasIA33Data = Boolean(ia33Image && ia33Title);
+  const hasResults = Boolean(ia.completed);
 
-  function openModal() {
-    if (isFrameValid) setModalOpen(true);
-  }
+  // Resolve tag and capability labels
+  const tagLabel = TAG_OPTIONS.find(t => t.value === ia.tag)?.label ?? ia.tag;
+  const tagHelper = TAG_OPTIONS.find(t => t.value === ia.tag)?.helper ?? '';
+  const capabilityLabel = ia.capability ? CAPABILITY_LABELS[ia.capability as CapabilityType] : '';
 
-  function onModalOpenChange(open: boolean) {
-    setModalOpen(open);
-  }
-
-  function onModalApply(result: { transcript: string[]; stretch: string; tag: string; stretch_visualization: string; resistance_type: string; resistance_custom?: string }) {
-    setState((prev) => {
-      const prevIA = prev.ia_4_3 || {};
-      return {
-        ...prev,
-        ia_4_3: {
-          ...prevIA,
-          ai_stretch: [
-            ...(Array.isArray(prevIA.ai_stretch)
-              ? prevIA.ai_stretch
-              : prevIA.ai_stretch
-              ? [String(prevIA.ai_stretch)]
-              : []),
-            ...result.transcript.map(String),
-          ],
-          user_stretch: result.stretch,
-          tag: result.tag,
-          stretch_visualization: result.stretch_visualization,
-          resistance_type: result.resistance_type,
-          resistance_custom: result.resistance_custom,
-          original_frame: currentFrame,
-        },
-      };
-    });
-    // Save immediately so modal results survive refresh/navigation
+  function onModalApply(result: StretchResult) {
+    setState((prev) => ({
+      ...prev,
+      ia_4_3: {
+        original_image: result.original_image,
+        original_title: result.original_title,
+        original_reflection: ia33Reflection,
+        new_image: result.new_image,
+        new_title: result.new_title,
+        story: result.story,
+        capability: result.capability,
+        tag: result.tag,
+        transcript: result.transcript,
+        completed: true,
+      },
+    }));
     setTimeout(() => saveNow(), 0);
     setModalOpen(false);
   }
 
   function onModalStartOver() {
-    if (window.confirm('Are you sure you want to start over? This will clear your visualization and AI chat.')) {
-      setState((prev) => ({
-        ...prev,
-        ia_4_3: {
-          current_frame: hasIA33Data ? `I see myself embodying "${ia33ImageTitle}" - ${ia33Reflection}` : '',
-          ai_stretch: [],
-          user_stretch: '',
-          tag: '',
-          stretch_visualization: '',
-          resistance_type: '',
-          resistance_custom: '',
-          stretch_name: '',
-          completed: false,
-        },
-      }));
-      setModalOpen(false);
-    }
-  }
-
-  function onModalKeepContext() {
+    setState((prev) => ({
+      ...prev,
+      ia_4_3: {
+        original_image: null,
+        original_title: '',
+        original_reflection: '',
+        new_image: null,
+        new_title: '',
+        story: '',
+        capability: null,
+        tag: '',
+        transcript: [],
+        completed: false,
+      },
+    }));
     setModalOpen(false);
   }
 
@@ -150,7 +100,7 @@ export default function VisualizationStretchExercise() {
               <div className="flex-shrink-0">
                 <img
                   src={ia33Image}
-                  alt={ia33ImageTitle}
+                  alt={ia33Title}
                   className="w-24 h-24 object-cover rounded-lg border border-purple-300"
                 />
               </div>
@@ -158,126 +108,135 @@ export default function VisualizationStretchExercise() {
             <div className="flex-1 space-y-2">
               <div>
                 <span className="font-medium text-purple-700">Image Word:</span>
-                <span className="ml-2 text-gray-800 font-semibold">"{ia33ImageTitle}"</span>
+                <span className="ml-2 text-gray-800 font-semibold">&ldquo;{ia33Title}&rdquo;</span>
               </div>
-              <div>
-                <span className="font-medium text-purple-700">Your Reflection:</span>
-                <p className="mt-1 text-gray-800 italic">"{ia33Reflection}"</p>
-              </div>
+              {ia33Reflection && (
+                <div>
+                  <span className="font-medium text-purple-700">Your Reflection:</span>
+                  <p className="mt-1 text-gray-800 italic">&ldquo;{ia33Reflection}&rdquo;</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
-      
-      {/* Name the Frame */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Name the Frame</h3>
-        <p className="text-sm text-gray-600 mb-3">
-          Recall the visualization you formed earlier. Summarize it in a single sentence.
-        </p>
-        <textarea
-          id="frame-textarea"
-          className="w-full border border-gray-300 rounded p-2 resize-y"
-          rows={4}
-          value={currentFrame}
-          onChange={(e) =>
-            setState((prev) => ({
-              ...prev,
-              ia_4_3: {
-                ...(prev.ia_4_3 || {}),
-                current_frame: e.target.value,
-              },
-            }))
-          }
-          placeholder="I see myself..."
-        />
-        <p className="mt-1 text-xs text-gray-500">
-          {hasIA33Data 
-            ? "Pre-populated from your previous work. Edit as needed."
-            : "Summarize your visualization in a single sentence."
-          }
-        </p>
-      </div>
 
-      {/* Ask AI to Stretch It */}
+      {/* Open modal button */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Ask AI to Stretch It</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Find Your Image Pair</h3>
         <p className="text-sm text-gray-600 mb-4">
-          Ask: "What's one possibility I haven't considered that would expand this pattern or move it to the next level?"
+          The AI will help you discover what your image represents &mdash; and what facet of your potential it doesn't capture. Then you'll find a second image to hold what's missing.
         </p>
-        <Button onClick={openModal} disabled={!isFrameValid} className="bg-purple-600 hover:bg-purple-700 text-white">
-          Work with AI to Stretch This Visualization
+        <Button
+          onClick={() => setModalOpen(true)}
+          disabled={!hasIA33Data}
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          {hasResults ? 'Redo Visualization Stretch' : 'Find Your Image Pair'}
         </Button>
+        {!hasIA33Data && (
+          <p className="mt-2 text-xs text-amber-600">
+            Complete the visualization exercise in Module 3 (ia-3-3) first.
+          </p>
+        )}
       </div>
 
       <StretchModal
         open={modalOpen}
-        onOpenChange={onModalOpenChange}
-        currentFrame={currentFrame}
+        onOpenChange={setModalOpen}
+        ia33Image={ia33Image || null}
+        ia33Title={ia33Title}
+        ia33Reflection={ia33Reflection}
         onApply={onModalApply}
         onStartOver={onModalStartOver}
-        onKeepContext={onModalKeepContext}
       />
 
-
-      {/* Summary after modal completion */}
-      {(ia.user_stretch && ia.stretch_visualization && ia.resistance_type) && (
+      {/* Post-modal results */}
+      {hasResults && (
         <div className="space-y-6">
-          {/* Results Summary */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-green-800 mb-4">✅ Visualization Stretch Complete</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Expanded Vision:</h4>
-                <p className="text-sm text-gray-800 italic bg-white p-3 rounded border">"{ia.user_stretch}"</p>
+
+          {/* What You Just Did */}
+          <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+            <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              You looked at one image of your potential and found what it was missing.
+              Then you searched for a second image to hold the other side.
+              Together they reveal more than either shows alone.
+              That's visualization as a skill &mdash; the ability to see your potential as multifaceted, not one-dimensional.
+            </p>
+          </div>
+
+          {/* Image Pair */}
+          <div className="p-4 bg-white border border-gray-200 rounded-lg">
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-4">Your Image Pair</h3>
+
+            <div className="flex justify-center items-start gap-6 mb-4">
+              <div className="flex flex-col items-center">
+                <img
+                  src={ia.original_image || ''}
+                  alt={ia.original_title}
+                  className="w-40 h-40 object-cover rounded-lg border-2 border-gray-300 shadow"
+                />
+                <p className="mt-2 text-sm font-semibold text-gray-700">&ldquo;{ia.original_title}&rdquo;</p>
               </div>
-              
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Resistance Identified:</h4>
-                <p className="text-sm text-gray-800 bg-white p-3 rounded border">
-                  {ia.resistance_type === 'Name your own...' ? ia.resistance_custom : ia.resistance_type}
-                </p>
+              <div className="flex items-center pt-16 text-3xl font-light text-purple-400">+</div>
+              <div className="flex flex-col items-center">
+                <img
+                  src={ia.new_image || ''}
+                  alt={ia.new_title}
+                  className="w-40 h-40 object-cover rounded-lg border-2 border-purple-400 shadow"
+                />
+                <p className="mt-2 text-sm font-semibold text-purple-800">&ldquo;{ia.new_title}&rdquo;</p>
               </div>
+            </div>
+
+            {/* Editable story textarea */}
+            <div className="mt-4">
+              <label className="block text-sm font-semibold uppercase text-purple-700 mb-2">What These Reveal Together</label>
+              <textarea
+                className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg text-sm resize-y bg-white"
+                value={ia.story ?? ''}
+                onChange={(e) =>
+                  setState((prev) => ({
+                    ...prev,
+                    ia_4_3: { ...(prev.ia_4_3 || {}), story: e.target.value },
+                  }))
+                }
+                onBlur={() => saveNow()}
+              />
+              <p className="mt-1 text-xs text-gray-500">Edit if you'd like to refine.</p>
             </div>
           </div>
 
-          {/* Capability Selector */}
-          <CapabilitySelector
-            mode="single"
-            selected={ia.capability_stretched || null}
-            onSelect={(val) =>
-              setState((prev) => ({
-                ...prev,
-                ia_4_3: { ...(prev.ia_4_3 || {}), capability_stretched: val as CapabilityType },
-              }))
-            }
-            prompt="Which of your capabilities was most stretched by this exchange?"
-          />
-
-          {/* Name the Stretch - appears after all steps complete */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Name the Stretch</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Give your new posture or mindset a name you'll remember.
-            </p>
-            <input
-              id="stretch-name"
-              type="text"
-              className="w-full border border-gray-300 rounded-lg p-3 text-lg font-medium"
-              value={ia.stretch_name ?? ''}
-              onChange={(e) =>
-                setState((prev) => ({
-                  ...prev,
-                  ia_4_3: {
-                    ...(prev.ia_4_3 || {}),
-                    stretch_name: e.target.value,
-                  },
-                }))
-              }
-              placeholder="e.g., 'Shape the Stage', 'Possibility Pioneer'"
-            />
+          {/* Capability + Tag badges */}
+          <div className="flex flex-wrap gap-4 items-center">
+            {capabilityLabel && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
+                <span className="text-xs font-semibold uppercase text-gray-500">Capability:</span>
+                <span className="text-sm font-medium text-purple-800">{capabilityLabel}</span>
+              </div>
+            )}
+            {tagLabel && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
+                <span className="text-xs font-semibold uppercase text-gray-500">Tag:</span>
+                <span className="text-sm font-medium text-purple-800">{tagLabel}</span>
+              </div>
+            )}
+            {tagHelper && (
+              <p className="text-xs text-gray-500 italic">{tagHelper}</p>
+            )}
           </div>
+
+          {/* Completion gate warning */}
+          {(!ia.story || wordCount(ia.story) < 10 || !ia.capability || !ia.tag) && (
+            <p className="text-xs font-semibold text-amber-600 flex items-center gap-1">
+              Required to continue:
+              {(!ia.story || wordCount(ia.story) < 10) && <span className="ml-1">Story (10+ words)</span>}
+              {!ia.capability && <span className="ml-1">Capability</span>}
+              {!ia.tag && <span className="ml-1">Tag</span>}
+            </p>
+          )}
+
         </div>
       )}
     </>

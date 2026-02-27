@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useContinuity } from '@/hooks/useContinuity';
-import { GlobalPurposeBridgeModal, type GlobalBridge } from './GlobalPurposeBridgeModal';
-import { Globe, Target, ArrowRight } from 'lucide-react';
+import { GlobalPurposeBridgeModal } from './GlobalPurposeBridgeModal';
+import { Globe, Target } from 'lucide-react';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
 
@@ -17,8 +16,20 @@ interface IA34StepData {
   nextStep: string;
 }
 
+function wordCount(text?: string): number {
+  if (!text) return 0;
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
+function formatCapabilityList(caps: CapabilityType[]): string {
+  if (caps.length === 0) return '';
+  if (caps.length === 1) return caps[0];
+  if (caps.length === 2) return `${caps[0]} and ${caps[1]}`;
+  return caps.slice(0, -1).join(', ') + ', and ' + caps[caps.length - 1];
+}
+
 export default function GlobalPurposeBridgeExercise() {
-  const { state, setState } = useContinuity();
+  const { state, setState, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
 
   // Access IA-3-4 data for higher purpose
@@ -29,29 +40,16 @@ export default function GlobalPurposeBridgeExercise() {
     nextStep: ''
   });
 
-  // Normalize ia_4_4 with a fallback (safe access even if state is null)
-  const ia44 = state?.ia_4_4 ?? {};
+  // Normalize state
+  const ia = state?.ia_4_4 ?? {};
 
-  // Extract higher purpose from IA-3-4 WHY reflection
   const higherPurposeFromIA34 = ia34Data?.whyReflection || '';
 
-  // Content area state (pre-modal work)
-  const [higherPurpose, setHigherPurpose] = React.useState('');
-  const [selectedChallenge, setSelectedChallenge] = React.useState('');
+  // Content area state (pre-modal)
+  const [higherPurpose, setHigherPurpose] = React.useState(ia.higher_purpose || '');
+  const [selectedChallenge, setSelectedChallenge] = React.useState(ia.global_challenge || '');
   const [customChallenge, setCustomChallenge] = React.useState('');
-  
-  // World Game Stretch state
-  const [worldGameStretch, setWorldGameStretch] = React.useState(ia44.world_game_stretch || '');
 
-  // Modal results state
-  const [modalResults, setModalResults] = React.useState<{
-    aiPerspectives: string;
-    chosenPerspective?: string;
-    modestContribution: string;
-    bridgeName: string;
-  } | null>(null);
-
-  // Global challenges
   const globalChallenges = [
     'Climate Change and Environmental Degradation',
     'Inequality and Global Poverty',
@@ -60,94 +58,87 @@ export default function GlobalPurposeBridgeExercise() {
     'Human Rights in Conflict and Crisis'
   ];
 
-  // Get effective purpose: refined version if provided, otherwise IA-3-4
   const effectivePurpose = higherPurpose.trim() || higherPurposeFromIA34;
+  const effectiveChallenge = customChallenge.trim() || selectedChallenge;
+  const isReadyForAI = Boolean(effectivePurpose && effectiveChallenge);
 
-  // Handle challenge selection
+  // Check completion
+  const isCompleted = Boolean(ia.completed && ia.reframed_view);
+
+  // Challenge selection
   const handleChallengeSelect = (challenge: string) => {
     setSelectedChallenge(challenge);
     setCustomChallenge('');
   };
 
-  // Handle custom challenge input
   const handleCustomChallengeChange = (value: string) => {
     setCustomChallenge(value);
-    if (value.trim()) {
-      setSelectedChallenge('');
-    }
+    if (value.trim()) setSelectedChallenge('');
   };
 
-  // Get the effective challenge (selected or custom)
-  const effectiveChallenge = customChallenge.trim() || selectedChallenge;
-
-  // Check if ready for AI perspectives
-  const isReadyForAI = effectivePurpose && effectiveChallenge;
-
-  // Handle opening modal
+  // Open modal
   const handleOpenModal = () => {
     if (!isReadyForAI) return;
-    
-    // Save content area work before opening modal
     setState((prev) => ({
       ...prev,
       ia_4_4: {
         ...prev.ia_4_4,
         higher_purpose: effectivePurpose,
         global_challenge: effectiveChallenge,
-        content_completed: true
       }
     }));
-    
     setModalOpen(true);
   };
 
-  // Handle modal completion
+  // Modal completion handler
   const handleModalComplete = (results: {
-    aiPerspectives: string;
-    chosenPerspective?: string;
-    modestContribution: string;
-    bridgeName: string;
+    reframedView: string;
+    question1: string;
+    question2: string;
+    aiAnswer1: string;
+    aiAnswer2: string;
+    aiReflection: string;
+    tag: string;
+    transcript: string[];
   }) => {
-    setModalResults(results);
-    
-    // Save complete results to state
     setState((prev) => ({
       ...prev,
       ia_4_4: {
         ...prev.ia_4_4,
         higher_purpose: effectivePurpose,
         global_challenge: effectiveChallenge,
-        ai_perspectives: results.aiPerspectives,
-        chosen_perspective: results.chosenPerspective,
-        modest_contribution: results.modestContribution,
-        bridge_name: results.bridgeName,
+        reframed_view: results.reframedView,
+        question1: results.question1,
+        question2: results.question2,
+        ai_answer1: results.aiAnswer1,
+        ai_answer2: results.aiAnswer2,
+        ai_reflection: results.aiReflection,
+        tag: results.tag,
+        transcript: results.transcript,
         completed: true,
-        last_updated: new Date().toISOString()
+        last_updated: new Date().toISOString(),
       }
     }));
-    
+    setTimeout(() => saveNow(), 0);
     setModalOpen(false);
   };
 
-  // Check if exercise is completed
-  const isCompleted = modalResults || (ia44.completed && ia44.bridge_name);
-
   return (
     <>
-      {/* Step 1: Recall Your Higher Purpose */}
+      {/* Step 1: Recall Your Intention */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <Target className="w-5 h-5 text-purple-600" />
-          Step 1: Recall Your Higher Purpose
+          Step 1: Your Intention
         </h3>
-        
+
         {higherPurposeFromIA34 && (
           <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
             <p className="text-sm text-purple-700 font-medium">From your Insight to Intention reflection:</p>
             <p className="text-purple-800 italic">"{higherPurposeFromIA34}"</p>
           </div>
         )}
-        
+
         <div className="space-y-3">
           <label className="text-sm font-medium text-gray-700">
             What core intention did you uncover earlier? Refine or shorten it if you like.
@@ -155,12 +146,12 @@ export default function GlobalPurposeBridgeExercise() {
           <Textarea
             value={higherPurpose}
             onChange={(e) => setHigherPurpose(e.target.value)}
-            placeholder="Your deeper purpose or core intention..."
+            placeholder="Your deeper intention or core purpose..."
             rows={3}
             className="text-sm"
           />
           <p className="text-xs text-gray-500">
-            {higherPurposeFromIA34 ? "Leave blank to use your Insight to Intention purpose, or refine it here." : "What do you care about deeply? What future would you like to help shape?"}
+            {higherPurposeFromIA34 ? "Leave blank to use your earlier intention, or refine it here." : "What do you care about deeply? What future would you like to help shape?"}
           </p>
         </div>
       </div>
@@ -169,13 +160,13 @@ export default function GlobalPurposeBridgeExercise() {
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <Globe className="w-5 h-5 text-purple-600" />
-          Step 2: Choose a Global Challenge
+          Step 2: Pick a Global Challenge
         </h3>
-        
+
         <p className="text-sm text-gray-600 mb-4">
-          Pick one of the major issues below—or write your own. These are some of the most urgent and interconnected challenges facing our planet:
+          Pick one — not because you'll solve it, but because it gives your imagination something big to push against.
         </p>
-        
+
         <div className="space-y-3 mb-4">
           {globalChallenges.map((challenge) => (
             <label
@@ -183,7 +174,7 @@ export default function GlobalPurposeBridgeExercise() {
               className={`block p-3 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedChallenge === challenge
                   ? 'border-purple-500 bg-purple-50'
-                  : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                  : 'border-gray-200 hover:border-purple-300'
               }`}
             >
               <div className="flex items-start gap-3">
@@ -201,185 +192,176 @@ export default function GlobalPurposeBridgeExercise() {
           ))}
         </div>
 
-        {/* Custom Challenge Option */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
-            Or write your own:
-          </label>
+          <label className="text-sm font-medium text-gray-700">Or write your own:</label>
           <Textarea
             value={customChallenge}
             onChange={(e) => handleCustomChallengeChange(e.target.value)}
-            placeholder="Describe a global challenge that matters to you..."
+            placeholder="Describe a global challenge that draws you in..."
             rows={2}
             className="text-sm"
           />
         </div>
       </div>
 
-      {/* Step 3: AI Button Activation */}
+      {/* Launch Button */}
       <div className="mb-8 text-center">
-        <div className="space-y-4">
-          {!isReadyForAI ? (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-700 text-sm">
-                Complete steps 1 and 2 above to unlock AI perspectives.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-blue-800 text-sm font-medium mb-2">Ready for AI Assistance</p>
-                <p className="text-blue-700 text-sm">
-                  Ask AI: "Offer three unconventional or overlooked perspectives on this challenge—and what it might need most from someone like me."
-                </p>
-              </div>
-              
-              <Button
-                onClick={handleOpenModal}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-                disabled={isCompleted}
-              >
-                <Globe className="w-5 h-5 mr-2" />
-                {isCompleted ? 'Bridge Created' : 'Get Fresh Perspectives'}
-              </Button>
-            </>
-          )}
-        </div>
+        {!isReadyForAI ? (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-700 text-sm">
+              Complete steps 1 and 2 above to continue.
+            </p>
+          </div>
+        ) : (
+          <Button
+            onClick={handleOpenModal}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+          >
+            <Globe className="w-5 h-5 mr-2" />
+            {isCompleted ? 'Explore Again' : 'Explore with AI'}
+          </Button>
+        )}
       </div>
 
-      {/* Post-Modal Results Display */}
-      {isCompleted && (modalResults || ia44.bridge_name) && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <ArrowRight className="w-5 h-5 text-purple-600" />
-            Your Global Purpose Bridge
-          </h3>
-          
-          <Card className="border-l-4 border-l-purple-500">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-purple-700 mb-1">Your Higher Purpose:</h4>
-                  <p className="text-gray-800">{effectivePurpose || ia44.higher_purpose}</p>
-                </div>
-                
-                <div>
-                  <h4 className="font-semibold text-purple-700 mb-1">Global Challenge:</h4>
-                  <p className="text-gray-800">{effectiveChallenge || ia44.global_challenge}</p>
-                </div>
-                
-                {(modalResults?.chosenPerspective || ia44.chosen_perspective) && (
-                  <div>
-                    <h4 className="font-semibold text-purple-700 mb-1">Chosen Perspective:</h4>
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-blue-800 text-sm whitespace-pre-line">
-                        {modalResults?.chosenPerspective || ia44.chosen_perspective}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                <div>
-                  <h4 className="font-semibold text-purple-700 mb-1">Your Bridge:</h4>
-                  <p className="text-lg font-medium text-purple-800 mb-2">
-                    "{modalResults?.bridgeName || ia44.bridge_name}"
-                  </p>
-                  <p className="text-gray-800">
-                    {modalResults?.modestContribution || ia44.modest_contribution}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="mt-6 text-center">
-                <Button
-                  onClick={handleOpenModal}
-                  variant="outline"
-                  className="border-purple-300 text-purple-600 hover:bg-purple-50"
-                >
-                  <Globe className="w-4 h-4 mr-2" />
-                  Refine Your Bridge
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Capability Selector */}
+      {/* ═══════════ POST-MODAL RESULTS ═══════════ */}
       {isCompleted && (
-        <div className="mt-8">
-          <CapabilitySelector
-            mode="single"
-            selected={ia44.capability_stretched || null}
-            onSelect={(val) =>
-              setState((prev) => ({
-                ...prev,
-                ia_4_4: { ...prev.ia_4_4, capability_stretched: val as CapabilityType },
-              }))
-            }
-            prompt="Which of your capabilities was most stretched by this exchange?"
-          />
-        </div>
-      )}
-
-      {/* World Game Stretch Section - Optional Extension */}
-      {isCompleted && (
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <Globe className="w-5 h-5 text-green-600" />
-            World Game Stretch (Optional)
-          </h3>
-          
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Ready to think bigger? How would you redesign your contribution to work at planetary scale?
+        <>
+          {/* "What you just did" block */}
+          <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+            <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              You took your intention and put it somewhere much bigger than usual — not because we expect you to
+              solve global problems, but because expansive contexts force your capabilities to show up in ways they
+              don't in daily life. What you just practiced is using AI as an imagination partner to explore at a
+              scale you normally wouldn't reach alone. The scenario was aspirational. What you learned about your
+              capabilities is real.
             </p>
-            
-            <Textarea
-              value={worldGameStretch}
-              onChange={(e) => {
-                const value = e.target.value;
-                setWorldGameStretch(value);
-                
-                // Save to state when user types
+          </div>
+
+          {/* 1. How you see this challenge (editable) */}
+          <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">How you see this challenge</h3>
+            <textarea
+              className="w-full border border-gray-300 rounded p-2 resize-y bg-white text-sm"
+              rows={3}
+              value={ia.reframed_view ?? ''}
+              onChange={(e) =>
                 setState((prev) => ({
                   ...prev,
-                  ia_4_4: {
-                    ...prev.ia_4_4,
-                    world_game_stretch: value,
-                    last_updated: new Date().toISOString()
-                  }
-                }));
-              }}
-              placeholder="Imagine your contribution scaling to address the global challenge systemically. What would it look like if it reached millions of people? What systems or institutions would need to change?"
-              rows={4}
-              className="text-sm"
+                  ia_4_4: { ...(prev.ia_4_4 || {}), reframed_view: e.target.value },
+                }))
+              }
+              onBlur={() => saveNow()}
             />
-            
-            {worldGameStretch.trim() && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-semibold text-green-800 mb-2">Your World Game Vision:</h4>
-                <p className="text-green-700 text-sm whitespace-pre-line">{worldGameStretch}</p>
+            <p className="mt-1 text-xs text-gray-500">Edit if you'd like to refine the wording.</p>
+          </div>
+
+          {/* 2. Your Questions */}
+          {(ia.question1 || ia.question2) && (
+            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h3 className="text-sm font-semibold uppercase text-gray-600 mb-3">Your questions</h3>
+              <div className="space-y-2">
+                {ia.question1 && (
+                  <div className="p-2 bg-white border border-gray-200 rounded text-sm text-gray-800">
+                    1. {ia.question1}
+                  </div>
+                )}
+                {ia.question2 && (
+                  <div className="p-2 bg-white border border-gray-200 rounded text-sm text-gray-800">
+                    2. {ia.question2}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 3. What your questions reveal */}
+          {ia.ai_reflection && (
+            <div className="mb-4 p-4 bg-purple-50/50 border border-purple-100 rounded-lg">
+              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-1">What your questions reveal</h3>
+              <p className="text-sm text-gray-700 leading-relaxed">{ia.ai_reflection}</p>
+            </div>
+          )}
+
+          {/* 4. What this gave you (tag) */}
+          {ia.tag && (
+            <div className="mb-6 p-3 bg-purple-50/50 border border-purple-100 rounded-lg">
+              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-1">What this gave you</h3>
+              <span className="inline-block bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full font-medium">
+                {ia.tag}
+              </span>
+            </div>
+          )}
+
+          {/* 5. Capabilities in Action — REQUIRED */}
+          <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
+            <h3 className="font-semibold text-purple-700 mb-1">Capabilities in Action</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              You just explored a challenge at global scale. Which capabilities did you feel activate?
+              Pick at least two and imagine what happens when you deliberately combine them on a real challenge.
+            </p>
+
+            <CapabilitySelector
+              mode="multi"
+              minSelections={2}
+              selected={ia.capabilities_applied ?? []}
+              onSelect={(val) => {
+                const caps = Array.isArray(val) ? val : [val];
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_4: { ...(prev.ia_4_4 || {}), capabilities_applied: caps as CapabilityType[] },
+                }));
+                setTimeout(() => saveNow(), 0);
+              }}
+              prompt="Which capabilities would you bring to a real challenge at this scale?"
+              className="mb-4"
+            />
+
+            {/* Dynamic "I imagine" prompt — appears after 2+ selected */}
+            {Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length >= 2 && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  If I brought{' '}
+                  <span className="font-semibold text-purple-700">
+                    {formatCapabilityList(ia.capabilities_applied)}
+                  </span>
+                  {' '}to a real challenge at this scale, I imagine...
+                </label>
+                <textarea
+                  className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
+                  rows={4}
+                  placeholder="Complete this thought — what do you imagine might happen?"
+                  value={ia.capabilities_imagine ?? ''}
+                  onChange={(e) =>
+                    setState((prev) => ({
+                      ...prev,
+                      ia_4_4: { ...(prev.ia_4_4 || {}), capabilities_imagine: e.target.value },
+                    }))
+                  }
+                  onBlur={() => saveNow()}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {wordCount(ia.capabilities_imagine) < 15
+                    ? `${wordCount(ia.capabilities_imagine)} words — write at least 15`
+                    : `${wordCount(ia.capabilities_imagine)} words`}
+                </p>
               </div>
             )}
+
+            {/* Completion gate */}
+            {(!ia.capabilities_applied ||
+              (Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length < 2) ||
+              !ia.capabilities_imagine ||
+              wordCount(ia.capabilities_imagine) < 15) && (
+              <p className="mt-3 text-xs font-semibold text-amber-600 flex items-center gap-1">
+                <span>⚠</span> Required to continue
+              </p>
+            )}
           </div>
-        </div>
+        </>
       )}
 
-      {/* Example Section */}
-      {!isCompleted && (
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
-          <h4 className="text-lg font-semibold text-green-800 mb-3">💡 Example Global Purpose Bridge</h4>
-          <div className="space-y-2 text-green-700 text-sm">
-            <p><strong>Higher Purpose:</strong> "I want to help people find their authentic voice and express what matters to them."</p>
-            <p><strong>Global Challenge:</strong> Climate Change and Environmental Degradation</p>
-            <p><strong>AI Perspective:</strong> "Climate action needs storytellers who can help communities articulate their relationship with place and environment."</p>
-            <p><strong>Bridge:</strong> "The Story-Climate Connection" - Monthly workshops where community members practice telling their personal environmental stories.</p>
-          </div>
-        </div>
-      )}
-
-      {/* Global Purpose Bridge Modal */}
+      {/* Modal */}
       <GlobalPurposeBridgeModal
         open={modalOpen}
         onOpenChange={setModalOpen}

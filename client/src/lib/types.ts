@@ -44,18 +44,37 @@ export type IAState = {
     tested_capability?: string;
     capability_insight?: string;
   };
-  // IA-4-3: Exploring Underlying Assumptions
+  // IA-4-3: Visualization Stretch (v3 — image-based)
   ia_4_3: {
-    assumptions: string;
-    ai_assumptions: string[]; // chat messages
-    user_insight: string;
-    tag: string;
-    updated_perspective: string;
-    // legacy fields kept (from old Stretch flow)
+    original_image: string | null;      // ia-3-3 image URL
+    original_title: string;             // ia-3-3 one-word title
+    original_reflection: string;        // ia-3-3 reflection text
+    new_image: string | null;           // Unsplash URL of new image
+    new_title: string;                  // One-word title for new image
+    story: string;                      // "What story do these two images tell together?"
+    capability: CapabilityType | null;  // Single capability selection
+    tag: string;                        // Tag selection
+    transcript: string[];               // Chat transcript for data/report
+    completed: boolean;
+    // Legacy fields kept for backward compatibility (v1 — text-based)
+    current_frame?: string;
+    ai_stretch?: string[];
+    user_stretch?: string;
+    expansion?: string;
+    original_frame?: string;
+    stretch_name?: string;
+    capabilities_selected?: CapabilityType[];
+    capabilities_imagine?: string;
+    assumptions?: string;
+    ai_assumptions?: string[];
+    user_insight?: string;
+    updated_perspective?: string;
     frame_sentence?: string;
-    ai_stretch?: string;
     stretch_vision?: string;
     resistance?: string;
+    resistance_type?: string;
+    resistance_custom?: string;
+    stretch_visualization?: string;
     capability_stretched?: CapabilityType;
   };
   // IA-4-4: Global Purpose Bridge
@@ -65,17 +84,27 @@ export type IAState = {
     user_possibility: string;
     tag: string;
     expanded_vision: string;
-    // new global purpose bridge fields
+    // global purpose bridge fields (v2 — flight simulator redesign)
     higher_purpose?: string;
     global_challenge?: string;
+    reframed_view?: string;
+    question1?: string;
+    question2?: string;
+    ai_answer1?: string;
+    ai_answer2?: string;
+    ai_reflection?: string;
+    capabilities_applied?: CapabilityType[];
+    capabilities_imagine?: string;
+    transcript?: string[];
+    completed?: boolean;
+    last_updated?: string;
+    // legacy v1 bridge fields (backward compatibility)
     content_completed?: boolean;
     ai_perspectives?: string;
     chosen_perspective?: string;
     modest_contribution?: string;
     bridge_name?: string;
     world_game_stretch?: string;
-    completed?: boolean;
-    last_updated?: string;
     // legacy array structure (kept for backward compatibility)
     global_bridges?: Array<{
       id: string;
