@@ -3,12 +3,24 @@ import { Button } from '@/components/ui/button';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { useContinuity } from '@/hooks/useContinuity';
+import CapabilityPulse from '@/components/ia/CapabilityPulse';
 
 interface IA21ContentProps {
   onNext?: (stepId: string) => void;
 }
 
 const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
+  const { state, set } = useContinuity();
+
+  const handlePulseComplete = (data: any) => {
+    set(prev => ({ ...prev, ia_2_1_pulse: data }));
+  };
+
+  const handlePulseContinue = () => {
+    onNext?.('ia-2-2');
+  };
+
   // Get video data for ia-2-1 using the existing video hook
   const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
     'ia',
@@ -127,9 +139,16 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
           </div>
         </div>
       </div>
-      
+
+      {/* Capability Pulse — forced-choice pairs before assessment */}
+      <CapabilityPulse
+        onComplete={handlePulseComplete}
+        onContinue={handlePulseContinue}
+        savedData={state?.ia_2_1_pulse || null}
+      />
+
       <div className="flex justify-end mt-8">
-        <Button 
+        <Button
           onClick={() => onNext && onNext('ia-2-2')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >

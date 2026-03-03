@@ -229,16 +229,15 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       />
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-purple-800">Prism Reflection</h1>
+        <h1 className="text-4xl font-bold text-purple-800">Your I4C Self-Assessment</h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          This brief reflection explores how your five core capabilities — Imagination, Curiosity, Caring, Creativity,
-          and Courage — fit and form together right now. There are no right or wrong responses; respond intuitively
-          rather than analytically.
+          This assessment is a tool for this course — not a profile of who you are.
         </p>
         <p className="text-md text-gray-600 max-w-3xl mx-auto">
-          At completion, you'll receive a short reflection and a visual I4C Prism capturing this moment-in-time
-          configuration. It isn't fixed or evaluative — it's a reference you can use as you progress individually and,
-          if you choose, with a team or cohort.
+          These questions explore how you currently engage with five capabilities:
+          Imagination, Curiosity, Caring, Creativity, and Courage. Your answers
+          will generate a radar map that shows where you are right now — not where
+          you'll always be.
         </p>
       </div>
 
@@ -299,38 +298,33 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
         </CardContent>
       </Card>
 
-      {/* Assessment Info */}
+      {/* Assessment Guidance */}
       <Card className="border-2 border-purple-200">
         <CardContent className="pt-6">
           <div className="space-y-6">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                How This Works
+                A few things to keep in mind
               </h3>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                You'll respond to a short set of prompts that surface how your five core capabilities show up in your
-                experience. Your responses generate a five-sided I4C Prism — a current configuration, not a score.
-              </p>
             </div>
 
             <div className="bg-purple-50 p-6 rounded-lg">
-              <h4 className="font-semibold text-purple-800 mb-3">What You'll Receive</h4>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  A visual I4C Prism representing your current prismatic configuration
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-2">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                  Answer based on what's actually true for you lately, not what you think should be true.
                 </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  Reflective insights to notice patterns, balance, and emphasis
+                <li className="flex items-start gap-2">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                  There are no good or bad scores. A low number just means that capability hasn't been active recently — it says nothing about your potential.
                 </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  Guidance for working with your prism as you move into the Ladder of Imagination
+                <li className="flex items-start gap-2">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                  Try not to shape your answers toward a particular image of yourself. The more honest you are, the more useful this becomes.
                 </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  The ability to revisit your prism over time and observe how it evolves through practice
+                <li className="flex items-start gap-2">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                  Your results stay in this course. They're for your learning, not your evaluation.
                 </li>
               </ul>
             </div>
@@ -341,7 +335,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
       {/* Action Section */}
       <div className="text-center space-y-4">
         <p className="text-gray-600">
-          Ready to explore your current I4C Prism? This reflection takes about 10–15 minutes to complete.
+          The assessment takes about 10–15 minutes.
         </p>
         
         <div className="flex justify-center gap-4">
