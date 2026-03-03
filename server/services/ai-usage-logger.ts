@@ -158,17 +158,49 @@ class AIUsageLogger {
 
   /**
    * Calculate estimated cost based on tokens used
-   * Claude API pricing as of 2024: ~$0.015 per 1K tokens for Sonnet
+   * Claude API pricing (updated 2025)
    */
-  calculateCost(tokensUsed: number, model: string = 'claude-3-5-sonnet'): number {
+  calculateCost(tokensUsed: number, model: string = 'claude-haiku-4-5-20251001'): number {
     const ratesPerToken = {
-      'claude-3-5-sonnet': 0.000015, // $0.015 per 1K tokens
-      'claude-3-haiku': 0.000005,    // $0.005 per 1K tokens
-      'claude-3-opus': 0.000075      // $0.075 per 1K tokens
+      // Claude 4.5 / Haiku 4.5
+      'claude-haiku-4-5-20251001': 0.000001,   // $1.00/MTok input
+      'claude-sonnet-4-5-20250929': 0.000003,   // $3.00/MTok input
+      // Legacy models
+      'claude-3-5-sonnet': 0.000015,
+      'claude-3-haiku': 0.000005,
+      'claude-3-opus': 0.000075,
     };
 
-    const rate = ratesPerToken[model as keyof typeof ratesPerToken] || ratesPerToken['claude-3-5-sonnet'];
+    const rate = ratesPerToken[model as keyof typeof ratesPerToken] || ratesPerToken['claude-haiku-4-5-20251001'];
     return tokensUsed * rate;
+  }
+
+  /**
+   * Calculate Claude cost with cache metrics for detailed cost tracking.
+   * Cache reads are 90% cheaper than regular input tokens.
+   */
+  calculateClaudeCostWithCache(
+    inputTokens: number,
+    outputTokens: number,
+    model: string = 'claude-haiku-4-5-20251001',
+    cacheReadTokens: number = 0,
+    cacheWriteTokens: number = 0
+  ): number {
+    const pricing: Record<string, { input: number; output: number; cacheRead: number; cacheWrite: number }> = {
+      'claude-haiku-4-5-20251001': { input: 1.0, output: 5.0, cacheRead: 0.1, cacheWrite: 1.25 },
+      'claude-sonnet-4-5-20250929': { input: 3.0, output: 15.0, cacheRead: 0.3, cacheWrite: 3.75 },
+    };
+    const rates = pricing[model] || pricing['claude-haiku-4-5-20251001'];
+
+    // Non-cached input = total input minus cache tokens
+    const regularInput = Math.max(0, inputTokens - cacheReadTokens - cacheWriteTokens);
+
+    return (
+      (regularInput * rates.input / 1_000_000) +
+      (cacheReadTokens * rates.cacheRead / 1_000_000) +
+      (cacheWriteTokens * rates.cacheWrite / 1_000_000) +
+      (outputTokens * rates.output / 1_000_000)
+    );
   }
 
   /**

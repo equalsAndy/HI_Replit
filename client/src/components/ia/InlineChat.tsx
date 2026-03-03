@@ -31,6 +31,7 @@ type InlineChatProps = {
 
 export interface InlineChatHandle {
   setInput: (val: string) => void;
+  reset: () => void;
 }
 
 export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
@@ -57,6 +58,12 @@ export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
 
   React.useImperativeHandle(ref, () => ({
     setInput: (val: string) => setInput(val),
+    reset: () => {
+      const sys: Msg = { role: 'system', content: systemPrompt, ts: Date.now() };
+      setMessages([sys]);
+      setInput('');
+      setError(null);
+    },
   }));
 
   // initialize with system + optional seed

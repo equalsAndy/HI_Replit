@@ -10,6 +10,7 @@ interface CapabilitySelectorProps {
   prompt?: string;
   className?: string;
   minSelections?: number;
+  exclude?: CapabilityType[];
 }
 
 const CAPABILITY_ICONS: Record<CapabilityType, React.ReactNode> = {
@@ -29,6 +30,7 @@ export function CapabilitySelector({
   prompt,
   className,
   minSelections,
+  exclude = [],
 }: CapabilitySelectorProps) {
   // Track selection order for dual mode (oldest first)
   const [selectionOrder, setSelectionOrder] = useState<CapabilityType[]>([]);
@@ -90,7 +92,7 @@ export function CapabilitySelector({
         {prompt ?? defaultPrompt}
       </p>
       <div className="grid grid-cols-3 gap-2 md:grid-cols-5">
-        {CAPABILITIES.map(cap => {
+        {CAPABILITIES.filter(cap => !exclude.includes(cap)).map(cap => {
           const selected_ = isSelected(cap);
           return (
             <button

@@ -1,7 +1,9 @@
 import express from 'express';
 import OpenAI from 'openai';
+import crypto from 'crypto';
 import { Pool } from 'pg';
 import { requireAuth } from '../middleware/auth.js';
+import { getProvider, getProviderName, type AIMessage } from '../services/ai-provider.js';
 
 const router = express.Router();
 
@@ -32,7 +34,8 @@ async function loadExerciseInstructions(stepId?: string) {
   return { exerciseInstruction, exerciseGlobalInstruction, simulationStarter };
 }
 
-// Instantiate an OpenAI client for the Imaginal Agility project if configured
+// ─── OpenAI helpers (unchanged) ──────────────────────────────────────────────
+
 function getIaClient(): OpenAI {
   const apiKey = process.env.OPENAI_KEY_IA || process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('OPENAI_KEY_IA not set');
@@ -55,15 +58,78 @@ function getIaAssistantId(variant?: 'hq' | 'fast'): string {
   );
 }
 
+// ─── Claude stateless conversation store ─────────────────────────────────────
+// IA chat conversations are short-lived (single exercise session).
+// In-memory storage is sufficient — no persistence needed.
+
+interface ClaudeConversation {
+  id: string;
+  systemPrompt: string;
+  messages: AIMessage[];
+  stepId?: string;
+  createdAt: number;
+}
+
+const claudeConversations = new Map<string, ClaudeConversation>();
+
+// Cleanup conversations older than 2 hours to prevent memory leaks
+const CONVERSATION_TTL_MS = 2 * 60 * 60 * 1000;
+setInterval(() => {
+  const cutoff = Date.now() - CONVERSATION_TTL_MS;
+  for (const [id, conv] of claudeConversations) {
+    if (conv.createdAt < cutoff) {
+      claudeConversations.delete(id);
+    }
+  }
+}, 15 * 60 * 1000); // Run cleanup every 15 minutes
+
+// ─── Routes ──────────────────────────────────────────────────────────────────
+
 // Start a conversation (create a thread) for IA assistant
 router.post('/ia/chat/conversation', requireAuth, express.json(), async (req, res) => {
   try {
-    const client = getIaClient();
     const { stepId, contextData } = req.body as { stepId?: string; contextData?: any };
 
-    const thread = await (client as any).beta.threads.create();
     // Load exercise instructions configured by admin (global + per-step)
     const { exerciseInstruction, exerciseGlobalInstruction, simulationStarter } = await loadExerciseInstructions(stepId);
+
+    const providerName = getProviderName('ia');
+
+    // ── Claude path: stateless conversation ───────────────────────────────
+    if (providerName === 'claude') {
+      const conversationId = `claude-${crypto.randomUUID()}`;
+
+      // Build system prompt from admin-configured guidance
+      const guidanceBlocks: string[] = [];
+      if (exerciseGlobalInstruction) guidanceBlocks.push(`Global Guidance:\n${exerciseGlobalInstruction}`);
+      if (exerciseInstruction) guidanceBlocks.push(`Exercise Guidance (${stepId}):\n${exerciseInstruction}`);
+      const systemPrompt = guidanceBlocks.length > 0
+        ? `You are an Imaginal Agility exercise assistant.\n\n${guidanceBlocks.join('\n\n')}`
+        : 'You are an Imaginal Agility exercise assistant. Help participants explore their imagination and creative potential.';
+
+      claudeConversations.set(conversationId, {
+        id: conversationId,
+        systemPrompt,
+        messages: [],
+        stepId,
+        createdAt: Date.now(),
+      });
+
+      console.log(`[IA chat] Claude conversation created: ${conversationId} (step: ${stepId})`);
+
+      return res.json({
+        success: true,
+        conversation: { id: conversationId },
+        stepId,
+        hasContext: !!contextData,
+        starterPrompt: simulationStarter || null,
+        provider: 'claude',
+      });
+    }
+
+    // ── OpenAI path: thread-based (unchanged) ─────────────────────────────
+    const client = getIaClient();
+    const thread = await (client as any).beta.threads.create();
 
     // Seed the thread with guidance so the assistant steers responses accordingly
     const guidanceBlocks: string[] = [];
@@ -81,12 +147,13 @@ router.post('/ia/chat/conversation', requireAuth, express.json(), async (req, re
     }
 
     // Return starter prompt (if configured) so client can prefill input
-    return res.json({ 
-      success: true, 
-      conversation: { id: thread.id }, 
-      stepId, 
+    return res.json({
+      success: true,
+      conversation: { id: thread.id },
+      stepId,
       hasContext: !!contextData,
-      starterPrompt: simulationStarter || null
+      starterPrompt: simulationStarter || null,
+      provider: 'openai',
     });
   } catch (e: any) {
     console.error('IA chat: init failed', e);
@@ -97,7 +164,6 @@ router.post('/ia/chat/conversation', requireAuth, express.json(), async (req, re
 // Send a message and get AI response
 router.post('/ia/chat/message', requireAuth, express.json(), async (req, res) => {
   try {
-    const client = getIaClient();
     const { conversationId, message, stepId, contextData, assistantId: overrideId, assistantVariant } = req.body as {
       conversationId?: string;
       message?: string;
@@ -110,6 +176,49 @@ router.post('/ia/chat/message', requireAuth, express.json(), async (req, res) =>
     if (!conversationId || !message) {
       return res.status(400).json({ success: false, error: 'conversationId and message are required' });
     }
+
+    // ── Claude path: stateless with in-memory history ─────────────────────
+    const conversation = claudeConversations.get(conversationId);
+    if (conversation) {
+      // Append user message (with optional context)
+      const { exerciseInstruction, exerciseGlobalInstruction } = await loadExerciseInstructions(stepId);
+      const guidanceSnippet = [
+        exerciseGlobalInstruction ? `Global Guidance: ${exerciseGlobalInstruction}` : null,
+        exerciseInstruction ? `Exercise Guidance: ${exerciseInstruction}` : null,
+      ].filter(Boolean).join(' | ');
+      const contextSnippet = [
+        contextData ? `Context: ${safeStringify(contextData).slice(0, 2000)}` : null,
+        guidanceSnippet || null,
+      ].filter(Boolean).join(' \n\n');
+
+      const userContent = `${message}${contextSnippet ? `\n\n${contextSnippet}` : ''}`;
+      conversation.messages.push({ role: 'user', content: userContent });
+
+      const provider = await getProvider('ia');
+      const result = await provider.complete({
+        systemPrompt: conversation.systemPrompt,
+        messages: conversation.messages,
+        maxTokens: 1024,
+        temperature: 0.7,
+        cacheSystemPrompt: false, // System prompt is small for IA chat
+      });
+
+      // Append assistant response to history
+      conversation.messages.push({ role: 'assistant', content: result.content });
+
+      console.log(`[IA chat] Claude response: ${result.content.length} chars, ${result.latencyMs}ms`);
+
+      return res.json({
+        success: true,
+        response: {
+          content: result.content,
+          metadata: { stepId, provider: 'claude', model: result.model },
+        },
+      });
+    }
+
+    // ── OpenAI path: thread-based (unchanged) ─────────────────────────────
+    const client = getIaClient();
 
     // Compose message content; include lightweight context and any admin-configured guidance
     const { exerciseInstruction, exerciseGlobalInstruction } = await loadExerciseInstructions(stepId);

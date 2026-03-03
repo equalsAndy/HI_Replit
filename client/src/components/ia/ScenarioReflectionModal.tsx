@@ -107,6 +107,8 @@ export function ScenarioReflectionModal({
     <Dialog open={open} onOpenChange={onOpenChange} modal>
       <DialogContent
         hideClose
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
         style={{ top: '1rem', transform: 'translateX(-50%) translateY(0)' }}
         className="max-w-[900px] w-full grid grid-cols-[1fr_0.75fr] gap-0 p-0 h-[800px] rounded-lg shadow-lg overflow-hidden"
       >

@@ -190,8 +190,12 @@ export function PositiveOutcomeModal({
   }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl w-full h-[90vh] p-0">
+    <Dialog open={open} onOpenChange={onOpenChange} modal>
+      <DialogContent
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        className="max-w-7xl w-full h-[90vh] p-0"
+      >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center gap-4 p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">

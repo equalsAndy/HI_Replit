@@ -2,6 +2,7 @@ import express from 'express';
 import OpenAI from 'openai';
 import { getTraining, getApiKeyForTraining, TrainingId } from '../config/trainings.js';
 import { getTrainingDoc } from '../config/training-doc-loader.js';
+import { getProvider, getProviderName } from '../services/ai-provider.js';
 
 const router = express.Router();
 
@@ -59,7 +60,30 @@ router.post('/chat/plain', express.json(), async (req, res) => {
       }
     }
 
-    // For IA exercises, use the Imaginal Agility project ID
+    // ─── Provider-agnostic path ──────────────────────────────────────────────
+    const providerName = getProviderName('ia');
+
+    if (providerName === 'claude') {
+      // Extract system prompt from messages (Claude takes it separately)
+      const systemMsg = normalized.find(m => m.role === 'system');
+      const nonSystemMsgs = normalized.filter(m => m.role !== 'system');
+
+      const provider = await getProvider('ia');
+      const response = await provider.complete({
+        systemPrompt: systemMsg?.content || '',
+        messages: nonSystemMsgs,
+        maxTokens: 1024,
+        temperature: 0.7,
+        cacheSystemPrompt: !!trainingDoc, // Cache when training doc present (static content)
+        model: training.claude_model || process.env.CLAUDE_MODEL,
+        apiKey: undefined, // Uses CLAUDE_API_KEY from env
+      });
+
+      console.log(`[ai/chat/plain] Claude response for ${training_id}: ${response.content.length} chars, ${response.usage.inputTokens} in / ${response.usage.outputTokens} out, cache read: ${response.usage.cacheReadTokens}, latency: ${response.latencyMs}ms`);
+      return res.json({ success: true, reply: response.content, model: response.model, training_id, provider: 'claude' });
+    }
+
+    // ─── OpenAI path (default, unchanged) ────────────────────────────────────
     const isIATraining = training.id.startsWith('ia-');
     const projectId = isIATraining ? process.env.IMAGINAL_AGILITY_PROJECT_ID : undefined;
     const client = projectId ? new OpenAI({ apiKey, project: projectId }) : new OpenAI({ apiKey });
@@ -70,7 +94,7 @@ router.post('/chat/plain', express.json(), async (req, res) => {
     });
 
     const reply = completion.choices?.[0]?.message?.content ?? '';
-    return res.json({ success: true, reply, model: resolvedModel, training_id });
+    return res.json({ success: true, reply, model: resolvedModel, training_id, provider: 'openai' });
   } catch (error: any) {
     console.error('AI plain chat error:', error);
     return res.status(500).json({ success: false, error: error?.message || 'Server error' });

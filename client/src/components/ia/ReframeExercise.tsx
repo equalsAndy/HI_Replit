@@ -17,6 +17,29 @@ function wordCount(text?: string): number {
   return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
 
+function SaveImagineButton({ onSave }: { onSave: () => void }) {
+  const [saved, setSaved] = React.useState(false);
+
+  const handleSave = () => {
+    onSave();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleSave}
+      className={`mt-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+        saved
+          ? 'bg-green-100 text-green-700 border border-green-300'
+          : 'bg-purple-600 text-white hover:bg-purple-700'
+      }`}
+    >
+      {saved ? '✓ Saved' : 'Save'}
+    </button>
+  );
+}
+
 export default function ReframeExercise() {
   const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -303,6 +326,9 @@ export default function ReframeExercise() {
                     ? `${wordCount(ia.capabilities_imagine)} words — write at least 15`
                     : `${wordCount(ia.capabilities_imagine)} words`}
                 </p>
+                {wordCount(ia.capabilities_imagine) >= 15 && (
+                  <SaveImagineButton onSave={saveNow} />
+                )}
               </div>
             )}
 

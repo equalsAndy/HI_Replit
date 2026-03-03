@@ -50,7 +50,8 @@ export default function GlobalPurposeBridgeExercise() {
     'Disinformation and Erosion of Truth',
     'Human Rights in Conflict and Crisis',
     'The Future of Work and Human Purpose',
-    'Reimagining How Communities Learn Together',
+    'Global Education and Access to Knowledge',
+    'Mental Health and Psychological Safety',
   ];
 
   const effectivePurpose = higherPurpose.trim() || higherPurposeFromIA34;
@@ -93,13 +94,12 @@ export default function GlobalPurposeBridgeExercise() {
     setModalOpen(true);
   };
 
-  // Modal completion — receives everything except tag + capabilities
+  // Modal completion — new signature with observation
   const handleModalComplete = (results: {
     reframedView: string;
     question1: string;
     question2: string;
-    aiAnswer1: string;
-    aiAnswer2: string;
+    observation: string;
     aiReflection: string;
     transcript: string[];
   }) => {
@@ -112,8 +112,7 @@ export default function GlobalPurposeBridgeExercise() {
         reframed_view: results.reframedView,
         question1: results.question1,
         question2: results.question2,
-        ai_answer1: results.aiAnswer1,
-        ai_answer2: results.aiAnswer2,
+        observation: results.observation,
         ai_reflection: results.aiReflection,
         transcript: results.transcript,
         last_updated: new Date().toISOString(),
@@ -125,7 +124,20 @@ export default function GlobalPurposeBridgeExercise() {
 
   return (
     <>
-      {/* ═══════════ PRE-MODAL: Steps 1 & 2 ═══════════ */}
+      {/* ═══════════ PRE-MODAL: Intro + Steps 1 & 2 ═══════════ */}
+
+      {/* Exercise introduction */}
+      <div className="mb-8 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+        <p className="text-sm text-gray-700 leading-relaxed">
+          In Module 3, you clarified what you care about and where you're headed.
+          Now we're going to stretch that — deliberately too far. You'll connect your
+          purpose to a global challenge, not because anyone expects you to solve it,
+          but because when a problem is bigger than your usual playbook, imagination
+          has to show up. And when imagination shows up, your capabilities come with it.
+          AI will be your research partner — bringing knowledge you don't have so you
+          can explore freely. Your job is to notice what happens inside you when you stretch.
+        </p>
+      </div>
 
       {/* Step 1: Your Intention */}
       <div className="mb-8">
@@ -228,18 +240,18 @@ export default function GlobalPurposeBridgeExercise() {
       {/* ═══════════ POST-MODAL RESULTS ═══════════ */}
       {isModalDone && (
         <>
-          {/* "What you just did" block — dynamic with participant's specifics */}
+          {/* "What you just did" block — dynamic */}
           <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
             <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              You took your intention about{' '}
-              <em>{(ia.higher_purpose || effectivePurpose || 'what matters to you').toLowerCase()}</em>{' '}
-              and put it up against{' '}
+              You connected your purpose to{' '}
               <em>{(ia.global_challenge || effectiveChallenge || 'a global challenge').toLowerCase()}</em>{' '}
-              — not because we expect you to solve global problems, but because expansive contexts force your
-              capabilities to show up in ways they don't in daily life. The two questions you asked AI weren't
-              random — they reveal which capabilities you instinctively reach for when facing something unfamiliar.
-              The scenario was practice. What you learned about how you think is real.
+              — not because anyone expects you to solve it, but because a challenge that big
+              forces you past your usual playbook. When the problem is too large to think through,
+              imagination kicks in — and capabilities show up that stay hidden in daily work.
+              AI brought knowledge you didn't have so you could explore freely. The questions you
+              asked reveal which capabilities activated at that stretch. Below, you'll name them
+              yourself, then see what AI noticed.
             </p>
           </div>
 
@@ -268,19 +280,40 @@ export default function GlobalPurposeBridgeExercise() {
               <div className="space-y-2">
                 {ia.question1 && (
                   <div className="p-2 bg-white border border-gray-200 rounded text-sm text-gray-800">
-                    1. {ia.question1}
+                    <span className="text-xs font-medium text-purple-600 mr-1.5">Q1</span>
+                    {ia.question1}
                   </div>
                 )}
                 {ia.question2 && (
                   <div className="p-2 bg-white border border-gray-200 rounded text-sm text-gray-800">
-                    2. {ia.question2}
+                    <span className="text-xs font-medium text-purple-600 mr-1.5">Q2</span>
+                    {ia.question2}
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* 3. Tag selection — "What did this give you?" (BEFORE AI reflection) */}
+          {/* 3. What you were looking for (participant reflects on their questions) */}
+          <div className="mb-4 p-4 bg-purple-50/50 border border-purple-200 rounded-lg">
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">What you were looking for</h3>
+            <textarea
+              className="w-full border border-gray-300 rounded p-2 resize-y bg-white text-sm"
+              rows={3}
+              placeholder="Look at your two questions — what were you trying to find out?"
+              value={ia.observation ?? ''}
+              onChange={(e) =>
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_4: { ...(prev.ia_4_4 || {}), observation: e.target.value },
+                }))
+              }
+              onBlur={() => saveNow()}
+            />
+            <p className="mt-1 text-xs text-gray-500">What drew you to those questions? Name it in a sentence or two.</p>
+          </div>
+
+          {/* 4. Tag selection — "What did this give you?" */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold uppercase text-gray-600 mb-3">What did this give you?</h3>
             <div className="grid grid-cols-1 gap-2">
@@ -316,12 +349,12 @@ export default function GlobalPurposeBridgeExercise() {
             </div>
           </div>
 
-          {/* 4. Capabilities in Action — REQUIRED (BEFORE AI reflection) */}
+          {/* 5. Capabilities in Action — REQUIRED (participant selects FIRST) */}
           <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
             <h3 className="font-semibold text-purple-700 mb-1">Capabilities in Action</h3>
             <p className="text-sm text-gray-600 mb-3">
-              You just explored a challenge at global scale. Which capabilities did you feel activate?
-              Pick at least two and imagine what happens when you deliberately combine them on a real challenge.
+              Look at your questions. Which capabilities were behind them?
+              Pick at least two, then imagine bringing them deliberately to a challenge at this scale.
             </p>
 
             <CapabilitySelector
@@ -336,7 +369,7 @@ export default function GlobalPurposeBridgeExercise() {
                 }));
                 setTimeout(() => saveNow(), 0);
               }}
-              prompt="Which capabilities would you bring to a real challenge at this scale?"
+              prompt="Which capabilities were behind your questions?"
               className="mb-4"
             />
 
@@ -344,11 +377,11 @@ export default function GlobalPurposeBridgeExercise() {
             {Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length >= 2 && (
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  If I brought{' '}
+                  Now that I know I reach for{' '}
                   <span className="font-semibold text-purple-700">
                     {formatCapabilityList(ia.capabilities_applied)}
                   </span>
-                  {' '}to a real challenge at this scale, I imagine...
+                  {' '}— if I brought them deliberately to a real challenge, I imagine...
                 </label>
                 <textarea
                   className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
@@ -383,13 +416,13 @@ export default function GlobalPurposeBridgeExercise() {
             )}
           </div>
 
-          {/* 5. What the AI noticed — REVEALED AFTER participant's own selections */}
+          {/* 6. What the AI noticed — REVEALED AFTER participant's own selections */}
           {ia.ai_reflection && (
             <div className="mb-4 p-4 bg-purple-50/50 border border-purple-100 rounded-lg">
               <h3 className="text-xs font-semibold uppercase text-purple-600 mb-1">What the AI noticed in your questions</h3>
               <p className="text-sm text-gray-700 leading-relaxed">{ia.ai_reflection}</p>
               <p className="mt-2 text-xs text-gray-500 italic">
-                Compare this with your own selections above — did you notice the same capabilities, or different ones?
+                Did AI spot the same capabilities you did, or see ones you missed? That gap is worth noticing.
               </p>
             </div>
           )}

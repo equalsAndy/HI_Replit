@@ -450,36 +450,14 @@ RULES:
     onOpenChange(false);
   };
 
-  const handleStartOverClick = () => {
-    if (confirm('Are you sure you want to start over? This will clear everything and start fresh.')) {
-      setPhase('reframe');
-      setTranscript([
-        {
-          role: 'assistant',
-          content: 'Hi! I see you have a challenge. I put a starter prompt in the box below—feel free to edit and hit Send.',
-          skipReframe: true
-        },
-      ]);
-      setShiftBox('');
-      setCurrentReframe('');
-      setTag(TAG_OPTIONS[0].value);
-      setShiftAttempts(0);
-      setShiftStep('template');
-      setShiftFrom('');
-      setTestedCapability(null);
-      setCapabilityResponse('');
-      setCapabilityLoading(false);
-      // Re-inject the seed prompt into the input box
-      setTimeout(() => {
-        chatRef.current?.setInput(`I need a new perspective. Help me reframe my challenge: "${challenge}"`);
-      }, 100);
-    }
-  };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal>
       <DialogContent
         hideClose
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
         style={{ top: '1rem', transform: 'translateX(-50%) translateY(0)' }}
         className="max-w-[900px] w-full grid grid-cols-[1fr_0.75fr] gap-4 p-0 h-[800px] rounded-lg shadow-lg overflow-hidden"
       >
@@ -489,10 +467,7 @@ RULES:
           <DialogTitle className="text-base font-semibold flex-grow">
             Guided Reframe — AI Partner
           </DialogTitle>
-          <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={handleStartOverClick}>Start Over</Button>
-            <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
-          </div>
+          <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
         </header>
 
         {/* Left Column: Challenge + Chat */}

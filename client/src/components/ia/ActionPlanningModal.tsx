@@ -237,6 +237,8 @@ export function ActionPlanningModal({
     <Dialog open={open} onOpenChange={onOpenChange} modal>
       <DialogContent
         hideClose
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
         style={{ top: '1rem', transform: 'translateX(-50%) translateY(0)' }}
         className="max-w-[900px] w-full grid grid-cols-[1fr_0.75fr] gap-4 p-0 h-[800px] rounded-lg shadow-lg overflow-hidden"
       >
@@ -246,9 +248,7 @@ export function ActionPlanningModal({
           <DialogTitle className="text-base font-semibold flex-grow">
             Inspiration Support — AI Partner
           </DialogTitle>
-          <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
-          </div>
+          <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
         </header>
 
         {/* Left Column: AI Chat */}

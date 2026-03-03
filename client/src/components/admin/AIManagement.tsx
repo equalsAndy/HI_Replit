@@ -17,6 +17,12 @@ interface ConnectionStatus {
   reflection_talia: boolean;
   report_talia: boolean;
   response_time: number;
+  aiProvider?: {
+    global: 'openai' | 'claude';
+    ia: 'openai' | 'claude';
+    coaching: 'openai' | 'claude';
+    reports: 'openai' | 'claude';
+  };
 }
 
 export default function AIManagement() {
@@ -163,9 +169,34 @@ export default function AIManagement() {
               </span>
             </div>
 
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">AI Provider</span>
-              <Badge variant="outline">OpenAI</Badge>
+            <div className="space-y-2">
+              <span className="text-sm font-medium">AI Providers</span>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Global</span>
+                  <Badge variant={status?.aiProvider?.global === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.global === 'claude' ? 'bg-amber-600' : ''}>
+                    {status?.aiProvider?.global === 'claude' ? 'Claude' : 'OpenAI'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">IA</span>
+                  <Badge variant={status?.aiProvider?.ia === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.ia === 'claude' ? 'bg-amber-600' : ''}>
+                    {status?.aiProvider?.ia === 'claude' ? 'Claude' : 'OpenAI'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Coaching</span>
+                  <Badge variant={status?.aiProvider?.coaching === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.coaching === 'claude' ? 'bg-amber-600' : ''}>
+                    {status?.aiProvider?.coaching === 'claude' ? 'Claude' : 'OpenAI'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Reports</span>
+                  <Badge variant={status?.aiProvider?.reports === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.reports === 'claude' ? 'bg-amber-600' : ''}>
+                    {status?.aiProvider?.reports === 'claude' ? 'Claude' : 'OpenAI'}
+                  </Badge>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>

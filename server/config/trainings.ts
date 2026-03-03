@@ -14,6 +14,7 @@ export type TrainingConfig = {
   model_default: string;            // e.g., "gpt-4.1-mini", "o4-mini"
   api_key_env: string;              // e.g., "OPENAI_KEY_IA", "OPENAI_KEY_TALIA_V1"
   vector_store_id?: string;         // only if use_retrieval
+  claude_model?: string;            // Optional Claude model override (e.g., "claude-haiku-4-5-20251001")
 };
 
 export const TRAININGS: TrainingConfig[] = [
