@@ -106,7 +106,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
     ];
     
     updateData({ savedMoments: demoMoments });
-    setCurrentStep(5); // Go to final step to show completed state
+    setCurrentStep(4); // Go to final step to show completed state
     console.log('IA 3-2 Content filled with demo Autoflow moments');
   };
 
@@ -227,11 +227,11 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
             </div>
           </div>
 
-          {/* Step 4: Tag - Only show when active */}
+          {/* Step 4: Tag & Save - Only show when active */}
           {currentStep >= 4 && (
             <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
               <div className="flex items-center gap-2 mb-3">
-                <h3 className="font-semibold text-purple-700">4. Tag (choose one)</h3>
+                <h3 className="font-semibold text-purple-700">4. Tag & Save</h3>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -255,56 +255,28 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                   </div>
                 </RadioGroup>
                 {selectedTag && (
-                  <Button
-                    onClick={() => setCurrentStep(5)}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    Continue to Save
-                  </Button>
+                  <div className="space-y-4">
+                    <div className="bg-white p-4 rounded border border-gray-200">
+                      <p className="text-gray-700 mb-2">"{momentText}"</p>
+                      <p className="text-sm text-purple-600">• {selectedTag}</p>
+                    </div>
+                    <div className="flex gap-4">
+                      <Button
+                        onClick={saveMoment}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        onClick={tryAnotherMoment}
+                        variant="outline"
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        Start Over
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Save - Only show when active */}
-          {currentStep >= 5 && (
-            <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="font-semibold text-purple-700">5. Save</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-purple-500 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">Your first Autoflow moment is now stored. You'll revisit this later.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <p className="text-gray-700 mb-4">
-                Tap "Save" to add this moment to your Autoflow Timeline. You can do another if you like.
-              </p>
-              <div className="space-y-4">
-                <div className="bg-white p-4 rounded border border-gray-200">
-                  <p className="text-gray-700 mb-2">"{momentText}"</p>
-                  <p className="text-sm text-purple-600">• {selectedTag}</p>
-                </div>
-                <div className="flex gap-4">
-                  <Button
-                    onClick={saveMoment}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    onClick={tryAnotherMoment}
-                    variant="outline"
-                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                  >
-                    Start Over
-                  </Button>
-                </div>
               </div>
             </div>
           )}
@@ -316,7 +288,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
         <>
           <Card className="mb-8 border-green-200">
             <CardHeader className="bg-green-50">
-              <CardTitle className="text-green-800">Your Autoflow Timeline</CardTitle>
+              <CardTitle className="text-green-800">What You Noticed</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-3">
@@ -349,7 +321,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                 By noticing even one moment, you've taken the first step from automatic thinking to conscious imagination.
               </p>
               <p className="text-gray-700">
-                Over time, your timeline will help you see patterns in your Autoflow.
+                Over time, you'll start to see patterns in your Autoflow.
               </p>
               <p className="text-gray-700 font-semibold">
                 The clearer your awareness becomes, the stronger your imagination becomes.

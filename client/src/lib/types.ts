@@ -29,7 +29,15 @@ export const CAPABILITY_CATEGORY_MAP: Record<CapabilityType, string> = {
   courage: 'courage',
 };
 
+export interface PulseData {
+  choices: Array<{ pair: [string, string]; winner: string; loser: string }>;
+  ranking: Array<{ key: string; score: number }>;
+  inconsistencies: number;
+  completedAt: string;
+}
+
 export type IAState = {
+  ia_2_1_pulse?: PulseData;
   ia_4_2: {
     original_thought: string;
     ai_reframe: string;
