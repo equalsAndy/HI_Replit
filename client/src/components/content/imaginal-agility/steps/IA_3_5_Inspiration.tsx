@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { CheckCircle, PencilLine } from 'lucide-react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import { Card, CardContent } from '@/components/ui/card';
@@ -532,58 +533,30 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                   return (
                     <Card key={`editor-${sel.id}`} className={`shadow-lg w-full ${theme.border} border-2`}>
                       <CardContent className="p-4 md:p-6">
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <span className={`inline-block h-2.5 w-10 rounded-full ${theme.dot}`} />
                             <h3 className={`text-lg font-semibold ${theme.text}`}>{sel.title}</h3>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-gray-600 border-gray-300 hover:bg-gray-50"
-                              disabled={saving}
-                              onClick={async () => {
-                                // Remove interlude from selection
-                                const newSelectedInterludes = selectedInterludes.filter(i => i.id !== sel.id);
-                                setSelectedInterludes(newSelectedInterludes);
-                                
-                                // Remove from responses
-                                const newResponses = { ...responses };
-                                delete newResponses[sel.id];
-                                setResponses(newResponses);
-                                
-                                // Remove from completed
-                                const newCompleted = completed.filter(id => id !== sel.id);
-                                setCompleted(newCompleted);
-                                
-                                // Auto-save the removal to server immediately
-                                await autoSaveCompletionState(newCompleted);
-                                
-                                console.log(`🗑️ Removed interlude ${sel.id} and auto-saved to server`);
-                              }}
-                            >
-                              Remove
-                            </Button>
-                            <Button
-                              variant="outline" 
-                              size="sm"
-                              className={completed.includes(sel.id) ? "text-green-700 border-green-300 bg-green-50" : "text-green-700 border-green-300 hover:bg-green-50"}
-                              disabled={saving}
-                              onClick={async () => {
-                                const isCurrentlyCompleted = completed.includes(sel.id);
-                                const next = isCurrentlyCompleted
-                                  ? completed.filter(id => id !== sel.id) // Mark incomplete
-                                  : [...completed, sel.id]; // Mark complete
-                                
-                                setCompleted(next);
-                                // Auto-save immediately to server
-                                await autoSaveCompletionState(next);
-                              }}
-                            >
-                              {completed.includes(sel.id) ? 'Edit Answer' : 'Mark Complete'}
-                            </Button>
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-gray-500 border-gray-200 hover:bg-gray-50 text-xs"
+                            disabled={saving}
+                            onClick={async () => {
+                              const newSelectedInterludes = selectedInterludes.filter(i => i.id !== sel.id);
+                              setSelectedInterludes(newSelectedInterludes);
+                              const newResponses = { ...responses };
+                              delete newResponses[sel.id];
+                              setResponses(newResponses);
+                              const newCompleted = completed.filter(id => id !== sel.id);
+                              setCompleted(newCompleted);
+                              await autoSaveCompletionState(newCompleted);
+                              console.log(`🗑️ Removed interlude ${sel.id} and auto-saved to server`);
+                            }}
+                          >
+                            Remove
+                          </Button>
                         </div>
                         <p className="text-gray-700 mb-4 italic leading-relaxed">{sel.prompt}</p>
                         <textarea
@@ -598,6 +571,31 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                               : 'border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500'
                           }`}
                         />
+                        {/* Mark Complete — anchored bottom-right of each card */}
+                        <div className="flex justify-end mt-4 pt-3 border-t border-gray-100">
+                          <Button
+                            disabled={saving}
+                            onClick={async () => {
+                              const isCurrentlyCompleted = completed.includes(sel.id);
+                              const next = isCurrentlyCompleted
+                                ? completed.filter(id => id !== sel.id)
+                                : [...completed, sel.id];
+                              setCompleted(next);
+                              await autoSaveCompletionState(next);
+                            }}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                              completed.includes(sel.id)
+                                ? 'bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 cursor-pointer'
+                                : 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                            }`}
+                          >
+                            {completed.includes(sel.id) ? (
+                              <><PencilLine className="h-4 w-4" /> Edit Answer</>
+                            ) : (
+                              <><CheckCircle className="h-4 w-4" /> Mark Complete</>
+                            )}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );

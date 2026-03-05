@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
@@ -48,13 +47,6 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
   // Use editableId first (direct YouTube ID from DB), fall back to URL extraction
   const youtubeId = videoData?.editableId || (videoData?.url ? extractYouTubeId(videoData.url) : null);
 
-  // Debug logging
-  console.log('🎬 IA-2-1 Debug:', {
-    videoData: videoData ? { title: videoData.title, url: videoData.url, stepId: videoData.stepId } : null,
-    youtubeId,
-    videoLoading
-  });
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Scroll Indicator - appears when user is idle */}
@@ -91,32 +83,24 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
               src="/assets/Curiosity_new.png" 
               alt="Curiosity - the drive to explore"
               className="w-32 h-auto object-contain"
-              onLoad={() => console.log('✅ Curiosity graphic loaded successfully')}
-              onError={(e) => console.error('❌ Failed to load Curiosity graphic:', e.currentTarget.src)}
             />
             
             <img 
               src="/assets/Caring_new.png" 
               alt="Caring - the capacity to nurture and connect"
               className="w-32 h-auto object-contain"
-              onLoad={() => console.log('✅ Caring graphic loaded successfully')}
-              onError={(e) => console.error('❌ Failed to load Caring graphic:', e.currentTarget.src)}
             />
             
             <img 
               src="/assets/Creativity_new.png" 
               alt="Creativity - the power to generate"
               className="w-32 h-auto object-contain"
-              onLoad={() => console.log('✅ Creativity graphic loaded successfully')}
-              onError={(e) => console.error('❌ Failed to load Creativity graphic:', e.currentTarget.src)}
             />
             
             <img 
               src="/assets/Courage_new.png" 
               alt="Courage - the strength to act"
               className="w-32 h-auto object-contain"
-              onLoad={() => console.log('✅ Courage graphic loaded successfully')}
-              onError={(e) => console.error('❌ Failed to load Courage graphic:', e.currentTarget.src)}
             />
           </div>
           
@@ -146,15 +130,6 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
         onContinue={handlePulseContinue}
         savedData={state?.ia_2_1_pulse || null}
       />
-
-      <div className="flex justify-end mt-8">
-        <Button
-          onClick={() => onNext && onNext('ia-2-2')}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-        >
-          Next: Self-Assessment
-        </Button>
-      </div>
     </div>
   );
 };

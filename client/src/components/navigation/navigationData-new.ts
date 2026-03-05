@@ -39,12 +39,6 @@ export const imaginalAgilityNavigationSections = [
         title: 'I4C Self-Assessment', 
         type: 'assessment',
         contentKey: 'ia-2-2'
-      },
-      { 
-        id: 'ia-2-3', 
-        title: 'Review Radar Map', 
-        type: 'viewing',
-        contentKey: 'ia-2-3'
       }
     ]
   },

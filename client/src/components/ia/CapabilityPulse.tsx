@@ -1,16 +1,17 @@
 /**
  * CapabilityPulse.tsx
- * 
+ *
  * Forced-choice pairs component for ia-2-1.
  * Captures gut-instinct ranking of 5 capabilities BEFORE the Prism assessment.
  * 10 pairs (full round-robin) — each capability compared to every other exactly once.
- * 
+ *
  * DESIGN DECISIONS:
  * - No results shown to participant (avoids anchoring before assessment)
- * - No retake option (first impression only happens once)
  * - Ranking and consistency data saved silently for later matrix comparison
  * - Reveal happens later in course when pulse is compared to assessment results
- * 
+ * - Modal can be closed to quit; clicking Start Pulse resets and reopens
+ * - Continue button disabled until pulse is complete
+ *
  * Data saved via onComplete callback to state.ia_2_1_pulse:
  * {
  *   choices: Array<{ pair: [string, string], winner: string, loser: string }>,
@@ -18,12 +19,13 @@
  *   inconsistencies: number,
  *   completedAt: string
  * }
- * 
+ *
  * Integration: Placed on ia-2-1 content page after video/prism content,
  * before the "Next: Self-Assessment" button.
  */
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -34,7 +36,7 @@ interface CapabilityDef {
   color: string;
   lightBg: string;
   border: string;
-  icon: string;
+  image: string;
   tagline: string;
 }
 
@@ -61,46 +63,47 @@ interface CapabilityPulseProps {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────
+// Colors match the _sq icon graphics
 
 const CAPABILITIES: Record<CapabilityKey, CapabilityDef> = {
   imagination: {
     name: 'Imagination',
-    color: '#9333ea',
+    color: '#8b5cf6',
     lightBg: '#faf5ff',
     border: '#d8b4fe',
-    icon: '✦',
+    image: '/assets/Imagination_sq.png',
     tagline: 'Seeing what isn\'t there yet',
   },
   curiosity: {
     name: 'Curiosity',
-    color: '#0891b2',
-    lightBg: '#ecfeff',
-    border: '#a5f3fc',
-    icon: '◈',
+    color: '#10b981',
+    lightBg: '#ecfdf5',
+    border: '#6ee7b7',
+    image: '/assets/Curiosity_sq.png',
     tagline: 'The drive to explore',
   },
   caring: {
     name: 'Caring',
-    color: '#db2777',
-    lightBg: '#fdf2f8',
-    border: '#f9a8d4',
-    icon: '◉',
+    color: '#3b82f6',
+    lightBg: '#eff6ff',
+    border: '#93c5fd',
+    image: '/assets/Caring_sq.png',
     tagline: 'The capacity to relate',
   },
   creativity: {
     name: 'Creativity',
-    color: '#059669',
-    lightBg: '#ecfdf5',
-    border: '#6ee7b7',
-    icon: '◆',
+    color: '#f59e0b',
+    lightBg: '#fffbeb',
+    border: '#fcd34d',
+    image: '/assets/Creativity_sq.png',
     tagline: 'The power to generate',
   },
   courage: {
     name: 'Courage',
-    color: '#ea580c',
-    lightBg: '#fff7ed',
-    border: '#fdba74',
-    icon: '▲',
+    color: '#ef4444',
+    lightBg: '#fef2f2',
+    border: '#fca5a5',
+    image: '/assets/courage_sq.png',
     tagline: 'The strength to act',
   },
 };
@@ -222,7 +225,7 @@ function CapabilityCard({ capKey, onClick, side, isExiting, exitSide }: CardProp
       onClick={onClick}
       style={{
         flex: 1,
-        maxWidth: 260,
+        maxWidth: 220,
         cursor: 'pointer',
         animation: `${animationName} ${animationDuration} ${animationTiming} ${animationDelay} forwards`,
         opacity: 0,
@@ -233,7 +236,7 @@ function CapabilityCard({ capKey, onClick, side, isExiting, exitSide }: CardProp
           background: cap.lightBg,
           border: `2px solid ${cap.border}`,
           borderRadius: 16,
-          padding: 24,
+          padding: 20,
           transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           boxShadow: `0 4px 24px ${cap.color}15`,
         }}
@@ -246,29 +249,23 @@ function CapabilityCard({ capKey, onClick, side, isExiting, exitSide }: CardProp
           (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 24px ${cap.color}15`;
         }}
       >
-        {/* Icon */}
-        <div
+        {/* Icon graphic */}
+        <img
+          src={cap.image}
+          alt={cap.name}
           style={{
             width: 56,
             height: 56,
-            borderRadius: 14,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 24,
-            margin: '0 auto 16px',
-            background: `linear-gradient(135deg, ${cap.color}20, ${cap.color}10)`,
-            border: `1.5px solid ${cap.color}30`,
-            color: cap.color,
+            objectFit: 'contain',
+            margin: '0 auto 12px',
+            display: 'block',
           }}
-        >
-          {cap.icon}
-        </div>
+        />
 
         {/* Name */}
         <h3
           style={{
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: 700,
             textAlign: 'center',
             color: cap.color,
@@ -281,7 +278,7 @@ function CapabilityCard({ capKey, onClick, side, isExiting, exitSide }: CardProp
         {/* Tagline */}
         <p
           style={{
-            fontSize: 13,
+            fontSize: 12,
             textAlign: 'center',
             color: cap.color,
             opacity: 0.7,
@@ -318,81 +315,11 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
   );
 }
 
-// ─── Completion Acknowledgment (no results shown) ────────────────────────
-
-interface CompletionViewProps {
-  onContinue?: () => void;
-}
-
-function CompletionView({ onContinue }: CompletionViewProps) {
-  return (
-    <div
-      style={{
-        maxWidth: 440,
-        margin: '0 auto',
-        textAlign: 'center',
-        animation: 'cp-fadeInUp 0.5s ease-out forwards',
-      }}
-    >
-      <div
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 28,
-          margin: '0 auto 20px',
-          background: 'linear-gradient(135deg, #faf5ff, #f3e8ff)',
-          border: '1.5px solid #d8b4fe',
-        }}
-      >
-        ✦
-      </div>
-
-      <h3 style={{ fontSize: 20, fontWeight: 700, color: '#1e1b4b', marginBottom: 12 }}>
-        Got it.
-      </h3>
-
-      <p style={{ fontSize: 15, lineHeight: 1.7, color: '#6b7280', marginBottom: 8 }}>
-        We've captured your first impression. You'll see how it compares
-        to your assessment results later in the course.
-      </p>
-
-      <p style={{ fontSize: 14, lineHeight: 1.6, color: '#9ca3af', marginBottom: 32 }}>
-        Next, you'll look more closely at these five capabilities.
-      </p>
-
-      <button
-        onClick={onContinue}
-        style={{
-          padding: '14px 32px',
-          borderRadius: 12,
-          color: 'white',
-          fontWeight: 600,
-          fontSize: 15,
-          background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
-          boxShadow: '0 4px 16px #9333ea30',
-          border: 'none',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease',
-        }}
-        onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
-        onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1)'; }}
-      >
-        Continue to Assessment →
-      </button>
-    </div>
-  );
-}
-
 // ─── Main Component ──────────────────────────────────────────────────────
 
 export default function CapabilityPulse({ onComplete, onContinue, savedData }: CapabilityPulseProps) {
-  const [phase, setPhase] = useState<'intro' | 'choosing' | 'complete'>(
-    savedData ? 'complete' : 'intro'
-  );
+  const [completed, setCompleted] = useState(!!savedData);
+  const [modalOpen, setModalOpen] = useState(false);
   const [pairs, setPairs] = useState<[CapabilityKey, CapabilityKey][]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [choices, setChoices] = useState<Choice[]>([]);
@@ -403,7 +330,13 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
     setPairs(generatePairs());
     setCurrentIndex(0);
     setChoices([]);
-    setPhase('choosing');
+    setModalOpen(true);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setModalOpen(false);
+    setIsExiting(false);
+    setExitSide(null);
   }, []);
 
   const handleChoice = useCallback((winner: CapabilityKey, side: 'left' | 'right') => {
@@ -421,11 +354,10 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
       setChoices(newChoices);
 
       if (currentIndex + 1 >= pairs.length) {
-        // Calculate results silently — participant won't see these
         const { ranking, inconsistencies } = calculateResults(newChoices);
-        setPhase('complete');
+        setModalOpen(false);
+        setCompleted(true);
 
-        // Fire onComplete with persistable data
         onComplete?.({
           choices: newChoices,
           ranking,
@@ -441,10 +373,10 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
     }, 350);
   }, [currentIndex, pairs, choices, isExiting, onComplete]);
 
-  // ─── Intro Phase ─────────────────────────────────────────────────────
+  const currentPair = pairs[currentIndex] ?? null;
 
-  if (phase === 'intro') {
-    return (
+  return (
+    <>
       <div style={{ padding: '32px 16px' }}>
         <style>{KEYFRAMES}</style>
         <div
@@ -455,153 +387,190 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
             animation: 'cp-fadeInUp 0.5s ease-out forwards',
           }}
         >
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 24,
-              margin: '0 auto 20px',
-              background: 'linear-gradient(135deg, #faf5ff, #f3e8ff)',
-              border: '1.5px solid #d8b4fe',
-            }}
-          >
-            ✦
+          {completed ? (
+            // ─── Post-pulse acknowledgment ───
+            <>
+              <div
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 28,
+                  margin: '0 auto 20px',
+                  background: 'linear-gradient(135deg, #faf5ff, #f3e8ff)',
+                  border: '1.5px solid #d8b4fe',
+                }}
+              >
+                ✦
+              </div>
+
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#1e1b4b', marginBottom: 12 }}>
+                First Impression Captured
+              </h3>
+
+              <p style={{ fontSize: 15, lineHeight: 1.7, color: '#6b7280', marginBottom: 24 }}>
+                We've got your gut reaction. You'll see how it compares to your
+                assessment results later in the course.
+              </p>
+
+              <button
+                onClick={onContinue}
+                style={{
+                  padding: '14px 32px',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: 15,
+                  background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+                  boxShadow: '0 4px 16px #9333ea30',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease',
+                }}
+                onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+                onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1)'; }}
+              >
+                Continue to Self-Assessment →
+              </button>
+            </>
+          ) : (
+            // ─── Pre-pulse framing ───
+            <>
+              <div
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 24,
+                  margin: '0 auto 20px',
+                  background: 'linear-gradient(135deg, #faf5ff, #f3e8ff)',
+                  border: '1.5px solid #d8b4fe',
+                }}
+              >
+                ✦
+              </div>
+
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#1e1b4b', marginBottom: 16 }}>
+                Quick Pulse
+              </h3>
+
+              <p style={{ fontSize: 15, lineHeight: 1.7, color: '#4b5563', marginBottom: 16 }}>
+                Before you take the assessment, we want to capture something
+                it can't — your gut reaction.
+              </p>
+
+              <p style={{ fontSize: 15, lineHeight: 1.7, color: '#4b5563', marginBottom: 16 }}>
+                You'll see two capabilities at a time. Just pick the one you're
+                more drawn to. Don't overthink it — there's no right answer
+                and you'll go through all ten pairs in about 30 seconds.
+              </p>
+
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: '#6b7280', marginBottom: 32 }}>
+                Later in the course, we'll show you how your first impression
+                compares to what the assessment reveals. The gap between the two
+                is often where the most interesting learning lives.
+              </p>
+
+              <button
+                onClick={startPulse}
+                style={{
+                  padding: '14px 32px',
+                  borderRadius: 12,
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: 15,
+                  background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+                  boxShadow: '0 4px 16px #9333ea30',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease',
+                }}
+                onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+                onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1)'; }}
+              >
+                Start Pulse
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Modal for the choosing interaction */}
+      <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) handleModalClose(); }}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <style>{KEYFRAMES}</style>
+
+          {/* Persistent instruction header */}
+          <div style={{ padding: '24px 28px 16px', textAlign: 'center', borderBottom: '1px solid #f3f4f6' }}>
+            <DialogTitle style={{ fontSize: 18, fontWeight: 700, color: '#1e1b4b', marginBottom: 8 }}>
+              Quick Pulse
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div>
+                <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4b5563' }}>
+                  Just pick the one you're more drawn to. Don't overthink it — there's no right answer.
+                </p>
+              </div>
+            </DialogDescription>
           </div>
 
-          <h3 style={{ fontSize: 20, fontWeight: 700, color: '#1e1b4b', marginBottom: 16 }}>
-            Quick Pulse
-          </h3>
+          {currentPair && (
+            <div style={{ padding: '20px 28px 28px' }}>
+              {/* Counter */}
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#9333ea' }}>
+                  {currentIndex + 1} of 10
+                </p>
+              </div>
 
-          <p style={{ fontSize: 15, lineHeight: 1.7, color: '#4b5563', marginBottom: 16 }}>
-            Before you take the assessment, we want to capture something
-            it can't — your gut reaction.
-          </p>
+              {/* Cards */}
+              <div
+                key={currentIndex}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 24,
+                }}
+              >
+                <CapabilityCard
+                  capKey={currentPair[0]}
+                  onClick={() => handleChoice(currentPair[0], 'left')}
+                  side="left"
+                  isExiting={isExiting}
+                  exitSide={exitSide}
+                />
 
-          <p style={{ fontSize: 15, lineHeight: 1.7, color: '#4b5563', marginBottom: 16 }}>
-            You'll see two capabilities at a time. Just pick the one you're
-            more drawn to. Don't overthink it — there's no right answer
-            and you can't get this wrong.
-          </p>
+                <div
+                  style={{
+                    color: '#d1d5db',
+                    fontSize: 14,
+                    fontWeight: 600,
+                  }}
+                >
+                  or
+                </div>
 
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: '#6b7280', marginBottom: 8 }}>
-            Later in the course, we'll show you how your first impression
-            compares to what the assessment reveals. The gap between the two
-            is often where the most interesting learning lives.
-          </p>
+                <CapabilityCard
+                  capKey={currentPair[1]}
+                  onClick={() => handleChoice(currentPair[1], 'right')}
+                  side="right"
+                  isExiting={isExiting}
+                  exitSide={exitSide}
+                />
+              </div>
 
-          <p
-            style={{
-              fontSize: 13,
-              color: '#9ca3af',
-              marginBottom: 32,
-              paddingTop: 8,
-              borderTop: '1px solid #f3f4f6',
-            }}
-          >
-            10 quick choices · about 30 seconds
-          </p>
-
-          <button
-            onClick={startPulse}
-            style={{
-              padding: '14px 32px',
-              borderRadius: 12,
-              color: 'white',
-              fontWeight: 600,
-              fontSize: 15,
-              background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
-              boxShadow: '0 4px 16px #9333ea30',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease',
-            }}
-            onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
-            onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1)'; }}
-          >
-            Start Pulse
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Complete Phase ──────────────────────────────────────────────────
-
-  if (phase === 'complete') {
-    return (
-      <div style={{ padding: '32px 16px' }}>
-        <style>{KEYFRAMES}</style>
-        <CompletionView onContinue={onContinue} />
-      </div>
-    );
-  }
-
-  // ─── Choosing Phase ──────────────────────────────────────────────────
-
-  const currentPair = pairs[currentIndex];
-  if (!currentPair) return null;
-
-  return (
-    <div style={{ padding: '32px 16px' }}>
-      <style>{KEYFRAMES}</style>
-
-      <div style={{ maxWidth: 580, margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#9333ea' }}>
-            {currentIndex + 1} of 10
-          </p>
-          <p style={{ fontSize: 16, marginTop: 4, color: '#4b5563' }}>
-            Which are you more drawn to?
-          </p>
-        </div>
-
-        {/* Cards */}
-        <div
-          key={currentIndex}
-          style={{
-            display: 'flex',
-            alignItems: 'stretch',
-            justifyContent: 'center',
-            gap: 20,
-          }}
-        >
-          <CapabilityCard
-            capKey={currentPair[0]}
-            onClick={() => handleChoice(currentPair[0], 'left')}
-            side="left"
-            isExiting={isExiting}
-            exitSide={exitSide}
-          />
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#d1d5db',
-              fontSize: 14,
-              fontWeight: 600,
-            }}
-          >
-            or
-          </div>
-
-          <CapabilityCard
-            capKey={currentPair[1]}
-            onClick={() => handleChoice(currentPair[1], 'right')}
-            side="right"
-            isExiting={isExiting}
-            exitSide={exitSide}
-          />
-        </div>
-
-        <ProgressDots current={currentIndex} total={10} />
-      </div>
-    </div>
+              <ProgressDots current={currentIndex} total={10} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

@@ -4,6 +4,12 @@ import { eq, and, isNull, inArray } from 'drizzle-orm';
 import { workshopStepData } from '../../shared/schema.js';
 
 export type IAState = {
+  ia_2_1_pulse?: {
+    choices: Array<{ pair: [string, string]; winner: string; loser: string }>;
+    ranking: Array<{ key: string; score: number }>;
+    inconsistencies: number;
+    completedAt: string;
+  };
   ia_4_2: {
     original_thought: string;
     ai_reframe: string[];
@@ -33,8 +39,8 @@ export type IAState = {
   updatedAt?: string;
 };
 
-const STEP_KEYS = ['ia_4_2', 'ia_4_3', 'ia_4_4', 'ia_4_5'] as const;
-const STEP_IDS = ['ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5'] as const;
+const STEP_KEYS = ['ia_2_1_pulse', 'ia_4_2', 'ia_4_3', 'ia_4_4', 'ia_4_5'] as const;
+const STEP_IDS = ['ia-2-1-pulse', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5'] as const;
 
 function stepKeyToId(key: string): string {
   return key.replace(/_/g, '-');
@@ -46,6 +52,7 @@ function stepIdToKey(id: string): string {
 
 function defaultStepData(key: string): Record<string, any> {
   switch (key) {
+    case 'ia_2_1_pulse': return { choices: [], ranking: [], inconsistencies: 0, completedAt: '' };
     case 'ia_4_2': return { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '', capability_stretched: undefined, capabilities_applied: [], capabilities_imagine: '', tested_capability: '', capability_insight: '' };
     case 'ia_4_3': return { frame_sentence: '', ai_stretch: '', stretch_vision: '', resistance: '' };
     case 'ia_4_4': return { purpose_one_line: '', global_challenge: '', ai_perspectives: [], contribution: '', what_it_needs: '' };
@@ -56,6 +63,7 @@ function defaultStepData(key: string): Record<string, any> {
 
 function defaultState(): IAState {
   return {
+    ia_2_1_pulse: undefined,
     ia_4_2: defaultStepData('ia_4_2') as IAState['ia_4_2'],
     ia_4_3: defaultStepData('ia_4_3') as IAState['ia_4_3'],
     ia_4_4: defaultStepData('ia_4_4') as IAState['ia_4_4'],
