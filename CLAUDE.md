@@ -81,13 +81,43 @@ npm test                      # Run tests
 | 5-2 | extra-stuff | ExtraStuffView |
 | 5-3 | more-imaginal-agility | IntroIAView |
 
-## 🔄 Git Workflow
+## 🔄 Git Workflow & Branching Strategy
 
-**Branches:**
-- **main**: Active integration branch — merge feature branches here
-- **feature/**: New features — branch from main, merge back to main
-- **hotfix/**: Critical production fixes
-- ~~**development**~~: Dormant — do not use (8 unmerged AST commits, superseded by main)
+**Branch Structure:**
+```
+main (production — deployed automatically)
+└── development (integration & testing)
+    ├── feature/dalle-ia-module4        (DALL-E image generation for IA Module 4)
+    ├── feature/product-mindset          (new Product Mindset course)
+    ├── feature/solid-pod-integration    (Solid Pod decentralized data)
+    └── feature/ia-2-1-capability-pulse  (IA CapabilityPulse improvements)
+```
+
+**Branch Rules:**
+- **main**: Production only. Deployment pipeline picks this up automatically. Never commit directly.
+- **development**: Integration branch. Features merge here first for testing before going to main.
+- **feature/***: All new work happens on feature branches created from `development`.
+- **hotfix/**: Critical production fixes — branch from main, merge back to both main and development.
+
+**⚠️ CRITICAL: Before any work, always check which branch you're on:**
+```bash
+git branch          # Show current branch
+git status          # Show current state
+```
+
+**Workflow:**
+1. `git checkout feature/[name]` — switch to the feature you're working on
+2. Do work, commit with descriptive messages
+3. When feature is ready: merge into `development` for integration testing
+4. When tested: merge `development` into `main` for production release
+
+**Creating new feature branches:**
+```bash
+git checkout development
+git pull origin development
+git checkout -b feature/[descriptive-name]
+git push origin feature/[descriptive-name]
+```
 
 **Safe Commands** (always use `-m` to avoid terminal hangs):
 ```bash
@@ -95,6 +125,12 @@ git commit -m "Your message here"
 git tag -a v1.0.0 -m "Version message"  
 git merge --no-ff branch-name -m "Merge message"
 ```
+
+**Never:**
+- Commit directly to `main`
+- Merge a feature branch directly to `main` (go through `development` first)
+- Work on multiple unrelated features in the same branch
+- Use multi-line git commands that trigger quote> prompts
 
 ## 🗄️ Database & Environment Variables
 
