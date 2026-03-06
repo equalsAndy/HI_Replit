@@ -66,21 +66,6 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
     fetchVersionInfo();
   }, []);
 
-  const formatDate = (timestamp: string) => {
-    if (!timestamp) return '';
-    try {
-      return new Date(timestamp).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return '';
-    }
-  };
-
   const versionString = `v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}`;
 
   if (variant === 'badge') {
@@ -111,8 +96,8 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
         <div style={{ marginBottom: '2px' }}>
           Database: {versionInfo.databaseType}
         </div>
-        {versionInfo.timestamp && (
-          <div>Built: {formatDate(versionInfo.timestamp)}</div>
+        {versionInfo.build && (
+          <div>Build: {versionInfo.build}</div>
         )}
       </div>
     );
