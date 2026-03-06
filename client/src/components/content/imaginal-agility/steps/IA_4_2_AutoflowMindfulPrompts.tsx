@@ -16,10 +16,14 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
 
   const ia = state?.ia_4_2 ?? {};
   const hasReframeResult = !!(ia.user_shift || ia.tag);
-  const capsApplied = Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length >= 2;
-  const imagineWordCount = (ia.capabilities_imagine ?? '').trim().split(/\s+/).filter((w: string) => w.length > 0).length;
-  const capsComplete = capsApplied && imagineWordCount >= 15;
-  const canContinue = !hasReframeResult || capsComplete;
+  // New gate: explorer complete + reflection written
+  const explorerComplete = !!ia.explorer_chosen;
+  const reflectionValid = (ia.explorer_reflection ?? '').trim().length >= 10;
+  const newComplete = explorerComplete && reflectionValid;
+  // Legacy gate for users who completed old version
+  const legacyCapsComplete = Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length >= 2
+    && (ia.capabilities_imagine ?? '').trim().split(/\s+/).filter((w: string) => w.length > 0).length >= 15;
+  const canContinue = !hasReframeResult || newComplete || legacyCapsComplete;
 
   // One-time migration from any legacy storage to continuity
   useEffect(() => {
@@ -108,9 +112,9 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
       </div>
       
       <div className="flex flex-col items-end gap-2 mt-8">
-        {hasReframeResult && !capsComplete && (
+        {hasReframeResult && !newComplete && !legacyCapsComplete && (
           <p className="text-sm text-amber-600 font-medium">
-            Complete the Capabilities in Action section above before continuing.
+            Complete the capabilities exploration and reflection above before continuing.
           </p>
         )}
         <div className="flex items-center gap-3">
@@ -127,6 +131,10 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
                       tag: '',
                       new_perspective: '',
                       shift: '',
+                      instinct_approach: '',
+                      explorer_rounds: [],
+                      explorer_chosen: null,
+                      explorer_reflection: '',
                       capability_stretched: undefined,
                       capabilities_applied: [],
                       capabilities_imagine: '',

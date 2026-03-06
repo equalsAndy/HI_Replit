@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StretchModal, TAG_OPTIONS } from './StretchModal';
 import type { StretchResult } from './StretchModal';
-import { CapabilityType, CAPABILITY_LABELS } from '@/lib/types';
 import { searchUnsplash } from '@/services/api-services';
 import { Loader2 } from 'lucide-react';
 
@@ -162,12 +161,8 @@ export default function VisualizationStretchExercise() {
     });
     setTimeout(() => saveNow(), 0);
   };
-  const hasResults = Boolean(ia.completed);
-
-  // Resolve tag and capability labels
-  const tagLabel = TAG_OPTIONS.find(t => t.value === ia.tag)?.label ?? ia.tag;
-  const tagHelper = TAG_OPTIONS.find(t => t.value === ia.tag)?.helper ?? '';
-  const capabilityLabel = ia.capability ? CAPABILITY_LABELS[ia.capability as CapabilityType] : '';
+  const hasModalResults = Boolean(ia.story && wordCount(ia.story) >= 10 && ia.new_image);
+  const isFullyComplete = hasModalResults && Boolean(ia.tag);
 
   function onModalApply(result: StretchResult) {
     setState((prev) => ({
@@ -184,10 +179,8 @@ export default function VisualizationStretchExercise() {
         new_image: result.new_image,
         new_title: result.new_title,
         story: result.story,
-        capability: result.capability,
-        tag: result.tag,
         transcript: result.transcript,
-        completed: true,
+        completed: false, // tag selection on content area gates completion
       },
     }));
     setTimeout(() => saveNow(), 0);
@@ -220,15 +213,25 @@ export default function VisualizationStretchExercise() {
   return (
     <>
       {/* ═══ PRE-MODAL: Examples + Launch ═══ */}
-      {!hasResults && (
+      {!hasModalResults && (
         <div className="space-y-6">
 
-          {/* How stretching works — visual example cards */}
+          {/* What you'll practice — visual example cards */}
           <div>
-            <h4 className="text-base font-semibold text-gray-800 mb-1">How it works</h4>
-            <p className="text-sm text-gray-500 mb-4">
-              Each stretch starts from one image and pushes to find what&apos;s beyond it.{' '}
-              <span className="text-gray-400">Click to enlarge the images.</span>
+            <h4 className="text-base font-semibold text-purple-800 mb-2">WHAT YOU&apos;LL PRACTICE</h4>
+            <p className="text-sm text-gray-700 leading-relaxed mb-2">
+              Most people stop at their first picture of what&apos;s possible. Stretching is the skill of
+              pushing past that first image to find what&apos;s beyond it &mdash; bigger scope, longer
+              timeline, deeper impact. It&apos;s not about replacing your vision. It&apos;s about discovering
+              what your vision looks like when you stop at the comfortable version.
+            </p>
+            <p className="text-sm text-gray-700 leading-relaxed mb-4">
+              In this exercise, the AI acts as your stretching partner.
+              <span className="font-semibold text-purple-700"> You do the imagining. The AI says &ldquo;further?&rdquo;</span>
+            </p>
+            <p className="text-xs text-gray-500 mb-3">
+              Each of these starts from something familiar and reveals what was hidden inside it.{' '}
+              <span className="text-gray-400">Click to enlarge.</span>
             </p>
 
             <div className="space-y-3">
@@ -450,17 +453,19 @@ export default function VisualizationStretchExercise() {
       />
 
       {/* ═══ POST-MODAL: Results ═══ */}
-      {hasResults && (
+      {hasModalResults && (
         <div className="space-y-6">
 
           {/* What You Just Did */}
           <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
             <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              You stretched how you see your potential &mdash; pushing past your first image to find
-              where it reaches further. You found your edge, confirmed it with the &ldquo;too far&rdquo; test,
-              and chose a second image for the territory you stretched into.
-              Together, these two images reveal more about your potential than either shows alone.
+              You stretched how you see your potential &mdash; pushing past your first image by looking
+              through different capability lenses. Each lens (courage, curiosity, creativity, caring)
+              revealed a different facet of where your potential reaches. You found your edge,
+              tested it with the &ldquo;too far&rdquo; question, and chose a second image for the territory
+              you stretched into. Together, these two images reveal more about your potential
+              than either shows alone.
             </p>
           </div>
 
@@ -506,23 +511,41 @@ export default function VisualizationStretchExercise() {
             </div>
           </div>
 
-          {/* Capability + Tag badges */}
-          <div className="flex flex-wrap gap-4 items-center">
-            {capabilityLabel && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
-                <span className="text-xs font-semibold uppercase text-gray-500">Capability:</span>
-                <span className="text-sm font-medium text-purple-800">{capabilityLabel}</span>
-              </div>
-            )}
-            {tagLabel && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
-                <span className="text-xs font-semibold uppercase text-gray-500">Tag:</span>
-                <span className="text-sm font-medium text-purple-800">{tagLabel}</span>
-              </div>
-            )}
-            {tagHelper && (
-              <p className="text-xs text-gray-500 italic">{tagHelper}</p>
-            )}
+          {/* Tag selection — gates completion */}
+          <div className="p-4 bg-white border border-gray-200 rounded-lg">
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">What did stretching give you?</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              You stretched through different capabilities during the conversation. Looking back at the whole arc &mdash; what did the exercise give you?
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {TAG_OPTIONS.map(({ value, label, helper }) => (
+                <label
+                  key={value}
+                  className={`flex items-start gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 transition-all ${
+                    ia.tag === value ? 'border-purple-400 bg-purple-50' : 'border-gray-200'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="stretch-tag"
+                    value={value}
+                    checked={ia.tag === value}
+                    onChange={() => {
+                      setState((prev) => ({
+                        ...prev,
+                        ia_4_3: { ...(prev.ia_4_3 || {}), tag: value, completed: true },
+                      }));
+                      setTimeout(() => saveNow(), 0);
+                    }}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="font-medium text-sm">{label}</div>
+                    <div className="text-xs text-gray-500">{helper}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Redo button */}
@@ -537,12 +560,9 @@ export default function VisualizationStretchExercise() {
           </div>
 
           {/* Completion gate warning */}
-          {(!ia.story || wordCount(ia.story) < 10 || !ia.capability || !ia.tag) && (
+          {!ia.tag && (
             <p className="text-xs font-semibold text-amber-600 flex items-center gap-1">
-              Required to continue:
-              {(!ia.story || wordCount(ia.story) < 10) && <span className="ml-1">Story (10+ words)</span>}
-              {!ia.capability && <span className="ml-1">Capability</span>}
-              {!ia.tag && <span className="ml-1">Tag</span>}
+              Select a tag above to complete this exercise and continue.
             </p>
           )}
 

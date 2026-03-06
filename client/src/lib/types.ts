@@ -44,6 +44,11 @@ export type IAState = {
     user_shift: string;           // canonical
     tag: string;                  // canonical (for timeline tagging)
     new_perspective: string;      // canonical downstream field
+    // New fields (v2 redesign — two-modal architecture)
+    instinct_approach?: string;   // pre-Modal-2 gut response
+    explorer_rounds?: Array<{ capabilities: CapabilityType[]; ai_response: string; round_number: number }>;
+    explorer_chosen?: { capabilities: CapabilityType[]; ai_response: string; round_number: number } | null;
+    explorer_reflection?: string; // post-exploration reflection
     // legacy alias kept for compatibility
     shift?: string;
     capability_stretched?: CapabilityType; // legacy — replaced by capabilities_applied

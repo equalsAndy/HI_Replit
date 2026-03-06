@@ -3,10 +3,8 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import InlineChat, { InlineChatHandle } from '@/components/ia/InlineChat';
-import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { PROMPTS } from '@/constants/prompts';
 import { searchUnsplash } from '@/services/api-services';
-import { CapabilityType, CAPABILITY_LABELS } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 export const TAG_OPTIONS = [
@@ -21,7 +19,7 @@ type ChatMessage = {
   content: string;
 };
 
-type Phase = 'discover' | 'new_image' | 'story' | 'capability' | 'tag';
+type Phase = 'discover' | 'new_image' | 'story';
 
 type SearchGroup = {
   term: string;
@@ -35,8 +33,6 @@ export interface StretchResult {
   new_image: string;
   new_title: string;
   story: string;
-  capability: CapabilityType;
-  tag: string;
 }
 
 export interface StretchModalProps {
@@ -68,11 +64,9 @@ const PHASE_LABELS: Record<Phase, string> = {
   discover: 'Stretching your visualization',
   new_image: 'Finding your stretch image',
   story: 'What the stretch reveals',
-  capability: 'What else showed up',
-  tag: 'What stretching gave you',
 };
 
-const PHASE_ORDER: Phase[] = ['discover', 'new_image', 'story', 'capability', 'tag'];
+const PHASE_ORDER: Phase[] = ['discover', 'new_image', 'story'];
 
 export function StretchModal({
   open,
@@ -98,12 +92,6 @@ export function StretchModal({
   // Story state
   const [story, setStory] = React.useState('');
 
-  // Capability state
-  const [capability, setCapability] = React.useState<CapabilityType | null>(null);
-
-  // Tag state
-  const [tag, setTag] = React.useState('');
-
   // UI state
   const [collapsedGroups, setCollapsedGroups] = React.useState<string[]>([]);
   const [swapped, setSwapped] = React.useState(false);
@@ -127,8 +115,6 @@ export function StretchModal({
       setCollapsedGroups([]);
       setSwapped(false);
       setStory('');
-      setCapability(null);
-      setTag('');
       setCompleting(false);
     }
   }, [open]);
@@ -203,7 +189,17 @@ export function StretchModal({
           training_id: 'ia-4-3',
           messages: [
             { role: 'system', content: `${PROMPTS.IA_4_3}\n\nCURRENT_PHASE: discover` },
-            { role: 'user', content: `GENERATE_SEARCHES: The participant's image is titled "${ia33Title}". Their reflection was: "${ia33Reflection}". Here is the conversation so far:\n\n${convoSummary}\n\nBased on this conversation, generate 3 Unsplash search terms for their stretch image. Remember: concrete visual nouns only, 2-4 words each, things a photographer could point a camera at.` },
+            { role: 'user', content: `GENERATE_SEARCHES: The participant's image is titled "${ia33Title}". Their reflection was: "${ia33Reflection}". Here is the conversation so far:\n\n${convoSummary}\n\nBased on this conversation, generate 3 Unsplash search terms for their stretch image.
+
+RULES FOR SEARCH TERMS:
+- Each term MUST be 1-3 simple words. Shorter is better.
+- Use words a photographer would TAG a photo with (e.g., "wind tunnel", "industrial fan", "smoke trails").
+- NEVER use compound technical phrases (e.g., "wind tunnel testing chamber" returns 0 results).
+- NEVER use abstract concepts — only things you can photograph.
+- The FIRST search term should use the participant's own metaphor/words from the conversation.
+- Think: what would someone type into a stock photo site?
+
+Format each on its own line starting with SEARCH:` },
           ],
         }),
       });
@@ -243,27 +239,14 @@ export function StretchModal({
     }
   };
 
-  const handleStoryNext = () => {
-    if (wordCount(story) >= 10) {
-      setPhase('capability');
-    }
-  };
-
-  const handleCapabilityNext = () => {
-    if (capability) {
-      setPhase('tag');
-    }
-  };
-
   const [completing, setCompleting] = React.useState(false);
 
   const handleApply = () => {
-    if (!tag || !capability) return;
+    if (wordCount(story) < 10) return;
     setCompleting(true);
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
-    // Brief visual confirmation before closing
     const firstImg = swapped ? (selectedNewImage || '') : (ia33Image || '');
     const firstTitle = swapped ? newTitle : ia33Title;
     const secondImg = swapped ? (ia33Image || '') : (selectedNewImage || '');
@@ -276,8 +259,6 @@ export function StretchModal({
         new_image: secondImg,
         new_title: secondTitle,
         story,
-        capability,
-        tag,
       });
       setCompleting(false);
       onOpenChange(false);
@@ -287,14 +268,9 @@ export function StretchModal({
 
 
   const handleBack = () => {
-    if (phase === 'tag') setPhase('capability');
-    else if (phase === 'capability') setPhase('story');
-    else if (phase === 'story') setPhase('new_image');
+    if (phase === 'story') setPhase('new_image');
     else if (phase === 'new_image') setPhase('discover');
   };
-
-  const capabilityLabel = capability ? CAPABILITY_LABELS[capability] : '';
-  const tagLabel = TAG_OPTIONS.find(t => t.value === tag)?.label ?? '';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal>
@@ -471,75 +447,9 @@ export function StretchModal({
 
               <div className="flex gap-2 mt-auto flex-shrink-0">
                 <Button variant="secondary" size="sm" onClick={handleBack}>Back</Button>
-              </div>
-            </div>
-          )}
-
-          {/* ===== PHASE 4: CAPABILITY ===== */}
-          {phase === 'capability' && (
-            <div className="flex flex-col flex-1 min-h-0">
-              <p className="text-sm text-gray-700 mb-4">
-                Stretching your visualization is imagination in action &mdash; you just pushed
-                past your first picture of yourself. But getting there may have also taken
-                something else.
-              </p>
-              <p className="text-sm font-medium text-gray-800 mb-4">
-                What else showed up while you were stretching?
-              </p>
-
-              <CapabilitySelector
-                mode="single"
-                selected={capability}
-                onSelect={(val) => setCapability(val as CapabilityType)}
-              />
-
-              <div className="flex gap-2 mt-auto pt-4 flex-shrink-0">
-                <Button variant="secondary" size="sm" onClick={handleBack}>Back</Button>
-                <Button
-                  onClick={handleCapabilityNext}
-                  disabled={!capability}
-                  size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  Continue
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* ===== PHASE 5: TAG ===== */}
-          {phase === 'tag' && (
-            <div className="flex flex-col flex-1 min-h-0">
-              <h3 className="text-sm font-semibold uppercase text-gray-600 mb-3">What did stretching give you?</h3>
-              <div className="grid grid-cols-1 gap-2">
-                {TAG_OPTIONS.map(({ value, label, helper }) => (
-                  <label
-                    key={value}
-                    className={`flex items-start gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 transition-all ${
-                      tag === value ? 'border-purple-400 bg-purple-50' : 'border-gray-200'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="stretch-tag"
-                      value={value}
-                      checked={tag === value}
-                      onChange={() => setTag(value)}
-                      className="mt-1"
-                    />
-                    <div>
-                      <div className="font-medium text-sm">{label}</div>
-                      <div className="text-xs text-gray-500">{helper}</div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-
-              <div className="flex gap-2 mt-auto pt-4 flex-shrink-0">
-                <Button variant="secondary" size="sm" onClick={handleBack}>Back</Button>
                 <Button
                   onClick={handleApply}
-                  disabled={!tag || completing}
+                  disabled={wordCount(story) < 10 || completing}
                   size="sm"
                   className={completing ? 'bg-green-600 text-white' : 'bg-purple-600 hover:bg-purple-700 text-white'}
                 >
@@ -567,9 +477,11 @@ export function StretchModal({
           {/* Right column during discover — button appears after 2+ user messages */}
           {phase === 'discover' && (
             <div className="space-y-3">
-              {userMessageCount < 2 ? (
+              {userMessageCount < 4 ? (
                 <p className="text-xs text-gray-400 italic">
-                  As you stretch with the AI, your second image search will appear here.
+                  {userMessageCount < 2
+                    ? 'As you stretch with the AI, your second image search will appear here.'
+                    : 'Keep stretching — the further you go, the more interesting the image search will be.'}
                 </p>
               ) : (
                 <div className="bg-purple-50/60 border border-purple-200 rounded-lg p-4 text-center">
@@ -742,8 +654,8 @@ export function StretchModal({
             </section>
           )}
 
-          {/* Selected new image — confirmed, during story/capability/tag phases */}
-          {(phase === 'story' || phase === 'capability' || phase === 'tag') && (
+          {/* Selected new image — confirmed, during story phase */}
+          {phase === 'story' && (
             <section className="mb-4">
               <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">Stretch Image</h2>
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
@@ -757,8 +669,8 @@ export function StretchModal({
             </section>
           )}
 
-          {/* Image pair + story — during story phase and beyond */}
-          {(phase === 'story' || phase === 'capability' || phase === 'tag') && (
+          {/* Image pair + story — during story phase */}
+          {phase === 'story' && (
             <section className="mb-4">
               <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">Your Pair</h2>
               <div className="flex items-center gap-2 mb-3">
@@ -804,33 +716,18 @@ export function StretchModal({
                 </p>
                 {phase === 'story' && (
                   <Button
-                    onClick={handleStoryNext}
-                    disabled={wordCount(story) < 10}
+                    onClick={handleApply}
+                    disabled={wordCount(story) < 10 || completing}
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className={completing ? 'bg-green-600 text-white' : 'bg-purple-600 hover:bg-purple-700 text-white'}
                   >
-                    Continue
+                    {completing ? '✓ Done!' : 'Complete Exercise'}
                   </Button>
                 )}
               </div>
             </section>
           )}
 
-          {/* Capability badge — during capability phase and beyond */}
-          {(phase === 'capability' || phase === 'tag') && capabilityLabel && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 border border-purple-200 rounded-full mb-3 w-fit">
-              <span className="text-xs font-semibold uppercase text-gray-500">Capability:</span>
-              <span className="text-sm font-medium text-purple-800">{capabilityLabel}</span>
-            </div>
-          )}
-
-          {/* Tag badge — during tag phase */}
-          {phase === 'tag' && tagLabel && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 border border-purple-200 rounded-full w-fit">
-              <span className="text-xs font-semibold uppercase text-gray-500">Tag:</span>
-              <span className="text-sm font-medium text-purple-800">{tagLabel}</span>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

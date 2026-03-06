@@ -11,8 +11,6 @@ const TAG_OPTIONS = [
   { value: 'Better Question', label: 'A question worth following', helper: 'I don\'t have the answer, but I have a better question.' },
 ];
 
-const SHIFT_TEMPLATE = 'I went from [where you were] to [where you are now]';
-const SHIFT_SEED = `Here is what shifted for me: ${SHIFT_TEMPLATE}`;
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -26,7 +24,7 @@ export interface ReframeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   challenge: string;
-  onApply: (result: { transcript: string[]; shift: string; tag: string; reframe: string; testedCapability: string; capabilityInsight: string }) => void;
+  onApply: (result: { transcript: string[]; shift: string; tag: string; reframe: string }) => void;
   onStartOver: () => void;
   onKeepContext?: () => void;
 }
@@ -39,21 +37,11 @@ export function ReframeModal({
   onStartOver,
   onKeepContext,
 }: ReframeModalProps) {
-  const [phase, setPhase] = React.useState<'reframe' | 'capability' | 'shift' | 'tag'>('reframe');
+  const [phase, setPhase] = React.useState<'reframe' | 'shift' | 'tag'>('reframe');
   const [transcript, setTranscript] = React.useState<ChatMessage[]>([]);
   const [shiftBox, setShiftBox] = React.useState('');
   const [tag, setTag] = React.useState(TAG_OPTIONS[0].value);
   const [currentReframe, setCurrentReframe] = React.useState('');
-
-  // Capability test state
-  const [testedCapability, setTestedCapability] = React.useState<string | null>(null);
-  const [capabilityResponse, setCapabilityResponse] = React.useState<string>('');
-  const [capabilityLoading, setCapabilityLoading] = React.useState(false);
-
-  // Guided shift flow state
-  const [shiftAttempts, setShiftAttempts] = React.useState(0);
-  const [shiftStep, setShiftStep] = React.useState<'template' | 'askFrom' | 'askTo'>('template');
-  const [shiftFrom, setShiftFrom] = React.useState('');
 
   const chatStreamRef = React.useRef<HTMLDivElement | null>(null);
   const chatRef = React.useRef<InlineChatHandle | null>(null);
@@ -164,12 +152,6 @@ export function ReframeModal({
       setShiftBox('');
       setTag(TAG_OPTIONS[0].value);
       setCurrentReframe('');
-      setShiftAttempts(0);
-      setShiftStep('template');
-      setShiftFrom('');
-      setTestedCapability(null);
-      setCapabilityResponse('');
-      setCapabilityLoading(false);
     } else {
       // Initial opening - start with the challenge from props
       setPhase('reframe');
@@ -182,12 +164,6 @@ export function ReframeModal({
       ]);
       setShiftBox('');
       setCurrentReframe('');
-      setShiftAttempts(0);
-      setShiftStep('template');
-      setShiftFrom('');
-      setTestedCapability(null);
-      setCapabilityResponse('');
-      setCapabilityLoading(false);
     }
   }, [open]);
 
@@ -251,194 +227,30 @@ export function ReframeModal({
     setTranscript(prev => [...prev, { role: 'user', content: msg }]);
   }, []);
 
-  // Intercept sends during shift phase for guided flow
-  const onBeforeSend = React.useCallback((text: string): boolean => {
-    if (phase !== 'shift') return true; // Let reframe phase sends go through to AI
-
-    // Template step: user has the pre-filled template
-    if (shiftStep === 'template') {
-      if (hasBrackets(text)) {
-        // They sent without filling in brackets
-        setTranscript(prev => [...prev, { role: 'user', content: text }]);
-        const attempts = shiftAttempts + 1;
-        setShiftAttempts(attempts);
-
-        if (attempts < 2) {
-          // First failed attempt — ask them to fill in the words
-          setTimeout(() => {
-            setTranscript(prev => [...prev, {
-              role: 'assistant',
-              content: "Try replacing the words in brackets with your own experience. For example: 'I went from feeling stuck to seeing new possibilities.'",
-              skipReframe: true
-            }]);
-            // Re-fill the input with the template so they can try again
-            chatRef.current?.setInput(SHIFT_SEED);
-          }, 300);
-        } else {
-          // Second failed attempt — break it down into two questions
-          setShiftStep('askFrom');
-          setTimeout(() => {
-            setTranscript(prev => [...prev, {
-              role: 'assistant',
-              content: 'If your framing of the challenge shifted, where did you start?',
-              skipReframe: true
-            }]);
-          }, 300);
-        }
-        return false; // Cancel AI call
-      }
-
-      // They filled it in — extract the shift and populate the box
-      const potentialShift = extractShiftSuggestion(text);
-      if (potentialShift) {
-        setShiftBox(potentialShift);
-      } else {
-        // They wrote something free-form, use it as the shift
-        const cleaned = text.replace(/^here is what shifted for me:\s*/i, '').trim();
-        setShiftBox(cleaned || text);
-      }
-      setTranscript(prev => [...prev, { role: 'user', content: text }]);
-      return false; // Don't need AI for this
-    }
-
-    // askFrom step: user answers "where did you start?"
-    if (shiftStep === 'askFrom') {
-      const fromAnswer = cleanShiftPart(text);
-      setShiftFrom(fromAnswer);
-      setTranscript(prev => [...prev, { role: 'user', content: text }]);
-      setShiftStep('askTo');
-
-      setTimeout(() => {
-        setTranscript(prev => [...prev, {
-          role: 'assistant',
-          content: `Got it — you started from "${fromAnswer}". Now, where did you end up?`,
-          skipReframe: true
-        }]);
-      }, 300);
-      return false; // Cancel AI call
-    }
-
-    // askTo step: user answers "where did you end up?"
-    if (shiftStep === 'askTo') {
-      const toAnswer = cleanShiftPart(text);
-      const fullShift = `I went from ${shiftFrom} to ${toAnswer}`;
-      setShiftBox(fullShift);
-      setTranscript(prev => [...prev, { role: 'user', content: text }]);
-
-      setTimeout(() => {
-        setTranscript(prev => [...prev, {
-          role: 'assistant',
-          content: `Your shift statement: "${fullShift}"`,
-          skipReframe: true
-        }]);
-      }, 300);
-      return false; // Cancel AI call
-    }
-
-    return true; // Fallback: let AI handle
-  }, [phase, shiftStep, shiftAttempts, shiftFrom]);
-
-  const handleCapabilityTest = async (capability: string) => {
-    setTestedCapability(capability);
-    setCapabilityResponse('');
-    setCapabilityLoading(true);
-
-    setTranscript((prev) => [
-      ...prev,
-      { role: 'user', content: `Show me what ${capability} looks like applied here.`, skipReframe: true },
-    ]);
-
-    try {
-      const systemPrompt = `You are a brief, insightful coach. The participant just reframed a challenge. Now they want to see what applying ONE specific capability would look like.
-
-THEIR CHALLENGE: "${challenge}"
-THEIR REFRAME: "${currentReframe}"
-CAPABILITY TO APPLY: ${capability}
-
-CAPABILITY DEFINITIONS:
-- Imagination: Envision possibilities that don't exist yet. "What if...?"
-- Curiosity: Ask the question nobody's asking. Go toward what you don't know.
-- Caring: Consider who's affected and what they need. Lead with empathy.
-- Creativity: Find an unexpected path. Combine things that don't usually go together.
-- Courage: Name what everyone's avoiding. Do the hard thing first.
-
-RULES:
-- Write ONE specific question OR one concrete action step that applies this capability to their specific situation
-- Use their actual details — reference the challenge and reframe specifically
-- First person: "I would..." or "What if I..."
-- Maximum 2 sentences
-- Make them FEEL the capability activate — it should be unmistakably ${capability}, not generic advice
-- No preamble, no "Great question!" — just the question or action`;
-
-      const resp = await fetch('/api/ai/chat/plain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          training_id: 'ia-4-2',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Apply ${capability} to my reframed challenge.` },
-          ],
-        }),
-      });
-
-      const data = await resp.json();
-      if (data?.success && data.reply) {
-        setCapabilityResponse(data.reply.trim());
-        setTranscript((prev) => [
-          ...prev,
-          { role: 'assistant', content: data.reply.trim(), skipReframe: true },
-        ]);
-      } else {
-        setCapabilityResponse('Something went wrong — try clicking the capability again.');
-      }
-    } catch (err) {
-      console.error('Capability test error:', err);
-      setCapabilityResponse('Something went wrong — try clicking the capability again.');
-    } finally {
-      setCapabilityLoading(false);
-    }
-  };
+  // All phases now go through to AI — shift conversation is AI-guided
+  const onBeforeSend = React.useCallback((_text: string): boolean => {
+    return true;
+  }, []);
 
   const onNext = () => {
     if (phase === 'reframe' && currentReframe.trim().length > 0) {
-      setPhase('capability');
-      setTestedCapability(null);
-      setCapabilityResponse('');
+      setPhase('shift');
       setTranscript((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: 'Before we capture your shift — pick one capability below to see what it looks like applied to your new perspective.',
+          content: "Now let's capture what shifted for you. Tell me in your own words — where did you start, and where are you now?",
           skipReframe: true
         },
       ]);
-    } else if (phase === 'capability') {
-      setPhase('shift');
-      // Pre-fill shift template in the right-side box
-      setShiftBox(SHIFT_TEMPLATE);
-      // Reset guided shift state
-      setShiftAttempts(0);
-      setShiftStep('template');
-      setShiftFrom('');
-      setTranscript((prev) => [
-        ...prev,
-        { role: 'assistant', content: "Now let's capture what shifted for you. I've put a template in the box below — replace the words in brackets with your experience.", skipReframe: true },
-      ]);
-      // Pre-fill the chat input with the shift seed
-      setTimeout(() => {
-        chatRef.current?.setInput(SHIFT_SEED);
-      }, 100);
-    } else if (phase === 'shift' && shiftBox.trim().length > 0) {
+    } else if (phase === 'shift' && shiftBox.trim().length > 0 && !hasBrackets(shiftBox)) {
       setPhase('tag');
     }
   };
 
   const onBack = () => {
     if (phase === 'tag') setPhase('shift');
-    else if (phase === 'shift') setPhase('capability');
-    else if (phase === 'capability') setPhase('reframe');
+    else if (phase === 'shift') setPhase('reframe');
   };
 
   const onApplyClick = () => {
@@ -446,7 +258,7 @@ RULES:
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
-    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag, reframe: currentReframe.trim(), testedCapability: testedCapability || '', capabilityInsight: capabilityResponse || '' });
+    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag, reframe: currentReframe.trim() });
     onOpenChange(false);
   };
 
@@ -496,21 +308,18 @@ RULES:
               ))}
             </div>
 
-            {/* InlineChat — hide during capability phase */}
-            {phase !== 'capability' && (
-              <InlineChat
-                ref={chatRef}
-                trainingId="ia-4-2"
-                systemPrompt={`${PROMPTS.IA_4_2}\n\nCURRENT_PHASE: ${phase}`}
-                seed={`I need a new perspective. Help me reframe my challenge: "${challenge}"`}
-                onUserSend={onChatUserSend}
-                onReply={onChatReply}
-                onBeforeSend={onBeforeSend}
-                hideHistory={true}
-                className="border-0 p-0 bg-transparent"
-                placeholder={phase === 'shift' ? SHIFT_TEMPLATE : undefined}
-              />
-            )}
+            <InlineChat
+              ref={chatRef}
+              trainingId="ia-4-2"
+              systemPrompt={`${PROMPTS.IA_4_2}\n\nCURRENT_PHASE: ${phase}`}
+              seed={`I need a new perspective. Help me reframe my challenge: "${challenge}"`}
+              onUserSend={onChatUserSend}
+              onReply={onChatReply}
+              onBeforeSend={onBeforeSend}
+              hideHistory={true}
+              className="border-0 p-0 bg-transparent"
+              placeholder={undefined}
+            />
           </div>
         </div>
 
@@ -528,86 +337,19 @@ RULES:
             )}
           </section>
 
-          {/* Capability Test section */}
-          {phase === 'capability' && (
-            <section className="mb-6">
-              <h2 className="text-sm font-semibold uppercase mb-2">Test your new perspective</h2>
-              <p className="text-xs text-gray-500 mb-3">
-                Pick a capability to see what it looks like applied to your challenge.
-              </p>
-
-              <div className="grid grid-cols-5 gap-1.5 mb-4">
-                {[
-                  { key: 'imagination', label: 'Imagination', icon: '💡' },
-                  { key: 'curiosity', label: 'Curiosity', icon: '🔍' },
-                  { key: 'caring', label: 'Caring', icon: '❤️' },
-                  { key: 'creativity', label: 'Creativity', icon: '✨' },
-                  { key: 'courage', label: 'Courage', icon: '🛡️' },
-                ].map(({ key, label, icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => handleCapabilityTest(key)}
-                    disabled={capabilityLoading}
-                    className={`flex flex-col items-center gap-1 rounded-lg border px-1.5 py-2.5 text-xs font-medium transition-all duration-150 ${
-                      testedCapability === key
-                        ? 'scale-105 border-purple-600 bg-purple-600 text-white shadow-md'
-                        : 'border-gray-300 bg-white text-gray-500 hover:border-purple-400 hover:text-purple-600'
-                    } ${capabilityLoading ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
-                  >
-                    <span className="text-base">{icon}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {capabilityLoading && (
-                <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg text-sm text-gray-600 animate-pulse">
-                  Thinking about how {testedCapability} applies here...
-                </div>
-              )}
-
-              {capabilityResponse && !capabilityLoading && (
-                <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-gray-800 mb-3">
-                  <div className="text-xs font-semibold text-purple-600 uppercase mb-1">
-                    {testedCapability} applied
-                  </div>
-                  {capabilityResponse}
-                </div>
-              )}
-
-              <p className="text-xs italic text-gray-400 mb-3">
-                {testedCapability
-                  ? 'Try another capability, or continue when ready.'
-                  : 'Pick any capability to see it in action.'}
-              </p>
-
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={onBack} size="sm" className="flex-1">
-                  Back to reframe
-                </Button>
-                <Button
-                  onClick={onNext}
-                  disabled={!testedCapability || capabilityLoading}
-                  size="sm"
-                  className="flex-1"
-                >
-                  Continue to shift
-                </Button>
-              </div>
-            </section>
-          )}
-
           {/* Shift section */}
           {(phase === 'shift' || phase === 'tag') && (
             <section className="mb-6">
               <h2 className="text-sm font-semibold uppercase mb-2">What shifted for you?</h2>
-              <div className={`min-h-[80px] p-3 border rounded bg-gray-50 text-sm mb-3`}>
-                {shiftBox.trim() && !hasBrackets(shiftBox) ? shiftBox : ''}
-              </div>
+              <textarea
+                className="min-h-[80px] w-full p-3 border rounded bg-gray-50 text-sm mb-3 resize-y"
+                value={shiftBox}
+                onChange={(e) => setShiftBox(e.target.value)}
+                placeholder="Your shift statement will appear here as you talk with AI, or type directly..."
+              />
               {phase === 'shift' && (
                 <>
-                  <p className="text-xs italic text-gray-500 mb-3">Edit the template in the message box and hit Send, or tell AI how to adjust your shift statement.</p>
+                  <p className="text-xs italic text-gray-500 mb-3">Work with AI to name what shifted, or type your shift statement directly in the box above.</p>
                   <div className="flex gap-2 mb-4">
                     <Button variant="secondary" onClick={onBack} size="sm" className="flex-1">Back to reframe</Button>
                     <Button onClick={onNext} disabled={!shiftBox.trim() || hasBrackets(shiftBox)} size="sm" className="flex-1">Looks good</Button>

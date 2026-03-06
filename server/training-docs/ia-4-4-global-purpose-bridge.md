@@ -177,6 +177,8 @@ Do NOT include a [VIEW] tag when using the poor fit handler.
 - **Lecture mode**: Don't explain the global challenge back to them — they just picked it, they know what it is
 - **Three-option menus**: One vivid reframe, not a buffet. Depth over breadth.
 - **Treating it as literal**: Never imply they should actually go work on this problem
+- **Identity reframes**: Repositioning the *participant* as insightful, perceptive, or uniquely suited confirms what they already believe. The bridge should shift how they see the *situation* — not elevate how they see themselves. If the [VIEW] line centers "I am the person who..." or "my unique angle is...", reframe the problem instead. Test: would they say "I hadn't thought of it that way"?
+- **Confident causal claims about why efforts fail**: When bridging, don't assert why existing work falls short using language like "because organizations fail to..." or "because experts overlook...". You don't know the internal reasons. Instead, name a real gap or dimension that exists — hedged: "there's less focus on," "one underexplored dimension is," "this work tends to stay in..." — without claiming to know why.
 
 ---
 
@@ -277,6 +279,7 @@ Note: Answers are delivered one at a time in conversation, not as a combined doc
 - **Overwhelming detail**: This isn't a white paper. ~150 words per answer.
 - **Disconnecting from their intention**: Every answer should naturally touch their lens, not as a forced callback but because their intention genuinely relates
 - **Hedging everything**: Be direct. "Here's what's known" not "Some people might argue that perhaps..."
+- **Confident causal claims about why organizations or people fail**: When answering questions about global challenges, don't assert internal causes for why efforts fall short. "Governments don't act on this because they don't care" or "Researchers ignore this because they're too siloed" are claims you can't substantiate. Describe what is observed — what gaps exist, what approaches have and haven't worked — without asserting motives.
 
 ---
 

@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useContinuity } from '@/hooks/useContinuity';
 import { Button } from '@/components/ui/button';
 import { ReframeModal } from './ReframeModal';
-import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
-import { CapabilityType } from '@/lib/types';
+import { CapabilitiesExplorerModal, ExplorerRound } from './CapabilitiesExplorerModal';
+import { CAPABILITY_LABELS, CAPABILITY_COLORS } from '@/lib/types';
 
 function formatCapabilityList(caps: string[]): string {
   if (caps.length === 0) return '';
@@ -12,37 +12,10 @@ function formatCapabilityList(caps: string[]): string {
   return caps.slice(0, -1).join(', ') + ', and ' + caps[caps.length - 1];
 }
 
-function wordCount(text?: string): number {
-  if (!text) return 0;
-  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
-}
-
-function SaveImagineButton({ onSave }: { onSave: () => void }) {
-  const [saved, setSaved] = React.useState(false);
-
-  const handleSave = () => {
-    onSave();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  return (
-    <button
-      onClick={handleSave}
-      className={`mt-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-        saved
-          ? 'bg-green-100 text-green-700 border border-green-300'
-          : 'bg-purple-600 text-white hover:bg-purple-700'
-      }`}
-    >
-      {saved ? '✓ Saved' : 'Save'}
-    </button>
-  );
-}
-
 export default function ReframeExercise() {
   const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [explorerOpen, setExplorerOpen] = React.useState(false);
   const newPerspectiveRef = React.useRef<HTMLTextAreaElement | null>(null);
 
   // Normalize ia_4_2 with a fallback (safe access even if state is null)
@@ -82,7 +55,7 @@ export default function ReframeExercise() {
     setModalOpen(open);
   }
 
-  function onModalApply(result: { transcript: string[]; shift: string; tag: string; reframe: string; testedCapability: string; capabilityInsight: string }) {
+  function onModalApply(result: { transcript: string[]; shift: string; tag: string; reframe: string }) {
     setState((prev) => {
       const prevIA = prev.ia_4_2 || {};
       return {
@@ -101,14 +74,24 @@ export default function ReframeExercise() {
           tag: result.tag,
           new_perspective: result.reframe,
           original_thought: challenge,
-          tested_capability: result.testedCapability,
-          capability_insight: result.capabilityInsight,
         },
       };
     });
-    // Save immediately so modal results survive refresh/navigation
     setTimeout(() => saveNow(), 0);
     setModalOpen(false);
+  }
+
+  function onExplorerComplete(result: { rounds: ExplorerRound[]; chosen: ExplorerRound }) {
+    setState((prev) => ({
+      ...prev,
+      ia_4_2: {
+        ...(prev.ia_4_2 || {}),
+        explorer_rounds: result.rounds,
+        explorer_chosen: result.chosen,
+      },
+    }));
+    setTimeout(() => saveNow(), 0);
+    setExplorerOpen(false);
   }
 
   function onModalStartOver() {
@@ -123,6 +106,10 @@ export default function ReframeExercise() {
           new_perspective: '',
           shift: '',
           challenge: '',
+          instinct_approach: '',
+          explorer_rounds: [],
+          explorer_chosen: null,
+          explorer_reflection: '',
           capabilities_applied: [],
           capabilities_imagine: '',
           tested_capability: '',
@@ -212,6 +199,14 @@ export default function ReframeExercise() {
         onKeepContext={onModalKeepContext}
       />
 
+      <CapabilitiesExplorerModal
+        open={explorerOpen}
+        onOpenChange={setExplorerOpen}
+        reframedChallenge={ia.new_perspective ?? ''}
+        originalChallenge={challenge}
+        onComplete={onExplorerComplete}
+      />
+
       {/* Post-modal content — only show after modal completion */}
       {(ia.new_perspective || ia.user_shift || ia.tag) && (
         <>
@@ -221,7 +216,7 @@ export default function ReframeExercise() {
             <p className="text-sm text-gray-700 leading-relaxed">
               You took a real challenge and worked with AI to <strong>reframe</strong> it — not to make it disappear,
               but to see it from an angle that reveals something useful: leverage, clarity, or a better question.
-              Then you named what shifted and tested what one of your capabilities could do with that new perspective.
+              Then you named what actually shifted.
               Below is everything that came out of that process. You can edit your new perspective if you want to refine it.
             </p>
           </div>
@@ -262,86 +257,126 @@ export default function ReframeExercise() {
             </div>
           )}
 
-          {/* 3b. Capability you explored in the modal */}
-          {ia.tested_capability && ia.capability_insight && (
-            <div className="mb-4 p-3 bg-purple-50/50 border border-purple-100 rounded-lg">
-              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-1">
-                You explored: {ia.tested_capability}
-              </h3>
-              <p className="text-sm text-gray-700 italic">"{ia.capability_insight}"</p>
+          {/* 4. Your Instinct — capture gut response before capabilities exploration */}
+          <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
+            <h3 className="font-semibold text-purple-700 mb-1">Your Instinct</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              With your new perspective, what&apos;s your first instinct for a next step? Don&apos;t overthink it — just capture your gut response.
+            </p>
+            <textarea
+              className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
+              rows={3}
+              placeholder="My first instinct is..."
+              value={ia.instinct_approach ?? ''}
+              onChange={(e) =>
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_2: { ...(prev.ia_4_2 || {}), instinct_approach: e.target.value },
+                }))
+              }
+              onBlur={() => saveNow()}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {(ia.instinct_approach ?? '').trim().length < 8
+                ? `${(ia.instinct_approach ?? '').trim().length} characters — write at least 8`
+                : `${(ia.instinct_approach ?? '').trim().length} characters`}
+            </p>
+          </div>
+
+          {/* 5. Explore with Capabilities button — gated on instinct >= 8 chars */}
+          {(ia.instinct_approach ?? '').trim().length >= 8 && !ia.explorer_chosen && (
+            <div className="mb-6">
+              <Button
+                onClick={() => setExplorerOpen(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Explore with Capabilities
+              </Button>
             </div>
           )}
 
-          {/* 4. Capabilities in Action — REQUIRED */}
-          <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
-            <h3 className="font-semibold text-purple-700 mb-1">Capabilities in Action</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              In real life, capabilities don&apos;t work in isolation — and most of the time we act
-              without thinking about which ones we&apos;re drawing on. This exercise reverses that on purpose.
-              In the reframe conversation you tested one. Now pick at least two and imagine what
-              happens when you deliberately combine them.
-            </p>
-
-            <CapabilitySelector
-              mode="multi"
-              minSelections={2}
-              selected={ia.capabilities_applied ?? []}
-              onSelect={(val) => {
-                const caps = Array.isArray(val) ? val : [val];
-                setState((prev) => ({
-                  ...prev,
-                  ia_4_2: { ...(prev.ia_4_2 || {}), capabilities_applied: caps as CapabilityType[] },
-                }));
-                setTimeout(() => saveNow(), 0);
-              }}
-              prompt="Which capabilities would you bring to this challenge?"
-              className="mb-4"
-            />
-
-            {/* Dynamic "I imagine" prompt — appears after 2+ capabilities selected */}
-            {Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length >= 2 && (
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  If I brought{' '}
-                  <span className="font-semibold text-purple-700">
-                    {formatCapabilityList(ia.capabilities_applied)}
-                  </span>
-                  {' '}to this challenge, I imagine...
-                </label>
-                <textarea
-                  className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
-                  rows={4}
-                  placeholder="Complete this thought — what do you imagine might happen?"
-                  value={ia.capabilities_imagine ?? ''}
-                  onChange={(e) =>
-                    setState((prev) => ({
-                      ...prev,
-                      ia_4_2: { ...(prev.ia_4_2 || {}), capabilities_imagine: e.target.value },
-                    }))
-                  }
-                  onBlur={() => saveNow()}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  {wordCount(ia.capabilities_imagine) < 15
-                    ? `${wordCount(ia.capabilities_imagine)} words — write at least 15`
-                    : `${wordCount(ia.capabilities_imagine)} words`}
+          {/* 6. What the Capabilities Revealed — shows after explorer completion */}
+          {ia.explorer_chosen && (
+            <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">What the Capabilities Revealed</h3>
+              {ia.explorer_rounds && ia.explorer_rounds.length > 0 && (
+                <p className="text-xs text-gray-500 mb-2">
+                  You explored {ia.explorer_rounds.length} combination{ia.explorer_rounds.length > 1 ? 's' : ''}.
+                  You chose {formatCapabilityList(ia.explorer_chosen.capabilities.map((c: string) => CAPABILITY_LABELS[c as keyof typeof CAPABILITY_LABELS] || c))}:
                 </p>
-                {wordCount(ia.capabilities_imagine) >= 15 && (
-                  <SaveImagineButton onSave={saveNow} />
-                )}
+              )}
+              <div className="flex gap-1.5 mb-2">
+                {ia.explorer_chosen.capabilities.map((cap: string) => {
+                  const color = CAPABILITY_COLORS[cap as keyof typeof CAPABILITY_COLORS] || 'purple';
+                  const bgClass = color === 'green' ? 'bg-green-100 text-green-700'
+                    : color === 'blue' ? 'bg-blue-100 text-blue-700'
+                    : color === 'orange' ? 'bg-orange-100 text-orange-700'
+                    : color === 'red' ? 'bg-red-100 text-red-700'
+                    : 'bg-purple-100 text-purple-700';
+                  return (
+                    <span key={cap} className={`text-xs font-medium px-2.5 py-1 rounded-full ${bgClass}`}>
+                      {CAPABILITY_LABELS[cap as keyof typeof CAPABILITY_LABELS] || cap}
+                    </span>
+                  );
+                })}
               </div>
-            )}
+              <p className="text-sm text-gray-800">{ia.explorer_chosen.ai_response}</p>
 
-            {/* Completion gate warning */}
-            {(!ia.capabilities_applied ||
-              (Array.isArray(ia.capabilities_applied) && ia.capabilities_applied.length < 2) ||
-              !ia.capabilities_imagine ||
-              wordCount(ia.capabilities_imagine) < 15) && (
-              <p className="mt-3 text-xs font-semibold text-amber-600 flex items-center gap-1">
-                <span>⚠</span> Required to continue
+              {/* Re-explore button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setExplorerOpen(true)}
+                className="mt-3 text-purple-600 border-purple-300"
+              >
+                Explore again
+              </Button>
+            </div>
+          )}
+
+          {/* 7. The Comparison — instinct vs chosen capability approach */}
+          {ia.explorer_chosen && ia.instinct_approach && (
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <h4 className="text-xs font-semibold uppercase text-gray-500 mb-2">Your first instinct</h4>
+                <p className="text-sm text-gray-700">{ia.instinct_approach}</p>
+              </div>
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <h4 className="text-xs font-semibold uppercase text-purple-600 mb-2">
+                  Through {formatCapabilityList(ia.explorer_chosen.capabilities.map((c: string) => CAPABILITY_LABELS[c as keyof typeof CAPABILITY_LABELS] || c))}
+                </h4>
+                <p className="text-sm text-gray-800">{ia.explorer_chosen.ai_response}</p>
+              </div>
+            </div>
+          )}
+
+          {/* 8. Reflection — post-exploration */}
+          {ia.explorer_chosen && (
+            <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
+              <h3 className="font-semibold text-purple-700 mb-1">Reflection</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                What stood out to you about the approach you chose?
               </p>
-            )}
-          </div>
+              <textarea
+                className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
+                rows={3}
+                placeholder="What stands out when you compare these two approaches?"
+                value={ia.explorer_reflection ?? ''}
+                onChange={(e) =>
+                  setState((prev) => ({
+                    ...prev,
+                    ia_4_2: { ...(prev.ia_4_2 || {}), explorer_reflection: e.target.value },
+                  }))
+                }
+                onBlur={() => saveNow()}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                {(ia.explorer_reflection ?? '').trim().length < 10
+                  ? `${(ia.explorer_reflection ?? '').trim().length} characters — write at least 10`
+                  : `${(ia.explorer_reflection ?? '').trim().length} characters`}
+              </p>
+            </div>
+          )}
         </>
       )}
     </>
