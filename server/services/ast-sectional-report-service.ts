@@ -11,6 +11,8 @@ import { generateOpenAICoachingResponse } from './openai-api-service.js';
 import { htmlTemplateService, type ReportSection, type ReportMetadata } from './html-template-service.js';
 import { rmlProcessor } from './rml-processor.js';
 import { astPayloadBuilderService } from './ast-payload-builder-service.js';
+import { getProvider, getProviderName } from './ai-provider.js';
+import { getFullReportSystemPrompt } from '../config/ast-report-content-loader.js';
 
 // Database connection
 const pool = new Pool({
@@ -524,7 +526,8 @@ class ASTSectionalReportService {
         totalSections,
         sections,
         startedAt: reportData?.generated_at,
-        completedAt: overallStatus === 'completed' ? reportData?.updated_at : undefined
+        completedAt: overallStatus === 'completed' ? reportData?.updated_at : undefined,
+        provider: getProviderName('reports'),
       };
 
     } catch (error) {
@@ -695,6 +698,96 @@ class ASTSectionalReportService {
   }
 
   /**
+   * Generate section content via Claude provider (stateless, cached system prompt).
+   * Uses Option B: full system prompt with ALL section instructions, user message specifies section.
+   * Sections 2-5 get full cache hits since the system prompt is identical.
+   */
+  private async generateSectionWithClaude(
+    payload: any,
+    sectionDef: any,
+    reportType: string,
+    retryCount: number = 0
+  ): Promise<{ content: string; aiRequestPayload: any }> {
+    const requestTimestamp = new Date().toISOString();
+
+    try {
+      const systemPrompt = getFullReportSystemPrompt();
+      const provider = await getProvider('reports');
+      const payloadString = JSON.stringify(payload, null, 2);
+
+      // User message specifies which section to generate + carries the participant data
+      const userMessage = `Generate SECTION ${sectionDef.id}: ${sectionDef.title}\n\nReport type: ${reportType}\n\n${payloadString}`;
+
+      console.log(`📦 [Claude] Sending section ${sectionDef.id} payload (${payloadString.length} chars), system prompt (${systemPrompt.length} chars)`);
+
+      const result = await provider.complete({
+        systemPrompt,
+        messages: [{ role: 'user', content: userMessage }],
+        maxTokens: 8000,
+        temperature: 0.7,
+        cacheSystemPrompt: true, // Enables 90%+ cache hits for sections 2-5
+      });
+
+      const content = result.content;
+      const cacheInfo = result.usage.cacheReadTokens
+        ? `CACHE HIT (${result.usage.cacheReadTokens} tokens read from cache)`
+        : `CACHE WRITE (${result.usage.cacheWriteTokens || 0} tokens cached)`;
+
+      console.log(`✅ [Claude] Section ${sectionDef.id} generated: ${content.length} chars, ${result.usage.inputTokens}+${result.usage.outputTokens} tokens, ${result.latencyMs}ms, ${cacheInfo}`);
+
+      const aiRequestPayload = {
+        provider: 'claude',
+        model: result.model,
+        payloadVersion: '2.3',
+        structuredPayload: payload,
+        sectionDef: {
+          id: sectionDef.id,
+          name: sectionDef.name,
+          title: sectionDef.title,
+          description: sectionDef.description,
+        },
+        reportType,
+        timestamp: requestTimestamp,
+        usage: result.usage,
+        latencyMs: result.latencyMs,
+        cacheMetrics: {
+          cacheReadTokens: result.usage.cacheReadTokens || 0,
+          cacheWriteTokens: result.usage.cacheWriteTokens || 0,
+        },
+      };
+
+      console.log('📦 [Claude] Storing raw content (RML processing deferred to viewing time)');
+      return { content, aiRequestPayload };
+
+    } catch (error: any) {
+      console.error(`❌ [Claude] Error generating section ${sectionDef.id}:`, error);
+
+      // Retry on rate limit or server errors
+      const isRetryable = error?.status === 429 || error?.status === 500 || error?.status === 529 ||
+                          error?.message?.includes('rate_limit') || error?.message?.includes('overloaded');
+
+      if (isRetryable && retryCount < 3) {
+        const waitTime = error?.status === 429
+          ? this.parseRateLimitWaitTime(error.message)
+          : 10000;
+        console.log(`⏳ [Claude] Retryable error. Waiting ${waitTime}ms before retry ${retryCount + 1}/3...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        return this.generateSectionWithClaude(payload, sectionDef, reportType, retryCount + 1);
+      }
+
+      // Friendly error for service issues
+      if (error?.status === 500 || error?.status === 529) {
+        const friendlyError = new Error("It looks like our AI Report Writer is taking a virtual break, check back again in a few minutes.");
+        (friendlyError as any).isTemporary = true;
+        (friendlyError as any).originalError = error.message;
+        throw friendlyError;
+      }
+
+      throw error;
+    }
+  }
+
+  /**
    * Generate section content with structured JSON payload (v2.3 spec)
    * Returns both content and the complete AI request payload for storage
    * Automatically retries on rate limit errors
@@ -705,6 +798,11 @@ class ASTSectionalReportService {
     reportType: string,
     retryCount: number = 0
   ): Promise<{ content: string; aiRequestPayload: any }> {
+    // ── Provider branching ────────────────────────────────────────────────────
+    if (getProviderName('reports') === 'claude') {
+      return this.generateSectionWithClaude(payload, sectionDef, reportType, retryCount);
+    }
+
     try {
       // Capture timestamp before API call
       const requestTimestamp = new Date().toISOString();

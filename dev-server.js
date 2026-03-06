@@ -130,6 +130,10 @@ async function startDevServer() {
   app.use('/api/beta-tester', betaTesterRoutes);
   app.use('/api/beta-tester', betaTesterNotesRoutes);
   
+  // Serve static assets from /public directory
+  // This MUST come before Vite middleware to properly serve PDFs and other assets
+  app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
+
   // Health check endpoint
   app.get('/health', (req, res) => {
     res.status(200).json({

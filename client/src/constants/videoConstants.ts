@@ -44,6 +44,6 @@ export const ALL_STEPS: StepDefinition[] = [...AST_STEPS, ...IA_STEPS];
 // Workshop type definitions
 export const WORKSHOP_TYPES: WorkshopType[] = [
   { value: 'allstarteams', label: 'AST - All Star Teams', color: 'blue' },
-  { value: 'imaginal-agility', label: 'IA - Imaginal Agility', color: 'purple' },
+  { value: 'ia', label: 'IA - Imaginal Agility', color: 'purple' },
   { value: 'general', label: 'General', color: 'gray' },
 ];

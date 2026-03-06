@@ -43,6 +43,7 @@ interface SectionalProgress {
   estimatedCompletionTime?: number;
   startedAt?: Date;
   completedAt?: Date;
+  provider?: 'openai' | 'claude';
 }
 
 interface GenerateReportResponse {
@@ -716,6 +717,11 @@ export default function HolisticReportView({
                         hour12: true,
                         timeZoneName: 'short'
                       })}
+                      {progress.provider && (
+                        <span className="text-green-600/60 ml-1">
+                          via {progress.provider === 'claude' ? 'Claude' : 'OpenAI'}
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>

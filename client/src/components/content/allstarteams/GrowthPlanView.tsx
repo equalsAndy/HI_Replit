@@ -9,9 +9,11 @@ import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCi
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import tuningForkImage from '@assets/turningfork_1749438223210.png';
 import StarCard from '@/components/starcard/StarCard';
 import WellBeingLadderSvg from '@/components/visualization/WellBeingLadderSvg';
 import { getAttributeColor } from '@/components/starcard/starCardConstants';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
@@ -165,6 +167,18 @@ export default function GrowthPlanView({
           Module 3: Post-Workshop Individual Development
         </p>
       </div>
+
+      {/* Prototype Notice */}
+      <Card className="border-purple-300 bg-purple-50">
+        <CardContent className="p-4">
+          <p className="text-sm text-purple-800">
+            <strong>📋 Prototype Feature:</strong> This Quarterly Growth Plan is currently a prototype.
+            Your responses are saved to your profile and you can review them anytime, but this data
+            is not yet integrated with other features or reports. We're developing this tool to help
+            you connect your workshop insights to ongoing personal development.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* What is this? */}
       <Card className="border-blue-200 bg-blue-50">
@@ -396,16 +410,16 @@ export default function GrowthPlanView({
                 feeling={starData?.feeling || 0}
                 planning={starData?.planning || 0}
                 flowAttributes={
-                  flowAttributesData && 
-                  (flowAttributesData as any).attributes && 
-                  Array.isArray((flowAttributesData as any).attributes) ? 
+                  flowAttributesData &&
+                  (flowAttributesData as any).attributes &&
+                  Array.isArray((flowAttributesData as any).attributes) ?
                   (flowAttributesData as any).attributes.map((attr: any) => {
                     if (!attr || !attr.name) {
                       return { text: "", color: "rgb(156, 163, 175)" };
                     }
                     return {
                       text: attr.name,
-                      color: getAttributeColor(attr.name) // Use proper color mapping based on attribute name
+                      color: getAttributeColor(attr.name)
                     };
                   }) : []
                 }
@@ -507,27 +521,34 @@ export default function GrowthPlanView({
     );
   };
 
-  const renderPlayingToStrengths = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
-        <h3 className="text-xl font-semibold">Playing to Strengths</h3>
-        <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
-      </div>
+  const renderPlayingToStrengths = () => {
+    // Extract the actual text value from strengthsExamples
+    const strengthsText = typeof formData.strengthsExamples === 'string'
+      ? formData.strengthsExamples
+      : formData.strengthsExamples?.general || '';
 
-      <div className="space-y-4">
-        <div>
-          <Label>Strengths Examples & Applications</Label>
-          <Textarea
-            placeholder="How will you apply your top strengths this quarter? Provide specific examples of projects, roles, or responsibilities where you can leverage your unique strength combination..."
-            value={formData.strengthsExamples ? JSON.stringify(formData.strengthsExamples) : ''}
-            onChange={(e) => updateFormData('strengthsExamples', { general: e.target.value })}
-            className="h-32"
-          />
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
+          <h3 className="text-xl font-semibold">Playing to Strengths</h3>
+          <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <Label>Strengths Examples & Applications</Label>
+            <Textarea
+              placeholder="How will you apply your top strengths this quarter? Provide specific examples of projects, roles, or responsibilities where you can leverage your unique strength combination..."
+              value={strengthsText}
+              onChange={(e) => updateFormData('strengthsExamples', { general: e.target.value })}
+              className="h-32"
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderFlowOptimization = () => (
     <div className="space-y-6">
@@ -719,10 +740,16 @@ export default function GrowthPlanView({
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <img src="/assets/turningfork_1749438223210.png" alt="Growth Plan" className="w-8 h-8" />
+            <img src={tuningForkImage} alt="Growth Plan" className="w-8 h-8" />
             Quarterly Growth Plan - {stepTitles[currentStep]}
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-gray-600">

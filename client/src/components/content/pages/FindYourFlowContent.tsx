@@ -761,11 +761,6 @@ export default function FindYourFlow() {
           <TabsContent value="starcard" className="space-y-6">
             <div className="prose max-w-none mb-6">
               <h2>Add Flow to Your StarCard</h2>
-              <p>
-                Now that you've completed the flow assessment and reflection, select four flow attributes 
-                that best describe your optimal flow state. These will be added to your StarCard to create 
-                a comprehensive visualization of your strengths and flow profile.
-              </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -95,9 +95,11 @@ export const users: any = pgTable('users', {
   profilePicture: text('profile_picture'),
   profilePictureId: integer('profile_picture_id'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
+  isDemoAccount: boolean('is_demo_account').default(false).notNull(),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
   hasSeenWelcomeVideo: boolean('has_seen_welcome_video').default(false).notNull(),
+  showWelcomeVideoOnStartup: boolean('show_welcome_video_on_startup').default(true).notNull(),
   showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(), // Admin-granted permission for demo data access
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields
@@ -166,6 +168,7 @@ export const videos = pgTable('videos', {
   // Video management enhancements
   contentMode: varchar('content_mode', { length: 20 }).default('both').notNull(), // 'student', 'professional', 'both'
   requiredWatchPercentage: integer('required_watch_percentage').default(75).notNull(), // Percentage required to unlock next step
+  enforceWatchRequirement: boolean('enforce_watch_requirement').default(false).notNull(), // Whether to block step progression
   // Content fields for transcript and glossary
   transcriptMd: text('transcript_md').notNull().default(''),
   glossary: jsonb('glossary').notNull().default('[]'),
@@ -228,6 +231,9 @@ export const invites = pgTable('invites', {
   cohortId: integer('cohort_id'),
   organizationId: varchar('organization_id', { length: 255 }),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
+  astAccess: boolean('ast_access').default(true).notNull(),
+  iaAccess: boolean('ia_access').default(true).notNull(),
+  showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(),
 });
 
 // Create insert schema for invites with role validation
@@ -273,6 +279,55 @@ export const insertUserAssessmentSchema = createInsertSchema(userAssessments);
 // Type definitions for user assessments
 export type UserAssessment = typeof userAssessments.$inferSelect;
 export type InsertUserAssessment = z.infer<typeof insertUserAssessmentSchema>;
+
+// Demo snapshots table for storing workshop data snapshots
+export const demoSnapshots = pgTable('demo_snapshots', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workshopType: varchar('workshop_type', { length: 10 }).notNull().default('ast'),
+  snapshotName: varchar('snapshot_name', { length: 255 }),
+  snapshotData: jsonb('snapshot_data').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: integer('created_by').references(() => users.id),
+}, (table) => ({
+  uniqueUserWorkshop: unique().on(table.userId, table.workshopType),
+}));
+
+// Create insert schema for demo snapshots
+export const insertDemoSnapshotSchema = createInsertSchema(demoSnapshots);
+
+// Type definitions for demo snapshots
+export type DemoSnapshot = typeof demoSnapshots.$inferSelect;
+export type InsertDemoSnapshot = z.infer<typeof insertDemoSnapshotSchema>;
+
+// TypeScript interface for snapshot data structure
+export interface SnapshotData {
+  userAssessments: Array<{
+    assessmentType: string;
+    results: string;
+    answers?: any;
+  }>;
+  reflectionResponses: Array<{
+    reflectionSetId: string;
+    reflectionId: string;
+    response: string;
+    completed: boolean;
+  }>;
+  workshopStepData: Array<{
+    stepId: string;
+    data: any;
+  }>;
+  navigationProgress: {
+    currentStepId?: string;
+    completedSteps?: string[];
+    moduleProgress?: any;
+  };
+  holisticReports?: Array<{
+    reportType: string;
+    htmlContent: string;
+    generatedAt: string;
+  }>;
+}
 
 // Growth plans table for quarterly planning
 export const growthPlans = pgTable('growth_plans', {

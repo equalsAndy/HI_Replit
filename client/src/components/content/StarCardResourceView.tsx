@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Star } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 const StarCardResourceView: React.FC<ContentViewProps> = ({
   navigate,
@@ -38,6 +39,12 @@ const StarCardResourceView: React.FC<ContentViewProps> = ({
   
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Star Card</h1>
       
       <div className="prose max-w-none mb-6">

@@ -14,6 +14,7 @@ const AllStarTeamsPage = React.lazy(() => import('@/pages/allstarteams'));
 const ImaginalAgilityPage = React.lazy(() => import('@/pages/imaginal-agility'));
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
+import WorkshopSelectionPage from '@/pages/WorkshopSelectionPage';
 
 // KAN-147 Phase 2: Lazy load Admin components
 const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard-new'));
@@ -225,6 +226,13 @@ const App: React.FC = () => {
                       </ProtectedRoute>
                     </Route>
                     <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
+
+                    {/* Workshop Selection Page - for users with access to both workshops */}
+                    <Route path="/workshop-selection">
+                      <ProtectedRoute>
+                        <WorkshopSelectionPage />
+                      </ProtectedRoute>
+                    </Route>
 
                     {/* Workshop routes with lazy loading */}
                     <Route path="/allstarteams">

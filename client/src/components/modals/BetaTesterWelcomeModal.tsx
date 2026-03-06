@@ -170,15 +170,9 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                     Thank You!
                   </h2>
                   <p className="text-slate-600 text-lg mb-4 leading-relaxed">
-                    AllStarTeams is a workshop that helps people discover their strengths, find their flow, and build better teams. 
+                    AllStarTeams is a workshop that helps people discover their strengths, find their flow, and build better teams.
                     You're testing the <strong>individual self-directed experience</strong> - complete the workshop through the Final Reflection.
                   </p>
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                    <h3 className="text-amber-800 font-semibold mb-2">Note:</h3>
-                    <p className="text-amber-700 text-sm leading-relaxed">
-                      Some features are marked as <strong>samples</strong> (team features) - these are features to come and you're welcome to share feedback.
-                    </p>
-                  </div>
                 </>
               )}
             </div>

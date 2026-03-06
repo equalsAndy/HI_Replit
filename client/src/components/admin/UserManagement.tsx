@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { formatDistanceToNow } from 'date-fns';
 import { WorkshopDataView } from './WorkshopDataView';
 import VersionInfo from '@/components/ui/VersionInfo';
+import { AdminStarCardModal } from './AdminStarCardModal';
 
 // Types
 interface User {
@@ -45,6 +46,7 @@ interface User {
   profilePicture?: string;
   role: 'admin' | 'facilitator' | 'participant' | 'student';
   isTestUser: boolean;
+  isDemoAccount: boolean;
   isBetaTester: boolean;
   showDemoDataButtons: boolean;
   canTrainTalia: boolean;
@@ -97,6 +99,7 @@ const editUserSchema = z.object({
   astAccess: z.boolean(),
   iaAccess: z.boolean(),
   isTestUser: z.boolean(),
+  isDemoAccount: z.boolean().default(false),
   isBetaTester: z.boolean().default(false),
   showDemoDataButtons: z.boolean().default(false),
   canTrainTalia: z.boolean().default(false),
@@ -178,6 +181,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [dataViewOpen, setDataViewOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [starCardModalState, setStarCardModalState] = useState<{
+    isOpen: boolean;
+    userId: number | null;
+    userName: string;
+    username: string;
+  } | null>(null);
 
   // Query for current user profile to get role information
   const { data: userProfile } = useQuery({
@@ -316,6 +325,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       astAccess: true,
       iaAccess: true,
       isTestUser: false,
+      isDemoAccount: false,
       isBetaTester: false,
       showDemoDataButtons: false,
       canTrainTalia: false,
@@ -781,67 +791,46 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
-  // StarCard download mutation
-  const downloadStarCardMutation = useMutation({
+  // StarCard modal handler
+  const handleStarCardClick = (user: User) => {
+    setStarCardModalState({
+      isOpen: true,
+      userId: user.id,
+      userName: user.name || user.username,
+      username: user.username
+    });
+  };
+
+  // Demo Account: Capture snapshot mutation
+  const captureSnapshotMutation = useMutation({
     mutationFn: async (userId: number) => {
-      setLoadingUsers(prev => new Set(prev).add(userId));
-
-      const response = await fetch(`/api/starcard/admin/download/${userId}`, {
-        method: 'GET',
-        credentials: 'include',
+      const response = await apiRequest(`/api/admin/demo-accounts/${userId}/snapshot/ast`, {
+        method: 'POST',
       });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'No StarCard found for this user');
-        }
-        throw new Error('Failed to download StarCard');
-      }
-
-      // Get the filename from the Content-Disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filename = contentDisposition
-        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
-        : `user-${userId}-starcard.png`;
-
-      // Get the image data
-      const blob = await response.blob();
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      return userId;
+      return response;
     },
-    onSuccess: (userId) => {
-      setLoadingUsers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(userId);
-        return newSet;
-      });
+    onSuccess: (data, userId) => {
       toast({
-        title: 'StarCard downloaded',
-        description: `StarCard PNG for ${users.find(user => user.id === userId)?.username} has been downloaded.`,
+        title: 'Snapshot captured',
+        description: `AST workshop data captured successfully for demo account.`,
       });
+      refetchUsers();
     },
-    onError: (error: any, userId) => {
-      setLoadingUsers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(userId);
-        return newSet;
-      });
+    onError: (error: any) => {
+      // Extract detailed error message if available
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to capture snapshot';
+
       toast({
-        title: 'StarCard download failed',
-        description: error.message || 'Failed to download StarCard. Please try again.',
+        title: 'Cannot create demo account',
+        description: errorMessage,
         variant: 'destructive',
+        duration: 10000, // Show for 10 seconds so user can read the missing items
       });
+
+      // Revert the isDemoAccount toggle since snapshot failed
+      if (selectedUser) {
+        refetchUsers();
+      }
     },
   });
 
@@ -854,11 +843,24 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const onEditSubmit = (values: EditUserFormValues) => {
     console.log('🔍 onEditSubmit called with values:', values);
     console.log('🔍 selectedUser:', selectedUser);
-    
+
     if (selectedUser) {
       const payload = { id: selectedUser.id, data: values };
       console.log('🔍 About to send mutation payload:', payload);
-      updateUserMutation.mutate(payload);
+
+      // Check if demo account is being toggled ON
+      const wasDemoAccount = selectedUser.isDemoAccount || false;
+      const isDemoAccount = values.isDemoAccount || false;
+
+      updateUserMutation.mutate(payload, {
+        onSuccess: () => {
+          // If demo account was just enabled, capture snapshot
+          if (!wasDemoAccount && isDemoAccount) {
+            console.log('🔍 Demo account enabled, capturing snapshot...');
+            captureSnapshotMutation.mutate(selectedUser.id);
+          }
+        }
+      });
     }
   };
 
@@ -876,6 +878,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       astAccess: user.astAccess !== undefined ? user.astAccess : true,
       iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
       isTestUser: user.isTestUser || false,
+      isDemoAccount: user.isDemoAccount || false,
       isBetaTester: user.isBetaTester || false,
       showDemoDataButtons: user.showDemoDataButtons !== undefined ? user.showDemoDataButtons : false,
       canTrainTalia: user.canTrainTalia || false,
@@ -1092,6 +1095,17 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>Test User</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : user.isDemoAccount ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="w-3 h-3 bg-green-500 rounded-full mx-auto"></div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Demo Account</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -1320,14 +1334,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                           variant="outline"
                                           size="sm"
                                           className="h-8 w-8 p-0 text-purple-600 hover:text-purple-800 hover:bg-purple-50 border-purple-200"
-                                          onClick={() => downloadStarCardMutation.mutate(user.id)}
-                                          disabled={loadingUsers.has(user.id)}
+                                          onClick={() => handleStarCardClick(user)}
                                         >
-                                          {loadingUsers.has(user.id) && downloadStarCardMutation.isPending ? (
-                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                          ) : (
-                                            <FileImage className="h-3 w-3" />
-                                          )}
+                                          <FileImage className="h-3 w-3" />
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>
@@ -1764,6 +1773,11 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                   Test User
                                 </Badge>
                               )}
+                              {user.isDemoAccount && (
+                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                  Demo Account
+                                </Badge>
+                              )}
                               <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">
                                 Beta Tester
                               </Badge>
@@ -1962,6 +1976,33 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                               <FormLabel className="text-sm font-medium">Beta Tester</FormLabel>
                               <FormDescription className="text-xs text-muted-foreground">
                                 Mark as beta tester (won't see demo data buttons unless also Test User)
+                              </FormDescription>
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Demo Account Toggle - Only show if AST workshop is complete */}
+                    <FormField
+                      control={editForm.control}
+                      name="isDemoAccount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-3 rounded-md border p-3">
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                aria-label="Toggle demo account status"
+                                className="data-[state=checked]:bg-green-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium">Demo Account</FormLabel>
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Convert completed workshop to demo account for presentations
                               </FormDescription>
                             </div>
                           </div>
@@ -2428,6 +2469,17 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* StarCard Modal */}
+      {starCardModalState && (
+        <AdminStarCardModal
+          userId={starCardModalState.userId!}
+          userName={starCardModalState.userName}
+          username={starCardModalState.username}
+          isOpen={starCardModalState.isOpen}
+          onClose={() => setStarCardModalState(null)}
+        />
+      )}
     </div>
   );
 };

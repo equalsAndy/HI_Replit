@@ -11,6 +11,7 @@ import { useStarCardData } from '@/hooks/useStarCardData';
 import StrengthReflections from './StrengthReflections';
 import StrengthShapesExplainer from './StrengthShapesExplainer';
 import { ChevronRight } from 'lucide-react';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -178,6 +179,12 @@ const StrengthsView: React.FC<ContentViewProps> = ({
 
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Strengths</h1>
 
       <div className="prose max-w-none">

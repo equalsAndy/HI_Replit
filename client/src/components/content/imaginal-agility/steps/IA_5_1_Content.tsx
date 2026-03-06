@@ -1,33 +1,54 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
-import { useVideoByStepId } from '@/hooks/use-videos';
+import { useVideosByStepId } from '@/hooks/use-videos';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
+import ActivationMatrix from '../ActivationMatrix';
 
 interface IA51ContentProps {
   onNext?: (stepId: string) => void;
 }
 
-const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
-  // Get video data for debugging
-  const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-5-1');
+type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
 
-  // Helper function to extract YouTube ID from video URL
+const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
+  const { data: videosData, isLoading: videoLoading } = useVideosByStepId('ia', 'ia-5-1');
+  const [introVideo, matrixVideo] = videosData ?? [];
+
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     return match ? match[1] : null;
   };
 
-  // Simple debug logging for video data
   React.useEffect(() => {
-    if (videoData) {
-      console.log('🎬 IA-5-1 Video found:', videoData.title);
-    } else if (!isLoading) {
-      console.log('🎬 IA-5-1 No video data found for step ia-5-1');
-    }
-  }, [videoData, isLoading]);
+    if (introVideo) console.log('🎬 IA-5-1 Video 1 found:', introVideo.title);
+    if (matrixVideo) console.log('🎬 IA-5-1 Video 2 found:', matrixVideo.title);
+    if (!videoLoading && !introVideo) console.log('🎬 IA-5-1 No videos found for step ia-5-1');
+  }, [introVideo, matrixVideo, videoLoading]);
+
+  // Fetch activation snapshot
+  const { data: snapshotResponse, isLoading: snapshotLoading } = useQuery({
+    queryKey: ['/api/ia/activation-snapshot'],
+    queryFn: async () => {
+      const res = await fetch('/api/ia/activation-snapshot', { credentials: 'include' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    },
+    retry: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
+
+  const snapshot = snapshotResponse?.snapshot;
+  const prism: Record<CapabilityKey, number> | null = snapshot?.prism ?? null;
+  const soloActivations: Record<CapabilityKey, number> = snapshot?.soloActivations ?? { imagination: 0, curiosity: 0, caring: 0, creativity: 0, courage: 0 };
+  const aiActivations: Record<CapabilityKey, number> = snapshot?.aiActivations ?? { imagination: 0, curiosity: 0, caring: 0, creativity: 0, courage: 0 };
+  const completeness = snapshot?.completeness;
 
   const RungPreview: React.FC<{ n: 1 | 2 | 3 | 4 | 5 }> = ({ n }) => (
     <div className="flex items-center gap-2 md:gap-3">
@@ -48,22 +69,79 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
-        Outcomes and Benefits
+        Introduction
       </h1>
-      
-      {/* Video Section using VideoTranscriptGlossary component like AST */}
+
+      {/* Video 1: Introduction to Module 5 */}
       <VideoTranscriptGlossary
-        youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
-        title={videoData?.title || "Outcomes and Benefits Overview"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        youtubeId={introVideo?.url ? extractYouTubeId(introVideo.url) : undefined}
+        title={introVideo?.title || "Introduction to Module 5"}
+        transcriptMd={null}
+        glossary={null}
       />
 
-      {/* Interactive Outcomes & Benefits */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-purple-700">Click each set of rungs to see some of the benefits.</h2>
+      <h2 className="text-2xl font-semibold text-purple-700 mt-8 mb-2">
+        Your Activation Pattern
+      </h2>
+      <p className="text-lg text-gray-600 mb-8">Your Prism baseline meets your exercise patterns. See what you reached for.</p>
 
-        <Accordion type="single" collapsible className="w-full space-y-3">
+      {/* Video 2: The Imaginal Agility Matrix */}
+      <VideoTranscriptGlossary
+        youtubeId={matrixVideo?.url ? extractYouTubeId(matrixVideo.url) : undefined}
+        title={matrixVideo?.title || "The Imaginal Agility Matrix"}
+        transcriptMd={null}
+        glossary={null}
+      />
+
+      {/* ── Activation Matrix ─────────────────────────────────────────────────── */}
+      {snapshotLoading ? (
+        <div className="flex justify-center items-center h-32 mb-8">
+          <Loader2 className="w-6 h-6 animate-spin text-purple-600 mr-2" />
+          <span className="text-gray-600">Loading your snapshot…</span>
+        </div>
+      ) : prism ? (
+        <ActivationMatrix
+          prism={prism}
+          soloActivations={soloActivations}
+          aiActivations={aiActivations}
+          completeness={completeness}
+        />
+      ) : (
+        <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+          Complete the I4C Self-Assessment (Module 2) to see your Activation Matrix.
+        </div>
+      )}
+
+      {/* ── Capstone Callout ─────────────────────────────────────────────────── */}
+      {(snapshot?.capstoneVision || snapshot?.capstoneReflection) && (
+        <Card className="mb-8 border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="text-lg text-green-800">Your Capstone Vision</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {snapshot.capstoneVision && (
+              <blockquote className="border-l-4 border-green-400 pl-4 text-green-800 italic">
+                "{snapshot.capstoneVision}"
+              </blockquote>
+            )}
+            {snapshot.capstoneReflection && (
+              <div>
+                <p className="text-sm font-medium text-green-700 mb-1">What it required of you:</p>
+                <p className="text-green-800 text-sm">{snapshot.capstoneReflection}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Interactive Outcomes & Benefits ────────────────────────────────── */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold text-purple-700 mb-1">Outcomes &amp; Benefits</h2>
+          <p className="text-gray-600">Expand each set of rungs to discover the psychological and neurocognitive benefits — click the first one below to get started.</p>
+        </div>
+
+        <Accordion type="single" collapsible defaultValue="item-1" className="w-full space-y-3">
           {/* 1. AUTO-FLOW / PROMPT YOUR FLOW */}
           <AccordionItem value="item-1" className="border rounded-lg">
             <AccordionTrigger className="px-4">
@@ -251,6 +329,16 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
           <li><strong>INSPIRATION → INVITING THE MUSE</strong>: Enhancing overall well-being</li>
           <li><strong>UNIMAGINED → WHAT IF...</strong>: Achieving meta-cognitive transcendence</li>
         </ol>
+      </div>
+
+      {/* Continue Button */}
+      <div className="flex justify-end mt-8">
+        <Button
+          onClick={() => onNext?.('ia-5-2')}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+        >
+          Continue to Capability Commitment →
+        </Button>
       </div>
     </div>
   );

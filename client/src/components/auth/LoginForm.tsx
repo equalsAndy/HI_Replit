@@ -16,6 +16,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon } from 'lucide-react';
+import { DemoAccountModal } from './DemoAccountModal';
 
 // Login form schema
 const loginSchema = z.object({
@@ -29,6 +30,8 @@ export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: 
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [showTestInfo, setShowTestInfo] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [demoAccountData, setDemoAccountData] = useState<{ userName: string; hasWorkshopData: boolean } | null>(null);
   
 
   // Initialize react-hook-form
@@ -71,12 +74,27 @@ export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: 
       let redirectTo: string | null = null;
       // Update authentication state
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      
+
+      // Check if this is a demo account and show modal
+      if (data.user.isDemoAccount) {
+        // Check if user has seen demo modal this session
+        const hasSeenDemoModal = sessionStorage.getItem('demo_modal_shown');
+
+        if (!hasSeenDemoModal) {
+          setDemoAccountData({
+            userName: data.user.name || 'Demo User',
+            hasWorkshopData: true, // We'll assume they have data since it's a demo account
+          });
+          setShowDemoModal(true);
+          sessionStorage.setItem('demo_modal_shown', 'true');
+        }
+      }
+
       // Set fresh login flag for beta tester welcome modal
       if (data.user.isBetaTester && data.user.id) {
         sessionStorage.setItem(`beta_fresh_login_${data.user.id}`, 'true');
       }
-      
+
       // Show success message
       toast({
         title: 'Login successful',
@@ -175,9 +193,20 @@ export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: 
       });
     }
   };
-  
+
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <>
+      {/* Demo Account Modal */}
+      {demoAccountData && (
+        <DemoAccountModal
+          open={showDemoModal}
+          onClose={() => setShowDemoModal(false)}
+          userName={demoAccountData.userName}
+          hasWorkshopData={demoAccountData.hasWorkshopData}
+        />
+      )}
+
+      <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Sign in to continue your journey</CardTitle>
         <CardDescription>
@@ -279,5 +308,6 @@ export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: 
       <CardFooter className="flex flex-col">
       </CardFooter>
     </Card>
+    </>
   );
 }

@@ -6,6 +6,7 @@
 
 import express from 'express';
 import { generateOpenAICoachingResponse, isOpenAIAPIAvailable } from '../services/openai-api-service.js';
+import { getProviderName } from '../services/ai-provider.js';
 
 const router = express.Router();
 
@@ -139,7 +140,14 @@ router.get('/all', async (req, res) => {
       reflection_talia: !!reflectionStatus.connected,
       report_talia: !!reportsStatus.connected,
       response_time: null,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      // AI provider configuration
+      aiProvider: {
+        global: getProviderName(),
+        ia: getProviderName('ia'),
+        coaching: getProviderName('coaching'),
+        reports: getProviderName('reports'),
+      }
     });
 
   } catch (error) {

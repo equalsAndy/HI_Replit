@@ -84,10 +84,10 @@ npm test                      # Run tests
 ## 🔄 Git Workflow
 
 **Branches:**
-- **main**: Production-ready code
-- **development**: Active development (primary branch)  
-- **feature/**: New features
+- **main**: Active integration branch — merge feature branches here
+- **feature/**: New features — branch from main, merge back to main
 - **hotfix/**: Critical production fixes
+- ~~**development**~~: Dormant — do not use (8 unmerged AST commits, superseded by main)
 
 **Safe Commands** (always use `-m` to avoid terminal hangs):
 ```bash

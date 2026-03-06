@@ -1,15 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ContentViewProps } from '../../../shared/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { trpc } from "@/utils/trpc";
 import { useUnifiedWorkshopNavigation } from '@/hooks/useUnifiedWorkshopNavigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import ContactModal from '@/components/modals/ContactModal';
 
 /**
  * AST-specific introduction to Imaginal Agility module (AST Step 5-3).
@@ -21,6 +19,8 @@ const IntroIAView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const stepId = "5-3"; // AST step 5-3
+  const { data: user } = useCurrentUser();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // Fetch video from database using tRPC
   const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
@@ -44,54 +44,9 @@ const IntroIAView: React.FC<ContentViewProps> = ({
     } : 'NO_VIDEO_DATA'
   });
 
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const { data: user } = useCurrentUser();
-
-  // Email form state
-  const [email, setEmail] = useState('');
-  const [notes, setNotes] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-
   // Get navigation progress using the unified hook
   const navigation = useUnifiedWorkshopNavigation('ast');
-  const {
-    updateVideoProgress,
-    markStepCompleted: navMarkStepCompleted
-  } = navigation;
-
-  // Load primary email
-  useEffect(() => {
-    const loadPrimaryEmail = async () => {
-      if (!user?.id) return;
-
-      try {
-        const response = await fetch(`/api/beyond-ast/emails/${user.id}`, {
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.emails && data.emails.length > 0) {
-            // Find and set the primary email
-            const primaryEmail = data.emails.find((e: any) => e.isPrimary);
-            setEmail(primaryEmail?.email || data.emails[0].email);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading primary email:', error);
-      }
-    };
-
-    loadPrimaryEmail();
-  }, [user?.id]);
-
-  // Simplified mode: Next button always active for video steps
-  useEffect(() => {
-    setHasReachedMinimum(true);
-    console.log(`🎬 SIMPLIFIED MODE: Next button always active for video step ${stepId}`);
-  }, [stepId]);
+  const { updateVideoProgress } = navigation;
 
   // Track last logged progress to prevent spam
   const lastLoggedProgressRef = useRef(0);
@@ -116,58 +71,16 @@ const IntroIAView: React.FC<ContentViewProps> = ({
       lastLoggedProgressRef.current = roundedProgress;
       updateVideoProgress(stepId, roundedProgress);
     }
-    if (roundedProgress >= 90 && !hasReachedMinimum) {
-      setHasReachedMinimum(true);
-      console.log(`✅ IntroIAView: 90% minimum reached`);
-    }
   };
 
-  // Handle email submission
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitError('');
-
-    try {
-      const response = await fetch('/api/ia-interest/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          email,
-          notes
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSubmitSuccess(true);
-        console.log('✅ IA interest email submitted successfully');
-      } else {
-        throw new Error(data.error || 'Failed to submit email');
-      }
-    } catch (error: any) {
-      console.error('❌ Error submitting IA interest email:', error);
-      setSubmitError(error.message || 'Failed to submit email. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle next button click
-  const handleNext = async () => {
-    try {
-      console.log(`🎯 IntroIAView: Completing step ${stepId}`);
-      await navMarkStepCompleted(stepId);
-      console.log(`✅ Step ${stepId} marked complete`);
-
-      // This is the last step in the workshop, so just mark as complete
-      // No navigation needed
-    } catch (error) {
-      console.error(`❌ Error completing step ${stepId}:`, error);
+  // Handle IA exploration button click
+  const handleExploreIA = () => {
+    if (user?.iaAccess) {
+      // User has IA access - navigate to IA workshop using window.location
+      window.location.href = '/workshop/ia';
+    } else {
+      // User doesn't have IA access - open contact modal
+      setIsContactModalOpen(true);
     }
   };
 
@@ -176,12 +89,18 @@ const IntroIAView: React.FC<ContentViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <div className="text-center">
         <div className="flex justify-center mb-6">
           <img
-            src={imaginalAgilityLogo}
+            src="http://localhost:8080/assets/imaginal_agility_logo_sq.png"
             alt="Imaginal Agility"
-            className="h-24 w-auto"
+            className="h-32 w-32"
           />
         </div>
         <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-4">
@@ -270,77 +189,32 @@ const IntroIAView: React.FC<ContentViewProps> = ({
         </CardContent>
       </Card>
 
-      {/* Email Interest Form */}
-      <Card className="border-2 border-purple-200 bg-purple-50">
-        <CardHeader>
-          <CardTitle className="text-purple-900">Interested in Imaginal Agility?</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {submitSuccess ? (
-            <div className="text-center p-6">
-              <div className="text-green-600 text-lg font-semibold mb-2">
-                ✓ Thank you for your interest!
-              </div>
-              <p className="text-gray-700 mb-6">
-                We've received your email and will be in touch with more information about the Imaginal Agility workshop.
-              </p>
-              <Button
-                onClick={handleNext}
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
-              >
-                Complete Step
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={handleEmailSubmit} className="space-y-6">
-              <p className="text-gray-700">
-                Share your email address to learn more about the full Imaginal Agility workshop experience.
-              </p>
+      {/* IA Workshop Access Section */}
+      <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+        <h3 className="font-semibold text-purple-900 mb-2 text-center">
+          {user?.iaAccess ? 'Explore the Full Workshop' : 'Interested in the Full Workshop?'}
+        </h3>
+        <p className="text-purple-800 mb-6 text-center">
+          {user?.iaAccess
+            ? 'You have access to the complete Imaginal Agility workshop with hands-on exercises and practical applications.'
+            : 'Learn more about bringing the complete Imaginal Agility workshop to your team or organization.'}
+        </p>
+        <div className="flex justify-center">
+          <Button
+            onClick={handleExploreIA}
+            size="lg"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+          >
+            {user?.iaAccess ? 'Go to Imaginal Agility Workshop' : 'Contact Us About IA Workshop'}
+          </Button>
+        </div>
+      </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700">Your Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  readOnly
-                  className="w-full bg-gray-50"
-                  disabled={isSubmitting}
-                />
-                <p className="text-xs text-gray-500">Using your primary email address</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes" className="text-gray-700">Notes (Optional)</Label>
-                <textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any questions or additional information you'd like to share..."
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              {submitError && (
-                <div className="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200">
-                  {submitError}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={isSubmitting || !email}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 w-full"
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Interest'}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+      {/* Contact Modal for users without IA access */}
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 };

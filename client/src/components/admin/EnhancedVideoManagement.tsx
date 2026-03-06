@@ -125,6 +125,8 @@ export function EnhancedVideoManagement() {
       case 'allstarteams':
         return { label: 'AST', bgColor: '#dbeafe', textColor: '#1e40af' };
       case 'ia':
+      case 'imaginal-agility':
+      case 'imaginalagility':
         return { label: 'IA', bgColor: '#f3e8ff', textColor: '#7c3aed' };
       case 'general':
         return { label: 'General', bgColor: '#f3f4f6', textColor: '#6b7280' };
@@ -136,11 +138,11 @@ export function EnhancedVideoManagement() {
 
   // Extract YouTube video ID from URL
   const extractYouTubeId = (url: string): string => {
-    const embedRegex = /youtube\.com\/embed\/([^?&/]+)/;
+    const embedRegex = /youtube(?:-nocookie)?\.com\/embed\/([^?&/]+)/;
     const embedMatch = url.match(embedRegex);
     if (embedMatch && embedMatch[1]) return embedMatch[1];
-    
-    const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+
+    const watchRegex = /youtube(?:-nocookie)?\.com\/watch\?v=([^&]+)/;
     const watchMatch = url.match(watchRegex);
     if (watchMatch && watchMatch[1]) return watchMatch[1];
     
@@ -159,7 +161,11 @@ export function EnhancedVideoManagement() {
       // Convert snake_case API response to camelCase for frontend
       const convertedVideos = result.map((video: any) => ({
         ...video,
-        workshopType: video.workshop_type || video.workshopType,
+        workshopType: (() => {
+          const raw = video.workshop_type || video.workshopType || '';
+          if (raw === 'imaginal-agility' || raw === 'imaginalagility' || raw === 'imaginal agility') return 'ia';
+          return raw;
+        })(),
         stepId: video.step_id || video.stepId,
         editableId: video.editable_id || video.editableId,
         sortOrder: video.sort_order || video.sortOrder,
@@ -664,7 +670,7 @@ export function EnhancedVideoManagement() {
           >
             <option value="all">All Workshops</option>
             <option value="allstarteams">AllStarTeams (AST)</option>
-            <option value="imaginal-agility">Imaginal Agility (IA)</option>
+            <option value="ia">Imaginal Agility (IA)</option>
           </select>
         </div>
         
@@ -723,6 +729,7 @@ export function EnhancedVideoManagement() {
             <th style={{...styles.th, cursor: 'pointer', userSelect: 'none'}} onClick={() => handleSort('sortOrder')}>
               Order {getSortIcon('sortOrder')}
             </th>
+            <th style={{...styles.th, textAlign: 'center' as const}}>Transcript</th>
             <th style={styles.th}>Actions</th>
           </tr>
         </thead>
@@ -784,6 +791,33 @@ export function EnhancedVideoManagement() {
                     </code>
                   </td>
                   <td style={styles.td}>{video.sortOrder}</td>
+                  <td style={{...styles.td, textAlign: 'center'}}>
+                    {video.transcriptMd && video.transcriptMd.trim().length > 0 ? (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        backgroundColor: '#dcfce7',
+                        color: '#166534'
+                      }}>
+                        Yes
+                      </span>
+                    ) : (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        backgroundColor: '#f3f4f6',
+                        color: '#9ca3af'
+                      }}>
+                        No
+                      </span>
+                    )}
+                  </td>
                   <td style={styles.td}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       <button
@@ -820,7 +854,7 @@ export function EnhancedVideoManagement() {
               ))
           ) : (
             <tr>
-              <td colSpan={7} style={{ ...styles.td, textAlign: 'center', padding: '40px' }}>
+              <td colSpan={8} style={{ ...styles.td, textAlign: 'center', padding: '40px' }}>
                 {videos.length === 0 
                   ? 'No videos found. Add your first video to get started.'
                   : 'No videos match the current filters.'
@@ -907,7 +941,7 @@ export function EnhancedVideoManagement() {
                     required
                   >
                     <option value="allstarteams">AllStarTeams</option>
-                    <option value="imaginal-agility">Imaginal Agility</option>
+                    <option value="ia">Imaginal Agility</option>
                   </select>
                 </div>
 

@@ -9,6 +9,7 @@ import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 import { VideoModal } from '@/components/ui/video-modal';
+import { trpc } from '@/utils/trpc';
 
 // ===== Feature list helper & style toggle =====
 type FeatureListVariant =
@@ -234,6 +235,12 @@ function FeatureList({
 export default function Landing() {
   const [, navigate] = useLocation();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  // Fetch landing page video from database
+  const { data: landingVideo } = trpc.lesson.bySection.useQuery(
+    { workshop: 'general', section: 'home' },
+    { retry: false }
+  );
   
   // Remove automatic Auth0 login redirect
   // const { isAuthenticated: auth0IsAuthenticated, loginWithRedirect } = useAuth0();
@@ -386,7 +393,7 @@ export default function Landing() {
                     color="purple"
                     items={[
                       { title: "Develop Your Imagination", text: "as a core strategic capability for growth and change." },
-                      { title: "Learn The I4C Model", text: "to enhance your curiosity, caring, creativity, and courage." },
+                      { title: "Learn The i4C Model", text: "to enhance your curiosity, caring, creativity, and courage." },
                       { title: "Climb the Ladder of Imagination", text: "through structured visioning and creative problem-solving." },
                       { title: "Elevate Your HaiQ", text: "(Human-AI Collaboration Quotient) for the future workforce." },
                       { title: "Grow Return on Imagination", text: "(ROI 2.0) at scale across teams and organizations." },
@@ -437,8 +444,8 @@ export default function Landing() {
       <VideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        videoId="LkoL6MErRkg"
-        title="Workshop Overview Video"
+        videoId={landingVideo?.youtubeId || 'kAovkgp7tJU'}
+        title={landingVideo?.title || 'Workshop Overview Video'}
       />
     </div>
   );

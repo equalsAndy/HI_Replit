@@ -43,7 +43,7 @@ export default function AllStarTeamsWorkshop() {
   } = useWelcomeVideo();
   // Updated to use unified navigation system
   const navigation = useUnifiedWorkshopNavigation('ast');
-  const { isWorkshopLocked, isModuleAccessible, getStepModule } = useWorkshopStatus();
+  const { isWorkshopLocked, isModuleAccessible, getStepModule, astCompleted } = useWorkshopStatus();
   const { setCurrentStepId } = useStepContextSafe();
   const {
     progress: navProgress,
@@ -573,7 +573,7 @@ export default function AllStarTeamsWorkshop() {
     }
   });
 
-  // Function to mark a step as completed - FIXED: Proper async state synchronization
+  // Function to mark a step as completed - SIMPLIFIED: Let view components handle content navigation
   const markStepCompleted = async (stepId: string, options?: { autoAdvance?: boolean }) => {
     console.log(`🎯 markStepCompleted called with: ${stepId}`);
     console.log(`🎯 Current navigation state BEFORE:`, {
@@ -582,55 +582,24 @@ export default function AllStarTeamsWorkshop() {
     });
 
     try {
-      // CRITICAL FIX 1: Call the navigation hook's method and wait for the result
-      const result = await markNavStepCompleted(stepId, options);
-      console.log(`🎯 markNavStepCompleted result:`, result);
+      // Call the navigation hook's method to mark step completed
+      // The hook handles auto-advancing currentStep and saving to database
+      await markNavStepCompleted(stepId, options);
 
-      // CRITICAL FIX 2: Get the updated navigation progress directly from the hook
-      // Use a small delay to ensure React state has updated
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
-      // Get the current progress after the update
-      const updatedProgress = navigation.progress;
-      const updatedCurrentStep = updatedProgress?.currentStepId;
-      const updatedCompletedSteps = updatedProgress?.completedSteps || [];
-      
-      console.log(`🎯 Navigation state AFTER update:`, {
-        currentStepId: updatedCurrentStep,
-        completedSteps: updatedCompletedSteps,
-        stepJustCompleted: updatedCompletedSteps.includes(stepId)
-      });
-
-      // CRITICAL FIX 3: Update content based on the actual current step from navigation
-      // SPECIAL CASE: For step 3-4 completion, don't auto-navigate to different content
-      if (stepId === '3-4') {
-        console.log(`🏆 WORKSHOP COMPLETION: Step 3-4 completed, staying on workshop-recap content`);
-        console.log(`🔓 Modules 4 & 5 should now be unlocked in navigation sidebar`);
-        // Stay on current content (workshop-recap) - don't auto-navigate away
-      } else if (updatedCurrentStep && updatedCurrentStep !== stepId) {
-        const navInfo = navigationSequence[updatedCurrentStep];
-        if (navInfo) {
-          console.log(`🎯 Updating content from ${currentContent} to: ${navInfo.contentKey}`);
-          setCurrentContent(navInfo.contentKey);
-        } else {
-          console.log(`🔍 No navigation mapping found for step: ${updatedCurrentStep}`);
-        }
-      }
-
-      // CRITICAL FIX 4: The navigation hook now handles database saving internally
-      console.log(`✅ Navigation hook handles database persistence automatically`);
+      // NOTE: We do NOT auto-update content here anymore to avoid race conditions.
+      // The view component calling this function should explicitly set content
+      // after awaiting this call. This ensures content and navigation stay in sync.
 
       // Clear manual navigation flag to allow auto-navigation
       sessionStorage.removeItem('hasNavigatedManually');
-      console.log(`🎯 Cleared manual navigation flag after step completion`);
 
-      console.log(`✅ Step ${stepId} completion successful. Current step: ${updatedCurrentStep}`);
-      return updatedCurrentStep;
+      console.log(`✅ Step ${stepId} marked as completed`);
+      return stepId;
 
     } catch (error) {
       console.error(`❌ Error completing step ${stepId}:`, error);
       toast({
-        title: "Navigation Error", 
+        title: "Navigation Error",
         description: "There was an error progressing to the next step. Please try again.",
         variant: "destructive"
       });
@@ -703,9 +672,8 @@ export default function AllStarTeamsWorkshop() {
 
     // MODULE 2: STRENGTH AND FLOW
     '2-1': { prev: '1-3', next: '2-2', contentKey: 'star-strengths-assessment' }, // ✅ IntroStrengthsView
-    '2-2': { prev: '2-1', next: '2-3', contentKey: 'flow-patterns' }, // ✅ IntroToFlowView (OLD 3-1)
-    '2-3': { prev: '2-2', next: '2-4', contentKey: 'rounding-out' }, // ✅ FlowRoundingOutView (OLD 3-2)
-    '2-4': { prev: '2-3', next: '3-1', contentKey: 'module-2-recap' }, // NEW - PlaceholderView
+    '2-2': { prev: '2-1', next: '2-4', contentKey: 'flow-patterns' }, // ✅ IntroToFlowView (OLD 3-1)
+    '2-4': { prev: '2-2', next: '3-1', contentKey: 'module-2-recap' }, // NEW - PlaceholderView
 
     // MODULE 3: VISUALIZE YOUR POTENTIAL
     '3-1': { prev: '2-4', next: '3-2', contentKey: 'wellbeing-ladder' }, // ✅ WellBeingView (OLD 4-1)
@@ -828,14 +796,15 @@ export default function AllStarTeamsWorkshop() {
     if (section.id === '5') return section;
 
     // Count completed steps in this section
-    const completedStepsInSection = section.steps.filter(step => 
+    const completedStepsInSection = section.steps.filter(step =>
       Array.isArray(completedSteps) && completedSteps.includes(step.id)
     ).length;
 
-    // Special handling for modules 4 and 5: expand when workshop recap (3-4) is completed
+    // Special handling for modules 4 and 5: expand when workshop is completed OR when step 3-4 is completed
     let shouldExpand = section.expanded;
-    if ((section.id === '4' || section.id === '5') && completedSteps.includes('3-4')) {
+    if ((section.id === '4' || section.id === '5') && (astCompleted || completedSteps.includes('3-4'))) {
       shouldExpand = true;
+      console.log(`🔓 Module ${section.id} unlocked - astCompleted: ${astCompleted}, 3-4 completed: ${completedSteps.includes('3-4')}`);
     }
 
     return {

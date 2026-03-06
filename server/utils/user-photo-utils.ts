@@ -17,6 +17,7 @@ export interface UserWithPhotoReference {
   profilePictureUrl?: string;
   hasProfilePicture: boolean;
   isTestUser: boolean;
+  isDemoAccount: boolean;
   isBetaTester: boolean;
   showDemoDataButtons: boolean;
   navigationProgress?: string;
@@ -50,6 +51,7 @@ export function convertUserToPhotoReference(user: any): UserWithPhotoReference {
     profilePictureId: user.profile_picture_id || user.profilePictureId,
     hasProfilePicture: !!(user.profile_picture_id || user.profilePictureId || user.profile_picture || user.profilePicture),
     isTestUser: user.is_test_user || user.isTestUser || false,
+    isDemoAccount: user.is_demo_account || user.isDemoAccount || false,
     isBetaTester: user.is_beta_tester || user.isBetaTester || false,
     showDemoDataButtons: user.show_demo_data_buttons || user.showDemoDataButtons || false,
     navigationProgress: user.navigation_progress || user.navigationProgress,

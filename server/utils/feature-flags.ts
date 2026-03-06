@@ -41,6 +41,12 @@ export const featureFlags: Record<string, FeatureFlag> = {
     environment: 'all',
     description: 'Enhanced video management and progress tracking'
   },
+  videoWatchRequirements: {
+    enabled: process.env.FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true',
+    environment: 'all',
+    description: 'Enforce video watching requirements before step progression',
+    dependencies: ['videoManagement']
+  },
   debugPanel: {
     enabled: process.env.FEATURE_DEBUG_PANEL === 'true',
     environment: 'development',
@@ -50,6 +56,12 @@ export const featureFlags: Record<string, FeatureFlag> = {
     enabled: true,
     environment: 'all',
     description: 'User feedback collection and management system'
+  },
+  claudeProvider: {
+    enabled: process.env.AI_PROVIDER === 'claude',
+    environment: 'all',
+    description: 'Use Claude API instead of OpenAI for AI features (configurable per-feature via AI_PROVIDER_IA, AI_PROVIDER_COACHING, AI_PROVIDER_REPORTS)',
+    aiRelated: true
   }
 };
 

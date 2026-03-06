@@ -133,6 +133,7 @@ export function NavBar() {
       jobTitle?: string;
       role?: string;
       isTestUser: boolean;
+      isDemoAccount?: boolean;
       isBetaTester?: boolean;
       profilePicture?: string;
       profilePictureUrl?: string;
@@ -332,9 +333,9 @@ export function NavBar() {
 
               {/* Beta Tester badge - shown for beta testers */}
               {user?.isBetaTester && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="rounded-md text-white hover:bg-yellow-400 cursor-pointer"
                   onClick={() => setIsBetaTesterModalOpen(true)}
                 >
@@ -342,10 +343,22 @@ export function NavBar() {
                 </Button>
               )}
 
+              {/* Demo Account badge - shown for demo accounts */}
+              {user?.isDemoAccount && (
+                <Badge
+                  variant="secondary"
+                  className="bg-green-500 text-white hover:bg-green-600 px-2 py-1"
+                >
+                  Demo
+                </Badge>
+              )}
+
               {/* Profile Editor with logout functionality */}
               <ProfileEditor
                 user={user}
                 onLogout={handleLogout}
+                currentApp={currentApp}
+                onToggleWorkshop={toggleApplication}
               />
             </div>
           ) : (
@@ -353,6 +366,8 @@ export function NavBar() {
             <ProfileEditor
               user={user}
               onLogout={handleLogout}
+              currentApp={currentApp}
+              onToggleWorkshop={toggleApplication}
             />
           )}
         </div>

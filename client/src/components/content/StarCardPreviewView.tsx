@@ -5,6 +5,7 @@ import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { CARD_WIDTH } from '@/components/starcard/starCardConstants';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -40,6 +41,12 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
 
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Star Profile + Star Card</h1>
 
       <div className="prose max-w-none">

@@ -81,6 +81,7 @@ interface Video {
   sortOrder?: number;
   contentMode?: 'student' | 'professional' | 'both';
   requiredWatchPercentage?: number;
+  enforceWatchRequirement?: boolean;
   transcriptMd?: string;
   glossary?: Array<{ term: string; definition: string; }>;
 }
@@ -93,11 +94,14 @@ interface GlossaryTerm {
 // Form schema for video editing
 const videoEditFormSchema = z.object({
   editableId: z.string().min(1, 'Video ID is required'),
+  workshopType: z.string().min(1, 'Workshop type is required'),
   transcriptMd: z.string().optional(),
   glossary: z.array(z.object({
     term: z.string().min(1, 'Term is required'),
     definition: z.string().min(1, 'Definition is required'),
   })).optional(),
+  enforceWatchRequirement: z.boolean().default(false),
+  requiredWatchPercentage: z.number().min(1).max(100).default(75),
 });
 
 type VideoEditFormData = z.infer<typeof videoEditFormSchema>;
@@ -199,6 +203,7 @@ export function SimpleVideoManagement() {
     resolver: zodResolver(videoEditFormSchema),
     defaultValues: {
       editableId: '',
+      workshopType: 'allstarteams',
       transcriptMd: '',
       glossary: [],
     },
@@ -280,7 +285,12 @@ export function SimpleVideoManagement() {
 
     // Apply workshop filter
     if (filterWorkshop !== 'all') {
-      filtered = filtered.filter(video => video.workshop_type === filterWorkshop);
+      filtered = filtered.filter(video => {
+        if (filterWorkshop === 'ia') {
+          return video.workshop_type === 'ia' || video.workshop_type === 'imaginalagility' || video.workshop_type === 'imaginal-agility' || video.workshop_type === 'imaginal agility';
+        }
+        return video.workshop_type === filterWorkshop;
+      });
     }
 
     // Apply search filter
@@ -391,9 +401,12 @@ export function SimpleVideoManagement() {
         credentials: 'include',
         body: JSON.stringify({
           editableId: data.editableId,
+          workshopType: data.workshopType,
           url: newUrl,
           transcriptMd: data.transcriptMd || '',
           glossary: data.glossary || [],
+          enforceWatchRequirement: data.enforceWatchRequirement || false,
+          requiredWatchPercentage: data.requiredWatchPercentage || 75,
         }),
       });
 
@@ -402,14 +415,17 @@ export function SimpleVideoManagement() {
       }
 
       // Update local state
-      setVideos(prev => prev.map(video => 
-        video.id === selectedVideo.id 
-          ? { 
-              ...video, 
-              editableId: data.editableId, 
+      setVideos(prev => prev.map(video =>
+        video.id === selectedVideo.id
+          ? {
+              ...video,
+              editableId: data.editableId,
+              workshop_type: data.workshopType,
               url: newUrl,
               transcriptMd: data.transcriptMd,
-              glossary: data.glossary
+              glossary: data.glossary,
+              enforceWatchRequirement: data.enforceWatchRequirement,
+              requiredWatchPercentage: data.requiredWatchPercentage
             }
           : video
       ));
@@ -441,11 +457,17 @@ export function SimpleVideoManagement() {
     setPreviewUrl(generatePreviewUrl(videoId)); // Use preview URL (no autoplay)
     
     // Populate form with video data
+    const workshopType = video.workshop_type || 'allstarteams';
     form.reset({
       editableId: videoId,
+      workshopType,
       transcriptMd: video.transcriptMd || '',
       glossary: video.glossary || [],
+      enforceWatchRequirement: video.enforceWatchRequirement || false,
+      requiredWatchPercentage: video.requiredWatchPercentage || 75,
     });
+    // Explicitly set workshopType after reset — Radix Select needs this to reflect the value
+    form.setValue('workshopType', workshopType);
     
     setIsEditDialogOpen(true);
   };
@@ -582,9 +604,8 @@ export function SimpleVideoManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Workshops</SelectItem>
-                  <SelectItem value="allstarteams">AllStarTeams</SelectItem>
-                  <SelectItem value="ast">AST</SelectItem>
-                  <SelectItem value="ia">Imaginal Agility</SelectItem>
+                  <SelectItem value="allstarteams">AST - AllStarTeams</SelectItem>
+                  <SelectItem value="ia">IA - Imaginal Agility</SelectItem>
                   <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
@@ -600,9 +621,8 @@ export function SimpleVideoManagement() {
               {filterWorkshop !== 'all' && (
                 <Badge variant="secondary">
                   <Filter className="h-3 w-3 mr-1" />
-                  {filterWorkshop === 'allstarteams' ? 'AllStarTeams' : 
-                   filterWorkshop === 'ast' ? 'AST' :
-                   filterWorkshop === 'ia' ? 'Imaginal Agility' : 
+                  {filterWorkshop === 'allstarteams' ? 'AST - AllStarTeams' :
+                   filterWorkshop === 'ia' ? 'IA - Imaginal Agility' :
                    filterWorkshop}
                 </Badge>
               )}
@@ -641,31 +661,58 @@ export function SimpleVideoManagement() {
                   
                   <div className="flex-1 overflow-y-auto">
                     <TabsContent value="video" className="space-y-6 p-1">
-                      {/* Video ID Input */}
-                      <FormField
-                        control={form.control}
-                        name="editableId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Video ID</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field}
-                                onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                  handlePreviewIdChange(e.target.value);
-                                }}
-                                placeholder="e.g., nFQPqSwzOLw"
-                                className="font-mono"
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Enter the YouTube video ID (the part after v= or /embed/)
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {/* Video ID and Workshop Type */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="editableId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Video ID</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    handlePreviewIdChange(e.target.value);
+                                  }}
+                                  placeholder="e.g., nFQPqSwzOLw"
+                                  className="font-mono"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                YouTube video ID (the part after v= or /embed/)
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="workshopType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Workshop Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select workshop" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="allstarteams">AST - AllStarTeams</SelectItem>
+                                  <SelectItem value="ia">IA - Imaginal Agility</SelectItem>
+                                  <SelectItem value="general">General</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Which workshop this video belongs to
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       {/* Live Video Preview and Embed Code Side-by-Side */}
                       {previewUrl && (
@@ -710,6 +757,71 @@ export function SimpleVideoManagement() {
                           {selectedVideo?.url}
                         </p>
                       </div>
+
+                      {/* Watch Requirements - only show if feature flag is enabled */}
+                      {import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true' && (
+                        <div className="space-y-4 pt-4 border-t">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold">Video Watch Requirements</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Control whether users must watch this video before progressing to the next step
+                            </p>
+                          </div>
+
+                          {/* Enforce Watch Requirement Toggle */}
+                          <FormField
+                            control={form.control}
+                            name="enforceWatchRequirement"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">
+                                    Block Next Step
+                                  </FormLabel>
+                                  <FormDescription>
+                                    Require users to watch {form.watch('requiredWatchPercentage') || 75}% before proceeding
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* Required Watch Percentage */}
+                          <FormField
+                            control={form.control}
+                            name="requiredWatchPercentage"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Required Watch Percentage</FormLabel>
+                                <FormControl>
+                                  <div className="flex items-center gap-4">
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      max={100}
+                                      value={field.value || 75}
+                                      onChange={(e) => field.onChange(parseInt(e.target.value) || 75)}
+                                      disabled={!form.watch('enforceWatchRequirement')}
+                                      className="w-24"
+                                    />
+                                    <span className="text-sm text-muted-foreground">%</span>
+                                  </div>
+                                </FormControl>
+                                <FormDescription>
+                                  Percentage of video that must be watched (1-100)
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
                     </TabsContent>
 
                     <TabsContent value="transcript" className="space-y-4 p-1">
@@ -826,7 +938,7 @@ export function SimpleVideoManagement() {
                   </div>
                 </TableHead>
                 <TableHead>Video ID</TableHead>
-                <TableHead 
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('requiredWatchPercentage')}
                 >
@@ -835,7 +947,10 @@ export function SimpleVideoManagement() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead 
+                {import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true' && (
+                  <TableHead>Enforcement</TableHead>
+                )}
+                <TableHead
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('autoplay')}
                 >
@@ -856,13 +971,13 @@ export function SimpleVideoManagement() {
                     <TableCell>
                       <Badge variant={
                         video.workshop_type === 'allstarteams' ? 'default' :
-                        video.workshop_type === 'ia' ? 'secondary' :
+                        (video.workshop_type === 'ia' || video.workshop_type === 'imaginalagility' || video.workshop_type === 'imaginal-agility' || video.workshop_type === 'imaginal agility') ? 'secondary' :
                         'outline'
                       }>
-                        {video.workshop_type === 'allstarteams' ? 'AST' : 
-                         video.workshop_type === 'ia' ? 'IA' : 
+                        {video.workshop_type === 'allstarteams' ? 'AST' :
+                         (video.workshop_type === 'ia' || video.workshop_type === 'imaginalagility' || video.workshop_type === 'imaginal-agility' || video.workshop_type === 'imaginal agility') ? 'IA' :
                          video.workshop_type === 'general' ? 'General' :
-                         'Landing'}
+                         video.workshop_type}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono text-sm">
@@ -878,6 +993,19 @@ export function SimpleVideoManagement() {
                         {video.requiredWatchPercentage || 75}%
                       </span>
                     </TableCell>
+                    {import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true' && (
+                      <TableCell>
+                        {video.enforceWatchRequirement ? (
+                          <Badge variant="destructive">
+                            Blocking
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">
+                            Optional
+                          </Badge>
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {video.autoplay ? (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">

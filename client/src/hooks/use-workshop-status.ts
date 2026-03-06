@@ -118,10 +118,11 @@ export function useWorkshopStatus() {
           [completionField]: true,
           [timestampField]: data.completedAt
         };
-        
+
         setStatus({ ...globalCompletionState });
-        completionListeners.forEach(listener => listener());
-        
+        // Note: Listeners will be triggered by the caller (WorkshopRecap) after successful completion
+        // This ensures proper timing - state updates first, then notifications
+
         console.log('🔒 All workshop inputs are now locked');
         return { success: true, message: data.message };
       } else {

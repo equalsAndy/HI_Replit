@@ -1,6 +1,43 @@
 // Canonical IA continuity types for client-side usage
 
+// 5C Capability types for Activation Snapshot system
+export type CapabilityType = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
+
+export const CAPABILITY_LABELS: Record<CapabilityType, string> = {
+  imagination: 'Imagination',
+  curiosity: 'Curiosity',
+  caring: 'Caring',
+  creativity: 'Creativity',
+  courage: 'Courage',
+};
+
+export const CAPABILITY_COLORS: Record<CapabilityType, string> = {
+  imagination: 'purple',
+  curiosity: 'green',      // matches green magnifying glass icon
+  caring: 'blue',           // matches blue two-faces icon
+  creativity: 'orange',
+  courage: 'red',
+};
+
+// Maps CapabilityType keys to the category strings used in assessment data.
+// 'caring' maps to 'empathy' for backward compatibility with existing saved data.
+export const CAPABILITY_CATEGORY_MAP: Record<CapabilityType, string> = {
+  imagination: 'imagination',
+  curiosity: 'curiosity',
+  caring: 'empathy',
+  creativity: 'creativity',
+  courage: 'courage',
+};
+
+export interface PulseData {
+  choices: Array<{ pair: [string, string]; winner: string; loser: string }>;
+  ranking: Array<{ key: string; score: number }>;
+  inconsistencies: number;
+  completedAt: string;
+}
+
 export type IAState = {
+  ia_2_1_pulse?: PulseData;
   ia_4_2: {
     original_thought: string;
     ai_reframe: string;
@@ -9,19 +46,44 @@ export type IAState = {
     new_perspective: string;      // canonical downstream field
     // legacy alias kept for compatibility
     shift?: string;
+    capability_stretched?: CapabilityType; // legacy — replaced by capabilities_applied
+    capabilities_applied?: CapabilityType[];
+    capabilities_imagine?: string;
+    tested_capability?: string;
+    capability_insight?: string;
   };
-  // IA-4-3: Exploring Underlying Assumptions
+  // IA-4-3: Visualization Stretch (v3 — image-based)
   ia_4_3: {
-    assumptions: string;
-    ai_assumptions: string[]; // chat messages
-    user_insight: string;
-    tag: string;
-    updated_perspective: string;
-    // legacy fields kept (from old Stretch flow)
+    original_image: string | null;      // ia-3-3 image URL
+    original_title: string;             // ia-3-3 one-word title
+    original_reflection: string;        // ia-3-3 reflection text
+    new_image: string | null;           // Unsplash URL of new image
+    new_title: string;                  // One-word title for new image
+    story: string;                      // "What story do these two images tell together?"
+    capability: CapabilityType | null;  // Single capability selection
+    tag: string;                        // Tag selection
+    transcript: string[];               // Chat transcript for data/report
+    completed: boolean;
+    // Legacy fields kept for backward compatibility (v1 — text-based)
+    current_frame?: string;
+    ai_stretch?: string[];
+    user_stretch?: string;
+    expansion?: string;
+    original_frame?: string;
+    stretch_name?: string;
+    capabilities_selected?: CapabilityType[];
+    capabilities_imagine?: string;
+    assumptions?: string;
+    ai_assumptions?: string[];
+    user_insight?: string;
+    updated_perspective?: string;
     frame_sentence?: string;
-    ai_stretch?: string;
     stretch_vision?: string;
     resistance?: string;
+    resistance_type?: string;
+    resistance_custom?: string;
+    stretch_visualization?: string;
+    capability_stretched?: CapabilityType;
   };
   // IA-4-4: Global Purpose Bridge
   ia_4_4: {
@@ -30,17 +92,27 @@ export type IAState = {
     user_possibility: string;
     tag: string;
     expanded_vision: string;
-    // new global purpose bridge fields
+    // global purpose bridge fields (v2 — flight simulator redesign)
     higher_purpose?: string;
     global_challenge?: string;
+    reframed_view?: string;
+    question1?: string;
+    question2?: string;
+    ai_answer1?: string;
+    ai_answer2?: string;
+    ai_reflection?: string;
+    capabilities_applied?: CapabilityType[];
+    capabilities_imagine?: string;
+    transcript?: string[];
+    completed?: boolean;
+    last_updated?: string;
+    // legacy v1 bridge fields (backward compatibility)
     content_completed?: boolean;
     ai_perspectives?: string;
     chosen_perspective?: string;
     modest_contribution?: string;
     bridge_name?: string;
     world_game_stretch?: string;
-    completed?: boolean;
-    last_updated?: string;
     // legacy array structure (kept for backward compatibility)
     global_bridges?: Array<{
       id: string;
@@ -69,6 +141,7 @@ export type IAState = {
     pattern_notes?: string;
     muse_chat?: string[];
     muse_name?: string;
+    capability_stretched?: CapabilityType;
   };
   // IA-4-5: Action Planning
   ia_4_5: {
@@ -97,6 +170,7 @@ export type IAState = {
     contribution?: string;
     bridge_name?: string;
     scale_global?: string;
+    capability_stretched?: CapabilityType;
   };
   updatedAt?: string;
 };

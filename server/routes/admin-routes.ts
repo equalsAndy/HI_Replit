@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { userManagementService } from '../services/user-management-service.js';
 import { inviteService } from '../services/invite-service.js';
 import { ExportService } from '../services/export-service.js';
+import { SnapshotService } from '../services/snapshot-service.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles.js';
 import { formatInviteCode } from '../utils/invite-code.js';
@@ -212,6 +213,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       astAccess: z.boolean().optional(),
       iaAccess: z.boolean().optional(),
       isTestUser: z.boolean().optional(),
+      isDemoAccount: z.boolean().optional(),
       isBetaTester: z.boolean().optional(),
       showDemoDataButtons: z.boolean().optional(),
       password: z.string().optional(),
@@ -878,6 +880,141 @@ router.get('/users/:userId/validate', requireAuth, isAdmin, async (req: Request,
     res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? (error as Error).message : 'Validation failed'
+    });
+  }
+});
+
+/**
+ * Demo Account Endpoints
+ */
+
+/**
+ * Check if user has completed AST workshop (admin only)
+ */
+router.get('/users/:userId/ast-complete', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
+
+    const completionStatus = await SnapshotService.isAstWorkshopComplete(userId);
+
+    res.json({
+      success: true,
+      isComplete: completionStatus.isComplete,
+      missing: completionStatus.missing,
+      message: completionStatus.isComplete
+        ? 'AST workshop is complete'
+        : `AST workshop incomplete. Missing: ${completionStatus.missing.join(', ')}`
+    });
+  } catch (error) {
+    console.error('Error checking AST completion:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to check completion'
+    });
+  }
+});
+
+/**
+ * Capture AST snapshot for demo account (admin only)
+ */
+router.post('/demo-accounts/:userId/snapshot/ast', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const capturedBy = (req.session as any).userId;
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
+
+    const result = await SnapshotService.captureAstSnapshot(userId, capturedBy);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      success: true,
+      message: result.message,
+      snapshot: {
+        id: result.snapshotId,
+        workshopType: 'ast',
+        capturedAt: new Date().toISOString(),
+        metadata: result.metadata
+      }
+    });
+  } catch (error) {
+    console.error('Error capturing AST snapshot:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to capture snapshot'
+    });
+  }
+});
+
+/**
+ * Load AST snapshot data (demo account user or admin)
+ */
+router.get('/demo-accounts/snapshot/ast/:stepId?', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId;
+    const stepId = req.params.stepId;
+
+    const result = await SnapshotService.loadAstSnapshot(userId, stepId);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    console.error('Error loading AST snapshot:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to load snapshot'
+    });
+  }
+});
+
+/**
+ * Reset demo account workshop (delete all data, keep snapshot for "Use Demo Data" buttons)
+ * This is different from restoring - it just clears the workshop so demo users can start fresh
+ */
+router.post('/demo-accounts/restore/ast', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as any).userId;
+
+    // Verify user is a demo account
+    const user = await userManagementService.getUserById(userId);
+    if (!user?.isDemoAccount) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only demo accounts can reset their workshop data'
+      });
+    }
+
+    // Delete all workshop data (same as admin delete, but keeps profile and snapshot)
+    const result = await userManagementService.deleteUserData(userId);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      success: true,
+      message: 'Workshop data cleared successfully. Use "Use Demo Data" buttons on each step to auto-fill from snapshot.'
+    });
+  } catch (error) {
+    console.error('Error resetting demo account workshop:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to reset workshop'
     });
   }
 });

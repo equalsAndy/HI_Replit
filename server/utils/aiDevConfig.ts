@@ -6,10 +6,11 @@ export const aiDevConfig = {
   claude: {
     enabled: process.env.ENVIRONMENT === 'development' || process.env.ENVIRONMENT === 'production',
     apiKey: process.env.CLAUDE_API_KEY,
-    model: 'claude-3-5-sonnet-20241022',
+    model: process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001',
     maxTokens: 8000,
     temperature: 0.7,
-    timeout: 30000
+    timeout: 30000,
+    provider: process.env.AI_PROVIDER || 'openai', // Global default provider
   },
   
   // Holistic reports configuration

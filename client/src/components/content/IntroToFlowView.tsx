@@ -7,6 +7,7 @@ import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary
 import { trpc } from "@/utils/trpc";
 import FlowAssessmentModal from '@/components/flow/FlowAssessmentModal';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -15,6 +16,8 @@ import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useStarCardAutoCapture } from '@/hooks/useStarCardAutoCapture';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import WorkshopCompletionBanner from '@/components/common/WorkshopCompletionBanner';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import FlowReflections from './FlowReflections';
 import { 
   DndContext, 
   closestCenter,
@@ -47,26 +50,92 @@ interface RankedAttribute {
 
 // All flow attributes in a single list - grouped by quadrant for better organization
 const flowAttributes = [
-  // Thinking attributes
-  "Abstract", "Analytic", "Astute", "Big Picture", "Curious", 
-  "Focused", "Insightful", "Logical", "Investigative", "Rational", 
+  // Thinking attributes (Green) - 14 attributes
+  "Abstract", "Analytical", "Astute", "Big-picture", "Curious",
+  "Focussed", "Insightful", "Logical", "Precise", "Rational",
   "Reflective", "Sensible", "Strategic", "Thoughtful",
 
-  // Feeling attributes
-  "Collaborative", "Creative", "Encouraging", "Expressive",
-  "Empathic", "Intuitive", "Inspiring", "Objective", "Passionate",
-  "Positive", "Receptive", "Supportive",
+  // Feeling attributes (Blue) - 14 attributes
+  "Collaborative", "Compassionate", "Creative", "Encouraging", "Empathic",
+  "Engaged", "Expressive", "Inclusive", "Intuitive", "Open-minded",
+  "Positive", "Receptive", "Resilient", "Supportive",
 
-  // Planning attributes
-  "Detail-Oriented", "Diligent", "Immersed", "Industrious", "Methodical",
-  "Organized", "Precise", "Punctual", "Reliable", "Responsible",
-  "Straightforward", "Tidy", "Systematic", "Thorough",
+  // Planning attributes (Yellow) - 14 attributes
+  "Attentive", "Conscientious", "Detail-oriented", "Diligent", "Methodical",
+  "Organized", "Practical", "Reliable", "Responsible", "Straightforward",
+  "Structured", "Systematic", "Thorough", "Tidy",
 
-  // Acting attributes
-  "Adventuresome", "Competitive", "Dynamic", "Effortless", "Energetic",
-  "Engaged", "Funny", "Persuasive", "Open-Minded", "Optimistic",
-  "Practical", "Resilient", "Spontaneous", "Vigorous"
+  // Acting attributes (Red) - 14 attributes
+  "Adventurous", "Competitive", "Dynamic", "Effortless", "Energetic",
+  "Funny", "Inspiring", "Motivating", "Optimistic", "Passionate",
+  "Persuasive", "Spontaneous", "Vigorous"
 ];
+
+// Attribute descriptions for tooltips
+const attributeDescriptions: Record<string, string> = {
+  // Thinking attributes (Green)
+  "Abstract": "Thinks in concepts beyond the concrete",
+  "Analytical": "Breaks down ideas to understand detail",
+  "Astute": "Quickly grasps key insights or patterns",
+  "Big-picture": "Sees overall context and long view",
+  "Curious": "Seeks to explore and understand deeply",
+  "Focussed": "Maintains steady concentration on task",
+  "Insightful": "Recognizes underlying causes or meaning",
+  "Logical": "Reasons clearly and consistently through facts",
+  "Precise": "Values accuracy and careful expression",
+  "Rational": "Bases conclusions on sound reasoning",
+  "Reflective": "Thinks back to learn and improve",
+  "Sensible": "Uses sound judgment in decisions",
+  "Strategic": "Plans ahead to achieve long-term aims",
+  "Thoughtful": "Considers impact and meaning carefully",
+
+  // Feeling attributes (Blue)
+  "Collaborative": "Works easily and productively with others",
+  "Compassionate": "Responds with care to others' needs",
+  "Creative": "Generates original and imaginative ideas",
+  "Encouraging": "Helps others grow with positive feedback",
+  "Empathic": "Understands and feels others' emotions",
+  "Engaged": "Emotionally present and responsive",
+  "Expressive": "Communicates feelings openly and vividly",
+  "Inclusive": "Welcomes diverse views and participation",
+  "Intuitive": "Understands quickly without needing analysis",
+  "Open-minded": "Receptive to different ideas and perspectives",
+  "Positive": "Brings optimism and constructive attitude",
+  "Receptive": "Open to input, feedback, and change",
+  "Resilient": "Recovers quickly from stress or setback",
+  "Supportive": "Offers steady help and reassurance",
+
+  // Planning attributes (Yellow)
+  "Attentive": "Notices details and stays observant",
+  "Conscientious": "Completes tasks with care and integrity",
+  "Detail-oriented": "Cares about precision and specifics",
+  "Diligent": "Works steadily and with persistence",
+  "Methodical": "Follows clear steps and structure",
+  "Organized": "Keeps information and priorities in order",
+  "Practical": "Focuses on workable, real-world results",
+  "Reliable": "Can be trusted to deliver consistently",
+  "Responsible": "Takes ownership for outcomes and duties",
+  "Straightforward": "Communicates clearly and directly",
+  "Structured": "Builds systems that support consistency",
+  "Systematic": "Approaches tasks through repeatable process",
+  "Thorough": "Ensures nothing is missed or incomplete",
+  "Tidy": "Maintains order and clarity in work",
+
+  // Acting attributes (Red)
+  "Adventurous": "Willing to take bold new risks",
+  "Competitive": "Driven to excel and outperform others",
+  "Dynamic": "Full of energy and forward motion",
+  "Effortless": "Acts naturally without strain or force",
+  "Energetic": "Brings vitality and lively momentum",
+  "Funny": "Uses humor to connect and uplift",
+  "Inspiring": "Motivates others through example or vision",
+  "Motivating": "Sparks enthusiasm and forward action",
+  "Optimistic": "Expects positive outcomes and possibilities",
+  "Passionate": "Acts with heartfelt intensity and purpose",
+  "Persuasive": "Influences others with clarity and conviction",
+  "Spontaneous": "Responds freely and creatively in the moment",
+  "Vigorous": "Pursues goals with strong physical drive"
+};
 
 // Sortable flow badge component for drag-and-drop reordering
 const SortableFlowBadge = ({ 
@@ -128,8 +197,8 @@ const SortableFlowBadge = ({
 };
 
 // Regular flow badge component for selections
-const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disabled = false, onSelect, onRemove }: { 
-  text: string; 
+const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disabled = false, onSelect, onRemove }: {
+  text: string;
   rank?: number | null; // Allow null or undefined with a default value applied
   selected?: boolean;
   rankBadgeColor?: string;
@@ -137,30 +206,41 @@ const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disa
   onSelect?: () => void;
   onRemove?: () => void;
 }) => {
+  const description = attributeDescriptions[text] || text;
+
   return (
-    <Badge 
-      variant="outline"
-      className={`${selected ? 'bg-gray-200 text-gray-900' : disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} transition-colors flex items-center`}
-      onClick={disabled ? undefined : onSelect}
-    >
-      {text}
-      {rank !== null && rank !== undefined && (
-        <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${rankBadgeColor}`}>
-          {rank + 1}
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>
+        <span className="inline-block">
+          <Badge
+            variant="outline"
+            className={`${selected ? 'bg-gray-200 text-gray-900' : disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} transition-colors flex items-center`}
+            onClick={disabled ? undefined : onSelect}
+          >
+            {text}
+            {rank !== null && rank !== undefined && (
+              <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${rankBadgeColor}`}>
+                {rank + 1}
+              </span>
+            )}
+            {selected && onRemove && !disabled && (
+              <button
+                className="ml-1 text-gray-600 hover:text-gray-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </Badge>
         </span>
-      )}
-      {selected && onRemove && !disabled && (
-        <button 
-          className="ml-1 text-gray-600 hover:text-gray-800"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-        >
-          <X className="h-3 w-3" />
-        </button>
-      )}
-    </Badge>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs">
+        <p className="text-sm">{description}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -241,6 +321,13 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
     workshop: 'allstarteams',
     stepId: '2-2',
   });
+
+  // Fetch flow attributes intro video
+  const { data: flowIntroVideoData, isLoading: flowIntroVideoLoading, error: flowIntroVideoError } = trpc.lesson.byStep.useQuery({
+    workshop: 'allstarteams',
+    stepId: '2-2-flow-intro',
+  });
+
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
@@ -606,12 +693,18 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
       markStepCompleted('2-2');  // Complete step 2-2 (Flow Patterns), not 3-1
     }
     if (setCurrentContent) {
-      setCurrentContent('flow-rounding-out');
+      setCurrentContent('module-2-recap');
     }
   };
 
   return (
     <>
+      {/* Scroll Indicator - appears when user is idle */}
+      <ScrollIndicator
+        idleTime={3000}
+        position="nav-adjacent"
+        colorScheme="blue"
+      />
       {/* Intro to Flow Content */}
       <div className="max-w-4xl mx-auto mb-12">
         {/* Workshop Completion Banner */}
@@ -645,20 +738,65 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           )}
         </div>
 
-        {/* Some Things to Know Header */}
+        {/* Understanding Flow Header */}
         <div className="section-headers-tabs-60 mt-16 mb-4">
           <div className="section-headers-pill-60 section-headers-pill-60--content">
             <div className="section-headers-pill-60__strip" aria-hidden="true" />
-            <div className="section-headers-pill-60__box">📚 Some Things to Know</div>
+            <div className="section-headers-pill-60__box">📚 Understanding Flow</div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">Understanding Flow</h2>
 
-          <p className="text-gray-700 mb-6">
-            Flow is when you're fully absorbed in an activity—energized, focused, and enjoying the moment. Time seems to disappear.
-          </p>
+          {/* Two-column layout for intro text + diagram + benefits */}
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+
+            {/* LEFT COLUMN: Text Content */}
+            <div className="space-y-6">
+              {/* Flow definition */}
+              <p className="text-gray-700 text-base leading-relaxed">
+                Flow is when you're fully absorbed in an activity—energized, focused, and enjoying the moment. Time seems to disappear.
+              </p>
+
+              {/* Benefits Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-blue-700 mb-3">Benefits of Flow</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Higher productivity & performance</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>More creativity & innovation</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Greater satisfaction & motivation</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Reduced stress & anxiety</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-gray-700">
+                    <span className="text-green-500 font-bold text-lg flex-shrink-0">✓</span>
+                    <span>Stronger learning & skill growth</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: Flow Diagram */}
+            <div className="flex items-center justify-center">
+              <div className="w-full max-w-md p-4">
+                <img
+                  src="/assets/FlowDiagram.png"
+                  alt="Flow State Diagram - Challenge vs Skill Balance"
+                  className="w-full h-auto rounded-lg shadow-md"
+                />
+              </div>
+            </div>
+          </div>
 
           <h3 className="text-lg font-semibold text-blue-700 mb-4">Key Conditions</h3>
 
@@ -712,15 +850,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             </div>
           </div>
 
-          <h3 className="text-lg font-semibold text-blue-700 mb-4">Benefits of Flow</h3>
-
-          <ul className="list-disc pl-5 text-gray-700 space-y-2 mb-6">
-            <li>Higher productivity & performance</li>
-            <li>More creativity & innovation</li>
-            <li>Greater satisfaction & motivation</li>
-            <li>Reduced stress & anxiety</li>
-            <li>Stronger learning & skill growth</li>
-          </ul>
         </div>
 
         {/* Flow Assessment Section - New Modal Launch Area */}
@@ -786,11 +915,16 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                   onClick={() => setIsResponseSummaryExpanded(!isResponseSummaryExpanded)}
                   className="w-full flex justify-between items-center text-left hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
                 >
-                  <h4 className="text-lg font-semibold text-gray-900">Your Responses Summary</h4>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">Flow Assessment Review</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Click here to see your answers all together. Consider how you might create more opportunities for flow in your work and life.
+                    </p>
+                  </div>
                   {isResponseSummaryExpanded ? (
-                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                    <ChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                    <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
                   )}
                 </button>
 
@@ -824,12 +958,15 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               {!showAttributesActivity && (
                 <div className="mt-6">
                   <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">What's Next?</h3>
-                    <p className="text-gray-700">
-                      After completing your flow assessment, you'll explore your results in more detail and learn how to create more
-                      opportunities for flow in your work and life. This understanding will be added to your Star Card to create
-                      a complete picture of your strengths and optimal performance conditions.
-                    </p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">What's Next?</h3>
+
+                    <div>
+                      <h4 className="font-bold text-gray-800 mb-2">Star Card Completion</h4>
+                      <ul className="list-disc pl-5 text-gray-700 space-y-1">
+                        <li>You've identified your Core Strengths and how you tend to apply them.</li>
+                        <li>Now, let's consider what core strengths surface during your flow state.</li>
+                      </ul>
+                    </div>
                   </div>
                   <div className="text-center">
                     <Button
@@ -854,18 +991,57 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Add Flow to Your Star Card</h1>
 
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
-        <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
-        <p className="text-blue-700 mb-0">
-          Flow attributes represent how you work at your best. They complement your Star strengths profile which shows what you're naturally good at.
-          Together, they create a more complete picture of your professional identity and help others understand how to collaborate with you effectively.
+        <p className="text-blue-700 mb-2 text-lg font-semibold">
+          Your Star Card is built on Two Dimensions:
         </p>
+        <ul className="list-disc pl-5 text-blue-700 space-y-1">
+          <li>Your Core Strengths show how you usually operate</li>
+          <li>Your Flow Amplifiers show the strengths that intensify when you're in flow</li>
+        </ul>
       </div>
 
-      <div className="prose max-w-none mb-6">
-        <p className="text-lg text-gray-700">
-          Now that you've completed the flow assessment and reflection, select four flow attributes 
-          that best describe your optimal flow state. These will be added to your StarCard to create 
-          a comprehensive visualization of your strengths and flow profile.
+      <p className="text-gray-800 font-bold mb-4">
+        Watch the video below to hear some Flow stories from Lion Software.
+      </p>
+
+      {/* Flow State Introduction Video */}
+      <div className="mb-8">
+        {flowIntroVideoLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-3 text-gray-600">Loading video...</span>
+          </div>
+        ) : flowIntroVideoError ? (
+          <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
+            Error loading video. Using fallback.
+          </div>
+        ) : flowIntroVideoData ? (
+          <VideoTranscriptGlossary
+            youtubeId={flowIntroVideoData.youtubeId}
+            title={flowIntroVideoData.title}
+            transcriptMd={flowIntroVideoData.transcriptMd}
+            glossary={flowIntroVideoData.glossary ?? []}
+          />
+        ) : (
+          <VideoTranscriptGlossary
+            youtubeId="jGVtiaQJ1a4"
+            title="Flow State Introduction"
+          />
+        )}
+      </div>
+
+      {/* Step 1 Instructions */}
+      <div className="bg-gray-50 rounded-lg p-6 mb-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Step 1: Recall a Flow Experience</h3>
+        <p className="text-gray-700 mb-3">
+          Think of a time you were completely absorbed and performing at your best. What words describe that state?
+        </p>
+        <ul className="list-disc pl-5 text-gray-700 space-y-2 mb-3">
+          <li>What did that feel like?</li>
+          <li>What words describe your state of mind?</li>
+        </ul>
+        <p className="text-gray-600 italic">
+          This is a subjective exercise. There are no right or wrong answers.
         </p>
       </div>
 
@@ -920,7 +1096,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
                   {/* Show selected attributes in a read-only display */}
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium mb-2">I find myself in flow when I am being:</h4>
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       <div className="flex flex-wrap gap-2">
                         {selectedAttributes
@@ -946,20 +1121,14 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
             </>
           ) : (
             <>
-              <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Step 2: Select 4 Flow Amplifiers</h3>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="mb-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-gray-600">
-                      Choose 4 words that best describe your flow state. Click badges to select/deselect. Once selected, use the grip handle to drag and reorder your selections.
-                    </p>
-                  </div>
-
+                  <p className="text-sm text-gray-700 mb-4">
+                    Each adjective below reflects qualities related to one of the four core strengths Thinking, Planning, Feeling, and Acting. The adjectives give texture and emotional depth to each strength. Choose 4 that describe your flow state strengths in order of how strongly you associate with them (1 is the strongest).
+                  </p>
                   {/* Selected attributes */}
                   <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-medium">I find myself in flow when I am being:</h4>
-                    </div>
 
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
@@ -1011,35 +1180,29 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {flowAttributes.map((attr: string) => {
-                        const isSelected = selectedAttributes.some(selected => selected.text === attr);
-                        const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
-                        const isDisabled = (hasExistingAttributes && !isUpdating) || isStepLocked;
+                    <TooltipProvider>
+                      <div className="flex flex-wrap gap-2">
+                        {flowAttributes.map((attr: string) => {
+                          const isSelected = selectedAttributes.some(selected => selected.text === attr);
+                          const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
+                          const isDisabled = (hasExistingAttributes && !isUpdating) || isStepLocked;
 
-                        return (
-                          <FlowBadge 
-                            key={attr}
-                            text={attr}
-                            rank={rank || 0}
-                            selected={isSelected}
-                            disabled={isDisabled}
-                            rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
-                            onSelect={() => handleAttributeSelect(attr)}
-                          />
-                        );
-                      })}
-                    </div>
+                          return (
+                            <FlowBadge
+                              key={attr}
+                              text={attr}
+                              rank={rank || 0}
+                              selected={isSelected}
+                              disabled={isDisabled}
+                              rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
+                              onSelect={() => handleAttributeSelect(attr)}
+                            />
+                          );
+                        })}
+                      </div>
+                    </TooltipProvider>
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 mt-6">
-                <h4 className="font-medium text-gray-700 mb-2">Selection Tip</h4>
-                <p className="text-sm text-gray-600">
-                  Choose attributes that reflect how you feel and perform when you're deeply engaged in meaningful work. 
-                  These will appear in the four corners of your Star Card.
-                </p>
               </div>
 
               {isCardComplete && (
@@ -1093,63 +1256,36 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               </Button>
             </div>
           ) : null}
-
-          {/* Only show Next button after flow attributes are added */}
-          {isCardComplete && (
-            <div className="mt-12 text-center border-t border-gray-200 pt-8">
-              <Button
-                onClick={async () => {
-                  console.log('🚀 Finish Assessment button clicked');
-                  console.log('📝 Available functions:', {
-                    hasMarkStepCompleted: !!markStepCompleted,
-                    hasSetCurrentContent: !!setCurrentContent
-                  });
-
-                  // Auto-capture StarCard before proceeding
-                  if (user?.id) {
-                    console.log('🎯 Auto-capturing StarCard for user:', user.id);
-                    try {
-                      await captureStarCardFromPage(user.id);
-                    } catch (error) {
-                      console.warn('StarCard auto-capture failed, but continuing:', error);
-                      // Don't block user flow if capture fails
-                    }
-                  }
-
-                  if (markStepCompleted) {
-                    console.log('✅ Marking step 2-2 complete');
-                    await markStepCompleted('2-2');
-                  } else {
-                    console.error('❌ markStepCompleted function not available');
-                  }
-
-                  if (setCurrentContent) {
-                    console.log('✅ Navigating to rounding-out');
-                    setCurrentContent("rounding-out");
-
-                    // Scroll to content title anchor when navigating
-                    setTimeout(() => {
-                      const anchor = document.getElementById('content-title');
-                      if (anchor) {
-                        anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }
-                    }, 100);
-                  } else {
-                    console.error('❌ setCurrentContent function not available');
-                  }
-                }}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
-                data-continue-button="true"
-              >
-                Continue to Rounding out Flow <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
-        </>
+      {/* Only show reflections after flow attributes are added */}
+      {isCardComplete && (
+        <div className="max-w-5xl mx-auto mt-16 border-t border-gray-200 pt-10">
+          <div className="text-center mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Flow Reflections</h3>
+            <p className="text-gray-600">
+              Capture what you learned about creating flow before moving to the Module 2 recap.
+            </p>
+          </div>
+          <FlowReflections
+            setCurrentContent={setCurrentContent}
+            markStepCompleted={markStepCompleted}
+            onComplete={async () => {
+              if (user?.id) {
+                try {
+                  await captureStarCardFromPage(user.id);
+                } catch (error) {
+                  console.warn('StarCard auto-capture failed, but continuing:', error);
+                }
+              }
+            }}
+          />
+        </div>
       )}
+
+      </>
+    )}
       
       {/* Flow Assessment Modal */}
       <FlowAssessmentModal

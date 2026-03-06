@@ -31,6 +31,11 @@ export const clientFeatureFlags: Record<string, ClientFeatureFlag> = {
     enabled: true,
     environment: 'all',
     description: 'Holistic reports are generating real personalized content (not fallback templates)'
+  },
+  videoWatchRequirements: {
+    enabled: import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true',
+    environment: 'all',
+    description: 'Enforce video watching requirements before step progression'
   }
 };
 

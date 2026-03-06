@@ -149,12 +149,14 @@ const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
  * @param isWorkshopCompleted Whether the workshop is completed
  * @returns true if the module should be locked for editing
  */
-const isModuleLocked = (module: number, isWorkshopCompleted: boolean): boolean => {
+const isModuleLocked = (module: number, isWorkshopCompleted: boolean, workshopType: string = 'ast'): boolean => {
   if (module >= 1 && module <= 3) {
     // Modules 1-3: Lock AFTER workshop completion
     return isWorkshopCompleted;
   } else if (module >= 4 && module <= 5) {
-    // Modules 4-5: Lock BEFORE workshop completion (unlock AFTER completion)
+    // AST modules 4-5 are post-completion features (downloads, reports) — lock before completion
+    // IA modules 4-7 are active learning steps — never locked based on completion status
+    if (workshopType === 'ia') return false;
     return !isWorkshopCompleted;
   }
   return false;
@@ -188,7 +190,7 @@ const checkWorkshopLocked = async (req: Request, res: Response, next: NextFuncti
     if (stepId) {
       const module = getStepModule(stepId);
 
-      if (module && isModuleLocked(module, isWorkshopCompleted)) {
+      if (module && isModuleLocked(module, isWorkshopCompleted, appType)) {
         const lockReason = isWorkshopCompleted
           ? `Module ${module} is locked because the workshop is completed`
           : `Module ${module} is locked until the workshop is completed`;
@@ -599,10 +601,20 @@ workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopL
       acting: 24,
       planning: 23
     };
-    
+
+    // Get individual answers from request (NEW: for demo data feature)
+    const answers = req.body.answers || [];
+
+    // Combine quadrant scores and answers into results object
+    const results = {
+      ...quadrantData,
+      answers: answers  // Include the 22 individual question answers
+    };
+
     // Log the data we're saving
-    console.log('Saving star card data:', quadrantData);
-    
+    console.log('Saving star card data with answers:', results);
+    console.log(`Saving ${answers.length} individual answers`);
+
     // Check if user already has an assessment
     const existingAssessment = await db
       .select()
@@ -613,33 +625,33 @@ workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopL
           eq(schema.userAssessments.assessmentType, 'starCard')
         )
       );
-    
+
     let updatedId = null;
-    
+
     if (existingAssessment.length > 0) {
       // Update existing assessment
       const updated = await db
         .update(schema.userAssessments)
         .set({
-          results: JSON.stringify(quadrantData)
+          results: JSON.stringify(results)  // Save both scores and answers
         })
         .where(eq(schema.userAssessments.id, existingAssessment[0].id))
         .returning();
-      
+
       // Get the updated record ID
       updatedId = updated.length > 0 ? updated[0].id : existingAssessment[0].id;
-      console.log('Updated existing star card assessment:', updated);
+      console.log('Updated existing star card assessment with answers:', updated);
     } else {
       // Create new assessment record
       const inserted = await db.insert(schema.userAssessments).values({
         userId: userId,
         assessmentType: 'starCard',
-        results: JSON.stringify(quadrantData)
+        results: JSON.stringify(results)  // Save both scores and answers
       }).returning();
-      
+
       // Get the new record ID
       updatedId = inserted.length > 0 ? inserted[0].id : null;
-      console.log('Created new star card assessment:', inserted);
+      console.log('Created new star card assessment with answers:', inserted);
     }
     
     // Return the full star card data in the format expected by the client
@@ -3020,8 +3032,9 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
     }
     
     // Define required steps for each workshop type (only core modules 1-3 for AST)
+    // Note: Step 2-3 was removed from the workshop - no longer required
     const requiredSteps = appType === 'ast'
-      ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4']
+      ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-4', '3-1', '3-2', '3-3', '3-4']
       : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
     
     const allCompleted = requiredSteps.every(step => completedSteps.includes(step));

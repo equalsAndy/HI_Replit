@@ -85,7 +85,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   
   const baseExpandedSections = isImaginalAgility 
     ? (navigationProgress?.sectionExpansion || {
-        '1': true, '2': true, '3': false, '4': false, '5': false, '6': false, '7': false
+        '1': true, '2': true, '3': true, '4': false, '5': false, '6': false, '7': false
       })
     : {};
     
@@ -273,10 +273,10 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       '1-2': 'self-awareness-opp',
       '1-3': 'about-course',
 
-      // MODULE 2: STRENGTH AND FLOW  
+      // MODULE 2: STRENGTH AND FLOW
       '2-1': 'star-strengths-assessment',
       '2-2': 'flow-patterns',
-      '2-3': 'rounding-out',        // FIXED: Step 2-3 → rounding-out (FlowRoundingOutView)
+      // NOTE: Step 2-3 was removed from the workshop - goes directly from 2-2 to 2-4
       '2-4': 'module-2-recap',
 
       // MODULE 3: VISUALIZE YOUR POTENTIAL
@@ -432,15 +432,19 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                   <div className="relative">
                     {/* Module/Week Label spanning entire section - centered in 50px gap */}
                     {(section.moduleNumber || section.weekNumber) && (
-                      <div 
+                      // For AST: hide badges for modules 4 and 5 (post-workshop resources)
+                      // For IA: show badges for all modules
+                      isImaginalAgility || (section.moduleNumber !== 4 && section.moduleNumber !== 5)
+                    ) && (
+                      <div
                         className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
                         style={{ marginLeft: '-8px' }}
                       >
                         <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-2 rounded text-center whitespace-nowrap"
-                             style={{ 
-                               writingMode: 'vertical-rl', 
-                               textOrientation: 'mixed', 
-                               transform: 'rotate(180deg)', 
+                             style={{
+                               writingMode: 'vertical-rl',
+                               textOrientation: 'mixed',
+                               transform: 'rotate(180deg)',
                                letterSpacing: '0.05em',
                                lineHeight: '1.2'
                              }}>
@@ -504,8 +508,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                         ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium"
                                         : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium")
                                     : "",
-                                  // Completed steps get green styling (but not in modules 4 and 5)
-                                  isCompleted && section.id !== '4' && section.id !== '5'
+                                  // Completed steps get green styling
+                                  isCompleted
                                     ? "text-green-700 bg-green-50"
                                     : isAccessible
                                       ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
@@ -525,8 +529,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 }}
                               >
                                 <div className="mr-2 flex-shrink-0">
-                                  {/* Don't show checkmarks for modules 4 and 5 */}
-                                  {isCompleted && section.id !== '4' && section.id !== '5' ? (
+                                  {isCompleted ? (
                                     <CheckCircle className="h-4 w-4 text-green-600 bg-white rounded-full" />
                                   ) : showDarkDot ? (
                                     <div className="w-4 h-4 bg-indigo-600 rounded-full" />

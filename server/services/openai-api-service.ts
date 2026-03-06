@@ -15,6 +15,7 @@ import { aiUsageLogger } from './ai-usage-logger.js';
 import { taliaPersonaService, TALIA_PERSONAS } from './talia-personas.js';
 import { CURRENT_PERSONAS } from '../routes/persona-management-routes.js';
 import { transformExportToAssistantInput } from '../utils/transformExportToAssistantInput.js';
+import { getProvider, getProviderName } from './ai-provider.js';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -1060,23 +1061,69 @@ export async function createAstReportFromExport(
 }
 
 /**
+ * Generate coaching response via Claude provider (stateless chat completions).
+ * Reuses buildCoachingSystemPrompt() for the system message and logs via aiUsageLogger.
+ */
+async function generateClaudeCoachingResponse(requestData: CoachingRequestData): Promise<string> {
+  const { userMessage, personaType, userName, contextData, userId, sessionId, maxTokens = 800 } = requestData;
+
+  const systemPrompt = buildCoachingSystemPrompt(personaType, userName, contextData);
+  const provider = await getProvider('coaching');
+
+  const result = await provider.complete({
+    systemPrompt,
+    messages: [{ role: 'user', content: userMessage }],
+    maxTokens,
+    temperature: 0.7,
+    cacheSystemPrompt: false, // Coaching prompts are user-specific, no cache benefit
+  });
+
+  console.log(`✅ Claude coaching response generated (${result.content.length} chars, ${result.usage.inputTokens}+${result.usage.outputTokens} tokens, ${result.latencyMs}ms)`);
+
+  // Log usage
+  if (userId) {
+    await aiUsageLogger.logUsage({
+      userId,
+      featureName: 'coaching',
+      tokensUsed: result.usage.inputTokens + result.usage.outputTokens,
+      responseTimeMs: result.latencyMs,
+      success: true,
+      costEstimate: 0, // Claude cost calculation added in Step 7
+      sessionId,
+      provider: 'claude',
+      model: result.model,
+    });
+  }
+
+  return result.content;
+}
+
+/**
  * Generate coaching response using OpenAI API
  */
 export async function generateOpenAICoachingResponse(requestData: CoachingRequestData): Promise<string> {
   const { userMessage, personaType, userName, contextData, userId, sessionId, maxTokens = 800, stepId, exportData } = requestData;
 
   try {
+    // ── Provider branching ──────────────────────────────────────────────────
+    // star_report persona always uses OpenAI (report generation handled separately).
+    // For coaching/reflection personas, route through the configured provider.
+    if (personaType !== 'star_report' && getProviderName('coaching') === 'claude') {
+      console.log(`🤖 Generating Claude coaching response for persona: ${personaType}, user: ${userName}`);
+      return generateClaudeCoachingResponse(requestData);
+    }
+
     console.log(`🤖 Generating OpenAI response for persona: ${personaType}, user: ${userName}`);
 
     // Handle Star Report Talia persona for holistic reports
     if (personaType === 'star_report') {
-      
+
       // Handle holistic report generation
       if (contextData?.reportContext === 'holistic_generation' || userMessage.includes('Personal Development Report') || userMessage.includes('Professional Profile Report')) {
         console.log('🎯 Using OpenAI for holistic report generation');
-        
+
         const reportType = userMessage.includes('Professional Profile Report') ? 'professional' : 'personal';
-        
+
         try {
           // Get assistant configuration
           let assistantConfig = getAssistantByPurpose('report');
@@ -1102,14 +1149,14 @@ export async function generateOpenAICoachingResponse(requestData: CoachingReques
           throw error;
         }
       }
-      
+
       // Report Talia should not interact with users - this is admin-only for report generation
       if (!contextData?.selectedUserId) {
         return `Please select a user from the dropdown menu above to generate their report.`;
       }
 
       console.log(`🎯 Using OpenAI Report Talia for user: ${contextData.selectedUserName} (ID: ${contextData.selectedUserId})`);
-      
+
       // For general questions about the user's data
       const messages: OpenAIMessage[] = [
         {
@@ -1136,12 +1183,12 @@ Respond helpfully to questions about this user's development journey, strengths,
     // Handle ast_reflection with Reflection Talia Assistant
     if (personaType === 'ast_reflection' || personaType === 'talia_coach') {
       console.log('🤖 Using Reflection Talia Assistant for coaching');
-      
+
       const assistantConfig = getAssistantByPurpose('reflection');
       if (!assistantConfig) {
         throw new Error('Reflection Talia assistant not configured');
       }
-      
+
       // Create coaching prompt for the assistant
       const coachingPrompt = `Help me with my reflection question. I'm working on the AllStarTeams workshop.
 
@@ -1153,40 +1200,40 @@ Please help me think through this and provide guidance to help me develop my own
 
       try {
         const client = getOpenAIClient();
-        
+
         // Create a thread
         const thread = await client.beta.threads.create();
-        
+
         // Add the message to the thread
         await client.beta.threads.messages.create(thread.id, {
           role: 'user',
           content: coachingPrompt
         });
-        
+
         // Run the assistant
         const run = await client.beta.threads.runs.create(thread.id, {
           assistant_id: assistantConfig.id
         });
-        
+
         // Wait for completion
         let runStatus = await client.beta.threads.runs.retrieve(thread.id, run.id);
         const maxWaitTime = 60000; // 1 minute
         const startTime = Date.now();
-        
+
         while (runStatus.status === 'in_progress' || runStatus.status === 'queued') {
           if (Date.now() - startTime > maxWaitTime) {
             throw new Error('Assistant run timed out');
           }
-          
+
           await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
           runStatus = await client.beta.threads.runs.retrieve(thread.id, run.id);
         }
-        
+
         if (runStatus.status === 'completed') {
           // Get the assistant's response
           const messages = await client.beta.threads.messages.list(thread.id);
           const assistantMessage = messages.data.find(msg => msg.role === 'assistant');
-          
+
           if (assistantMessage && assistantMessage.content[0]?.type === 'text') {
             const response = assistantMessage.content[0].text.value;
             console.log(`✅ Reflection Talia Assistant response generated (${response.length} characters)`);
@@ -1206,7 +1253,7 @@ Please help me think through this and provide guidance to help me develop my own
     // Handle other personas with traditional coaching approach (fallback)
     console.log('🔄 Using traditional chat completions approach');
     const persona = getCurrentPersona(personaType);
-    
+
     const messages: OpenAIMessage[] = [
       {
         role: 'system',
@@ -1219,17 +1266,17 @@ Please help me think through this and provide guidance to help me develop my own
     ];
 
     console.log(`🚀 About to call OpenAI API with maxTokens: ${maxTokens}`);
-    
+
     const response = await callOpenAIAPI(
-      messages, 
-      maxTokens, 
-      userId, 
-      'coaching', 
+      messages,
+      maxTokens,
+      userId,
+      'coaching',
       sessionId,
       'gpt-4o-mini'
     );
     console.log(`🎉 OpenAI API call successful!`);
-    
+
     console.log(`✅ OpenAI response generated (${response.length} chars)`);
     return response;
 
