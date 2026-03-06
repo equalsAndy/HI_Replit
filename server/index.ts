@@ -258,33 +258,27 @@ app.get('/api/system/info', async (req, res) => {
       // Keep default unknown values
     }
 
-    // Detect database type from DATABASE_URL
+    // Determine environment from env vars (don't infer from database URL)
+    const envVar = process.env.ENVIRONMENT || process.env.NODE_ENV || 'development';
+    let actualEnvironment = envVar;
+    if (envVar === 'staging') {
+      actualEnvironment = 'staging';
+    } else if (envVar === 'production') {
+      actualEnvironment = 'production';
+    } else {
+      actualEnvironment = 'development';
+    }
+
+    // Detect database type from DATABASE_URL, labeled by environment
     let databaseType = 'unknown';
     const dbUrl = process.env.DATABASE_URL;
     if (dbUrl) {
       if (dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')) {
         databaseType = 'local database';
       } else if (dbUrl.includes('amazonaws.com') || dbUrl.includes('rds')) {
-        databaseType = 'production database';
+        databaseType = `${actualEnvironment} database (AWS RDS)`;
       } else {
         databaseType = 'remote database';
-      }
-    }
-
-    // Determine actual environment based on deployment context
-    let actualEnvironment = versionInfo.environment;
-    
-    // Override environment detection logic
-    if (process.env.ENVIRONMENT === 'staging' || process.env.NODE_ENV === 'staging') {
-      actualEnvironment = 'staging';
-    } else if (process.env.ENVIRONMENT === 'production' || process.env.NODE_ENV === 'production') {
-      actualEnvironment = 'production';
-    } else if (process.env.ENVIRONMENT === 'development' || process.env.NODE_ENV === 'development') {
-      // For development, check if we're actually in a staging-like setup
-      if (dbUrl && dbUrl.includes('amazonaws.com')) {
-        actualEnvironment = 'staging';
-      } else {
-        actualEnvironment = 'development';
       }
     }
 
