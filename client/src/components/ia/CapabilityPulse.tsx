@@ -412,8 +412,8 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
               </h3>
 
               <p style={{ fontSize: 15, lineHeight: 1.7, color: '#6b7280', marginBottom: 24 }}>
-                We've got your gut reaction. You'll see how it compares to your
-                assessment results later in the course.
+                We've got your gut reaction. You'll see how it
+                compares to your full results later in the course.
               </p>
 
               <button
@@ -433,7 +433,7 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
                 onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
                 onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1)'; }}
               >
-                Continue to Self-Assessment →
+                Continue to Discover Your Prism →
               </button>
             </>
           ) : (
@@ -461,8 +461,8 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
               </h3>
 
               <p style={{ fontSize: 15, lineHeight: 1.7, color: '#4b5563', marginBottom: 16 }}>
-                Before you take the assessment, we want to capture something
-                it can't — your gut reaction.
+                Before you dive in, we want to capture something
+                important — your gut reaction.
               </p>
 
               <p style={{ fontSize: 15, lineHeight: 1.7, color: '#4b5563', marginBottom: 16 }}>
@@ -473,7 +473,7 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
 
               <p style={{ fontSize: 14, lineHeight: 1.6, color: '#6b7280', marginBottom: 32 }}>
                 Later in the course, we'll show you how your first impression
-                compares to what the assessment reveals. The gap between the two
+                compares to what your Prism reveals. The gap between the two
                 is often where the most interesting learning lives.
               </p>
 

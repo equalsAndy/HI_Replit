@@ -74,7 +74,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-2-2',
-        title: 'Prism Reflection',
+        title: 'Your Prism',
         type: 'assessment',
         contentKey: 'ia-2-2'
       }
