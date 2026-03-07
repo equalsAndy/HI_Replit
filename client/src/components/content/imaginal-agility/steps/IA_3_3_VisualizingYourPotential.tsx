@@ -310,7 +310,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed">
-            This exercise develops your capacity for symbolic visualization and inner potential recognition. You'll select or upload an image that represents an underused quality within you, then reflect on what it reveals about your creative potential.
+            Everyone has qualities they use every day, and qualities they know are there but don't fully use yet. Maybe you're analytical at work but secretly creative. Maybe you're steady and reliable but there's something bolder underneath. This exercise is about that second kind — the part of you that's real but hasn't had its moment yet.
           </p>
         </div>
       </div>
@@ -320,8 +320,9 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <div className="p-8 pb-0">
           <h2 className="text-xl font-semibold text-purple-700 mb-4">📋 Upload or Choose an Image</h2>
           <p className="text-gray-700 mb-6">
-            Select or upload an image that reflects something within you — a quality, energy, or capacity 
-            that feels present but underused.
+            Find an image that captures something true about you that you haven't fully used yet.
+            Not your best quality — the one that's waiting. It doesn't need to be literal — a wave,
+            a spark, a mountain can all represent something real about who you are.
           </p>
 
           {/* Tab Navigation */}
@@ -405,7 +406,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
               <div className="flex gap-2">
                 <Input
                   type="text"
-                  placeholder="Search images (try: potential, flame, depth, seed, spark, mirror, growth)"
+                  placeholder="Search for what captures YOUR underused side (try: calm, fire, explorer, builder, depth)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
@@ -421,7 +422,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                 </Button>
               </div>
               <p className="text-xs text-gray-500">
-                Tag suggestions: potential, flame, depth, seed, spark, mirror, growth (Press Enter or click Search)
+                Think about what you'd search for if you were looking for your underused side. Some people search for what they feel (calm, energy, fire). Others search for what they want to become (leader, builder, explorer).
               </p>
 
               {/* Search Error */}
@@ -488,7 +489,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
             <div className="flex-1 space-y-4">
               <div>
                 <Label className="block mb-3 text-gray-700 font-medium">
-                  Choose one word to title your image (e.g., Emergence, Spark, Flow):
+                  Give your image a one-word title — the quality it represents (e.g., Courage, Depth, Spark):
                 </Label>
                 <Input
                   value={imageTitle}
@@ -511,9 +512,9 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       
       {/* Describe Your Inner Potential Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200 mb-8">
-        <h2 className="text-xl font-semibold text-purple-700 mb-4">Describe Your Inner Potential</h2>
+        <h2 className="text-xl font-semibold text-purple-700 mb-4">Your Reflection</h2>
         <Label className="block mb-3 text-gray-700 font-medium">
-          What does this image reveal about a part of you that wants expression or strength?
+          What does this image capture about you? What's the quality it represents — and what would change if you used it more?
         </Label>
         <Textarea
           className="w-full min-h-[120px]"
