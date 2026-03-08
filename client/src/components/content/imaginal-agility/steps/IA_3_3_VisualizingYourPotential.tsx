@@ -310,7 +310,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed">
-            Everyone has qualities they use every day, and qualities they know are there but don't fully use yet. Maybe you're analytical at work but secretly creative. Maybe you're steady and reliable but there's something bolder underneath. This exercise is about that second kind — the part of you that's real but hasn't had its moment yet.
+            The images you carry in your mind shape what you do. Neuroscience shows the brain treats imagined experience almost like real experience — and when those inner images shift, your choices shift with them. In this exercise, you'll find one image that captures a side of yourself you haven't fully used yet. Not just as a picture — as a starting point. This image will follow you through the rest of the workshop, and you'll come back to it later to take it further.
           </p>
         </div>
       </div>

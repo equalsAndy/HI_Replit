@@ -7,7 +7,7 @@ export type IAState = CanonicalIAState;
 const DEFAULT_STATE: IAState = {
   ia_2_1_pulse: undefined,
   ia_4_2: { original_thought: '', ai_reframe: [], user_shift: '', tag: '', new_perspective: '', shift: '', capability_stretched: undefined, capabilities_applied: [], capabilities_imagine: '', tested_capability: '', capability_insight: '' },
-  ia_4_3: { original_image: null, original_title: '', original_reflection: '', new_image: null, new_title: '', story: '', capability: null, tag: '', transcript: [], completed: false },
+  ia_4_3: { original_image: null, original_title: '', original_reflection: '', new_title: '', story: '', tag: '', transcript: [], completed: false, capability_stretches: {} },
   ia_4_4: { positive_outcome: '', ai_outcome: [], user_possibility: '', tag: '', expanded_vision: '', global_bridges: [], completed: false, capability_stretched: undefined },
   ia_4_5: { next_step: '', ai_action: [], user_clarity: '', tag: '', commitment: '', action_steps: [], completed: false, capability_stretched: undefined },
 };

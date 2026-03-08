@@ -20,8 +20,10 @@ import feedbackRoutes from './server/routes/feedback-routes.js';
 import betaTesterRoutes from './server/routes/beta-tester-routes.js';
 import betaTesterNotesRoutes from './server/routes/beta-tester-notes-routes.js';
 import astSectionalReportRoutes from './server/routes/ast-sectional-reports-routes.ts';
+import imageGenRouter from './server/routes/image-gen.ts';
 import { initializeDatabase } from './server/db.js';
 import { db } from './server/db.js';
+import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
@@ -129,7 +131,31 @@ async function startDevServer() {
   app.use('/api/feedback', feedbackRoutes);
   app.use('/api/beta-tester', betaTesterRoutes);
   app.use('/api/beta-tester', betaTesterNotesRoutes);
-  
+  // DALL-E image generation routes (IA-4-3)
+  app.use('/api/ai/image', imageGenRouter);
+
+  // System info endpoint (version, environment, database)
+  app.get('/api/system/info', (req, res) => {
+    try {
+      const versionData = JSON.parse(fs.readFileSync(path.join(__dirname, 'public/version.json'), 'utf8'));
+      const dbUrl = process.env.DATABASE_URL || '';
+      let databaseType = 'unknown';
+      if (dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')) databaseType = 'local database';
+      else if (dbUrl.includes('amazonaws.com') || dbUrl.includes('rds')) databaseType = 'development database (AWS RDS)';
+      else if (dbUrl) databaseType = 'remote database';
+      res.json({
+        version: versionData.version || 'N/A',
+        build: versionData.build || '',
+        environment: 'development',
+        timestamp: versionData.timestamp || '',
+        databaseType,
+        status: 'ok'
+      });
+    } catch {
+      res.json({ version: 'N/A', build: '', environment: 'development', databaseType: 'unknown', status: 'ok' });
+    }
+  });
+
   // Serve static assets from /public directory
   // This MUST come before Vite middleware to properly serve PDFs and other assets
   app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
