@@ -52,19 +52,34 @@ export type IAState = {
     tested_capability?: string;
     capability_insight?: string;
   };
-  // IA-4-3: Visualization Stretch (v3 — image-based)
+  // IA-4-3: Visualization Stretch (v4 — DALL-E image generation)
   ia_4_3: {
-    original_image: string | null;      // ia-3-3 image URL
+    original_image: string | null;      // ia-3-3 image URL (Unsplash)
     original_title: string;             // ia-3-3 one-word title
     original_reflection: string;        // ia-3-3 reflection text
-    new_image: string | null;           // Unsplash URL of new image
-    new_title: string;                  // One-word title for new image
-    story: string;                      // "What story do these two images tell together?"
-    capability: CapabilityType | null;  // Single capability selection
-    tag: string;                        // Tag selection
+    new_image_photo_id?: number;        // photo_storage ID for DALL-E stretch image
+    new_image_url?: string;             // /api/photos/{id} or base64 fallback
+    new_title: string;                  // Title for stretch image
+    story: string;                      // "What do these two images reveal about your potential?"
+    tag: string;                        // Tag selection (set on content area)
     transcript: string[];               // Chat transcript for data/report
     completed: boolean;
-    // Legacy fields kept for backward compatibility (v1 — text-based)
+    // Image override (for replacing starting image)
+    starting_override_image?: string;
+    starting_override_title?: string;
+    // Capability stretches (post-modal DALL-E features, up to 2)
+    capability_stretches?: {
+      [capability: string]: {
+        text: string;
+        photo_id?: number;              // photo_storage ID
+        photo_url: string;              // /api/photos/{id} or base64 fallback
+        title: string;
+        response: string;              // participant's written response
+      };
+    };
+    // Legacy fields kept for backward compatibility
+    new_image?: string | null;          // v3 Unsplash URL (legacy)
+    capability?: CapabilityType | null; // v3 single capability (legacy)
     current_frame?: string;
     ai_stretch?: string[];
     user_stretch?: string;
