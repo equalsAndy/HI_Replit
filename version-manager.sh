@@ -7,11 +7,10 @@
 # Semantic Versioning (SemVer) — MAJOR.MINOR.PATCH
 # ─────────────────────────────────────────────────
 #  MAJOR  — Breaking changes or significant rewrites (e.g. 2.x.x → 3.0.0)
-#            Resets MINOR and PATCH to 0. Reset build number to 1.
 #  MINOR  — New features added, backwards-compatible  (e.g. 2.7.x → 2.8.0)
-#            Resets PATCH to 0. Reset build number to 1.
 #  PATCH  — Bug fixes and small patches               (e.g. 2.8.0 → 2.8.1)
-#            Build number increments; no resets needed.
+#
+# Build numbers are derived from git commit count (not stored in version.json).
 # ─────────────────────────────────────────────────
 # Examples:
 #   ./version-manager.sh staging minor   → bumps 2.7.x to 2.8.0, build resets to 1
@@ -88,7 +87,8 @@ else
     echo "💻 Development version: v$VERSION"
 fi
 
-BUILD_NUMBER=$(date +%m%d.%H%M)
+# Derive build number from git commit count (no more stored state to conflict)
+BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo "0")
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
 echo "Updating version to v$VERSION build $BUILD_NUMBER for $ENVIRONMENT"
@@ -137,4 +137,4 @@ else
 fi
 
 echo ""
-echo "Build number format: MMDD.HHMM (e.g., 0725.1045 = July 25, 10:45 AM)"
+echo "Build number is derived from git commit count (currently $BUILD_NUMBER commits)"
