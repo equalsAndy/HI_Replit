@@ -61,6 +61,7 @@ import iaInterestRoutes from './routes/ia-interest-routes.ts';
 import { resetRouter } from './routes/reset-routes.ts';
 import starCardRoutes from './routes/starcard-routes.ts';
 import workshopResponsesRoutes from './routes/workshop-responses-routes.ts';
+import vaultRoutes from './routes/vault-routes.ts';
 import { initializeDatabase, db, queryClient } from './db.ts';
 import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
 import { AuthEnvironmentManager } from './config/auth-environment.ts';
@@ -532,6 +533,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/reset', resetRouter);
       app.use('/api/starcard', starCardRoutes);
       app.use('/api/workshop-responses', workshopResponsesRoutes);
+      app.use('/api/vault', vaultRoutes);
 
       // PhotoService alias endpoint for StarCard images
       app.get('/api/photoservice/starcard/:userId', (req, res) => {

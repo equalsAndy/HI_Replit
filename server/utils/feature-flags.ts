@@ -62,6 +62,11 @@ export const featureFlags: Record<string, FeatureFlag> = {
     environment: 'all',
     description: 'Use Claude API instead of OpenAI for AI features (configurable per-feature via AI_PROVIDER_IA, AI_PROVIDER_COACHING, AI_PROVIDER_REPORTS)',
     aiRelated: true
+  },
+  solidPodSync: {
+    enabled: process.env.FEATURE_SOLID_POD_SYNC === 'true',
+    environment: 'all',
+    description: 'Sync assessment data to SelfActual Solid Pods'
   }
 };
 

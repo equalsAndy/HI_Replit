@@ -727,3 +727,25 @@ export const exerciseTrainingDocs = pgTable('exercise_training_docs', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   updatedBy: integer('updated_by').references(() => users.id),
 });
+
+// Vault accounts table — maps AST users to SelfActual Solid Pod URLs
+export const vaultAccounts = pgTable('vault_accounts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  podUsername: varchar('pod_username', { length: 255 }).notNull(),
+  masterPodUrl: varchar('master_pod_url', { length: 500 }).notNull(),
+  subPodUrl: varchar('sub_pod_url', { length: 500 }).notNull(),
+  lastSyncedAt: timestamp('last_synced_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdUnique: unique().on(table.userId),
+  userIdIdx: index('idx_vault_accounts_user_id').on(table.userId),
+}));
+
+// Create insert schema for vault accounts
+export const insertVaultAccountSchema = createInsertSchema(vaultAccounts);
+
+// Type definitions for vault accounts
+export type VaultAccount = typeof vaultAccounts.$inferSelect;
+export type InsertVaultAccount = z.infer<typeof insertVaultAccountSchema>;
