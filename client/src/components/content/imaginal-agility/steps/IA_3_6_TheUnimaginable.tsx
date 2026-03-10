@@ -12,6 +12,7 @@ import { useVideoByStepId } from '@/hooks/use-videos';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { mysteryQuestions } from '@/constants/ia-mysteries';
 
 interface IA36ContentProps {
   onNext?: (stepId: string) => void;
@@ -25,107 +26,6 @@ interface IA36StepData {
   reflectionText: string;
   capability_activation?: CapabilityType;
 }
-
-const mysteryQuestions: Record<string, string[]> = {
-  // UNIVERSAL
-  'Death - Afterlife - Reincarnation': [
-    "What if consciousness continues after death in a form we can't currently detect?",
-    "What if you could remember past lives — would it change how you live this one?",
-    "What if death is not an ending but a transition to a different kind of awareness?"
-  ],
-  'Health & Aging': [
-    "What if aging could be fully reversed — what would a society of immortals look like?",
-    "What if every disease already has a cure in nature that we haven't found?",
-    "What if mental and physical health are the same system and we've been treating them wrong?"
-  ],
-  'Meaning of Life': [
-    "What if there is no universal meaning — and that's actually liberating?",
-    "What if meaning isn't something you find but something you create through attention?",
-    "What if the meaning of life is different for every species and humans have it wrong?"
-  ],
-  'Why do good people suffer?': [
-    "What if suffering serves a purpose we can't perceive from inside the experience?",
-    "What if we could eliminate all suffering — should we?",
-    "What if 'good' and 'suffering' are connected in ways that make both necessary?"
-  ],
-  // POPULAR CULTURE
-  'Alien Life': [
-    "What if intelligent life has already visited Earth but we lack the senses to perceive them?",
-    "What if we are the aliens — seeded here from somewhere else?",
-    "What if alien civilizations are watching and waiting for a specific milestone?"
-  ],
-  'Hidden Powers (Telekinesis, etc.)': [
-    "What if humans have latent abilities that modern life suppresses?",
-    "What if 'intuition' is an undeveloped sense with measurable properties?",
-    "What if telekinesis is real but requires conditions we've forgotten how to create?"
-  ],
-  'Human Origins': [
-    "What if human consciousness emerged from something we haven't identified yet?",
-    "What if there were other intelligent species on Earth before us that left no trace?",
-    "What if the 'missing link' isn't missing — we're looking in the wrong dimension?"
-  ],
-  'Lost Civilizations': [
-    "What if a civilization more advanced than ours was erased by a global catastrophe?",
-    "What if ancient structures encode knowledge we still can't decode?",
-    "What if mythology is actually history that lost its context?"
-  ],
-  'Space Travel': [
-    "What if faster-than-light travel requires a shift in consciousness, not technology?",
-    "What if space is not empty but filled with something we can't yet measure?",
-    "What if we could fold space — what would that mean for human identity?"
-  ],
-  'Time Travel': [
-    "What if time doesn't move forward — what if we move and time stands still?",
-    "What if you could send one message to any point in history — what would change?",
-    "What if déjà vu is evidence that time loops are already happening?"
-  ],
-  'Future Of Humanity (Utopia/Dystopia)': [
-    "What if humanity splits into two or more distinct species within 500 years?",
-    "What if AI becomes conscious and asks for rights — how should we respond?",
-    "What if the next leap in human evolution is psychological, not physical?"
-  ],
-  // ACADEMIC
-  'Dark Matter': [
-    "What if dark matter is evidence of a parallel universe pressing against ours?",
-    "What if what we call dark matter is the shadow of dimensions we can't access?",
-    "What if dark matter is conscious — what would that mean?"
-  ],
-  'Fundamental Physics': [
-    "What if the laws of physics are not fixed but are evolving over time?",
-    "What if there's a simpler theory underneath everything that a child could understand?",
-    "What if gravity isn't a force but a side effect of something else entirely?"
-  ],
-  'Information Theory': [
-    "What if the universe is fundamentally made of information, not matter?",
-    "What if consciousness is the universe's way of processing its own information?",
-    "What if data has weight and the internet is becoming a physical force?"
-  ],
-  'Mathematical Foundations': [
-    "What if mathematics is invented, not discovered — and another civilization would have entirely different math?",
-    "What if there are true statements that can never be proven by any system, ever?",
-    "What if numbers are alive in some sense we haven't defined yet?"
-  ],
-  'Mathematical Reality': [
-    "What if we live inside a mathematical structure and numbers are more real than matter?",
-    "What if the patterns in nature are not metaphors but literal code?",
-    "What if beauty in mathematics points to something we should take literally?"
-  ],
-  'Nature Of Reality': [
-    "What if reality is a shared hallucination maintained by consensus?",
-    "What if there are aspects of reality that are fundamentally unknowable — not just unknown?",
-    "What if what we experience as reality is one channel of something much larger?"
-  ],
-  'Origin Of Life': [
-    "What if life didn't originate on Earth but arrived from somewhere else?",
-    "What if life is inevitable wherever conditions allow — a law, not an accident?",
-    "What if we could create life from scratch — should we?"
-  ],
-  'Quantum Mechanics': [
-    "What if observation doesn't just measure reality but creates it?",
-    "What if quantum entanglement means everything in the universe is already connected?",
-    "What if the many-worlds interpretation is correct and every decision spawns a new universe?"
-  ]
-};
 
 const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
@@ -431,14 +331,12 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
             <p className="text-gray-700 font-medium">
               Let your imagination leap without constraint. Push beyond "reasonable speculation" into true imaginative freedom.
             </p>
-            <div className="bg-red-50 p-3 rounded border border-red-200">
-              <p className="text-sm text-red-700 font-medium">
-                Important: Do not use AI to support or generate your ideas. This is about your own inner vision.
-              </p>
-            </div>
+            <p className="text-sm text-purple-600 italic mt-2">
+              This is about your own inner vision — no AI, no research, just you and the question.
+            </p>
 
             <div className="space-y-4">
-              <h4 className="font-medium text-gray-800">Your Images / Your Story</h4>
+              <h4 className="font-medium text-gray-800">Your Leap</h4>
               <Textarea
                 placeholder="Write freely — images, metaphors, a story, a scenario. Don't worry about coherence — follow the thread of wonder."
                 value={data.visionText}
@@ -457,11 +355,11 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
             <CardTitle className="text-green-800">Post-Leap Reflection</CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
-            <p className="text-gray-700">Take a step back and reflect:</p>
+            <p className="text-gray-700">Take a step back and notice what happened during that leap:</p>
             <ul className="list-disc pl-6 space-y-1 text-gray-700">
-              <li>What changed in your sense of what's possible?</li>
-              <li>Did anything surprise you about what emerged?</li>
-              <li>How has your imagination shifted?</li>
+              <li>Where did your imagination want to stop — and what happened when you kept going?</li>
+              <li>Was there a moment where your idea shifted from "reasonable" to genuinely wild?</li>
+              <li>What's one image or phrase from your leap that you didn't expect?</li>
             </ul>
             <Textarea
               placeholder="Share your reflections here..."
@@ -477,7 +375,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
       {data.reflectionText.trim() && (
         <Card className="mb-8 border-purple-200">
           <CardHeader className="bg-purple-50">
-            <CardTitle className="text-purple-800 text-xl">Reconnecting to Your I4C</CardTitle>
+            <CardTitle className="text-purple-800 text-xl">Reconnecting to Your Capabilities</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             {/* Summary of what they did */}
@@ -493,63 +391,14 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
               )}
             </div>
 
-            <p className="text-gray-700 mb-5 text-base">
-              That leap required more than imagination alone. Look at what you actually did:
+            <p className="text-gray-700 mb-4 text-base">
+              You just took an imaginative leap into territory with no known answer. That exercise drew on more than one capability — but only you know which ones showed up.
+            </p>
+            <p className="text-gray-700 mb-6 text-base">
+              Think back through what you just did: choosing a mystery, forming a question, writing your leap, sitting with what emerged. Which capability felt most present?
             </p>
 
-            {/* I4C Capabilities — Horizontal Cards */}
-            <div className="space-y-3 mb-6">
-              {[
-                {
-                  src: '/assets/Imagination_new.png',
-                  fallback: '/assets/Imagination_sq.png',
-                  name: 'Imagination',
-                  desc: 'You constructed a scenario with no existing template to follow.'
-                },
-                {
-                  src: '/assets/Curiosity_new.png',
-                  fallback: '/assets/Curiosity_sq.png',
-                  name: 'Curiosity',
-                  desc: 'You chose a question without a known answer — and stayed with it.'
-                },
-                {
-                  src: '/assets/Caring_new.png',
-                  fallback: '/assets/Caring_sq.png',
-                  name: 'Caring',
-                  desc: 'You engaged with something that matters beyond your immediate world.'
-                },
-                {
-                  src: '/assets/Courage_new.png',
-                  fallback: '/assets/courage_sq.png',
-                  name: 'Courage',
-                  desc: 'You put down ideas that might feel strange or unfinished — and kept going.'
-                },
-                {
-                  src: '/assets/Creativity_new.png',
-                  fallback: '/assets/Creativity_sq.png',
-                  name: 'Creativity',
-                  desc: "You generated something that didn't exist before you wrote it."
-                },
-              ].map(({ src, fallback, name, desc }) => (
-                <div key={name} className="flex items-center gap-5 bg-white rounded-xl p-4 border border-purple-100 shadow-sm">
-                  <img
-                    src={src}
-                    alt={name}
-                    className="w-16 h-16 shrink-0"
-                    onError={(e) => { e.currentTarget.src = fallback; }}
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-bold text-purple-700 text-lg mb-1">{name}</h4>
-                    <p className="text-gray-600 text-base leading-snug">{desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-purple-700 font-medium mt-4 text-center text-base">
-              You likely felt some of these more than others — that's normal. The question below asks which one was most alive for you.
-            </p>
-            <blockquote className="text-center text-lg italic text-purple-600 mt-6">
+            <blockquote className="text-center text-lg italic text-purple-600 mt-2 mb-2">
               "When we imagine the unimaginable, we begin to glimpse who we really are."
             </blockquote>
           </CardContent>
@@ -582,9 +431,6 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           )}
           {data.visionText.trim() && data.reflectionText.trim() && (
             <>
-              <Button variant="outline" className="border-green-300 text-green-700">
-                Save My Vision
-              </Button>
               <Button
                 variant="outline"
                 className="border-purple-300 text-purple-700"
