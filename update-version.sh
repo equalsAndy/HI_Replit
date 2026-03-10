@@ -8,21 +8,25 @@
 #   ./update-version.sh major              # Major release - increment major (x.0.0)
 #   ./update-version.sh [version]          # Set specific version (e.g., 2.5.3)
 #
-# Build numbers are derived from git (commit count on current branch).
+# Build number increments by 1 on every run, stored in public/version.json.
 # Only the semantic version and description are tracked in version.json.
 
 BUMP_TYPE=${1:-build}
 ENVIRONMENT=${2:-development}
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
-# Derive build number from git commit count (branch-aware, always current)
-BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+# Build number: read last build from file, increment by 1
+LAST_BUILD=0
+if [ -f "public/version.json" ]; then
+    LAST_BUILD=$(node -p "JSON.parse(require('fs').readFileSync('public/version.json', 'utf8')).build" 2>/dev/null || echo "0")
+fi
+BUILD_NUMBER=$((LAST_BUILD + 1))
 SHORT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # Read current version from version.json
 if [ -f "version.json" ]; then
     CURRENT_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('version.json', 'utf8')).version")
-    echo "Current version: $CURRENT_VERSION (git build #$BUILD_NUMBER, $SHORT_SHA)"
+    echo "Current version: $CURRENT_VERSION (build #$LAST_BUILD → #$BUILD_NUMBER, $SHORT_SHA)"
 else
     # Initialize with current version
     CURRENT_VERSION="2.8.2"
@@ -169,7 +173,6 @@ fi
 
 echo "Version updated successfully!"
 echo "DEV will show: DEV v$VERSION.$BUILD_NUMBER"
-echo "Build number is derived from git commit count (currently $BUILD_NUMBER commits)"
 
 # Show usage examples
 if [ "$BUMP_TYPE" = "build" ]; then

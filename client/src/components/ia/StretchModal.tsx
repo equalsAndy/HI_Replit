@@ -406,37 +406,51 @@ export function StretchModal({
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {conversationReady && (
-                    <p className="text-sm text-purple-700 font-medium">
-                      Your stretch is ready to become an image.
-                    </p>
-                  )}
-                  <Button
-                    onClick={() => handleGenerateStretch()}
-                    disabled={generating}
-                    className={`w-full text-white ${
-                      conversationReady
-                        ? 'bg-purple-600 hover:bg-purple-700'
-                        : 'bg-purple-500 hover:bg-purple-600'
-                    }`}
-                  >
-                    {generating ? (
-                      <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Creating your image...</>
-                    ) : (
-                      'Generate My Image'
-                    )}
-                  </Button>
-                  {!conversationReady && (
-                    <Button
-                      variant="outline"
-                      onClick={() => chatRef.current?.focus?.()}
-                      className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
-                    >
-                      Stretch a little further
-                    </Button>
+                  {conversationReady ? (
+                    <>
+                      <Button
+                        onClick={() => handleGenerateStretch()}
+                        disabled={generating}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        {generating ? (
+                          <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Creating your image...</>
+                        ) : (
+                          'Generate My Image'
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => chatRef.current?.focus?.()}
+                        className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
+                      >
+                        Stretch a little further first
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => chatRef.current?.focus?.()}
+                        className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        Stretch a little further
+                      </Button>
+                      <Button
+                        onClick={() => handleGenerateStretch()}
+                        disabled={generating}
+                        className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                      >
+                        {generating ? (
+                          <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Creating your image...</>
+                        ) : (
+                          'Generate my image now'
+                        )}
+                      </Button>
+                    </>
                   )}
                   <p className="text-xs text-gray-400 text-center">
-                    You get 2 image generations &mdash; make the conversation count.
+                    You have 2 image generations for this exercise.
                   </p>
                   {generateError && (
                     <p className="text-xs text-red-600 mt-2">{generateError}</p>

@@ -21,28 +21,34 @@ function wordCount(text?: string): number {
   return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
 
-// Stretch examples
+// Stretch examples — each tells the story of a stretch in words
 const STRETCH_EXAMPLES = [
   {
     startLabel: 'Calm Ocean',
     startImg: '/assets/calm-water-ia-4-3-square.png',
+    represents: 'I stay composed when everything around me is chaotic.',
     stretchLabel: 'Rough Water',
     stretchImg: '/assets/rough-water-ia-4-3-square.png',
-    reveal: 'Grit under pressure \u2014 potential that only shows up when things get hard',
+    stretchQ: 'What does that composure look like when the pressure is on you, not just around you?',
+    stretched: 'I don\u2019t just stay calm \u2014 I hold steady when I\u2019m the one under fire.',
   },
   {
     startLabel: 'Mountain Peak',
     startImg: '/assets/peak-ia-4-3-square.png',
+    represents: 'I\u2019m driven to reach the top of whatever I take on.',
     stretchLabel: 'The Climb',
     stretchImg: '/assets/climb-ia-4-3-square.png',
-    reveal: 'The summit is one moment \u2014 the real potential lives in the ascent itself',
+    stretchQ: 'What if the part that matters most isn\u2019t arriving \u2014 but how you get there?',
+    stretched: 'My real strength isn\u2019t finishing \u2014 it\u2019s what I become during the effort.',
   },
   {
     startLabel: 'Seedling',
     startImg: '/assets/seedling.png',
+    represents: 'I\u2019m just getting started, but I know I can grow.',
     stretchLabel: 'Destroyed Concrete',
     stretchImg: '/assets/destroyed_concrete.png',
-    reveal: 'The thing that survives the crack doesn\u2019t just persist \u2014 it reshapes what held it back',
+    stretchQ: 'What would it look like if that growth wasn\u2019t just happening \u2014 but breaking through something?',
+    stretched: 'I\u2019m not just growing \u2014 I\u2019m reshaping what was holding me back.',
   },
 ];
 
@@ -318,29 +324,26 @@ export default function VisualizationStretchExercise() {
               <span className="text-gray-400">Click to enlarge the images.</span>
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {STRETCH_EXAMPLES.map((ex) => (
                 <div
                   key={ex.startLabel}
                   className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm"
                 >
-                  {/* Image pair row */}
+                  {/* Row 1: Image pair with titles */}
                   <div className="flex items-center gap-3 mb-3">
                     <button type="button" onClick={() => setEnlargedImg({ src: ex.startImg, alt: ex.startLabel })} className="cursor-pointer flex-shrink-0">
                       <Thumb src={ex.startImg} fallback="" alt={ex.startLabel} />
                     </button>
 
                     <div className="flex flex-col items-center flex-shrink-0">
-                      <span className="text-[10px] font-medium text-gray-400 uppercase">start</span>
                       <span className="text-purple-400 text-lg leading-none">&rarr;</span>
-                      <span className="text-[10px] font-medium text-purple-500 uppercase">stretch</span>
                     </div>
 
                     <button type="button" onClick={() => setEnlargedImg({ src: ex.stretchImg, alt: ex.stretchLabel })} className="cursor-pointer flex-shrink-0">
                       <Thumb src={ex.stretchImg} fallback="" alt={ex.stretchLabel} />
                     </button>
 
-                    {/* Labels next to images */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 flex-wrap">
                         <span className="text-sm font-semibold text-gray-700">&ldquo;{ex.startLabel}&rdquo;</span>
@@ -350,8 +353,21 @@ export default function VisualizationStretchExercise() {
                     </div>
                   </div>
 
-                  {/* Reveal text — full width below */}
-                  <p className="text-xs text-gray-500 leading-relaxed">{ex.reveal}</p>
+                  {/* The stretch story — three lines showing the process */}
+                  <div className="space-y-2 text-sm">
+                    <p className="text-gray-600">
+                      <span className="font-medium text-gray-500">Represents:</span>{' '}
+                      <span className="italic">&ldquo;{ex.represents}&rdquo;</span>
+                    </p>
+                    <p className="text-purple-600">
+                      <span className="font-medium text-purple-500">Stretch:</span>{' '}
+                      <span className="italic">&ldquo;{ex.stretchQ}&rdquo;</span>
+                    </p>
+                    <p className="text-gray-800 font-medium">
+                      <span className="text-gray-500 font-medium">Landed:</span>{' '}
+                      &ldquo;{ex.stretched}&rdquo;
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
