@@ -182,10 +182,10 @@ node -e "
 const fs = require('fs');
 const versionData = JSON.parse(fs.readFileSync('$VERSION_FILE', 'utf8'));
 versionData.version = '$NEW_VERSION';
-versionData.buildNumber = '1';
-versionData.lastUpdated = new Date().toISOString();
+delete versionData.buildNumber;
+delete versionData.lastUpdated;
 versionData.description = 'Release v$NEW_VERSION - $RELEASE_TITLE';
-fs.writeFileSync('$VERSION_FILE', JSON.stringify(versionData, null, 2));
+fs.writeFileSync('$VERSION_FILE', JSON.stringify(versionData, null, 2) + '\n');
 "
 
 # Update .env file

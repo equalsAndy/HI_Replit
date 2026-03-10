@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StretchModal, TAG_OPTIONS } from './StretchModal';
 import type { StretchResult } from './StretchModal';
-import { CapabilityType, CAPABILITY_LABELS } from '@/lib/types';
 import { searchUnsplash } from '@/services/api-services';
 import { Loader2 } from 'lucide-react';
 
@@ -22,22 +21,21 @@ function wordCount(text?: string): number {
   return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
 
-// ── Stretch examples ─────────────────────────────────────────────────
-// Before image → after image, with reveal text. Square PNGs in /assets/.
+// Stretch examples
 const STRETCH_EXAMPLES = [
   {
     startLabel: 'Calm Ocean',
     startImg: '/assets/calm-water-ia-4-3-square.png',
     stretchLabel: 'Rough Water',
     stretchImg: '/assets/rough-water-ia-4-3-square.png',
-    reveal: 'Grit under pressure — potential that only shows up when things get hard',
+    reveal: 'Grit under pressure \u2014 potential that only shows up when things get hard',
   },
   {
     startLabel: 'Mountain Peak',
     startImg: '/assets/peak-ia-4-3-square.png',
     stretchLabel: 'The Climb',
     stretchImg: '/assets/climb-ia-4-3-square.png',
-    reveal: 'The summit is one moment — the real potential lives in the ascent itself',
+    reveal: 'The summit is one moment \u2014 the real potential lives in the ascent itself',
   },
   {
     startLabel: 'Seedling',
@@ -47,9 +45,14 @@ const STRETCH_EXAMPLES = [
     reveal: 'The thing that survives the crack doesn\u2019t just persist \u2014 it reshapes what held it back',
   },
 ];
-// ─────────────────────────────────────────────────────────────────────
 
-/** Tiny image or emoji fallback */
+const CAPABILITY_OPTIONS = [
+  { key: 'curiosity', label: 'Curiosity', color: 'green' },
+  { key: 'caring', label: 'Caring', color: 'blue' },
+  { key: 'creativity', label: 'Creativity', color: 'orange' },
+  { key: 'courage', label: 'Courage', color: 'red' },
+] as const;
+
 function Thumb({ src, fallback, alt }: { src: string; fallback: string; alt: string }) {
   if (src) {
     return (
@@ -72,8 +75,7 @@ export default function VisualizationStretchExercise() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [enlargedImg, setEnlargedImg] = React.useState<{ src: string; alt: string } | null>(null);
 
-  // Image override state — lets user replace ia-3-3 image before stretching
-  // Persisted in state.ia_4_3.starting_override_image / starting_override_title
+  // Image override state
   const [showImageReplace, setShowImageReplace] = React.useState(false);
   const [replaceSearch, setReplaceSearch] = React.useState('');
   const [replaceResults, setReplaceResults] = React.useState<any[]>([]);
@@ -81,6 +83,9 @@ export default function VisualizationStretchExercise() {
   const [overrideImage, setOverrideImage] = React.useState<string | null>(null);
   const [overrideTitle, setOverrideTitle] = React.useState('');
   const [overrideHydrated, setOverrideHydrated] = React.useState(false);
+
+  // Capability stretch state
+  const [capStretchLoading, setCapStretchLoading] = React.useState<string | null>(null);
 
   // Hydrate override from persisted state on load
   React.useEffect(() => {
@@ -94,7 +99,7 @@ export default function VisualizationStretchExercise() {
     }
   }, [loading, state, overrideHydrated]);
 
-  // Access IA-3-3 data using the workshop step data hook
+  // Access IA-3-3 data
   const { data: ia33Data } = useWorkshopStepData<IA33StepData>('ia', 'ia-3-3', {
     selectedImage: null,
     uploadedImage: null,
@@ -102,24 +107,28 @@ export default function VisualizationStretchExercise() {
     imageTitle: '',
   });
 
-  // Normalize ia_4_3 with a fallback
   const ia = state?.ia_4_3 ?? {};
 
-  // Extract IA-3-3 data
   const ia33Image = ia33Data?.uploadedImage || ia33Data?.selectedImage;
   const ia33Title = ia33Data?.imageTitle || '';
   const ia33Reflection = ia33Data?.reflection || '';
 
-  // Effective starting image — override wins if set
   const effectiveImage = overrideImage || ia33Image;
   const effectiveTitle = overrideImage ? overrideTitle : ia33Title;
   const effectiveReflection = overrideImage ? '' : ia33Reflection;
 
-  // Early return AFTER all hooks are called
   if (loading || !state) return null;
 
   const hasIA33Data = Boolean(ia33Image && ia33Title);
   const hasStartingImage = Boolean(effectiveImage && effectiveTitle);
+
+  // New completion logic: modal results + tag on content area
+  const stretchImageUrl = ia.new_image_url || ia.new_image || null;
+  const hasModalResults = Boolean(stretchImageUrl && ia.story && wordCount(ia.story) >= 10);
+  const isFullyComplete = Boolean(hasModalResults && ia.tag);
+  const capStretches = ia.capability_stretches || {};
+  const capStretchCount = Object.keys(capStretches).length;
+  const canDoMoreCapStretches = capStretchCount < 2;
 
   const runReplaceSearch = async () => {
     if (!replaceSearch.trim()) return;
@@ -135,7 +144,6 @@ export default function VisualizationStretchExercise() {
 
   const confirmOverride = () => {
     if (overrideImage && overrideTitle.trim()) {
-      // Persist to continuity state so it survives refresh
       setState((prev) => ({
         ...prev,
         ia_4_3: {
@@ -155,39 +163,37 @@ export default function VisualizationStretchExercise() {
     setReplaceResults([]);
     setReplaceSearch('');
     setShowImageReplace(false);
-    // Remove from persisted state
     setState((prev) => {
       const { starting_override_image, starting_override_title, ...rest } = (prev.ia_4_3 || {}) as any;
       return { ...prev, ia_4_3: rest };
     });
     setTimeout(() => saveNow(), 0);
   };
-  const hasResults = Boolean(ia.completed);
-
-  // Resolve tag and capability labels
-  const tagLabel = TAG_OPTIONS.find(t => t.value === ia.tag)?.label ?? ia.tag;
-  const tagHelper = TAG_OPTIONS.find(t => t.value === ia.tag)?.helper ?? '';
-  const capabilityLabel = ia.capability ? CAPABILITY_LABELS[ia.capability as CapabilityType] : '';
 
   function onModalApply(result: StretchResult) {
     setState((prev) => ({
       ...prev,
       ia_4_3: {
-        // Preserve override fields so they survive modal completion
+        ...(prev.ia_4_3 || {}),
+        // Preserve override fields
         ...(prev.ia_4_3?.starting_override_image ? {
           starting_override_image: prev.ia_4_3.starting_override_image,
           starting_override_title: prev.ia_4_3.starting_override_title,
         } : {}),
+        // Preserve capability stretches from previous state
+        capability_stretches: prev.ia_4_3?.capability_stretches || {},
         original_image: result.original_image,
         original_title: result.original_title,
         original_reflection: effectiveReflection,
-        new_image: result.new_image,
+        new_image_url: result.new_image_url,
+        new_image_photo_id: result.new_image_photo_id,
         new_title: result.new_title,
         story: result.story,
-        capability: result.capability,
-        tag: result.tag,
         transcript: result.transcript,
-        completed: true,
+        // Not completed yet — need tag on content area
+        completed: false,
+        // Clear tag so user selects fresh
+        tag: '',
       },
     }));
     setTimeout(() => saveNow(), 0);
@@ -198,7 +204,7 @@ export default function VisualizationStretchExercise() {
     setState((prev) => ({
       ...prev,
       ia_4_3: {
-        // Preserve override fields so starting image choice survives redo
+        // Preserve override fields
         ...(prev.ia_4_3?.starting_override_image ? {
           starting_override_image: prev.ia_4_3.starting_override_image,
           starting_override_title: prev.ia_4_3.starting_override_title,
@@ -206,24 +212,105 @@ export default function VisualizationStretchExercise() {
         original_image: null,
         original_title: '',
         original_reflection: '',
-        new_image: null,
+        new_image_url: undefined,
+        new_image_photo_id: undefined,
         new_title: '',
         story: '',
-        capability: null,
         tag: '',
         transcript: [],
         completed: false,
+        capability_stretches: {},
       },
     }));
   }
 
+  // Handle tag selection — sets tag and marks exercise complete
+  function handleTagSelect(tagValue: string) {
+    setState((prev) => ({
+      ...prev,
+      ia_4_3: {
+        ...(prev.ia_4_3 || {}),
+        tag: tagValue,
+        completed: true,
+      },
+    }));
+    setTimeout(() => saveNow(), 0);
+  }
+
+  // Handle capability stretch generation
+  async function handleCapabilityStretch(capability: string) {
+    if (capStretchLoading || !canDoMoreCapStretches) return;
+    if (capStretches[capability]) return; // Already done
+
+    setCapStretchLoading(capability);
+    try {
+      const resp = await fetch('/api/ai/image/capability-stretch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          original_title: ia.original_title || effectiveTitle,
+          stretch_title: ia.new_title || '',
+          story: ia.story || '',
+          capability,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data?.success) {
+        throw new Error(data?.error || 'Failed to generate capability stretch');
+      }
+
+      setState((prev) => ({
+        ...prev,
+        ia_4_3: {
+          ...(prev.ia_4_3 || {}),
+          capability_stretches: {
+            ...(prev.ia_4_3?.capability_stretches || {}),
+            [capability]: {
+              text: data.text || '',
+              photo_id: data.photo_id,
+              photo_url: data.photo_url || data.fallback_base64 || '',
+              title: data.suggested_title || capability,
+              response: '',
+            },
+          },
+        },
+      }));
+      setTimeout(() => saveNow(), 0);
+    } catch (err: any) {
+      console.error(`Capability stretch (${capability}) failed:`, err);
+    } finally {
+      setCapStretchLoading(null);
+    }
+  }
+
+  // Update capability stretch response text
+  function updateCapStretchResponse(capability: string, response: string) {
+    setState((prev) => ({
+      ...prev,
+      ia_4_3: {
+        ...(prev.ia_4_3 || {}),
+        capability_stretches: {
+          ...(prev.ia_4_3?.capability_stretches || {}),
+          [capability]: {
+            ...(prev.ia_4_3?.capability_stretches?.[capability] || {} as any),
+            response,
+          },
+        },
+      },
+    }));
+  }
+
+  const tagLabel = TAG_OPTIONS.find(t => t.value === ia.tag)?.label ?? ia.tag;
+  const tagHelper = TAG_OPTIONS.find(t => t.value === ia.tag)?.helper ?? '';
+
   return (
     <>
-      {/* ═══ PRE-MODAL: Examples + Launch ═══ */}
-      {!hasResults && (
+      {/* PRE-MODAL: Examples + Launch */}
+      {!hasModalResults && (
         <div className="space-y-6">
 
-          {/* How stretching works — visual example cards */}
+          {/* How stretching works */}
           <div>
             <h4 className="text-base font-semibold text-gray-800 mb-1">How it works</h4>
             <p className="text-sm text-gray-500 mb-4">
@@ -235,33 +322,36 @@ export default function VisualizationStretchExercise() {
               {STRETCH_EXAMPLES.map((ex) => (
                 <div
                   key={ex.startLabel}
-                  className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm"
+                  className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm"
                 >
-                  {/* Before thumbnail */}
-                  <button type="button" onClick={() => setEnlargedImg({ src: ex.startImg, alt: ex.startLabel })} className="cursor-pointer">
-                    <Thumb src={ex.startImg} fallback="🌊" alt={ex.startLabel} />
-                  </button>
+                  {/* Image pair row */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <button type="button" onClick={() => setEnlargedImg({ src: ex.startImg, alt: ex.startLabel })} className="cursor-pointer flex-shrink-0">
+                      <Thumb src={ex.startImg} fallback="" alt={ex.startLabel} />
+                    </button>
 
-                  <div className="flex flex-col items-center flex-shrink-0 w-10">
-                    <span className="text-xs font-medium text-gray-400 uppercase">start</span>
-                    <span className="text-purple-400 text-lg leading-none">&rarr;</span>
-                    <span className="text-xs font-medium text-purple-500 uppercase">stretch</span>
-                  </div>
-
-                  {/* After thumbnail */}
-                  <button type="button" onClick={() => setEnlargedImg({ src: ex.stretchImg, alt: ex.stretchLabel })} className="cursor-pointer">
-                    <Thumb src={ex.stretchImg} fallback="🌊" alt={ex.stretchLabel} />
-                  </button>
-
-                  {/* Labels + reveal */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-semibold text-gray-700">&ldquo;{ex.startLabel}&rdquo;</span>
-                      <span className="text-purple-400">&rarr;</span>
-                      <span className="text-sm font-semibold text-purple-700">&ldquo;{ex.stretchLabel}&rdquo;</span>
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <span className="text-[10px] font-medium text-gray-400 uppercase">start</span>
+                      <span className="text-purple-400 text-lg leading-none">&rarr;</span>
+                      <span className="text-[10px] font-medium text-purple-500 uppercase">stretch</span>
                     </div>
-                    <p className="text-xs text-gray-500 leading-relaxed">{ex.reveal}</p>
+
+                    <button type="button" onClick={() => setEnlargedImg({ src: ex.stretchImg, alt: ex.stretchLabel })} className="cursor-pointer flex-shrink-0">
+                      <Thumb src={ex.stretchImg} fallback="" alt={ex.stretchLabel} />
+                    </button>
+
+                    {/* Labels next to images */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-sm font-semibold text-gray-700">&ldquo;{ex.startLabel}&rdquo;</span>
+                        <span className="text-purple-400">&rarr;</span>
+                        <span className="text-sm font-semibold text-purple-700">&ldquo;{ex.stretchLabel}&rdquo;</span>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Reveal text — full width below */}
+                  <p className="text-xs text-gray-500 leading-relaxed">{ex.reveal}</p>
                 </div>
               ))}
             </div>
@@ -325,6 +415,17 @@ export default function VisualizationStretchExercise() {
                 >
                   Cancel
                 </button>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Your starting image represents <strong>one side of who you are</strong> &mdash; a quality
+                  or capacity that feels present but maybe underused. If your original image doesn&apos;t
+                  feel right anymore, search for one that better captures where you are now.
+                </p>
+                <p className="text-sm text-gray-600 mt-2 italic">
+                  Think: what one image would capture something true about you that you want to take further?
+                </p>
               </div>
 
               <div className="flex gap-2">
@@ -449,8 +550,8 @@ export default function VisualizationStretchExercise() {
         onStartOver={onModalStartOver}
       />
 
-      {/* ═══ POST-MODAL: Results ═══ */}
-      {hasResults && (
+      {/* POST-MODAL: Results + Tag + Capability Stretches */}
+      {hasModalResults && (
         <div className="space-y-6">
 
           {/* What You Just Did */}
@@ -458,9 +559,8 @@ export default function VisualizationStretchExercise() {
             <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
               You stretched how you see your potential &mdash; pushing past your first image to find
-              where it reaches further. You found your edge, confirmed it with the &ldquo;too far&rdquo; test,
-              and chose a second image for the territory you stretched into.
-              Together, these two images reveal more about your potential than either shows alone.
+              where it reaches further. AI generated a stretch image from your conversation, and
+              together these two images reveal more about your potential than either shows alone.
             </p>
           </div>
 
@@ -480,7 +580,7 @@ export default function VisualizationStretchExercise() {
               <div className="flex items-center pt-16 text-3xl font-light text-purple-400">+</div>
               <div className="flex flex-col items-center">
                 <img
-                  src={ia.new_image || ''}
+                  src={stretchImageUrl || ''}
                   alt={ia.new_title}
                   className="w-40 h-40 object-cover rounded-lg border-2 border-purple-400 shadow"
                 />
@@ -506,23 +606,105 @@ export default function VisualizationStretchExercise() {
             </div>
           </div>
 
-          {/* Capability + Tag badges */}
-          <div className="flex flex-wrap gap-4 items-center">
-            {capabilityLabel && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
-                <span className="text-xs font-semibold uppercase text-gray-500">Capability:</span>
-                <span className="text-sm font-medium text-purple-800">{capabilityLabel}</span>
+          {/* Tag Selection (moved from modal) */}
+          <div className="p-4 bg-white border border-gray-200 rounded-lg">
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-3">What did stretching give you?</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {TAG_OPTIONS.map(({ value, label, helper }) => (
+                <label
+                  key={value}
+                  className={`flex items-start gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 transition-all ${
+                    ia.tag === value ? 'border-purple-400 bg-purple-50' : 'border-gray-200'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="stretch-tag"
+                    value={value}
+                    checked={ia.tag === value}
+                    onChange={() => handleTagSelect(value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="font-medium text-sm">{label}</div>
+                    <div className="text-xs text-gray-500">{helper}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {ia.tag && (
+              <p className="mt-2 text-xs text-green-600 font-medium">Exercise complete &mdash; you can continue to the next step.</p>
+            )}
+          </div>
+
+          {/* Capability Stretches (optional, up to 2) */}
+          <div className="p-4 bg-white border border-gray-200 rounded-lg">
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">Capability Stretches</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Imagination is a given &mdash; you just stretched your visualization.
+              Pick up to 2 other capabilities to see your stretch through a different lens. Each generates an AI image.
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {CAPABILITY_OPTIONS.map(({ key, label, color }) => {
+                const done = Boolean(capStretches[key]);
+                const isLoading = capStretchLoading === key;
+                const disabled = (!canDoMoreCapStretches && !done) || isLoading;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => !done && !disabled && handleCapabilityStretch(key)}
+                    disabled={disabled}
+                    className={`p-3 rounded-lg border text-sm font-medium transition-all text-left ${
+                      done
+                        ? `border-${color}-300 bg-${color}-50 text-${color}-800`
+                        : disabled
+                          ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                          : `border-gray-200 hover:border-${color}-300 hover:bg-${color}-50 text-gray-700`
+                    }`}
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                      </span>
+                    ) : done ? (
+                      <span>{label} &checkmark;</span>
+                    ) : (
+                      label
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Rendered capability stretch cards */}
+            {Object.entries(capStretches).map(([cap, data]) => (
+              <div key={cap} className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex gap-4 mb-3">
+                  {data.photo_url && (
+                    <img
+                      src={data.photo_url}
+                      alt={data.title}
+                      className="w-24 h-24 object-cover rounded-lg border border-gray-300 flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-gray-800 capitalize mb-1">
+                      {CAPABILITY_OPTIONS.find(c => c.key === cap)?.label || cap}: &ldquo;{data.title}&rdquo;
+                    </h4>
+                    <p className="text-sm text-gray-600 leading-relaxed">{data.text}</p>
+                  </div>
+                </div>
+                <textarea
+                  className="w-full min-h-[60px] p-2 border border-gray-300 rounded text-sm resize-y bg-white"
+                  value={data.response || ''}
+                  onChange={(e) => updateCapStretchResponse(cap, e.target.value)}
+                  onBlur={() => saveNow()}
+                  placeholder="What does this perspective add to your stretch?"
+                />
               </div>
-            )}
-            {tagLabel && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
-                <span className="text-xs font-semibold uppercase text-gray-500">Tag:</span>
-                <span className="text-sm font-medium text-purple-800">{tagLabel}</span>
-              </div>
-            )}
-            {tagHelper && (
-              <p className="text-xs text-gray-500 italic">{tagHelper}</p>
-            )}
+            ))}
           </div>
 
           {/* Redo button */}
@@ -537,11 +719,10 @@ export default function VisualizationStretchExercise() {
           </div>
 
           {/* Completion gate warning */}
-          {(!ia.story || wordCount(ia.story) < 10 || !ia.capability || !ia.tag) && (
+          {!isFullyComplete && (
             <p className="text-xs font-semibold text-amber-600 flex items-center gap-1">
               Required to continue:
               {(!ia.story || wordCount(ia.story) < 10) && <span className="ml-1">Story (10+ words)</span>}
-              {!ia.capability && <span className="ml-1">Capability</span>}
               {!ia.tag && <span className="ml-1">Tag</span>}
             </p>
           )}

@@ -31,7 +31,10 @@ export enum ImageType {
   STARCARD_GENERATED = 'starcard_generated',
   WORKSHOP_VISUALIZATION = 'workshop_visualization',
   WORKSHOP_UPLOAD = 'workshop_upload',
-  GENERAL_UPLOAD = 'general_upload'
+  GENERAL_UPLOAD = 'general_upload',
+  DALLE_STRETCH = 'dalle_stretch',
+  DALLE_RIDICULOUS = 'dalle_ridiculous',
+  DALLE_CAPABILITY = 'dalle_capability',
 }
 
 export interface StoredPhoto extends PhotoMetadata {

@@ -1,65 +1,51 @@
 # Frontend Version Tracking System
 
-This system automatically tracks and displays version numbers in the navbar Dev badge for frontend/visual changes.
+This system tracks and displays version numbers in the navbar Dev badge.
 
-## Current Version
-- **Base Version**: 2.0.0
-- **Build Number**: Auto-incremented for each frontend change
-- **Display Format**: `DEV v2.0.0.{buildNumber}`
+## Current Setup
+- **Semantic Version**: Stored in `version.json` (tracked in git)
+- **Build Number**: Derived from git commit count (`git rev-list --count HEAD`) — not stored
+- **Display Format**: `DEV v2.8.2.3399`
 
 ## Usage
 
-### For Frontend/Visual Changes
-When you make any visual changes to the UI, run:
-
+### Bump the semantic version
 ```bash
-./bump-version.sh "Description of your changes"
+./update-version.sh patch    # Bug fix: 2.8.2 → 2.8.3
+./update-version.sh minor    # Feature: 2.8.2 → 2.9.0
+./update-version.sh major    # Breaking: 2.8.2 → 3.0.0
 ```
 
-This will:
-1. Increment the build number (e.g., v2.0.0.3 → v2.0.0.4)
-2. Update the .env file with new version variables
-3. **Build the frontend with Vite** (includes your changes in the dist folder)
-4. Restart the development server
-5. Update the Dev badge in the navbar
-
-### Examples
+### Regenerate derived files (no version change)
 ```bash
-./bump-version.sh "Updated coaching modal with better styling"
-./bump-version.sh "Added new navigation component"
-./bump-version.sh "Fixed button alignment in header"
+./update-version.sh
 ```
+
+This regenerates `client/public/version.json`, `public/version.json`, and `.env.local` with the current version and git-derived build number.
 
 ### What NOT to bump for
-- Backend-only changes (API routes, database changes, etc.)
+- Backend-only changes (API routes, database changes)
 - Configuration changes
-- Bug fixes that don't change the UI
 - Documentation updates
-
-## Important Notes
-
-⚠️ **The system now includes a frontend build step** - this ensures your changes are immediately visible after running the bump script.
-
-🔄 **Always use the bump script for UI changes** - manual server restarts won't include your latest frontend changes without building first.
-
-## Files Involved
-
-- `version.json` - Stores version metadata
-- `increment-version.mjs` - Node script to increment version
-- `bump-version.sh` - Convenient bash script for version bumping + building
-- `.env` - Contains `VITE_APP_VERSION` and `VITE_BUILD_NUMBER`
-- `NavBar.tsx` - Displays the version in the Dev badge
 
 ## How It Works
 
-1. The navbar reads `VITE_APP_VERSION` and `VITE_BUILD_NUMBER` from environment variables
-2. In development mode, it displays `DEV v{version}.{buildNumber}`
-3. Vite builds your frontend changes into the `dist/public` folder
-4. The server serves the built files with your latest changes
-5. The version is visible to help you confirm you're seeing the latest changes
+1. `version.json` holds the semantic version (tracked in git, rarely changes)
+2. Build number comes from `git rev-list --count HEAD` (no storage, no conflicts)
+3. The navbar reads `VITE_APP_VERSION` and `VITE_BUILD_NUMBER` from Vite env
+4. In development mode, it displays `DEV v{version}.{buildNumber}`
 
-## Troubleshooting
+## Files Involved
 
-**If you don't see changes after hard refresh:**
-- Run `./bump-version.sh "Your change description"` to ensure build + restart
-- The script includes the Vite build step to make changes visible immediately
+| File | Tracked | Purpose |
+|------|---------|---------|
+| `version.json` | Yes | Semantic version source of truth |
+| `update-version.sh` | Yes | Version management script |
+| `client/public/version.json` | No | Runtime version for Vite dev server |
+| `public/version.json` | No | Runtime version for production |
+| `.env.local` | No | Vite build environment variables |
+| `NavBar.tsx` | Yes | Displays version in Dev badge |
+
+## Why git-derived build numbers?
+
+Previously, build numbers were stored in `version.json` and incremented manually. This caused merge conflicts when switching branches because each branch had a different build number. Now, build numbers are derived from git at build time — each branch naturally has its own count, and nothing conflicts on merge.
