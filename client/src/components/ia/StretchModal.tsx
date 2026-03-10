@@ -68,6 +68,8 @@ export function StretchModal({
 
   // [READY] signal from AI
   const [conversationReady, setConversationReady] = React.useState(false);
+  const [assistantMessageCount, setAssistantMessageCount] = React.useState(0);
+  const [showButtons, setShowButtons] = React.useState(false);
 
   // Generate phase state
   const [generating, setGenerating] = React.useState(false);
@@ -97,6 +99,8 @@ export function StretchModal({
       setTranscript([]);
       setUserMessageCount(0);
       setConversationReady(false);
+      setAssistantMessageCount(0);
+      setShowButtons(false);
       setGenerating(false);
       setGeneratedPhotoId(null);
       setGeneratedPhotoUrl(null);
@@ -122,10 +126,18 @@ export function StretchModal({
   const onChatReply = React.useCallback((msg: string) => {
     if (msg.includes('[READY]')) {
       setConversationReady(true);
+      setShowButtons(true);
     }
     const displayContent = msg.replace(/^\[REDIRECT\]\s*/i, '').replace(/\[READY\]/g, '').trim();
     setTranscript(prev => [...prev, { role: 'assistant', content: displayContent }]);
-  }, []);
+    setAssistantMessageCount(prev => {
+      const next = prev + 1;
+      if (next >= 2 && !showButtons) {
+        setTimeout(() => setShowButtons(true), 2000);
+      }
+      return next;
+    });
+  }, [showButtons]);
 
   const onChatUserSend = React.useCallback((msg: string) => {
     setTranscript(prev => [...prev, { role: 'user', content: msg }]);
@@ -385,24 +397,28 @@ export function StretchModal({
             </div>
           </section>
 
-          {/* DISCOVER phase right column -- generate button */}
+          {/* DISCOVER phase right column -- generate / keep stretching buttons */}
           {phase === 'discover' && (
             <div className="space-y-3">
-              {!conversationReady ? (
+              {!showButtons ? (
                 <p className="text-xs text-gray-400 italic">
-                  {userMessageCount < 1
-                    ? 'As you work with the AI, your image will be generated from this conversation.'
-                    : 'Keep going \u2014 the AI will signal when there\'s enough to create your image.'}
+                  As you work with the AI, your image will be generated from this conversation.
                 </p>
               ) : (
-                <div className="bg-purple-50/60 border border-purple-200 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-700 mb-3">
-                    Ready to see your image?
-                  </p>
+                <div className="space-y-3">
+                  {conversationReady && (
+                    <p className="text-sm text-purple-700 font-medium">
+                      Your stretch is ready to become an image.
+                    </p>
+                  )}
                   <Button
                     onClick={() => handleGenerateStretch()}
                     disabled={generating}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className={`w-full text-white ${
+                      conversationReady
+                        ? 'bg-purple-600 hover:bg-purple-700'
+                        : 'bg-purple-500 hover:bg-purple-600'
+                    }`}
                   >
                     {generating ? (
                       <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Creating your image...</>
@@ -410,6 +426,18 @@ export function StretchModal({
                       'Generate My Image'
                     )}
                   </Button>
+                  {!conversationReady && (
+                    <Button
+                      variant="outline"
+                      onClick={() => chatRef.current?.focus?.()}
+                      className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
+                    >
+                      Stretch a little further
+                    </Button>
+                  )}
+                  <p className="text-xs text-gray-400 text-center">
+                    You get 2 image generations &mdash; make the conversation count.
+                  </p>
                   {generateError && (
                     <p className="text-xs text-red-600 mt-2">{generateError}</p>
                   )}
@@ -421,7 +449,12 @@ export function StretchModal({
           {/* GENERATE phase right column -- show generated image */}
           {phase === 'generate' && (
             <section className="mb-4 space-y-4">
-              <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">Your Stretch Image</h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold uppercase text-gray-500">Your Stretch Image</h2>
+                <span className="text-xs text-gray-400 font-medium">
+                  {hasRetried ? 'Image 2 of 2' : 'Image 1 of 2'}
+                </span>
+              </div>
 
               {generating ? (
                 <div className="flex flex-col items-center justify-center py-12">
@@ -460,6 +493,12 @@ export function StretchModal({
                       This captures my stretch
                     </Button>
 
+                    {hasRetried && (
+                      <p className="text-xs text-gray-400 text-center italic">
+                        Both generations used &mdash; title it and continue.
+                      </p>
+                    )}
+
                     {!hasRetried && !showAdjustInput && (
                       <Button
                         variant="secondary"
@@ -467,13 +506,13 @@ export function StretchModal({
                         onClick={() => setShowAdjustInput(true)}
                         className="w-full"
                       >
-                        Not quite &mdash; adjust it
+                        Not quite &mdash; try one more time
                       </Button>
                     )}
 
                     {showAdjustInput && !hasRetried && (
                       <div className="space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-xs text-gray-600">What should be different?</p>
+                        <p className="text-xs text-gray-600">What should be different? <span className="text-gray-400">(last generation)</span></p>
                         <Input
                           value={adjustmentText}
                           onChange={(e) => setAdjustmentText(e.target.value)}
