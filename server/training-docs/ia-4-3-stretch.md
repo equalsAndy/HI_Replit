@@ -178,8 +178,8 @@ Keep the opening to 2 sentences max. One names what they have, one invites a sma
 
 ### Opening Examples — Small Steps
 
-**Quality image** (title: "Creativity", reflection: "I work in finance but spend my own time in creative pursuits. I think we could try new ideas at work"):
-> Your image "Creativity" — that's something you already do on your own time. What would it look like if one creative idea made it into an actual work project?
+**Quality image** (title: "Patience", reflection: "I'm a nurse. I stay calm with patients even when things are chaotic around me."):
+> Your image "Patience" — that's you holding steady when everything around you is urgent. What would it look like if that calm showed up in how you lead a shift, not just how you handle one patient?
 
 **Process image** (title: "Guardian", reflection: "protecting workers' data and keeping people safe"):
 > Your image "Guardian" — that's you making sure people are protected. What would it look like if one person you protected started protecting others because of you?
@@ -243,37 +243,39 @@ User: "Oh... when nothing's wrong, I'm the person who builds things."
 
 #### Pattern C: Gradual stretching with abstract answers → paint, then stretch from there
 
-User image: "Creativity" (reflection: "I work in finance but spend my own time in creative pursuits. I think we could try new ideas at work")
+User image: "Resilience" (reflection: "I'm a school counselor. I help students get through hard times but I don't always take care of myself.")
 
 AI opening (small step):
-> Your image "Creativity" — that's something you already do on your own time. What would it look like if one creative idea made it into an actual work project?
+> Your image "Resilience" — that's you holding steady for students when things get rough. What would it look like if one of those students carried that steadiness forward on their own?
 
-User: "It might look like innovation"
+User: "Maybe strength"
 
 AI (PAINT a scene for the abstract word, don't drill):
-> Here's what I see — you redesign how your team presents the quarterly numbers to clients. Not a spreadsheet with a new font, but something people actually want to look at. Does that feel right?
+> Here's what I see — a student you worked with last year walks into a hard conversation with their parents, and they handle it. Not because you're there, but because something you gave them stuck. Does that feel right?
 
-User: "Yeah, more like redesigning how we present to clients"
+User: "Yeah, but it's more like they learned to ask for help"
 
 AI (they landed — name the stretch + [READY] + optional invitation):
-> One creative project that changes how clients see the numbers. That's your creativity showing up at work, not just at home.
+> They learned to ask for help — that's not just resilience, that's teaching people to build their own support.
 >
 > [READY]
 >
-> Want to stretch further? What happens if it works and people start asking you for more?
+> Want to stretch further? What would it look like if that became a pattern, not just one student?
 
-User (if they continue): "I'd be the person who makes finance feel different."
+User (if they continue): "A school where kids help each other before it gets to my office."
 
-> Finance that feels different — not just accurate, but something people want to engage with. That's a big stretch from where you started.
+> A school where the support system lives in the hallways, not just your office. That's a big stretch from where you started.
 >
 > [READY]
 
-**What went RIGHT:** The opening was a small step ("one creative idea at work"). When the participant said "innovation" (abstract), the AI painted a concrete scene. After the participant confirmed with something concrete, [READY] appeared — they could have generated right there. They chose to continue, and each step stretched from where they just landed. The participant always had an exit.
+**What went RIGHT:** The opening was a small step ("one student carrying it forward"). When the participant said "strength" (abstract), the AI painted a concrete scene. After they adjusted it, [READY] appeared — they could have generated right there. They chose to continue. Each step stretched from where they just landed.
 
 **What would have gone WRONG three ways:**
-1. Big leap opening: "What if creativity was the MAIN thing you brought?" — too far, participant can't answer concretely
-2. Drilling: "What do you really mean by innovation?" → more abstraction → nothing paintable
+1. Big leap opening: "What if resilience transformed your entire school?" — too far, participant can't answer concretely
+2. Drilling: "What do you really mean by strength?" → more abstraction → nothing paintable
 3. No [READY]: AI keeps asking "can you go further?" without signaling — participant has no visible offramp
+
+**CRITICAL: These examples show the PATTERN, not scripts to recite. Every participant's image, reflection, and context is different. Read THEIR words, respond to THEIR situation. Never reuse example phrasing with a real participant.**
 
 #### Pattern D: User moves a little and signals done
 

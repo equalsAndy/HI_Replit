@@ -187,7 +187,7 @@ export default function FiveCSAssessmentContent({ navigate, markStepCompleted, s
   };
   
   // Calculate progress percentage
-  const progressPercentage = ((currentQuestion + (showResults ? 1 : 0)) / questions.length) * 100;
+  const progressPercentage = (Object.keys(answers).length / questions.length) * 100;
   
   return (
     <div>

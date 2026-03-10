@@ -39,7 +39,7 @@ function getDalleClient(): OpenAI {
  */
 router.post('/stretch', express.json(), async (req, res) => {
   try {
-    const { original_title, original_reflection, transcript_summary, adjustment } = req.body;
+    const { original_title, original_reflection, transcript_summary, adjustment, image_description } = req.body;
 
     if (!original_title || !transcript_summary) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
@@ -54,7 +54,10 @@ router.post('/stretch', express.json(), async (req, res) => {
     const claudeResponse = await provider.complete({
       systemPrompt: `You translate a participant's stretch conversation into a DALL-E image prompt and title.
 
-The participant started with an image titled "${original_title}" (reflection: "${original_reflection || 'none'}").
+The participant started with an image titled "${original_title}".
+Their reflection: "${original_reflection || 'none'}"
+${image_description ? `Their original image (from Unsplash): "${image_description}"` : ''}
+
 Through conversation, they stretched their visualization of their potential.
 
 Your job: Read the conversation and produce TWO things:
@@ -62,20 +65,20 @@ Your job: Read the conversation and produce TWO things:
 1. TITLE: A short evocative title (2-5 words) that captures WHERE they stretched to. Not the starting point — the destination.
 
 2. IMAGE_PROMPT: A DALL-E 3 prompt (50-80 words) describing a scene that captures the MEANING of their stretch. Rules:
+   - GROUND THE IMAGE IN THEIR ACTUAL WORLD. If they work in finance, show a finance setting transformed. If they teach, show a classroom. If they're a student, show a lab or library. The reflection tells you their context — USE IT. An abstract cosmic scene fails if they're talking about redesigning client presentations.
+   - INCLUDE THEIR SPECIFIC WORDS. If they said "presentations," "clients," "engaging," "interactive" — those concepts must appear visually in the scene. The conversation tells you what they stretched toward — render THAT, not a generic aspiration.
    - Describe a SCENE with mood, lighting, composition
-   - Use their metaphors and imagery but render them visually
    - Style: "Digital art, warm atmospheric lighting, slightly surreal, evocative"
    - NEVER include text, words, letters, or numbers in the image
    - NEVER describe people's faces in detail (DALL-E struggles with this)
-   - Capture the FEELING and MEANING of where they stretched to
-   - The image should feel aspirational and expansive
+   - Show figures from behind or at a distance if people are needed
+   - Capture WHERE THEY STRETCHED TO, grounded in their real context
 
-QUALITY GUARD: If the conversation summary is very thin — the participant only said "I'm not sure" or gave very short, abstract answers with no concrete imagery — do NOT generate a dramatic or heroic image prompt. Instead:
+EXAMPLE: If someone in finance said they want to make presentations more engaging and interactive:
+BAD: "A cosmic explosion of creativity and light beams" (generic, ignores their context)
+GOOD: "Digital art, warm lighting. A conference room transformed — the usual spreadsheet projected on the wall has become an interactive 3D data landscape. Colleagues lean forward, reaching into floating charts. Paint splatters on the whiteboard behind them. The room feels alive, not corporate. Slightly surreal, evocative."
 
-TITLE: [something simple that gently extends the original image title]
-IMAGE_PROMPT: A simple, warm, slightly surreal digital art scene that gently extends the feeling of "${original_title}." Soft lighting, open composition, room to breathe. Not dramatic, not heroic. Quiet and inviting. A small step forward from where they started, not a giant leap.
-
-The image should feel like a gentle nudge, not a dramatic transformation. Only generate dramatic, specific imagery when the conversation actually produced dramatic, specific material. Match the energy of the conversation.
+QUALITY GUARD: If the conversation is very thin — participant only said "I'm not sure" or gave very short answers — do NOT generate dramatic imagery. Instead, create a simple warm scene that gently extends the feeling of "${original_title}" in their context. Match the energy of the conversation.
 ${adjustmentNote}
 
 Format your response EXACTLY as:

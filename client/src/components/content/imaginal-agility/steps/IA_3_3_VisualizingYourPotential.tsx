@@ -24,6 +24,7 @@ interface IA33StepData {
   uploadedImage: string | null;
   reflection: string;
   imageTitle: string;
+  imageDescription?: string;
   capability_activation?: CapabilityType;
 }
 
@@ -206,11 +207,12 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   };
 
   // Handle image selection from bank
-  const handleSelectImage = (url: string) => {
+  const handleSelectImage = (url: string, description?: string) => {
     try {
       safeUpdateData({
         selectedImage: url,
-        uploadedImage: null // Clear uploaded image if selecting from bank
+        uploadedImage: null, // Clear uploaded image if selecting from bank
+        imageDescription: description || '',
       });
       setGalleryCollapsed(true);
     } catch (error) {
@@ -452,7 +454,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                             ? 'border-purple-600 ring-2 ring-purple-200' 
                             : 'border-gray-200 hover:border-purple-300'
                         }`}
-                        onClick={() => handleSelectImage(img.urls.regular)}
+                        onClick={() => handleSelectImage(img.urls.regular, img.description || img.alt_description || '')}
                         title={img.alt_description || img.description}
                       >
                         <img 

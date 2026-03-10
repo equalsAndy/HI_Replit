@@ -14,11 +14,7 @@ interface IA33StepData {
   uploadedImage: string | null;
   reflection: string;
   imageTitle: string;
-}
-
-function wordCount(text?: string): number {
-  if (!text) return 0;
-  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  imageDescription?: string;
 }
 
 // Stretch examples — each tells the story of a stretch in words
@@ -80,6 +76,7 @@ export default function VisualizationStretchExercise() {
   const { state, setState, loading, saveNow } = useContinuity();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [enlargedImg, setEnlargedImg] = React.useState<{ src: string; alt: string } | null>(null);
+  const [showExamples, setShowExamples] = React.useState(true);
 
   // Image override state
   const [showImageReplace, setShowImageReplace] = React.useState(false);
@@ -118,6 +115,7 @@ export default function VisualizationStretchExercise() {
   const ia33Image = ia33Data?.uploadedImage || ia33Data?.selectedImage;
   const ia33Title = ia33Data?.imageTitle || '';
   const ia33Reflection = ia33Data?.reflection || '';
+  const ia33ImageDescription = ia33Data?.imageDescription || '';
 
   const effectiveImage = overrideImage || ia33Image;
   const effectiveTitle = overrideImage ? overrideTitle : ia33Title;
@@ -130,7 +128,7 @@ export default function VisualizationStretchExercise() {
 
   // New completion logic: modal results + tag on content area
   const stretchImageUrl = ia.new_image_url || ia.new_image || null;
-  const hasModalResults = Boolean(stretchImageUrl && ia.story && wordCount(ia.story) >= 10);
+  const hasModalResults = Boolean(stretchImageUrl);
   const isFullyComplete = Boolean(hasModalResults && ia.tag);
   const capStretches = ia.capability_stretches || {};
   const capStretchCount = Object.keys(capStretches).length;
@@ -194,7 +192,7 @@ export default function VisualizationStretchExercise() {
         new_image_url: result.new_image_url,
         new_image_photo_id: result.new_image_photo_id,
         new_title: result.new_title,
-        story: result.story,
+        story: prev.ia_4_3?.story || '',
         transcript: result.transcript,
         // Not completed yet — need tag on content area
         completed: false,
@@ -316,15 +314,25 @@ export default function VisualizationStretchExercise() {
       {!hasModalResults && (
         <div className="space-y-6">
 
-          {/* How stretching works */}
+          {/* How stretching works — collapsible */}
           <div>
-            <h4 className="text-base font-semibold text-gray-800 mb-1">How it works</h4>
-            <p className="text-sm text-gray-500 mb-4">
+            <button
+              type="button"
+              onClick={() => setShowExamples(prev => !prev)}
+              className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-1 hover:text-purple-700 transition-colors"
+            >
+              <span className={`text-sm text-purple-500 transition-transform ${showExamples ? 'rotate-90' : ''}`}>&#9654;</span>
+              How it works
+            </button>
+
+            {showExamples && (
+            <>
+            <p className="text-sm text-gray-500 mb-4 ml-5">
               Each stretch starts from one image and pushes to find what&apos;s beyond it.{' '}
               <span className="text-gray-400">Click to enlarge the images.</span>
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-4 ml-5">
               {STRETCH_EXAMPLES.map((ex) => (
                 <div
                   key={ex.startLabel}
@@ -371,6 +379,8 @@ export default function VisualizationStretchExercise() {
                 </div>
               ))}
             </div>
+            </>
+            )}
           </div>
 
           {/* User's starting image + launch button */}
@@ -562,6 +572,7 @@ export default function VisualizationStretchExercise() {
         ia33Image={effectiveImage || null}
         ia33Title={effectiveTitle}
         ia33Reflection={effectiveReflection}
+        ia33ImageDescription={ia33ImageDescription}
         onApply={onModalApply}
         onStartOver={onModalStartOver}
       />
@@ -604,9 +615,11 @@ export default function VisualizationStretchExercise() {
               </div>
             </div>
 
-            {/* Editable story textarea */}
+            {/* Story textarea */}
             <div className="mt-4">
-              <label className="block text-sm font-semibold uppercase text-purple-700 mb-2">What The Stretch Reveals</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What do these two images reveal together?
+              </label>
               <textarea
                 className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg text-sm resize-y bg-white"
                 value={ia.story ?? ''}
@@ -617,8 +630,8 @@ export default function VisualizationStretchExercise() {
                   }))
                 }
                 onBlur={() => saveNow()}
+                placeholder="Together, these images show..."
               />
-              <p className="mt-1 text-xs text-gray-500">Edit if you&apos;d like to refine.</p>
             </div>
           </div>
 
@@ -737,9 +750,7 @@ export default function VisualizationStretchExercise() {
           {/* Completion gate warning */}
           {!isFullyComplete && (
             <p className="text-xs font-semibold text-amber-600 flex items-center gap-1">
-              Required to continue:
-              {(!ia.story || wordCount(ia.story) < 10) && <span className="ml-1">Story (10+ words)</span>}
-              {!ia.tag && <span className="ml-1">Tag</span>}
+              Select a tag above to complete this exercise.
             </p>
           )}
 

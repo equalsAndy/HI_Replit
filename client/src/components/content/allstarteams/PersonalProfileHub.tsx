@@ -64,15 +64,6 @@ const PersonalProfileHub: React.FC<PersonalProfileHubProps> = ({
       completed: activityStates['add-assessments']
     },
     {
-      id: 'woo-assessment',
-      icon: '🎯',
-      title: 'How WOO Are You?',
-      time: '~5 minutes',
-      description: 'A fun questionnaire exploring your relationship-building style. How do you connect with new people? What energizes or drains you socially?',
-      status: 'available',
-      completed: activityStates['woo-assessment']
-    },
-    {
       id: 'personal-email',
       icon: '🔐',
       title: 'Personal Email Setup',
@@ -123,11 +114,6 @@ const PersonalProfileHub: React.FC<PersonalProfileHubProps> = ({
       case 'add-assessments':
         if (setCurrentContent) {
           setCurrentContent('add-assessments-activity');
-        }
-        break;
-      case 'woo-assessment':
-        if (setCurrentContent) {
-          setCurrentContent('woo-assessment-activity');
         }
         break;
       default:

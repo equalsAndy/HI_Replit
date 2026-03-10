@@ -465,7 +465,7 @@ Your relationship with mystery is uniquely yours.
 
   // Assessment View - One question at a time
   const currentQuestion = coreQuestions[currentQuestionIndex];
-  const assessmentProgress = ((currentQuestionIndex + 1) / coreQuestions.length) * 100;
+  const assessmentProgress = (Object.keys(responses).length / coreQuestions.length) * 100;
 
   const handleNext = async () => {
     if (currentQuestionIndex < coreQuestions.length - 1) {

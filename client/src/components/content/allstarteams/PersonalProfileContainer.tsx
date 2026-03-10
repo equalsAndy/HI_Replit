@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import PersonalProfileHub from './PersonalProfileHub';
 import AddYourAssessments from './AddYourAssessments';
 import QuickStartProfile from './QuickStartProfile';
-import WooInventoryScale from './WooInventoryScale';
-
-type ViewState = 'hub' | 'add-assessments-activity' | 'quick-start-activity' | 'woo-assessment-activity';
+type ViewState = 'hub' | 'add-assessments-activity' | 'quick-start-activity';
 
 interface PersonalProfileContainerProps {
   navigate?: (path: string) => void;
@@ -25,8 +23,6 @@ const PersonalProfileContainer: React.FC<PersonalProfileContainerProps> = ({
       setCurrentView('add-assessments-activity');
     } else if (content === 'quick-start-activity') {
       setCurrentView('quick-start-activity');
-    } else if (content === 'woo-assessment-activity') {
-      setCurrentView('woo-assessment-activity');
     } else if (externalSetCurrentContent) {
       // Pass through to external navigation
       externalSetCurrentContent(content);
@@ -67,12 +63,6 @@ const PersonalProfileContainer: React.FC<PersonalProfileContainerProps> = ({
         />
       )}
 
-      {currentView === 'woo-assessment-activity' && (
-        <WooInventoryScale
-          onBack={handleBackToHub}
-          onComplete={handleActivityComplete}
-        />
-      )}
     </>
   );
 };
