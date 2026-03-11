@@ -51,12 +51,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         title: 'The Bigger Picture',
         type: 'video',
         contentKey: 'ia-1-4'
-      },
-      {
-        id: 'ia-1-5',
-        title: 'Extra: Reality and Words',
-        type: 'interactive',
-        contentKey: 'ia-1-5'
       }
     ]
   },

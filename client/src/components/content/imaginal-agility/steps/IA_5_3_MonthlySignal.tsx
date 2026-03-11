@@ -15,12 +15,14 @@ interface IA53StepData {
   signal_ratings: Record<string, number>;
   commitment_check: string;
   signal_reflection: string;
+  combination_reflection: string;
 }
 
 const INITIAL_DATA: IA53StepData = {
   signal_ratings: {},
   commitment_check: '',
   signal_reflection: '',
+  combination_reflection: '',
 };
 
 type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
@@ -209,6 +211,20 @@ const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
               placeholder="What I've noticed this month..."
               value={data.signal_reflection}
               onChange={(e) => updateData({ signal_reflection: e.target.value })}
+              className="border-gray-200 focus:border-purple-400"
+            />
+          </div>
+
+          {/* Combination Reflection */}
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-2">
+              Look at your highest and lowest ratings. Was there a moment this month where one capability was strong but felt stuck because something else was missing?
+            </p>
+            <Textarea
+              rows={2}
+              placeholder="I noticed that when my ___ was active, it needed more ___..."
+              value={data.combination_reflection}
+              onChange={(e) => updateData({ combination_reflection: e.target.value })}
               className="border-gray-200 focus:border-purple-400"
             />
           </div>
