@@ -252,9 +252,9 @@ export default function ImaginalAgilityWorkshop() {
       // The I4C Model (Module 2)
       'ia-2-1', 'ia-2-2',
       // Ladder of Imagination (Module 3)
-      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6', 'ia-3-7',
       // Advanced Ladder of Imagination (Module 4)
-      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6', 'ia-4-7',
       // Review & Plan (Module 5)
       'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
       // Teamwork (Section 6)

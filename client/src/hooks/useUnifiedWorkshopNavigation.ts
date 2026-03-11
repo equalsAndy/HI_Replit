@@ -48,11 +48,11 @@ const WORKSHOP_CONFIGS = {
     workshopCompletionStep: '3-4' // After this, all of modules 4-5 unlock
   },
   ia: {
-    progressiveSteps: ['ia-1-1', 'ia-1-2', 'ia-2-1', 'ia-2-2', 'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6', 'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6'],
+    progressiveSteps: ['ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5', 'ia-2-1', 'ia-2-2', 'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6', 'ia-3-7', 'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6', 'ia-4-7'],
     unlockAllSteps: ['ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5', 'ia-6-1', 'ia-6-2', 'ia-7-1', 'ia-7-2'],
     activitySteps: ['ia-2-2', 'ia-5-1'], // I4C assessment, completion activities
     startStep: 'ia-1-1',
-    workshopCompletionStep: 'ia-4-6'
+    workshopCompletionStep: 'ia-4-7'
   }
 };
 

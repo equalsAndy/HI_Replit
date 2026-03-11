@@ -435,6 +435,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
                 variant="outline"
                 className="border-purple-300 text-purple-700"
                 onClick={() => {
+                  if (!window.confirm('This will erase your current leap and reflection. Are you sure you want to start over with a new mystery?')) return;
                   updateData({ selectedMystery: '', selectedQuestion: '', visionText: '', reflectionText: '' });
                   setIsCustom(false);
                   setCustomText('');

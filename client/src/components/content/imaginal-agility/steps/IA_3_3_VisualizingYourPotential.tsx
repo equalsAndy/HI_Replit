@@ -312,7 +312,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed">
-            The images you carry in your mind shape what you do. Neuroscience shows the brain treats imagined experience almost like real experience — and when those inner images shift, your choices shift with them. In this exercise, you'll find one image that captures a side of yourself you haven't fully used yet. Not just as a picture — as a starting point. This image will follow you through the rest of the workshop, and you'll come back to it later to take it further.
+            Neuroscience shows the brain treats imagined experience almost like real experience — when your inner images shift, your choices shift with them. In this exercise, you'll find one image that captures <strong>a side of yourself you haven't fully used yet.</strong> Not just as a picture — as a starting point you'll come back to later.
           </p>
         </div>
       </div>
@@ -322,9 +322,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <div className="p-8 pb-0">
           <h2 className="text-xl font-semibold text-purple-700 mb-4">📋 Upload or Choose an Image</h2>
           <p className="text-gray-700 mb-6">
-            Find an image that captures something true about you that you haven't fully used yet.
-            Not your best quality — the one that's waiting. It doesn't need to be literal — a wave,
-            a spark, a mountain can all represent something real about who you are.
+            Find an image that represents <strong>something true about you that's waiting to be used.</strong> It doesn't need to be literal — a wave, a spark, a mountain can all stand for something real.
           </p>
 
           {/* Tab Navigation */}
