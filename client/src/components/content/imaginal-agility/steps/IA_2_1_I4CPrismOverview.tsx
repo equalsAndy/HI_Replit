@@ -2,24 +2,12 @@ import React from 'react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
-import { useContinuity } from '@/hooks/useContinuity';
-import CapabilityPulse from '@/components/ia/CapabilityPulse';
 
 interface IA21ContentProps {
   onNext?: (stepId: string) => void;
 }
 
 const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
-  const { state, set } = useContinuity();
-
-  const handlePulseComplete = (data: any) => {
-    set(prev => ({ ...prev, ia_2_1_pulse: data }));
-  };
-
-  const handlePulseContinue = () => {
-    onNext?.('ia-2-2');
-  };
-
   // Get video data for ia-2-1 using the existing video hook
   const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
     'ia',
@@ -64,8 +52,8 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={youtubeId}
         title={videoData?.title || "The i4C Prism Model"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={null}
+        glossary={null}
       />
       
       {/* Content Card */}
@@ -124,50 +112,15 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
         </div>
       </div>
 
-      {/* Capability Dynamics — how capabilities work together */}
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mt-8">
-        <div className="prose prose-lg max-w-none text-gray-800 space-y-5">
-          <h3 className="text-xl font-semibold text-purple-700">How Capabilities Work Together</h3>
-          
-          <p className="text-base leading-relaxed">
-            These five capabilities don't work alone. They amplify each other. Imagination combined 
-            with courage becomes bold vision — you can picture something ambitious <em>and</em> step 
-            toward it. Curiosity combined with caring becomes deep listening — you genuinely want to 
-            understand, and you care about what you hear. Creativity combined with courage means ideas 
-            that actually ship.
-          </p>
-
-          <p className="text-base leading-relaxed">
-            But when a capability is active without its partner, it produces a recognizable signal. 
-            Imagination locked onto one scenario without curiosity to open alternatives? That's anxiety — 
-            not a character flaw, but a signal that curiosity is needed. Caring that absorbs everything 
-            without courage to set boundaries? That's burnout — a signal to activate courage. Curiosity 
-            that keeps asking questions without ever committing to a direction? That's paralysis — a 
-            signal that courage is needed to move forward with incomplete information.
-          </p>
-
-          <p className="text-base leading-relaxed">
-            The signal isn't a problem to fix. It's information. It tells you which partner capability 
-            to activate next. You already have it — it just needs to be switched on.
-          </p>
-
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-5 mt-4">
-            <p className="text-base text-purple-800">
-              <strong>Notice the words around you.</strong> Language activates or suppresses capabilities 
-              before you consciously decide. "Be realistic" shuts down imagination. "What might be 
-              possible?" opens it. "I can't imagine" declares the capability off-limits. Once you hear 
-              these switches, you'll notice them everywhere — and you can choose different ones.
-            </p>
-          </div>
-        </div>
+      {/* Continue to Understanding Your Capabilities */}
+      <div className="flex justify-end mt-8">
+        <button
+          onClick={() => onNext?.('ia-2-2')}
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+        >
+          Continue
+        </button>
       </div>
-
-      {/* Capability Pulse — forced-choice pairs before assessment */}
-      <CapabilityPulse
-        onComplete={handlePulseComplete}
-        onContinue={handlePulseContinue}
-        savedData={state?.ia_2_1_pulse || null}
-      />
     </div>
   );
 };

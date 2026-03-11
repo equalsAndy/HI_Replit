@@ -82,13 +82,13 @@ const useUserAssessments = () => {
 const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
   console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
 
-  // IA Assessment step ia-2-2 - check for actual assessment completion
-  if (stepId === 'ia-2-2') {
+  // IA Assessment step ia-2-3 - check for actual assessment completion
+  if (stepId === 'ia-2-3') {
     // Check for multiple possible assessment data structures in the correct API endpoint
-    const isValid = !!(userAssessments?.imaginalAgilityAssessment || 
+    const isValid = !!(userAssessments?.imaginalAgilityAssessment ||
                       userAssessments?.iaAssessment ||
                       userAssessments?.iaI4CAssessment);
-    console.log(`📋 IA assessment (ia-2-2): ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    console.log(`📋 IA assessment (ia-2-3): ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
     console.log(`📋 Available assessments:`, Object.keys(userAssessments || {}));
     return isValid;
   }
@@ -136,9 +136,9 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
   if (appType === 'ia') {
     const iaSequence = [
       // Welcome & Orientation (Module 1)
-      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4',
       // The I4C Model (Module 2)
-      'ia-2-1', 'ia-2-2',
+      'ia-2-1', 'ia-2-2', 'ia-2-3',
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
       // Advanced Ladder of Imagination
@@ -263,8 +263,8 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
 
     // Helper: check if all steps in a section are completed
     const iaSectionSteps: Record<string, string[]> = {
-      '1': ['ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5'],
-      '2': ['ia-2-1', 'ia-2-2'],
+      '1': ['ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4'],
+      '2': ['ia-2-1', 'ia-2-2', 'ia-2-3'],
       '3': ['ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6'],
       '4': ['ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6'],
       '5': ['ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5'],

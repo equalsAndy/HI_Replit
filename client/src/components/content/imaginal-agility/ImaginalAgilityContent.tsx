@@ -5,7 +5,8 @@ import IA_1_3_ImaginationDeficit from './steps/IA_1_3_ImaginationDeficit';
 import IA_1_4_TheBiggerPicture from './steps/IA_1_4_TheBiggerPicture';
 import IA_1_5_RealityAndWords from './steps/IA_1_5_RealityAndWords';
 import IA_2_1_I4CPrismOverview from './steps/IA_2_1_I4CPrismOverview';
-import IA_2_2_SelfAssessment from './steps/IA_2_2_SelfAssessment';
+import IA_2_2_CapabilityDynamics from './steps/IA_2_2_CapabilityDynamics';
+import IA_2_3_SelfAssessment from './steps/IA_2_3_SelfAssessment';
 import IA_3_1_LadderOverview from './steps/IA_3_1_LadderOverview';
 import IA_3_2_Autoflow from './steps/IA_3_2_Autoflow';
 import IA_3_3_VisualizingYourPotential from './steps/IA_3_3_VisualizingYourPotential';
@@ -56,7 +57,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
       case 'ia-2-1':
         return <IA_2_1_I4CPrismOverview onNext={onNext} />;
       case 'ia-2-2':
-        return <IA_2_2_SelfAssessment onNext={onNext} onOpenAssessment={onOpenAssessment} />;
+        return <IA_2_2_CapabilityDynamics onNext={onNext} />;
+      case 'ia-2-3':
+        return <IA_2_3_SelfAssessment onNext={onNext} onOpenAssessment={onOpenAssessment} />;
       case 'ia-3-1':
         return <IA_3_1_LadderOverview onNext={onNext} />;
       case 'ia-3-2':

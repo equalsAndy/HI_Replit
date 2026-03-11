@@ -68,9 +68,15 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-2-2',
+        title: 'Understanding Your Capabilities',
+        type: 'interactive',
+        contentKey: 'ia-2-2'
+      },
+      {
+        id: 'ia-2-3',
         title: 'Your Prism',
         type: 'assessment',
-        contentKey: 'ia-2-2'
+        contentKey: 'ia-2-3'
       }
     ]
   },
