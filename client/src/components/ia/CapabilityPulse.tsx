@@ -60,6 +60,8 @@ interface CapabilityPulseProps {
   onContinue?: () => void;
   /** Previously saved pulse data (for returning to completed pulse) */
   savedData?: PulseData | null;
+  /** Hide the continue button in the completion state (when navigation is handled by parent) */
+  hideContinueButton?: boolean;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────
@@ -317,7 +319,7 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
 
 // ─── Main Component ──────────────────────────────────────────────────────
 
-export default function CapabilityPulse({ onComplete, onContinue, savedData }: CapabilityPulseProps) {
+export default function CapabilityPulse({ onComplete, onContinue, savedData, hideContinueButton }: CapabilityPulseProps) {
   const [completed, setCompleted] = useState(!!savedData);
   const [modalOpen, setModalOpen] = useState(false);
   const [pairs, setPairs] = useState<[CapabilityKey, CapabilityKey][]>([]);
@@ -416,25 +418,27 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData }: C
                 compares to your full results later in the course.
               </p>
 
-              <button
-                onClick={onContinue}
-                style={{
-                  padding: '14px 32px',
-                  borderRadius: 12,
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: 15,
-                  background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
-                  boxShadow: '0 4px 16px #9333ea30',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s ease',
-                }}
-                onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
-                onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1)'; }}
-              >
-                Continue to Discover Your Prism →
-              </button>
+              {!hideContinueButton && (
+                <button
+                  onClick={onContinue}
+                  style={{
+                    padding: '14px 32px',
+                    borderRadius: 12,
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: 15,
+                    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+                    boxShadow: '0 4px 16px #9333ea30',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1.05)'; }}
+                  onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.transform = 'scale(1)'; }}
+                >
+                  Continue to Discover Your Prism →
+                </button>
+              )}
             </>
           ) : (
             // ─── Pre-pulse framing ───

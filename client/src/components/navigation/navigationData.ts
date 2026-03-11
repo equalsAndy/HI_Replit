@@ -51,12 +51,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         title: 'The Bigger Picture',
         type: 'video',
         contentKey: 'ia-1-4'
-      },
-      {
-        id: 'ia-1-5',
-        title: 'Extra: Reality and Words',
-        type: 'interactive',
-        contentKey: 'ia-1-5'
       }
     ]
   },
@@ -74,9 +68,15 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-2-2',
+        title: 'Understanding Your Capabilities',
+        type: 'interactive',
+        contentKey: 'ia-2-2'
+      },
+      {
+        id: 'ia-2-3',
         title: 'Your Prism',
         type: 'assessment',
-        contentKey: 'ia-2-2'
+        contentKey: 'ia-2-3'
       }
     ]
   },
