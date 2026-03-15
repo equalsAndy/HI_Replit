@@ -143,7 +143,7 @@ export function GlobalPurposeBridgeModal({
       // Inject transition into transcript
       setTranscript(prev => [...prev, {
         role: 'assistant',
-        content: `Good \u2014 that's your bridge.\n\nNow I want to be your research partner for a few minutes. I know things about ${globalChallenge.toLowerCase()} that you might not, and you can ask me anything.\n\nAsk two questions about this challenge at a global scale. Follow your curiosity \u2014 whatever you're genuinely wondering about.`
+        content: `Good \u2014 that\u2019s your bridge.\n\nNow I want to be your research partner for a few minutes. I know things about ${globalChallenge.toLowerCase()} that you might not, and you can ask me anything.\n\nAsk two questions about this challenge at a global scale. Follow your curiosity \u2014 whatever you\u2019re genuinely wondering about.`
       }]);
       // Remount InlineChat with explore prompt
       setChatKey(prev => prev + 1);
@@ -182,7 +182,7 @@ export function GlobalPurposeBridgeModal({
         <header className="absolute top-0 left-0 w-full bg-white border-b border-gray-200 flex items-center gap-4 p-3 z-10">
           <img src="/assets/adv_rung3_split.png" alt="Rung 3" className="h-8 flex-shrink-0" />
           <DialogTitle className="text-base font-semibold flex-grow">
-            Global Purpose Bridge \u2014 AI Partner
+            Global Purpose Bridge &mdash; AI Partner
           </DialogTitle>
           <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
         </header>
@@ -238,7 +238,7 @@ export function GlobalPurposeBridgeModal({
             systemPrompt={activeSystemPrompt}
             seed={
               phase === 'reframe'
-                ? `What's the connection between what I care about and ${globalChallenge.toLowerCase()}?`
+                ? `How does my intention connect to ${globalChallenge.toLowerCase()}?`
                 : undefined // No seed in explore — the transition message IS the prompt
             }
             onReply={onChatReply}
@@ -272,7 +272,7 @@ export function GlobalPurposeBridgeModal({
             </div>
             {phase === 'reframe' && (
               <Button onClick={handleTransitionToExplore} disabled={!reframedView.trim()} className="w-full mt-3">
-                This resonates \u2014 explore this challenge
+                This resonates &mdash; explore this challenge
               </Button>
             )}
           </section>
@@ -334,7 +334,7 @@ export function GlobalPurposeBridgeModal({
                   onClick={handleComplete}
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
-                  Save & continue \u2192
+                  Save & continue →
                 </Button>
               )}
             </div>
