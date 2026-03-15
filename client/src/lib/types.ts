@@ -64,9 +64,11 @@ export type IAState = {
     tag: string;                        // Tag selection (set on content area)
     transcript: string[];               // Chat transcript for data/report
     completed: boolean;
+    style?: string;                     // image style: photorealistic | illustration | watercolor
     // Image override (for replacing starting image)
     starting_override_image?: string;
     starting_override_title?: string;
+    starting_override_description?: string; // Vision-generated description of override image
     // Capability stretches (post-modal DALL-E features, up to 2)
     capability_stretches?: {
       [capability: string]: {
@@ -116,6 +118,8 @@ export type IAState = {
     ai_answer1?: string;
     ai_answer2?: string;
     ai_reflection?: string;
+    observation?: string;
+    intention_reflection?: string;
     capabilities_applied?: CapabilityType[];
     capabilities_imagine?: string;
     transcript?: string[];

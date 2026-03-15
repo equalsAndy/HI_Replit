@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StretchModal, TAG_OPTIONS } from './StretchModal';
 import type { StretchResult } from './StretchModal';
-import { searchUnsplash } from '@/services/api-services';
+import { searchUnsplash, describeImage } from '@/services/api-services';
 import { Loader2 } from 'lucide-react';
 
 // IA-3-3 data structure for proper typing
@@ -18,13 +18,15 @@ interface IA33StepData {
 }
 
 // Stretch examples — each tells the story of a stretch in words
+// Each stretched image uses a different style to showcase the modal's style options
 const STRETCH_EXAMPLES = [
   {
     startLabel: 'Calm Ocean',
     startImg: '/assets/calm-water-ia-4-3-square.png',
     represents: 'I stay composed when everything around me is chaotic.',
-    stretchLabel: 'Rough Water',
-    stretchImg: '/assets/rough-water-ia-4-3-square.png',
+    stretchLabel: 'Standing Firm',
+    stretchImg: '/assets/lighthouse-stretch-photorealistic.png',
+    style: 'Photorealistic',
     stretchQ: 'What does that composure look like when the pressure is on you, not just around you?',
     stretched: 'I don\u2019t just stay calm \u2014 I hold steady when I\u2019m the one under fire.',
   },
@@ -32,8 +34,9 @@ const STRETCH_EXAMPLES = [
     startLabel: 'Mountain Peak',
     startImg: '/assets/peak-ia-4-3-square.png',
     represents: 'I\u2019m driven to reach the top of whatever I take on.',
-    stretchLabel: 'The Climb',
-    stretchImg: '/assets/climb-ia-4-3-square.png',
+    stretchLabel: 'The Path',
+    stretchImg: '/assets/mountain-trail-stretch-illustration.png',
+    style: 'Bold Illustration',
     stretchQ: 'What if the part that matters most isn\u2019t arriving \u2014 but how you get there?',
     stretched: 'My real strength isn\u2019t finishing \u2014 it\u2019s what I become during the effort.',
   },
@@ -41,8 +44,9 @@ const STRETCH_EXAMPLES = [
     startLabel: 'Seedling',
     startImg: '/assets/seedling.png',
     represents: 'I\u2019m just getting started, but I know I can grow.',
-    stretchLabel: 'Destroyed Concrete',
-    stretchImg: '/assets/destroyed_concrete.png',
+    stretchLabel: 'Breaking Through',
+    stretchImg: '/assets/tree-roots-stretch-watercolor.png',
+    style: 'Watercolor',
     stretchQ: 'What would it look like if that growth wasn\u2019t just happening \u2014 but breaking through something?',
     stretched: 'I\u2019m not just growing \u2014 I\u2019m reshaping what was holding me back.',
   },
@@ -89,6 +93,10 @@ export default function VisualizationStretchExercise() {
 
   // Capability stretch state
   const [capStretchLoading, setCapStretchLoading] = React.useState<string | null>(null);
+  const [selectedCapability, setSelectedCapability] = React.useState<string | null>(null);
+
+  // Other tag state
+  const [otherTagText, setOtherTagText] = React.useState(state?.ia_4_3?.other_tag_text || '');
 
   // Hydrate override from persisted state on load
   React.useEffect(() => {
@@ -132,7 +140,7 @@ export default function VisualizationStretchExercise() {
   const isFullyComplete = Boolean(hasModalResults && ia.tag);
   const capStretches = ia.capability_stretches || {};
   const capStretchCount = Object.keys(capStretches).length;
-  const canDoMoreCapStretches = capStretchCount < 2;
+  const hasCapStretch = capStretchCount > 0;
 
   const runReplaceSearch = async () => {
     if (!replaceSearch.trim()) return;
@@ -154,10 +162,25 @@ export default function VisualizationStretchExercise() {
           ...(prev.ia_4_3 || {}),
           starting_override_image: overrideImage,
           starting_override_title: overrideTitle.trim(),
+          starting_override_description: '',
         },
       }));
       setTimeout(() => saveNow(), 0);
       setShowImageReplace(false);
+
+      // Fire Vision in background for override image
+      describeImage(overrideImage).then((description) => {
+        if (description) {
+          setState((prev) => ({
+            ...prev,
+            ia_4_3: {
+              ...(prev.ia_4_3 || {}),
+              starting_override_description: description,
+            },
+          }));
+          setTimeout(() => saveNow(), 0);
+        }
+      }).catch(() => {});
     }
   };
 
@@ -192,6 +215,7 @@ export default function VisualizationStretchExercise() {
         new_image_url: result.new_image_url,
         new_image_photo_id: result.new_image_photo_id,
         new_title: result.new_title,
+        style: result.style,
         story: prev.ia_4_3?.story || '',
         transcript: result.transcript,
         // Not completed yet — need tag on content area
@@ -235,15 +259,17 @@ export default function VisualizationStretchExercise() {
       ia_4_3: {
         ...(prev.ia_4_3 || {}),
         tag: tagValue,
+        // For 'other', store the custom text too
+        ...(tagValue === 'other' ? { other_tag_text: otherTagText } : {}),
         completed: true,
       },
     }));
     setTimeout(() => saveNow(), 0);
   }
 
-  // Handle capability stretch generation
+  // Handle capability stretch generation — one only, no redo
   async function handleCapabilityStretch(capability: string) {
-    if (capStretchLoading || !canDoMoreCapStretches) return;
+    if (capStretchLoading || hasCapStretch) return;
     if (capStretches[capability]) return; // Already done
 
     setCapStretchLoading(capability);
@@ -257,6 +283,7 @@ export default function VisualizationStretchExercise() {
           stretch_title: ia.new_title || '',
           story: ia.story || '',
           capability,
+          style: ia.style || 'photorealistic',
         }),
       });
       const data = await resp.json();
@@ -357,6 +384,11 @@ export default function VisualizationStretchExercise() {
                         <span className="text-sm font-semibold text-gray-700">&ldquo;{ex.startLabel}&rdquo;</span>
                         <span className="text-purple-400">&rarr;</span>
                         <span className="text-sm font-semibold text-purple-700">&ldquo;{ex.stretchLabel}&rdquo;</span>
+                        {ex.style && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-500 rounded-full font-medium">
+                            {ex.style}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -572,7 +604,7 @@ export default function VisualizationStretchExercise() {
         ia33Image={effectiveImage || null}
         ia33Title={effectiveTitle}
         ia33Reflection={effectiveReflection}
-        ia33ImageDescription={ia33ImageDescription}
+        ia33ImageDescription={overrideImage ? (ia.starting_override_description || '') : ia33ImageDescription}
         onApply={onModalApply}
         onStartOver={onModalStartOver}
       />
@@ -660,52 +692,107 @@ export default function VisualizationStretchExercise() {
                   </div>
                 </label>
               ))}
+              {/* Other option */}
+              <label
+                className={`flex items-start gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 transition-all col-span-2 ${
+                  ia.tag === 'other' ? 'border-purple-400 bg-purple-50' : 'border-gray-200'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="stretch-tag"
+                  value="other"
+                  checked={ia.tag === 'other'}
+                  onChange={() => {
+                    if (otherTagText.trim()) handleTagSelect('other');
+                  }}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">Something else</div>
+                  <Input
+                    value={otherTagText}
+                    onChange={(e) => setOtherTagText(e.target.value)}
+                    onBlur={() => {
+                      if (ia.tag === 'other' && otherTagText.trim()) {
+                        setState((prev) => ({
+                          ...prev,
+                          ia_4_3: { ...(prev.ia_4_3 || {}), other_tag_text: otherTagText },
+                        }));
+                        setTimeout(() => saveNow(), 0);
+                      }
+                    }}
+                    placeholder="In your own words..."
+                    className="mt-1 text-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {ia.tag !== 'other' && otherTagText.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => handleTagSelect('other')}
+                      className="mt-1 text-xs text-purple-600 hover:text-purple-800 font-medium"
+                    >
+                      Select this
+                    </button>
+                  )}
+                </div>
+              </label>
             </div>
             {ia.tag && (
               <p className="mt-2 text-xs text-green-600 font-medium">Exercise complete &mdash; you can continue to the next step.</p>
             )}
           </div>
 
-          {/* Capability Stretches (optional, up to 2) */}
+          {/* Capability Stretch (optional, 1 only) */}
           <div className="p-4 bg-white border border-gray-200 rounded-lg">
-            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">Capability Stretches</h3>
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">Capability Stretch</h3>
             <p className="text-xs text-gray-500 mb-4">
-              Imagination is a given &mdash; you just stretched your visualization.
-              Pick up to 2 other capabilities to see your stretch through a different lens. Each generates an AI image.
+              Which capability feels least used by you? Pick one and the AI will show your stretch through that lens.
             </p>
 
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {CAPABILITY_OPTIONS.map(({ key, label, color }) => {
-                const done = Boolean(capStretches[key]);
-                const isLoading = capStretchLoading === key;
-                const disabled = (!canDoMoreCapStretches && !done) || isLoading;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => !done && !disabled && handleCapabilityStretch(key)}
-                    disabled={disabled}
-                    className={`p-3 rounded-lg border text-sm font-medium transition-all text-left ${
-                      done
-                        ? `border-${color}-300 bg-${color}-50 text-${color}-800`
-                        : disabled
-                          ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-                          : `border-gray-200 hover:border-${color}-300 hover:bg-${color}-50 text-gray-700`
-                    }`}
-                  >
-                    {isLoading ? (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" /> Generating...
-                      </span>
-                    ) : done ? (
-                      <span>{label} &checkmark;</span>
-                    ) : (
-                      label
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            {!hasCapStretch ? (
+              <>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {CAPABILITY_OPTIONS.map(({ key, label, color }) => {
+                    const isSelected = selectedCapability === key;
+                    const isLoading = capStretchLoading === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => !isLoading && setSelectedCapability(isSelected ? null : key)}
+                        disabled={isLoading}
+                        className={`p-3 rounded-lg border text-sm font-medium transition-all text-left ${
+                          isSelected
+                            ? 'border-purple-400 bg-purple-50 text-purple-700 ring-1 ring-purple-200'
+                            : `border-gray-200 hover:border-${color}-300 hover:bg-${color}-50 text-gray-700`
+                        }`}
+                      >
+                        {isLoading ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                          </span>
+                        ) : (
+                          label
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedCapability && !capStretchLoading && (
+                  <div className="flex items-center gap-3">
+                    <Button
+                      size="sm"
+                      onClick={() => handleCapabilityStretch(selectedCapability)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      Generate {CAPABILITY_OPTIONS.find(c => c.key === selectedCapability)?.label} stretch
+                    </Button>
+                    <p className="text-xs text-gray-400">One generation &mdash; no redo</p>
+                  </div>
+                )}
+              </>
+            ) : null}
 
             {/* Rendered capability stretch cards */}
             {Object.entries(capStretches).map(([cap, data]) => (

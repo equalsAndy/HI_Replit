@@ -5,6 +5,13 @@ import { Input } from '@/components/ui/input';
 import InlineChat, { InlineChatHandle } from '@/components/ia/InlineChat';
 import { PROMPTS } from '@/constants/prompts';
 import { Loader2 } from 'lucide-react';
+import { describeImage } from '@/services/api-services';
+
+export const IMAGE_STYLE_OPTIONS = [
+  { value: 'photorealistic', label: 'Photorealistic' },
+  { value: 'illustration', label: 'Bold Illustration' },
+  { value: 'watercolor', label: 'Watercolor' },
+] as const;
 
 export const TAG_OPTIONS = [
   { value: 'fuller-picture', label: 'A fuller picture', helper: "I can see more of my potential now" },
@@ -27,6 +34,7 @@ export interface StretchResult {
   new_image_url: string;
   new_image_photo_id: number;
   new_title: string;
+  style: string;
 }
 
 export interface StretchModalProps {
@@ -73,10 +81,14 @@ export function StretchModal({
   const [suggestedTitle, setSuggestedTitle] = React.useState('');
   const [newTitle, setNewTitle] = React.useState('');
   const [generateError, setGenerateError] = React.useState<string | null>(null);
-  const [hasRetried, setHasRetried] = React.useState(false);
+  const [generationCount, setGenerationCount] = React.useState(0);
+  const [selectedStyle, setSelectedStyle] = React.useState<string>('photorealistic');
+  const [showTweakInput, setShowTweakInput] = React.useState(false);
+  const [tweakText, setTweakText] = React.useState('');
 
   const chatStreamRef = React.useRef<HTMLDivElement | null>(null);
   const chatRef = React.useRef<InlineChatHandle | null>(null);
+  const localDescriptionRef = React.useRef<string>('');
 
 
 
@@ -95,9 +107,22 @@ export function StretchModal({
       setSuggestedTitle('');
       setNewTitle('');
       setGenerateError(null);
-      setHasRetried(false);
+      setGenerationCount(0);
+      setSelectedStyle('photorealistic');
+      setShowTweakInput(false);
+      setTweakText('');
+      localDescriptionRef.current = '';
     }
   }, [open]);
+
+  // Vision safety-net: describe image on modal open if no description available
+  React.useEffect(() => {
+    if (open && ia33Image && !ia33ImageDescription && !localDescriptionRef.current) {
+      describeImage(ia33Image).then(desc => {
+        if (desc) localDescriptionRef.current = desc;
+      }).catch(() => {});
+    }
+  }, [open, ia33Image, ia33ImageDescription]);
 
   // Auto-scroll chat
   React.useEffect(() => {
@@ -147,8 +172,9 @@ export function StretchModal({
         body: JSON.stringify({
           original_title: ia33Title,
           original_reflection: ia33Reflection,
-          image_description: ia33ImageDescription || '',
+          image_description: ia33ImageDescription || localDescriptionRef.current || '',
           transcript_summary: buildTranscriptSummary(),
+          style: selectedStyle,
           ...(adjustment ? { adjustment } : {}),
         }),
       });
@@ -160,6 +186,9 @@ export function StretchModal({
       setGeneratedPhotoUrl(data.photo_url || data.fallback_base64 || null);
       setSuggestedTitle(data.suggested_title || '');
       setNewTitle(data.suggested_title || '');
+      setGenerationCount(prev => prev + 1);
+      setShowTweakInput(false);
+      setTweakText('');
       setPhase('generate');
     } catch (err: any) {
       console.error('Stretch image generation failed:', err);
@@ -183,12 +212,9 @@ export function StretchModal({
       new_image_url: generatedPhotoUrl,
       new_image_photo_id: generatedPhotoId!,
       new_title: newTitle,
+      style: selectedStyle,
     });
     onOpenChange(false);
-  };
-
-  const handleBack = () => {
-    if (phase === 'generate') setPhase('discover');
   };
 
   return (
@@ -265,7 +291,7 @@ export function StretchModal({
               ))}
             </div>
 
-            {/* Pinned bottom: InlineChat */}
+            {/* Pinned bottom: InlineChat + hint */}
             <div className="mt-auto flex-shrink-0 space-y-2">
               <InlineChat
                 ref={chatRef}
@@ -277,6 +303,11 @@ export function StretchModal({
                 hideHistory
                 className="border-0 p-0 bg-transparent"
               />
+              {showButtons && (
+                <p className="text-xs text-purple-400 text-center italic">
+                  When you&apos;re ready, click Generate My Image on the right &rarr;
+                </p>
+              )}
             </div>
           </div>
 
@@ -314,12 +345,6 @@ export function StretchModal({
                   </div>
                 ))}
               </div>
-
-              <div className="pt-2 flex-shrink-0">
-                <Button variant="secondary" size="sm" onClick={handleBack}>
-                  &larr; Back to conversation
-                </Button>
-              </div>
             </div>
           )}
 
@@ -349,15 +374,33 @@ export function StretchModal({
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    {hasRetried
-                      ? 'Add more detail to your conversation, then generate your final image.'
-                      : 'Your reflection and this conversation feed the image. The more specific you are about what your stretch looks like, the more it will feel like yours.'
-                    }
+                    Your reflection and this conversation feed the image. The more specific you are about what your stretch looks like, the more it will feel like yours.
                   </p>
+
+                  {/* Image style selector */}
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 mb-2">Image style:</p>
+                    <div className="flex gap-2">
+                      {IMAGE_STYLE_OPTIONS.map((style) => (
+                        <button
+                          key={style.value}
+                          type="button"
+                          onClick={() => setSelectedStyle(style.value)}
+                          className={`flex-1 px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
+                            selectedStyle === style.value
+                              ? 'border-purple-400 bg-purple-50 text-purple-700'
+                              : 'border-gray-200 bg-white text-gray-600 hover:border-purple-200'
+                          }`}
+                        >
+                          {style.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   <Button
                     onClick={() => handleGenerateStretch()}
-                    disabled={generating}
+                    disabled={generating || generationCount >= 3}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                   >
                     {generating ? (
@@ -367,9 +410,9 @@ export function StretchModal({
                     )}
                   </Button>
                   <p className="text-xs text-gray-400 text-center">
-                    {hasRetried
-                      ? 'This is your last image generation.'
-                      : 'You have 2 image generations for this exercise.'
+                    {generationCount >= 3
+                      ? 'All generations used.'
+                      : `${3 - generationCount} image generation${3 - generationCount !== 1 ? 's' : ''} remaining`
                     }
                   </p>
                   {generateError && (
@@ -386,7 +429,7 @@ export function StretchModal({
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-sm font-semibold uppercase text-gray-500">Your Stretch Image</h2>
                 <span className="text-xs text-gray-400 font-medium">
-                  {hasRetried ? 'Image 2 of 2' : 'Image 1 of 2'}
+                  Image {generationCount} of 3
                 </span>
               </div>
 
@@ -417,8 +460,9 @@ export function StretchModal({
                     />
                   </div>
 
-                  {/* Confirm / Adjust */}
+                  {/* Three-button layout */}
                   <div className="space-y-2">
+                    {/* Button 1: Confirm */}
                     <Button
                       onClick={handleConfirmImage}
                       disabled={!newTitle.trim()}
@@ -427,27 +471,111 @@ export function StretchModal({
                       This captures my stretch
                     </Button>
 
-                    {hasRetried && (
-                      <p className="text-xs text-gray-400 text-center italic">
-                        Both generations used &mdash; title it and continue.
-                      </p>
-                    )}
-
-                    {!hasRetried && (
+                    {/* Button 2: Tweak (only if generations remain) */}
+                    {generationCount < 3 && !showTweakInput && (
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => {
-                          setHasRetried(true);
-                          setPhase('discover');
-                        }}
+                        onClick={() => setShowTweakInput(true)}
                         className="w-full"
                       >
-                        Not quite &mdash; back to conversation
+                        Adjust this image
                       </Button>
                     )}
-                  </div>
 
+                    {/* Tweak input expanded */}
+                    {showTweakInput && (
+                      <div className="space-y-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <label className="block text-xs font-medium text-gray-600">
+                          What would you change?
+                        </label>
+                        <Input
+                          value={tweakText}
+                          onChange={(e) => setTweakText(e.target.value)}
+                          placeholder="e.g. less mystical, more collaborative workspace"
+                          className="w-full text-sm"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && tweakText.trim()) {
+                              e.preventDefault();
+                              setShowTweakInput(false);
+                              handleGenerateStretch(tweakText.trim());
+                              setTweakText('');
+                            }
+                          }}
+                        />
+                        {/* Style selector in tweak mode */}
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 mb-1">Image style:</p>
+                          <div className="flex gap-1.5">
+                            {IMAGE_STYLE_OPTIONS.map((style) => (
+                              <button
+                                key={style.value}
+                                type="button"
+                                onClick={() => setSelectedStyle(style.value)}
+                                className={`flex-1 px-2 py-1.5 rounded border text-xs font-medium transition-all ${
+                                  selectedStyle === style.value
+                                    ? 'border-purple-400 bg-purple-50 text-purple-700'
+                                    : 'border-gray-200 bg-white text-gray-500 hover:border-purple-200'
+                                }`}
+                              >
+                                {style.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              if (tweakText.trim()) {
+                                setShowTweakInput(false);
+                                handleGenerateStretch(tweakText.trim());
+                                setTweakText('');
+                              }
+                            }}
+                            disabled={!tweakText.trim() || generating}
+                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                          >
+                            {generating ? (
+                              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating...</>
+                            ) : (
+                              'Generate adjusted image'
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => { setShowTweakInput(false); setTweakText(''); }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Button 3: Back to conversation (only if generations remain) */}
+                    {generationCount < 3 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhase('discover');
+                          setShowTweakInput(false);
+                          setTweakText('');
+                        }}
+                        className="w-full text-sm text-gray-500 hover:text-purple-600 py-1 transition-colors"
+                      >
+                        Back to conversation
+                      </button>
+                    )}
+
+                    {/* Counter / end state */}
+                    <p className="text-xs text-gray-400 text-center">
+                      {generationCount >= 3
+                        ? 'All generations used \u2014 title it and continue.'
+                        : `${3 - generationCount} generation${3 - generationCount !== 1 ? 's' : ''} remaining`
+                      }
+                    </p>
+                  </div>
                 </div>
               ) : generateError ? (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">

@@ -5,6 +5,13 @@ import { photoStorageService, ImageType } from '../services/photo-storage-servic
 
 const router = express.Router();
 
+/** Style directives for DALL-E prompt generation — selected by participant in the UI */
+const STYLE_PROMPTS: Record<string, string> = {
+  photorealistic: 'Professional photography, natural lighting, realistic setting, cinematic depth of field, photorealistic',
+  illustration: 'Bold digital illustration, vivid saturated colors, clean graphic style, modern editorial illustration',
+  watercolor: 'Soft watercolor painting, gentle flowing colors, artistic and dreamy, hand-painted feel, delicate washes of color',
+};
+
 /**
  * OpenAI client — used ONLY for DALL-E image generation (images.generate).
  * All text/prompt generation uses Claude via getProvider('ia').
@@ -39,7 +46,8 @@ function getDalleClient(): OpenAI {
  */
 router.post('/stretch', express.json(), async (req, res) => {
   try {
-    const { original_title, original_reflection, transcript_summary, adjustment, image_description } = req.body;
+    const { original_title, original_reflection, transcript_summary, adjustment, image_description, style } = req.body;
+    const styleDirective = STYLE_PROMPTS[style] || STYLE_PROMPTS.photorealistic;
 
     if (!original_title || !transcript_summary) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
@@ -56,9 +64,9 @@ router.post('/stretch', express.json(), async (req, res) => {
 
 The participant started with an image titled "${original_title}".
 Their reflection: "${original_reflection || 'none'}"
-${image_description ? `Their original image (from Unsplash): "${image_description}"` : ''}
+${image_description ? `Visual description of their starting image: "${image_description}"` : ''}
 
-Through conversation, they stretched their visualization of their potential.
+Through conversation, they stretched their visualization of this UNDERUSED quality — something they have but don't fully express. The stretch is about bringing it forward, not analyzing what they already do.
 
 Your job: Read the conversation and produce TWO things:
 
@@ -67,16 +75,17 @@ Your job: Read the conversation and produce TWO things:
 2. IMAGE_PROMPT: A DALL-E 3 prompt (50-80 words) describing a scene that captures the MEANING of their stretch. Rules:
    - GROUND THE IMAGE IN THEIR ACTUAL WORLD. If they work in finance, show a finance setting transformed. If they teach, show a classroom. If they're a student, show a lab or library. The reflection tells you their context — USE IT. An abstract cosmic scene fails if they're talking about redesigning client presentations.
    - INCLUDE THEIR SPECIFIC WORDS. If they said "presentations," "clients," "engaging," "interactive" — those concepts must appear visually in the scene. The conversation tells you what they stretched toward — render THAT, not a generic aspiration.
+   - ECHO THE STARTING IMAGE: ${image_description ? `The participant's starting image shows: "${image_description}". Weave a visual echo or evolution of elements from their starting image into the stretch image. For example, if their starting image has flames, the stretch image might show those flames transformed — warming a room, lighting a path, spreading to others. The stretch image should feel like it came FROM the starting image, not from a completely different world. This is secondary to grounding it in their real context — don't force visual references if they conflict with the stretch meaning.` : 'No visual description of the starting image is available.'}
    - Describe a SCENE with mood, lighting, composition
-   - Style: "Digital art, warm atmospheric lighting, slightly surreal, evocative"
+   - Style: "${styleDirective}"
    - NEVER include text, words, letters, or numbers in the image
    - NEVER describe people's faces in detail (DALL-E struggles with this)
    - Show figures from behind or at a distance if people are needed
    - Capture WHERE THEY STRETCHED TO, grounded in their real context
 
-EXAMPLE: If someone in finance said they want to make presentations more engaging and interactive:
-BAD: "A cosmic explosion of creativity and light beams" (generic, ignores their context)
-GOOD: "Digital art, warm lighting. A conference room transformed — the usual spreadsheet projected on the wall has become an interactive 3D data landscape. Colleagues lean forward, reaching into floating charts. Paint splatters on the whiteboard behind them. The room feels alive, not corporate. Slightly surreal, evocative."
+EXAMPLE: If someone whose starting image was a campfire said their stretch is about their passion spreading to their team:
+BAD: "A cosmic explosion of creativity and light beams" (generic, ignores their context AND their starting image)
+GOOD: "Professional photography, natural lighting. A conference room where each person at the table has a small flame on their desk — echoing the original campfire but spread across a team. Papers and laptops glow warm. The room feels energized, collaborative. One figure stands at the whiteboard, gesturing. Cinematic depth of field."
 
 QUALITY GUARD: If the conversation is very thin — participant only said "I'm not sure" or gave very short answers — do NOT generate dramatic imagery. Instead, create a simple warm scene that gently extends the feeling of "${original_title}" in their context. Match the energy of the conversation.
 ${adjustmentNote}
@@ -181,7 +190,8 @@ Nothing else.`,
  */
 router.post('/capability-stretch', express.json(), async (req, res) => {
   try {
-    const { original_title, stretch_title, story, capability, transcript_summary } = req.body;
+    const { original_title, stretch_title, story, capability, transcript_summary, style } = req.body;
+    const styleDirective = STYLE_PROMPTS[style] || STYLE_PROMPTS.photorealistic;
 
     if (!original_title || !stretch_title || !story || !capability) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
@@ -215,7 +225,7 @@ Produce THREE things:
 
 1. TEXT: 2-3 sentences showing what their stretch reveals through ${capability}. Be CONCRETE — use their specific words and imagery. Make statements, don't ask questions. This should feel like a genuine new angle, not a restatement.
 
-2. IMAGE_PROMPT: A DALL-E 3 prompt (50-80 words) visualizing this capability stretch. Style: "Digital art, warm atmospheric lighting, evocative, slightly surreal." Connect to their metaphors but shift the mood/angle to reflect ${capability}. NEVER include text/words/letters.
+2. IMAGE_PROMPT: A DALL-E 3 prompt (50-80 words) visualizing this capability stretch. Style: "${styleDirective}" Connect to their metaphors but shift the mood/angle to reflect ${capability}. NEVER include text/words/letters.
 
 3. TITLE: A short evocative title (2-5 words) for this capability view.
 
@@ -302,6 +312,52 @@ TITLE: [title]`,
       return res.status(400).json({ success: false, error: 'Content policy issue. Try a different capability.' });
     }
     return res.status(500).json({ success: false, error: error?.message || 'Image generation failed' });
+  }
+});
+
+/**
+ * POST /api/ai/image/describe
+ *
+ * Uses GPT-4o-mini Vision to describe an image.
+ * Returns a 2-3 sentence description of the scene, mood, colors, and content.
+ *
+ * Body: { image_url: string }
+ * Returns: { success: boolean, description: string }
+ */
+router.post('/describe', express.json(), async (req, res) => {
+  try {
+    const { image_url } = req.body;
+    if (!image_url) {
+      return res.status(400).json({ success: false, error: 'Missing image_url' });
+    }
+
+    const client = getDalleClient();
+
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 200,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image_url',
+            image_url: { url: image_url, detail: 'low' }
+          },
+          {
+            type: 'text',
+            text: 'Describe this image in 2-3 sentences. Focus on the scene, mood, colors, composition, and what it depicts. Be concrete and specific — mention actual objects, settings, and visual qualities. Do not interpret symbolism or meaning.'
+          }
+        ]
+      }]
+    });
+
+    const description = response.choices?.[0]?.message?.content?.trim() || '';
+    console.log(`[image-gen/describe] Description: ${description.substring(0, 100)}...`);
+
+    return res.json({ success: true, description });
+  } catch (error: any) {
+    console.error('[image-gen/describe] Error:', error);
+    return res.status(500).json({ success: false, error: error?.message || 'Vision description failed' });
   }
 });
 

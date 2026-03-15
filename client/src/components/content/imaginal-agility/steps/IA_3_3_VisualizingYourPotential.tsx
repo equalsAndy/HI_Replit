@@ -8,7 +8,7 @@ import { useVideoByStepId } from '@/hooks/use-videos';
 import { FileText, RefreshCw, Loader2 } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
-import { searchUnsplash } from '@/services/api-services';
+import { searchUnsplash, describeImage } from '@/services/api-services';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
@@ -196,10 +196,19 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       const reader = new FileReader();
       reader.onload = (ev) => {
         if (ev.target?.result) {
+          const base64Url = ev.target.result as string;
           safeUpdateData({
-            uploadedImage: ev.target.result as string,
-            selectedImage: null // Clear image bank selection if uploading
+            uploadedImage: base64Url,
+            selectedImage: null,
+            imageDescription: '',
           });
+
+          // Fire Vision in background for uploaded image
+          describeImage(base64Url).then((visionDescription) => {
+            if (visionDescription && isMountedRef.current) {
+              safeUpdateData({ imageDescription: visionDescription });
+            }
+          }).catch(() => {});
         }
       };
       reader.readAsDataURL(file);
@@ -211,10 +220,18 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
     try {
       safeUpdateData({
         selectedImage: url,
-        uploadedImage: null, // Clear uploaded image if selecting from bank
+        uploadedImage: null,
         imageDescription: description || '',
       });
       setGalleryCollapsed(true);
+
+      // Fire Vision in background to get a richer description
+      // (Unsplash alt_description is often empty or generic)
+      describeImage(url).then((visionDescription) => {
+        if (visionDescription && isMountedRef.current) {
+          safeUpdateData({ imageDescription: visionDescription });
+        }
+      }).catch(() => {});
     } catch (error) {
       console.error('Error updating image selection:', error);
     }
@@ -223,9 +240,17 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   // Handle continue with auto-save
   const handleContinue = async () => {
     try {
-      // Force immediate save of current data
+      // Fire Vision description in background if missing — don't block navigation
+      const imageToDescribe = uploadedImage || selectedImage;
+      if (imageToDescribe && !data.imageDescription) {
+        describeImage(imageToDescribe).then((description) => {
+          if (description && isMountedRef.current) {
+            safeUpdateData({ imageDescription: description });
+          }
+        }).catch(() => {});
+      }
+
       await saveNow();
-      // Navigate to next step
       if (onNext) onNext('ia-3-4');
     } catch (error) {
       console.error('Failed to save IA 3-3 data:', error);

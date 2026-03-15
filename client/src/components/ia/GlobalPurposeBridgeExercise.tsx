@@ -9,10 +9,10 @@ import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
 
 const TAG_OPTIONS = [
-  { value: 'A Way In',         label: 'A way in',                  helper: 'I can engage with something bigger than my normal scope.' },
-  { value: 'Questions I Wouldnt Have Asked', label: 'Questions I wouldn\'t have asked', helper: 'I asked about things I didn\'t know I was drawn to.' },
-  { value: 'My Capabilities',  label: 'My capabilities at work',   helper: 'I can see which capabilities I reach for when it matters.' },
-  { value: 'A Partnership',    label: 'A partnership',             helper: 'I experienced what human intention + AI knowledge can do together.' },
+  { value: 'Bigger Than I Thought',           label: 'Bigger than I thought',           helper: 'My intention isn\'t small \u2014 it connects to something real.' },
+  { value: 'A New Lens',                      label: 'A new lens',                      helper: 'I see my own situation differently now.' },
+  { value: 'Something I Didnt Know I Cared About', label: 'Something I didn\'t know I cared about', helper: 'The stretch revealed a dimension I wasn\'t seeing.' },
+  { value: 'Clearer Conviction',              label: 'Clearer conviction',              helper: 'I know why this matters to me now, not just that it does.' },
 ];
 
 // IA-3-4 data for higher purpose
@@ -127,15 +127,18 @@ export default function GlobalPurposeBridgeExercise() {
       {/* ═══════════ PRE-MODAL: Intro + Steps 1 & 2 ═══════════ */}
 
       {/* Exercise introduction */}
-      <div className="mb-8 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
-        <p className="text-sm text-gray-700 leading-relaxed">
-          In Module 3, you clarified what you care about and where you're headed.
-          Now we're going to stretch that — deliberately too far. You'll connect your
-          purpose to a global challenge, not because anyone expects you to solve it,
-          but because when a problem is bigger than your usual playbook, imagination
-          has to show up. And when imagination shows up, your capabilities come with it.
-          AI will be your research partner — bringing knowledge you don't have so you
-          can explore freely. Your job is to notice what happens inside you when you stretch.
+      <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-50 border border-purple-200 rounded-xl">
+        <p className="text-[15px] text-gray-700 leading-relaxed mb-3">
+          In Module 3, you clarified what you care about and where you're headed. Now we're going to stretch that &mdash; <em>deliberately too far.</em>
+        </p>
+        <p className="text-[15px] text-gray-700 leading-relaxed mb-3">
+          You'll connect your purpose to a global challenge. Not because anyone expects you to solve it, but because{' '}
+          <strong className="text-purple-800">when a problem is bigger than your usual playbook, imagination has to show up.</strong>{' '}
+          And when imagination shows up, your capabilities come with it.
+        </p>
+        <p className="text-[15px] text-gray-700 leading-relaxed">
+          AI will be your research partner &mdash; bringing knowledge you don't have so you can explore freely.{' '}
+          <strong className="text-purple-800">Your job is to notice what happens inside you when you stretch.</strong>
         </p>
       </div>
 
@@ -146,28 +149,55 @@ export default function GlobalPurposeBridgeExercise() {
           Step 1: Your Intention
         </h3>
 
-        {higherPurposeFromIA34 && (
-          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-            <p className="text-sm text-purple-700 font-medium">From your Insight to Intention reflection:</p>
-            <p className="text-purple-800 italic">"{higherPurposeFromIA34}"</p>
+        {effectivePurpose ? (
+          <>
+            {/* Display the intention as a styled quote */}
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <p className="text-[15px] text-purple-900 leading-relaxed italic">
+                "{effectivePurpose}"
+              </p>
+              <p className="text-xs text-purple-600 mt-2">From your earlier reflection</p>
+            </div>
+
+            {/* Expandable refinement */}
+            <details className="mt-3">
+              <summary className="text-sm text-purple-600 cursor-pointer hover:text-purple-800 font-medium">
+                &#9998;&#65039; Refine this wording
+              </summary>
+              <div className="mt-2 space-y-2">
+                <Textarea
+                  value={higherPurpose}
+                  onChange={(e) => setHigherPurpose(e.target.value)}
+                  placeholder={effectivePurpose}
+                  rows={3}
+                  className="text-sm"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setHigherPurpose('')}
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                  >
+                    Reset to original
+                  </button>
+                </div>
+              </div>
+            </details>
+          </>
+        ) : (
+          /* No prior intention — show text box directly */
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700">
+              What do you care about deeply? What future would you like to help shape?
+            </label>
+            <Textarea
+              value={higherPurpose}
+              onChange={(e) => setHigherPurpose(e.target.value)}
+              placeholder="Your deeper intention or core purpose..."
+              rows={3}
+              className="text-sm"
+            />
           </div>
         )}
-
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-700">
-            What core intention did you uncover earlier? Refine or shorten it if you like.
-          </label>
-          <Textarea
-            value={higherPurpose}
-            onChange={(e) => setHigherPurpose(e.target.value)}
-            placeholder="Your deeper intention or core purpose..."
-            rows={3}
-            className="text-sm"
-          />
-          <p className="text-xs text-gray-500">
-            {higherPurposeFromIA34 ? "Leave blank to use your earlier intention, or refine it here." : "What do you care about deeply? What future would you like to help shape?"}
-          </p>
-        </div>
       </div>
 
       {/* Step 2: Choose a Global Challenge */}
@@ -178,7 +208,7 @@ export default function GlobalPurposeBridgeExercise() {
         </h3>
 
         <p className="text-sm text-gray-600 mb-4">
-          Pick one — not because you'll solve it, but because it gives your imagination something big to push against.
+          Pick one that pulls you &mdash; even if you don't know why.
         </p>
 
         <div className="space-y-3 mb-4">
@@ -241,17 +271,12 @@ export default function GlobalPurposeBridgeExercise() {
       {isModalDone && (
         <>
           {/* "What you just did" block — dynamic */}
-          <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+          <div className="mb-5 p-4 bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-50 border border-purple-200 rounded-xl">
             <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              You connected your purpose to{' '}
+              You connected your intention to{' '}
               <em>{(ia.global_challenge || effectiveChallenge || 'a global challenge').toLowerCase()}</em>{' '}
-              — not because anyone expects you to solve it, but because a challenge that big
-              forces you past your usual playbook. When the problem is too large to think through,
-              imagination kicks in — and capabilities show up that stay hidden in daily work.
-              AI brought knowledge you didn't have so you could explore freely. The questions you
-              asked reveal which capabilities activated at that stretch. Below, you'll name them
-              yourself, then see what AI noticed.
+              and explored it through your own questions. The questions you chose &mdash; and what drew you to them &mdash; reveal which capabilities naturally activate when you stretch beyond your usual frame.
             </p>
           </div>
 
@@ -296,11 +321,11 @@ export default function GlobalPurposeBridgeExercise() {
 
           {/* 3. What you were looking for (participant reflects on their questions) */}
           <div className="mb-4 p-4 bg-purple-50/50 border border-purple-200 rounded-lg">
-            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">What you were looking for</h3>
+            <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">What you noticed</h3>
             <textarea
               className="w-full border border-gray-300 rounded p-2 resize-y bg-white text-sm"
               rows={3}
-              placeholder="Look at your two questions — what were you trying to find out?"
+              placeholder="What drew you to those questions? What were you looking for?"
               value={ia.observation ?? ''}
               onChange={(e) =>
                 setState((prev) => ({
@@ -348,6 +373,29 @@ export default function GlobalPurposeBridgeExercise() {
               ))}
             </div>
           </div>
+
+          {/* Bridge back to intention */}
+          {ia.tag && (
+            <div className="mb-6 p-4 bg-indigo-50/50 border border-indigo-200 rounded-lg">
+              <h3 className="text-sm font-semibold text-indigo-700 mb-2">Back to your intention</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                How does this change how you think about your intention going forward?
+              </p>
+              <textarea
+                className="w-full border border-gray-300 rounded p-3 resize-y bg-white text-sm"
+                rows={3}
+                placeholder="Now that I've stretched to global scale, when I come back to my intention I notice..."
+                value={ia.intention_reflection ?? ''}
+                onChange={(e) =>
+                  setState((prev) => ({
+                    ...prev,
+                    ia_4_4: { ...(prev.ia_4_4 || {}), intention_reflection: e.target.value },
+                  }))
+                }
+                onBlur={() => saveNow()}
+              />
+            </div>
+          )}
 
           {/* 5. Capabilities in Action — REQUIRED (participant selects FIRST) */}
           <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
@@ -422,7 +470,7 @@ export default function GlobalPurposeBridgeExercise() {
               <h3 className="text-xs font-semibold uppercase text-purple-600 mb-1">What the AI noticed in your questions</h3>
               <p className="text-sm text-gray-700 leading-relaxed">{ia.ai_reflection}</p>
               <p className="mt-2 text-xs text-gray-500 italic">
-                Did AI spot the same capabilities you did, or see ones you missed? That gap is worth noticing.
+                Compare this with your own selections above &mdash; did you notice the same capabilities, or different ones?
               </p>
             </div>
           )}
