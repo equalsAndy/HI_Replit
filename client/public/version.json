@@ -1,6 +1,6 @@
 {
-  "version": "2.8.2",
-  "build": "47",
-  "timestamp": "2026-03-06T17:35:28.000Z",
-  "environment": "development"
+  "version": "2.9.0",
+  "build": "3420",
+  "timestamp": "2026-03-16T18:27:51.000Z",
+  "environment": "production"
 }

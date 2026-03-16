@@ -107,9 +107,10 @@ git status          # Show current state
 
 **Workflow:**
 1. `git checkout feature/[name]` — switch to the feature you're working on
-2. Do work, commit with descriptive messages
-3. When feature is ready: merge into `development` for integration testing
-4. When tested: merge `development` into `main` for production release
+2. `git merge development -m "Merge latest development"` — bring in any updates from development first
+3. Do work, commit with descriptive messages
+4. When feature is ready: merge into `development` for integration testing
+5. When tested: merge `development` into `main` for production release
 
 **Creating new feature branches:**
 ```bash

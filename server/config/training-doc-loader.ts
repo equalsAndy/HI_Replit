@@ -8,10 +8,12 @@ const __dirname = path.dirname(__filename);
 const DOCS_DIR = path.join(__dirname, '../training-docs');
 
 const TRAINING_DOC_FILES: Record<string, string> = {
+  'ia-3-7-summarize': 'ia-3-7-summarize.md',
+  'ia-3-7-tailor': 'ia-3-7-tailor.md',
   'ia-4-2': 'ia-4-2-reframe.md',
   'ia-4-3': 'ia-4-3-stretch.md',
   'ia-4-4': 'ia-4-4-global-purpose-bridge.md',
-  'ia-4-5': 'ia-4-5-action-planning.md',
+  'ia-4-5': 'ia-4-5-advanced-inspiration.md',
 };
 
 // Load all docs at startup

@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
@@ -7,6 +10,8 @@ interface IA37ContentProps {
 }
 
 type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
+type ExerciseKey = 'autoflow' | 'visualization' | 'intention' | 'inspiration' | 'mystery';
+type NoticeValue = 'yes' | 'not_really' | 'unsure';
 
 const CAPABILITIES: {
   key: CapabilityKey;
@@ -64,24 +69,51 @@ const CAPABILITIES: {
   },
 ];
 
-const RATING_ANCHORS: Record<number, string> = {
-  1: 'Not really',
-  2: 'A little',
-  3: 'Somewhat',
-  4: 'Yes',
-  5: 'Absolutely',
+const EXERCISE_LABELS: Record<ExerciseKey, string> = {
+  autoflow: 'Autoflow',
+  visualization: 'Visualization',
+  intention: 'Intention',
+  inspiration: 'Inspiration',
+  mystery: 'Mystery',
 };
 
 interface IA37StepData {
   scenario_notes: string;
-  capability_ratings: Record<string, number | 'unsure'>;
+  selectedExercise: string | null;
+  capability_noticed: Record<string, NoticeValue>;
   capability_notes: Record<string, string>;
+  // Legacy — keep so old data doesn't break
+  capability_ratings?: Record<string, number | 'unsure'>;
+  ai_summaries?: Record<string, string>;
+  ai_questions?: Record<string, string>;
 }
 
 const INITIAL_DATA: IA37StepData = {
   scenario_notes: '',
-  capability_ratings: {},
+  selectedExercise: null,
+  capability_noticed: {},
   capability_notes: {},
+};
+
+// ── Module Journey Data (read-only from prior steps) ──────────────────────────
+
+interface ModuleJourneyData {
+  autoflow: { momentCount: number } | null;
+  visualization: { imageTitle: string } | null;
+  intention: { completed: boolean } | null;
+  inspiration: { interludeCount: number } | null;
+  mystery: { mysteryName: string } | null;
+  rawData: Record<string, any>;
+  loading: boolean;
+}
+
+// Generic summaries used as fallback
+const GENERIC_SUMMARIES: Record<ExerciseKey, (data: ModuleJourneyData) => string> = {
+  autoflow: (d) => `You noticed your mind's automatic stream · ${d.autoflow?.momentCount ?? 0} moment${d.autoflow?.momentCount !== 1 ? 's' : ''} captured`,
+  visualization: (d) => `You found an image for a side of yourself waiting to be used${d.visualization?.imageTitle ? ` — "${d.visualization.imageTitle}"` : ''}`,
+  intention: () => 'You named what pulls your attention and where you\'re positioned to act',
+  inspiration: (d) => `You sat with what makes you feel most alive · ${d.inspiration?.interludeCount ?? 0} interlude${d.inspiration?.interludeCount !== 1 ? 's' : ''} completed`,
+  mystery: (d) => `You leapt into ${d.mystery?.mysteryName ?? 'the unknown'}`,
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -94,28 +126,112 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
     { debounceMs: 1500, enableAutoSave: true }
   );
 
-  const [scenarioSubmitted, setScenarioSubmitted] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
-  const [scenarioText, setScenarioText] = useState('');
   const capabilitiesRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Initialize local scenario text from loaded data
+  // Module 3 journey data (read-only)
+  const [moduleData, setModuleData] = useState<ModuleJourneyData>({
+    autoflow: null, visualization: null, intention: null,
+    inspiration: null, mystery: null, rawData: {}, loading: true,
+  });
+
+  // AI state
+  const [aiSummaries, setAiSummaries] = useState<Record<string, string> | null>(null);
+  const [aiQuestions, setAiQuestions] = useState<Record<string, string> | null>(null);
+  const [summariesLoading, setSummariesLoading] = useState(false);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const tailorCacheRef = useRef<Record<string, Record<string, string>>>({});
+
+  // Reset selection and AI-generated content on mount so user always starts fresh
+  // TODO: Remove this once training docs are stable — let saved state persist
   useEffect(() => {
-    if (loaded && data.scenario_notes) {
-      setScenarioText(data.scenario_notes);
+    if (loaded && data.selectedExercise) {
+      updateData({ selectedExercise: null, ai_summaries: undefined, ai_questions: undefined, capability_noticed: {} });
     }
-  }, [loaded, data.scenario_notes]);
+  }, [loaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Initialize scenarioSubmitted state from saved data
+  // Fetch Module 3 journey data on mount
   useEffect(() => {
-    if (loaded && data.scenario_notes.trim()) {
-      const hasRatings = Object.keys(data.capability_ratings).length > 0;
-      if (hasRatings) {
-        setScenarioSubmitted(true);
+    const fetchModuleData = async () => {
+      try {
+        const [r32, r33, r34, r35, r36] = await Promise.all([
+          fetch('/api/workshop-data/step/ia/ia-3-2', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/workshop-data/step/ia/ia-3-3', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/workshop-data/step/ia/ia-3-4', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/ia/steps/ia-3-5', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/workshop-data/step/ia/ia-3-6', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+        ]);
+
+        const d32 = r32?.data;
+        const d33 = r33?.data;
+        const d34 = r34?.data;
+        const d35 = r35?.data;
+        const d36 = r36?.data;
+
+        const rawData: Record<string, any> = {};
+        if (d32) rawData.autoflow = d32;
+        if (d33) rawData.visualization = d33;
+        if (d34) rawData.intention = d34;
+        if (d35) rawData.inspiration = d35;
+        if (d36) rawData.mystery = d36;
+
+        setModuleData({
+          autoflow: d32?.savedMoments?.length > 0
+            ? { momentCount: d32.savedMoments.length }
+            : null,
+          visualization: d33?.imageTitle?.trim()
+            ? { imageTitle: d33.imageTitle }
+            : null,
+          intention: d34?.whyReflection?.trim()
+            ? { completed: true }
+            : null,
+          inspiration: d35?.completed?.length > 0
+            ? { interludeCount: d35.completed.length }
+            : null,
+          mystery: d36?.selectedMystery?.trim()
+            ? { mysteryName: d36.selectedMystery }
+            : null,
+          rawData,
+          loading: false,
+        });
+      } catch (e) {
+        console.error('Failed to load Module 3 journey data:', e);
+        setModuleData(prev => ({ ...prev, loading: false }));
       }
-    }
-  }, [loaded]);
+    };
+    fetchModuleData();
+  }, []);
+
+  // Fetch AI summaries once module data and step data are loaded
+  useEffect(() => {
+    if (moduleData.loading || !loaded) return;
+
+    const hasAnyData = moduleData.autoflow || moduleData.visualization ||
+      moduleData.intention || moduleData.inspiration || moduleData.mystery;
+    if (!hasAnyData) return;
+
+    // Always fetch fresh summaries
+    // TODO: Re-enable caching once training docs are stable
+
+    setSummariesLoading(true);
+    fetch('/api/ai/module-reflection', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'summarize' }),
+    })
+      .then(r => r.json())
+      .then(result => {
+        if (result.success && result.summaries) {
+          setAiSummaries(result.summaries);
+          updateData({ ai_summaries: result.summaries });
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch AI summaries:', err);
+      })
+      .finally(() => setSummariesLoading(false));
+  }, [moduleData.loading, loaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-expand notes that already have content
   useEffect(() => {
@@ -132,44 +248,26 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
     }
   }, [loaded]);
 
-  // Count rated capabilities
-  const ratedCount = CAPABILITIES.filter(
-    c => data.capability_ratings[c.key] !== undefined
-  ).length;
-  const allRated = ratedCount === 5;
+  // Derived state
+  const noticed = data.capability_noticed || {};
+  const noticedCount = CAPABILITIES.filter(c => noticed[c.key] !== undefined).length;
+  const allNoticed = noticedCount === 5;
+  const presentCount = CAPABILITIES.filter(c => noticed[c.key] === 'yes').length;
+  const hasSelection = data.selectedExercise !== null;
 
-  const handleSubmitScenario = useCallback(() => {
-    if (!scenarioText.trim()) return;
-    updateData({ scenario_notes: scenarioText.trim() });
-    setScenarioSubmitted(true);
-    setTimeout(() => {
-      capabilitiesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  }, [scenarioText, updateData]);
-
-  const handleEditScenario = useCallback(() => {
-    setScenarioSubmitted(false);
-    setTimeout(() => textareaRef.current?.focus(), 50);
-  }, []);
-
-  const handleRate = useCallback((capability: CapabilityKey, value: number) => {
-    updateData({
-      capability_ratings: { ...data.capability_ratings, [capability]: value },
-    });
-  }, [data.capability_ratings, updateData]);
-
-  const handleUnsure = useCallback((capability: CapabilityKey) => {
-    const current = data.capability_ratings[capability];
-    if (current === 'unsure') {
-      const newRatings = { ...data.capability_ratings };
-      delete newRatings[capability];
-      updateData({ capability_ratings: newRatings });
+  const handleNotice = useCallback((capability: CapabilityKey, value: NoticeValue) => {
+    const current = noticed[capability];
+    // Toggle off if tapping the same value
+    if (current === value) {
+      const newNoticed = { ...noticed };
+      delete newNoticed[capability];
+      updateData({ capability_noticed: newNoticed });
     } else {
       updateData({
-        capability_ratings: { ...data.capability_ratings, [capability]: 'unsure' },
+        capability_noticed: { ...noticed, [capability]: value },
       });
     }
-  }, [data.capability_ratings, updateData]);
+  }, [noticed, updateData]);
 
   const handleNote = useCallback((capability: CapabilityKey, value: string) => {
     updateData({
@@ -181,521 +279,376 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
     setExpandedNotes(prev => ({ ...prev, [capability]: !prev[capability] }));
   }, []);
 
+  // Handle exercise selection — triggers tailor call
+  const handleSelectExercise = useCallback((exercise: ExerciseKey) => {
+    // Clear previous notices when changing exercise
+    updateData({ selectedExercise: exercise, capability_noticed: {} });
+
+    const exerciseContent = moduleData.rawData[exercise];
+    if (!exerciseContent) return;
+
+    setQuestionsLoading(true);
+    fetch('/api/ai/module-reflection', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'tailor', selectedExercise: exercise, exerciseContent }),
+    })
+      .then(r => r.json())
+      .then(result => {
+        if (result.success && result.questions) {
+          tailorCacheRef.current[exercise] = result.questions;
+          setAiQuestions(result.questions);
+          updateData({ ai_questions: result.questions });
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch tailored questions:', err);
+      })
+      .finally(() => setQuestionsLoading(false));
+  }, [moduleData.rawData, updateData]);
+
+  // Check if any journey steps have data
+  const hasAnyJourneyData = !moduleData.loading && (
+    moduleData.autoflow || moduleData.visualization || moduleData.intention ||
+    moduleData.inspiration || moduleData.mystery
+  );
+
+  // Get the display summary for an exercise
+  const getSummary = (exercise: ExerciseKey): string => {
+    if (aiSummaries && aiSummaries[exercise]) return aiSummaries[exercise];
+    return GENERIC_SUMMARIES[exercise](moduleData);
+  };
+
+  // Which exercises have data (and are therefore selectable)
+  const exerciseHasData: Record<ExerciseKey, boolean> = {
+    autoflow: !!moduleData.autoflow,
+    visualization: !!moduleData.visualization,
+    intention: !!moduleData.intention,
+    inspiration: !!moduleData.inspiration,
+    mystery: !!moduleData.mystery,
+  };
+
+  // Get the question for a capability — tailored if available, else generic
+  const getQuestion = (capKey: CapabilityKey): string => {
+    if (aiQuestions && aiQuestions[capKey]) return aiQuestions[capKey];
+    return CAPABILITIES.find(c => c.key === capKey)!.question;
+  };
+
+  const EXERCISE_ORDER: ExerciseKey[] = ['autoflow', 'visualization', 'intention', 'inspiration', 'mystery'];
+
+  // Button style helper
+  const noticeButtonStyle = (
+    cap: typeof CAPABILITIES[0],
+    value: NoticeValue,
+    currentValue: NoticeValue | undefined
+  ): React.CSSProperties => {
+    const isActive = currentValue === value;
+    if (value === 'yes') {
+      return {
+        border: `2px solid ${isActive ? cap.color : '#e5e7eb'}`,
+        backgroundColor: isActive ? cap.color : '#ffffff',
+        color: isActive ? 'white' : '#6b7280',
+      };
+    }
+    if (value === 'not_really') {
+      return {
+        border: `2px solid ${isActive ? '#9ca3af' : '#e5e7eb'}`,
+        backgroundColor: isActive ? '#f3f4f6' : '#ffffff',
+        color: isActive ? '#4b5563' : '#9ca3af',
+      };
+    }
+    // unsure
+    return {
+      border: `2px solid ${isActive ? '#d1d5db' : '#e5e7eb'}`,
+      backgroundColor: isActive ? '#f9fafb' : '#ffffff',
+      color: isActive ? '#6b7280' : '#d1d5db',
+    };
+  };
+
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 24px 80px' }}>
+    <div className="max-w-4xl mx-auto p-6">
       <ScrollIndicator idleTime={3000} position="nav-adjacent" colorScheme="purple" />
 
-      <style>{`
-        @keyframes ia37FadeSlideIn {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* ── Section 1: Module 3 Journey Timeline ── */}
+      <div className="bg-gradient-to-br from-purple-700 to-purple-900 rounded-2xl p-8 text-white mb-8 relative overflow-hidden">
+        <div className="absolute -top-[40%] -right-[20%] w-[300px] h-[300px] bg-[radial-gradient(circle,rgba(255,255,255,0.06)_0%,transparent_70%)] rounded-full" />
+        <div className="absolute -bottom-[30%] -left-[10%] w-[200px] h-[200px] bg-[radial-gradient(circle,rgba(168,85,247,0.3)_0%,transparent_70%)] rounded-full" />
 
-      {/* ── Section 1: Module Recap Card ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #7e22ce 0%, #581c87 100%)',
-        borderRadius: 20, padding: '36px 32px', color: 'white',
-        position: 'relative', overflow: 'hidden', marginBottom: 32,
-      }}>
-        {/* Decorative circles */}
-        <div style={{
-          position: 'absolute', top: '-40%', right: '-20%',
-          width: 300, height: 300,
-          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
-          borderRadius: '50%',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '-30%', left: '-10%',
-          width: 200, height: 200,
-          background: 'radial-gradient(circle, rgba(168,85,247,0.3) 0%, transparent 70%)',
-          borderRadius: '50%',
-        }} />
-
-        <div style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: '1.5px',
-          textTransform: 'uppercase', color: '#d8b4fe',
-          marginBottom: 12, position: 'relative', zIndex: 1,
-        }}>
+        <p className="text-[11px] font-semibold tracking-[1.5px] uppercase text-purple-300 mb-3 relative z-10">
           Module 3 · Wrap-up
-        </div>
-        <h2 style={{
-          fontFamily: "'DM Serif Display', Georgia, serif",
-          fontSize: 28, lineHeight: 1.25, marginBottom: 16,
-          position: 'relative', zIndex: 1,
-        }}>
-          Grounding What You've Practiced
-        </h2>
-        <p style={{
-          fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
-          position: 'relative', zIndex: 1,
-        }}>
-          You've been building your Ladder of Imagination — noticing autoflow patterns,
-          visualizing your potential, turning insight into intention, and drawing on inspiration.
-          These are capabilities you use all the time, whether you notice them or not.
         </p>
-        <div style={{
-          fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.85)',
-          marginTop: 12, position: 'relative', zIndex: 1,
-        }}>
-          <strong style={{ color: 'white' }}>
-            Before we close this module, let's ground what you've been practicing in something real.
-          </strong>
-        </div>
-        <div style={{
-          display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 20,
-          position: 'relative', zIndex: 1,
-        }}>
-          {['Autoflow', 'Visualization', 'Insight → Intention', 'Inspiration'].map(pill => (
-            <span key={pill} style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: 100, padding: '6px 14px',
-              fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.9)',
-            }}>
-              {pill}
-            </span>
-          ))}
-        </div>
+        <h2 className="text-[28px] leading-tight mb-4 relative z-10 font-bold">
+          Your Module 3 Journey
+        </h2>
+        <p className="text-[15px] leading-relaxed text-white/85 relative z-10">
+          Here's what you practiced across this module.
+        </p>
       </div>
 
-      {/* ── Section 2: Scenario Input (editable state) ── */}
-      {!scenarioSubmitted && (
-        <div style={{
-          background: '#ffffff', borderRadius: 16,
-          border: '1px solid #e5e7eb', overflow: 'hidden',
-          marginBottom: 32, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-        }}>
-          <div style={{ padding: '28px 28px 0' }}>
-            <h3 style={{
-              fontFamily: "'DM Serif Display', Georgia, serif",
-              fontSize: 22, color: '#1e1b2e', marginBottom: 10,
-            }}>
-              A Moment That Mattered
-            </h3>
-            <p style={{ fontSize: 15, lineHeight: 1.65, color: '#6b7280', marginBottom: 24 }}>
-              Think of a recent situation that stands out — it could be a challenge you navigated,
-              something you built or created, a problem you explored, or a moment where you had to step up.
-            </p>
-          </div>
-          <div style={{ padding: '0 28px 28px' }}>
-            <textarea
-              ref={textareaRef}
-              value={scenarioText}
-              onChange={(e) => setScenarioText(e.target.value)}
-              placeholder="A few words to place yourself back in the moment..."
-              style={{
-                width: '100%', minHeight: 120, padding: '16px 18px',
-                border: '2px solid #e9d5ff', borderRadius: 12,
-                fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.6,
-                color: '#1e1b2e', background: '#fdfbff',
-                resize: 'vertical', outline: 'none',
-                transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#c084fc';
-                e.target.style.boxShadow = '0 0 0 3px rgba(168,85,247,0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e9d5ff';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
-          </div>
-          <div style={{ padding: '0 28px 24px', display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              onClick={handleSubmitScenario}
-              disabled={!scenarioText.trim()}
-              style={{
-                background: '#9333ea', color: 'white', border: 'none',
-                borderRadius: 10, padding: '12px 28px',
-                fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600,
-                cursor: scenarioText.trim() ? 'pointer' : 'default',
-                transition: 'all 0.2s ease',
-                opacity: scenarioText.trim() ? 1 : 0.4,
-                pointerEvents: scenarioText.trim() ? 'auto' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (scenarioText.trim()) {
-                  e.currentTarget.style.background = '#7e22ce';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(147,51,234,0.3)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#9333ea';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              Continue
-            </button>
-          </div>
+      {/* Journey Timeline Rows */}
+      {moduleData.loading || summariesLoading ? (
+        <div className="text-sm text-gray-400 italic mb-8 pl-2">
+          {summariesLoading ? 'Reflecting on your journey...' : 'Loading your journey...'}
         </div>
+      ) : hasAnyJourneyData ? (
+        <>
+          {/* Selection instruction */}
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-gray-800">A Moment That Shifted</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 text-sm">
+                Which of these moments stands out right now? Tap to select.
+              </p>
+              {data.selectedExercise && (
+                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200">
+                  <span className="text-xs font-medium text-purple-700">
+                    Selected: {EXERCISE_LABELS[data.selectedExercise as ExerciseKey]}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="space-y-3 mb-4">
+            {EXERCISE_ORDER.map(exercise => {
+              if (!exerciseHasData[exercise]) return null;
+              const isSelected = data.selectedExercise === exercise;
+
+              const vizImage = exercise === 'visualization'
+                ? (moduleData.rawData.visualization?.selectedImage || moduleData.rawData.visualization?.uploadedImage || null)
+                : null;
+
+              return (
+                <button
+                  key={exercise}
+                  type="button"
+                  onClick={() => handleSelectExercise(exercise)}
+                  className={`w-full text-left flex items-start gap-3 pl-4 pr-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? 'bg-purple-50 border-2 border-purple-400 shadow-sm'
+                      : 'bg-white border border-gray-200 hover:bg-purple-50/50 hover:border-purple-200'
+                  }`}
+                >
+                  <span className={`mt-0.5 flex-shrink-0 ${isSelected ? 'text-purple-600' : 'text-green-500'}`}>
+                    {isSelected ? '◉' : '✓'}
+                  </span>
+                  {vizImage && (
+                    <img
+                      src={vizImage}
+                      alt="Your visualization"
+                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0 mt-0.5"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className={`text-sm font-medium ${isSelected ? 'text-purple-800' : 'text-gray-800'}`}>
+                      {EXERCISE_LABELS[exercise]}
+                    </p>
+                    <p className={`text-sm ${isSelected ? 'text-purple-600' : 'text-gray-500'}`}>
+                      {getSummary(exercise)}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Incomplete exercises (not clickable) */}
+          {EXERCISE_ORDER.some(ex => !exerciseHasData[ex]) && (
+            <div className="space-y-2 mb-8 opacity-50">
+              {EXERCISE_ORDER.filter(ex => !exerciseHasData[ex]).map(exercise => (
+                <div key={exercise} className="flex items-start gap-3 pl-4 pr-4 py-2">
+                  <span className="text-gray-300 mt-0.5 flex-shrink-0">○</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-400">{EXERCISE_LABELS[exercise]}</p>
+                    <p className="text-sm text-gray-300">Not yet completed</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Optional elaboration textarea */}
+          {hasSelection && (
+            <div className="mb-8 animate-in fade-in duration-300">
+              <p className="text-xs text-gray-400 mb-2 pl-1">
+                Want to add anything about why this moment stands out? (optional)
+              </p>
+              <Textarea
+                value={data.scenario_notes}
+                onChange={(e) => updateData({ scenario_notes: e.target.value })}
+                placeholder="A few words about why this one..."
+                className="min-h-[72px]"
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="text-sm text-gray-400 italic mb-8 pl-2">Complete the exercises above to see your journey here.</p>
       )}
 
-      {/* ── Section 2b: Locked Scenario ── */}
-      {scenarioSubmitted && (
-        <div style={{
-          background: '#ffffff', borderRadius: 16,
-          border: '1px solid #e5e7eb', overflow: 'hidden',
-          marginBottom: 32, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-        }}>
-          <div style={{ padding: 28 }}>
-            <div style={{
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'space-between', marginBottom: 16,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{
-                  width: 6, height: 6, background: '#c084fc', borderRadius: '50%',
-                }} />
-                <span style={{
-                  fontSize: 11, fontWeight: 600, letterSpacing: '1px',
-                  textTransform: 'uppercase', color: '#9333ea',
-                }}>
-                  Your Scenario
-                </span>
-              </div>
-              <button
-                onClick={handleEditScenario}
-                style={{
-                  background: 'none', border: '1px solid #e5e7eb',
-                  borderRadius: 8, padding: '6px 14px',
-                  fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                  fontWeight: 500, color: '#6b7280', cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#d8b4fe';
-                  e.currentTarget.style.color = '#9333ea';
-                  e.currentTarget.style.background = '#faf5ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                  e.currentTarget.style.color = '#6b7280';
-                  e.currentTarget.style.background = 'none';
-                }}
-              >
-                Edit
-              </button>
-            </div>
-            <div style={{
-              fontSize: 15, lineHeight: 1.7, color: '#1e1b2e',
-              background: '#fdfbff', padding: '16px 18px',
-              borderRadius: 12, border: '1px solid #f3f0ff',
-              whiteSpace: 'pre-wrap',
-            }}>
-              {data.scenario_notes}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Section 3: Capability Cards ── */}
-      {scenarioSubmitted && (
-        <div
-          ref={capabilitiesRef}
-          style={{ animation: 'ia37FadeSlideIn 0.5s ease-out' }}
-        >
+      {/* ── Section 2: Capability Noticing ── */}
+      {hasSelection && (
+        <div ref={capabilitiesRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Intro */}
-          <div style={{ textAlign: 'center', marginBottom: 28, padding: '0 8px' }}>
-            <h3 style={{
-              fontFamily: "'DM Serif Display', Georgia, serif",
-              fontSize: 22, marginBottom: 8, color: '#1e1b2e',
-            }}>
+          <div className="text-center mb-7 px-2">
+            <h3 className="text-xl font-bold mb-2 text-gray-900">
               What showed up in that moment?
             </h3>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: '#6b7280' }}>
-              Rate each capability based on this specific scenario — not who you are in general,
-              just what was present here. Low numbers are completely valid; not every situation
-              calls for every capability.
+            <p className="text-sm leading-relaxed text-gray-500">
+              Read each prompt. Just notice — was this present in the moment you selected?
             </p>
           </div>
 
-          {/* Progress Bar */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 32, padding: '0 4px' }}>
+          {/* Questions loading state */}
+          {questionsLoading && (
+            <div className="text-sm text-purple-500 italic text-center mb-6 animate-pulse">
+              Tailoring prompts to your moment...
+            </div>
+          )}
+
+          {/* Progress indicator */}
+          <div className="flex gap-1.5 mb-8 px-1">
             {CAPABILITIES.map(cap => {
-              const rating = data.capability_ratings[cap.key];
-              let bgColor = '#e5e7eb';
-              if (rating !== undefined) {
-                bgColor = rating === 'unsure'
-                  ? `${cap.color}60`
-                  : cap.color;
-              }
+              const value = noticed[cap.key];
               return (
-                <div key={cap.key} style={{
-                  flex: 1, height: 4, borderRadius: 2,
-                  background: bgColor, transition: 'background 0.3s ease',
-                }} />
+                <div
+                  key={cap.key}
+                  className="flex-1 h-1 rounded-sm transition-colors duration-300"
+                  style={{
+                    backgroundColor: value === 'yes'
+                      ? cap.color
+                      : value !== undefined
+                        ? '#d1d5db'
+                        : '#e5e7eb',
+                  }}
+                />
               );
             })}
           </div>
 
           {/* Capability Cards */}
-          {CAPABILITIES.map(cap => {
-            const rating = data.capability_ratings[cap.key];
-            const isRated = rating !== undefined;
-            const isUnsure = rating === 'unsure';
-            const numericRating = typeof rating === 'number' ? rating : 0;
-            const noteExpanded = expandedNotes[cap.key] || false;
-            const noteValue = data.capability_notes?.[cap.key] || '';
+          <div className="space-y-4">
+            {CAPABILITIES.map(cap => {
+              const value = noticed[cap.key];
+              const isPresent = value === 'yes';
+              const isEngaged = value !== undefined;
+              const noteExpanded = expandedNotes[cap.key] || false;
+              const noteValue = data.capability_notes?.[cap.key] || '';
 
-            return (
-              <div
-                key={cap.key}
-                style={{
-                  background: '#ffffff', borderRadius: 14,
-                  border: `1px solid ${isRated ? cap.color : '#e5e7eb'}`,
-                  marginBottom: 16, overflow: 'hidden',
-                  transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                  boxShadow: isRated ? `0 0 0 1px ${cap.colorFaint}` : undefined,
-                }}
-              >
-                <div style={{ padding: '22px 24px' }}>
-                  {/* Capability top: icon + name */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 10,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0, padding: 6, background: cap.colorBg,
-                    }}>
-                      <img
-                        src={cap.icon}
-                        alt={cap.label}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              return (
+                <Card
+                  key={cap.key}
+                  className="overflow-hidden transition-all duration-200"
+                  style={{
+                    borderColor: isPresent ? cap.color : undefined,
+                    boxShadow: isPresent ? `0 0 0 1px ${cap.colorFaint}` : undefined,
+                  }}
+                >
+                  {/* Colored top border */}
+                  <div className="h-1" style={{ backgroundColor: cap.color }} />
+
+                  <CardContent className="p-5 md:p-6">
+                    {/* Capability top: icon + name */}
+                    <div className="flex items-center gap-3 mb-3.5">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 p-1.5"
+                        style={{ backgroundColor: cap.colorBg }}
+                      >
+                        <img
+                          src={cap.icon}
+                          alt={cap.label}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span
+                        className="text-xs font-semibold tracking-wide uppercase"
+                        style={{ color: cap.color }}
+                      >
+                        {cap.label}
+                      </span>
+                    </div>
+
+                    {/* Question / prompt */}
+                    <p className="text-[15px] leading-relaxed text-gray-900 mb-4">
+                      {getQuestion(cap.key)}
+                    </p>
+
+                    {/* Three-choice buttons */}
+                    <div className="flex gap-2">
+                      {([
+                        { value: 'yes' as NoticeValue, label: 'Yes' },
+                        { value: 'not_really' as NoticeValue, label: 'Not really' },
+                        { value: 'unsure' as NoticeValue, label: "I don't know" },
+                      ]).map(({ value: btnValue, label }) => (
+                        <button
+                          key={btnValue}
+                          type="button"
+                          onClick={() => handleNotice(cap.key, btnValue)}
+                          className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer"
+                          style={noticeButtonStyle(cap, btnValue, value)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+
+                  {/* Note toggle + area — only show after engaged */}
+                  {isEngaged && (
+                    <div className="px-5 md:px-6 pb-1.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleNote(cap.key)}
+                        className="text-xs text-gray-400 hover:text-purple-500 transition-colors duration-150 cursor-pointer py-1"
+                      >
+                        {noteExpanded ? '− Hide notes' : 'What makes you say that?'}
+                      </button>
+                    </div>
+                  )}
+
+                  {noteExpanded && (
+                    <div className="px-5 md:px-6 pb-4.5 animate-in fade-in slide-in-from-top-2 duration-250">
+                      <Textarea
+                        value={noteValue}
+                        onChange={(e) => handleNote(cap.key, e.target.value)}
+                        placeholder="Optional — a few words..."
+                        className="min-h-[52px] text-sm resize-none"
                       />
                     </div>
-                    <div style={{
-                      fontSize: 13, fontWeight: 600, letterSpacing: '0.5px',
-                      textTransform: 'uppercase', color: cap.color,
-                    }}>
-                      {cap.label}
-                    </div>
-                  </div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
 
-                  {/* Question */}
-                  <div style={{ fontSize: 15, lineHeight: 1.6, color: '#1e1b2e', marginBottom: 18 }}>
-                    {cap.question}
-                  </div>
-
-                  {/* Rating Row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ display: 'flex', gap: 6, flex: 1, justifyContent: 'center' }}>
-                      {[1, 2, 3, 4, 5].map(n => {
-                        const isSelected = numericRating === n && !isUnsure;
-                        return (
-                          <button
-                            key={n}
-                            type="button"
-                            onClick={() => handleRate(cap.key, n)}
-                            style={{
-                              width: 44, height: 36, borderRadius: 8,
-                              border: `2px solid ${isSelected ? cap.color : '#e5e7eb'}`,
-                              background: isSelected ? cap.color : '#ffffff',
-                              fontFamily: "'DM Sans', sans-serif",
-                              fontSize: 13, fontWeight: isSelected ? 600 : 500,
-                              color: isSelected ? 'white' : '#6b7280',
-                              cursor: 'pointer', transition: 'all 0.15s ease',
-                              position: 'relative',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.borderColor = cap.color;
-                                e.currentTarget.style.background = cap.colorFaint;
-                                e.currentTarget.style.color = cap.color;
-                              }
-                              const tooltip = e.currentTarget.querySelector('[data-tooltip]') as HTMLElement;
-                              if (tooltip) {
-                                tooltip.style.opacity = '1';
-                                tooltip.style.transform = 'translateX(-50%) translateY(0)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.borderColor = '#e5e7eb';
-                                e.currentTarget.style.background = '#ffffff';
-                                e.currentTarget.style.color = '#6b7280';
-                              }
-                              if (!isSelected) {
-                                const tooltip = e.currentTarget.querySelector('[data-tooltip]') as HTMLElement;
-                                if (tooltip) {
-                                  tooltip.style.opacity = '0';
-                                  tooltip.style.transform = 'translateX(-50%) translateY(4px)';
-                                }
-                              }
-                            }}
-                          >
-                            {n}
-                            <span
-                              data-tooltip=""
-                              style={{
-                                position: 'absolute',
-                                bottom: 'calc(100% + 6px)',
-                                left: '50%',
-                                transform: isSelected
-                                  ? 'translateX(-50%) translateY(0)'
-                                  : 'translateX(-50%) translateY(4px)',
-                                background: isSelected ? cap.color : '#1e1b2e',
-                                color: 'white',
-                                padding: '4px 10px', borderRadius: 6,
-                                fontSize: 11, fontWeight: 500,
-                                whiteSpace: 'nowrap',
-                                opacity: isSelected ? 1 : 0,
-                                pointerEvents: 'none',
-                                transition: 'all 0.15s ease',
-                                zIndex: 10,
-                              }}
-                            >
-                              {RATING_ANCHORS[n]}
-                              <span style={{
-                                position: 'absolute', top: '100%', left: '50%',
-                                transform: 'translateX(-50%)',
-                                borderWidth: 4, borderStyle: 'solid', borderColor: 'transparent',
-                                borderTopColor: isSelected ? cap.color : '#1e1b2e',
-                              }} />
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {/* Not sure button */}
-                    <button
-                      type="button"
-                      onClick={() => handleUnsure(cap.key)}
-                      style={{
-                        background: isUnsure ? cap.colorFaint : 'none',
-                        border: `1px ${isUnsure ? 'solid' : 'dashed'} ${isUnsure ? cap.color : '#e5e7eb'}`,
-                        borderRadius: 8, padding: '6px 12px',
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 11, fontWeight: isUnsure ? 600 : 500,
-                        color: isUnsure ? cap.color : '#9ca3af',
-                        cursor: 'pointer', transition: 'all 0.15s ease',
-                        whiteSpace: 'nowrap', marginLeft: 6,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isUnsure) {
-                          e.currentTarget.style.borderColor = cap.color;
-                          e.currentTarget.style.color = cap.color;
-                          e.currentTarget.style.background = cap.colorFaint;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isUnsure) {
-                          e.currentTarget.style.borderColor = '#e5e7eb';
-                          e.currentTarget.style.color = '#9ca3af';
-                          e.currentTarget.style.background = 'none';
-                        }
-                      }}
-                    >
-                      Not sure
-                    </button>
-                  </div>
-                </div>
-
-                {/* Note toggle */}
-                <div style={{ padding: '0 24px 6px' }}>
-                  <button
-                    type="button"
-                    onClick={() => toggleNote(cap.key)}
-                    style={{
-                      background: 'none', border: 'none',
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontSize: 12, color: '#9ca3af',
-                      cursor: 'pointer', padding: '4px 0',
-                      transition: 'color 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#a855f7'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#9ca3af'; }}
-                  >
-                    {noteExpanded ? '− Hide note' : 'Why this rating?'}
-                  </button>
-                </div>
-
-                {/* Note area */}
-                {noteExpanded && (
-                  <div style={{
-                    padding: '0 24px 18px',
-                    animation: 'ia37FadeSlideIn 0.25s ease-out',
-                  }}>
-                    <p style={{
-                      fontSize: 12, color: '#9ca3af', marginBottom: 8, lineHeight: 1.5,
-                    }}>
-                      This is optional, but even a few words now makes it easier to revisit later.
-                    </p>
-                    <textarea
-                      value={noteValue}
-                      onChange={(e) => handleNote(cap.key, e.target.value)}
-                      placeholder="Optional — a few words on why"
-                      style={{
-                        width: '100%', padding: '10px 14px',
-                        border: '1px solid #e5e7eb', borderRadius: 8,
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 13, lineHeight: 1.5,
-                        color: '#1e1b2e', background: '#fafafa',
-                        resize: 'none', height: 52, outline: 'none',
-                      }}
-                      onFocus={(e) => { e.target.style.borderColor = '#d8b4fe'; }}
-                      onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; }}
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* ── Section 4: Closing ── */}
-          {allRated && (
-            <div style={{
-              textAlign: 'center', padding: '32px 20px',
-              animation: 'ia37FadeSlideIn 0.5s ease-out',
-            }}>
-              <div style={{
-                width: 56, height: 56,
-                background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)',
-                borderRadius: 16,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 24, margin: '0 auto 16px',
-              }}>
-                🌱
-              </div>
-              <h3 style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontSize: 20, marginBottom: 8,
-              }}>
-                Reflection Complete
-              </h3>
-              <p style={{
-                fontSize: 14, lineHeight: 1.65, color: '#6b7280',
-                maxWidth: 480, margin: '0 auto 24px',
-              }}>
-                You've grounded the capabilities from this module in a real moment. In Module 4,
-                you'll do this again with an AI thinking partner — and see what a different kind
-                of reflection surfaces.
-              </p>
-              <button
-                onClick={() => onNext?.('ia-4-1')}
-                disabled={saving}
-                style={{
-                  background: '#9333ea', color: 'white', border: 'none',
-                  borderRadius: 10, padding: '12px 28px',
-                  fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600,
-                  cursor: 'pointer', transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#7e22ce';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(147,51,234,0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#9333ea';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                {saving ? 'Saving...' : 'Continue to Module 4 →'}
-              </button>
-            </div>
+          {/* ── Section 3: Closing ── */}
+          {allNoticed && (
+            <Card className="text-center border-purple-200 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <CardContent className="py-8">
+                <h3 className="text-xl font-bold text-purple-800 mb-3">Reflection Complete</h3>
+                <p className="text-gray-600 mb-3 max-w-md mx-auto">
+                  {presentCount === 5
+                    ? 'All five capabilities showed up in that moment.'
+                    : presentCount === 0
+                      ? "None of the five felt clearly present — and that's useful to notice too."
+                      : `You noticed ${presentCount} capabilit${presentCount === 1 ? 'y' : 'ies'} in that moment.`
+                  }
+                </p>
+                <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
+                  Next, you'll work with an AI thinking partner — and see what a different kind of reflection surfaces.
+                </p>
+                <Button
+                  onClick={() => onNext?.('ia-4-1')}
+                  disabled={saving}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+                >
+                  {saving ? 'Saving...' : 'Continue to Module 4 →'}
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
       )}

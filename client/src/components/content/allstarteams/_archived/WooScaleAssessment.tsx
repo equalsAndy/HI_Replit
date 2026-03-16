@@ -91,7 +91,7 @@ const WooScaleAssessment: React.FC<WooScaleAssessmentProps> = ({ onComplete, onB
   const [isAnimating, setIsAnimating] = useState(false);
 
   const currentQuestion = wooQuestions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / wooQuestions.length) * 100;
+  const progress = (answers.length / wooQuestions.length) * 100;
 
   const getGradientClass = (optionValue: number, isReverse: boolean) => {
     // For normal questions: 1=earthy/practical, 5=cosmic/mystical

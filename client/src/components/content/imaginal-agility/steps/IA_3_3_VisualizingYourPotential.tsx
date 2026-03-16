@@ -8,7 +8,7 @@ import { useVideoByStepId } from '@/hooks/use-videos';
 import { FileText, RefreshCw, Loader2 } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
-import { searchUnsplash } from '@/services/api-services';
+import { searchUnsplash, describeImage } from '@/services/api-services';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
@@ -24,6 +24,7 @@ interface IA33StepData {
   uploadedImage: string | null;
   reflection: string;
   imageTitle: string;
+  imageDescription?: string;
   capability_activation?: CapabilityType;
 }
 
@@ -195,10 +196,19 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       const reader = new FileReader();
       reader.onload = (ev) => {
         if (ev.target?.result) {
+          const base64Url = ev.target.result as string;
           safeUpdateData({
-            uploadedImage: ev.target.result as string,
-            selectedImage: null // Clear image bank selection if uploading
+            uploadedImage: base64Url,
+            selectedImage: null,
+            imageDescription: '',
           });
+
+          // Fire Vision in background for uploaded image
+          describeImage(base64Url).then((visionDescription) => {
+            if (visionDescription && isMountedRef.current) {
+              safeUpdateData({ imageDescription: visionDescription });
+            }
+          }).catch(() => {});
         }
       };
       reader.readAsDataURL(file);
@@ -206,13 +216,22 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   };
 
   // Handle image selection from bank
-  const handleSelectImage = (url: string) => {
+  const handleSelectImage = (url: string, description?: string) => {
     try {
       safeUpdateData({
         selectedImage: url,
-        uploadedImage: null // Clear uploaded image if selecting from bank
+        uploadedImage: null,
+        imageDescription: description || '',
       });
       setGalleryCollapsed(true);
+
+      // Fire Vision in background to get a richer description
+      // (Unsplash alt_description is often empty or generic)
+      describeImage(url).then((visionDescription) => {
+        if (visionDescription && isMountedRef.current) {
+          safeUpdateData({ imageDescription: visionDescription });
+        }
+      }).catch(() => {});
     } catch (error) {
       console.error('Error updating image selection:', error);
     }
@@ -221,9 +240,17 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   // Handle continue with auto-save
   const handleContinue = async () => {
     try {
-      // Force immediate save of current data
+      // Fire Vision description in background if missing — don't block navigation
+      const imageToDescribe = uploadedImage || selectedImage;
+      if (imageToDescribe && !data.imageDescription) {
+        describeImage(imageToDescribe).then((description) => {
+          if (description && isMountedRef.current) {
+            safeUpdateData({ imageDescription: description });
+          }
+        }).catch(() => {});
+      }
+
       await saveNow();
-      // Navigate to next step
       if (onNext) onNext('ia-3-4');
     } catch (error) {
       console.error('Failed to save IA 3-3 data:', error);
@@ -310,7 +337,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <p className="text-gray-700 leading-relaxed">
-            This exercise develops your capacity for symbolic visualization and inner potential recognition. You'll select or upload an image that represents an underused quality within you, then reflect on what it reveals about your creative potential.
+            Neuroscience shows the brain treats imagined experience almost like real experience — when your inner images shift, your choices shift with them. In this exercise, you'll find one image that captures <strong>a side of yourself you haven't fully used yet.</strong> Not just as a picture — as a starting point you'll come back to later.
           </p>
         </div>
       </div>
@@ -320,8 +347,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <div className="p-8 pb-0">
           <h2 className="text-xl font-semibold text-purple-700 mb-4">📋 Upload or Choose an Image</h2>
           <p className="text-gray-700 mb-6">
-            Select or upload an image that reflects something within you — a quality, energy, or capacity 
-            that feels present but underused.
+            Find an image that represents <strong>something true about you that's waiting to be used.</strong> It doesn't need to be literal — a wave, a spark, a mountain can all stand for something real.
           </p>
 
           {/* Tab Navigation */}
@@ -405,7 +431,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
               <div className="flex gap-2">
                 <Input
                   type="text"
-                  placeholder="Search images (try: potential, flame, depth, seed, spark, mirror, growth)"
+                  placeholder="Search for what captures YOUR underused side (try: calm, fire, explorer, builder, depth)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
@@ -421,7 +447,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                 </Button>
               </div>
               <p className="text-xs text-gray-500">
-                Tag suggestions: potential, flame, depth, seed, spark, mirror, growth (Press Enter or click Search)
+                Think about what you'd search for if you were looking for your underused side. Some people search for what they feel (calm, energy, fire). Others search for what they want to become (leader, builder, explorer).
               </p>
 
               {/* Search Error */}
@@ -451,7 +477,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                             ? 'border-purple-600 ring-2 ring-purple-200' 
                             : 'border-gray-200 hover:border-purple-300'
                         }`}
-                        onClick={() => handleSelectImage(img.urls.regular)}
+                        onClick={() => handleSelectImage(img.urls.regular, img.description || img.alt_description || '')}
                         title={img.alt_description || img.description}
                       >
                         <img 
@@ -488,7 +514,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
             <div className="flex-1 space-y-4">
               <div>
                 <Label className="block mb-3 text-gray-700 font-medium">
-                  Choose one word to title your image (e.g., Emergence, Spark, Flow):
+                  Give your image a one-word title — the quality it represents (e.g., Courage, Depth, Spark):
                 </Label>
                 <Input
                   value={imageTitle}
@@ -511,9 +537,9 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       
       {/* Describe Your Inner Potential Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200 mb-8">
-        <h2 className="text-xl font-semibold text-purple-700 mb-4">Describe Your Inner Potential</h2>
+        <h2 className="text-xl font-semibold text-purple-700 mb-4">Your Reflection</h2>
         <Label className="block mb-3 text-gray-700 font-medium">
-          What does this image reveal about a part of you that wants expression or strength?
+          What does this image capture about you? What's the quality it represents — and what would change if you used it more?
         </Label>
         <Textarea
           className="w-full min-h-[120px]"

@@ -103,7 +103,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   });
 
   const currentQ = ASSESSMENT_QUESTIONS[shuffledOrder[currentQuestion]];
-  const progress = ((currentQuestion + 1) / ASSESSMENT_QUESTIONS.length) * 100;
+  const progress = (Object.keys(responses).length / ASSESSMENT_QUESTIONS.length) * 100;
   const isLastQuestion = currentQuestion === ASSESSMENT_QUESTIONS.length - 1;
   const canGoNext = responses[`q${currentQ.id}`] !== undefined;
   const canFinish = isLastQuestion && canGoNext;

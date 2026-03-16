@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface IA55ContentProps {
   onNext?: (stepId: string) => void;
@@ -19,6 +26,7 @@ const INITIAL_DATA: IA55StepData = {
 };
 
 const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
+  const [showCongratsModal, setShowCongratsModal] = useState(false);
   const { data, updateData, saving } = useWorkshopStepData<IA55StepData>(
     'ia',
     'ia-5-5',
@@ -28,8 +36,9 @@ const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
 
   const handleComplete = () => {
     updateData({ workshop_completed_at: new Date().toISOString() });
-    // Mark ia-5-5 as completed so modules 6 & 7 unlock
-    if (onNext) onNext('ia-6-1');
+    // Mark ia-5-5 as completed so modules 6 & 7 unlock, but stay on this page
+    if (onNext) onNext('ia-5-5');
+    setShowCongratsModal(true);
   };
 
   return (
@@ -78,6 +87,54 @@ const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
         </p>
       </div>
 
+      {/* Capabilities as Judgment — daily practice */}
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
+        <h3 className="text-lg font-semibold text-purple-800 mb-4">Your Capabilities as Judgment</h3>
+        <p className="text-base text-gray-700 leading-relaxed mb-6">
+          Every day you encounter content — emails, articles, recommendations, reports — that may 
+          have been created by AI, by a person, or by both. There's no reliable way to know. Your 
+          capabilities are the filter. Together, they produce something AI cannot: judgment.
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-9 h-9 bg-red-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+              1
+            </div>
+            <div>
+              <p className="text-gray-900 font-semibold">Pause before sharing or reacting</p>
+              <p className="text-gray-600 text-sm">Courage — resist the impulse to act immediately on what looks authoritative</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-9 h-9 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+              2
+            </div>
+            <div>
+              <p className="text-gray-900 font-semibold">Ask what it's trying to make you believe or feel</p>
+              <p className="text-gray-600 text-sm">Curiosity + Imagination — question your response and picture alternatives</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+              3
+            </div>
+            <div>
+              <p className="text-gray-900 font-semibold">Consider who's affected before amplifying</p>
+              <p className="text-gray-600 text-sm">Caring — think about impact before you share, act, or decide</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-6">
+          <p className="text-sm text-purple-800">
+            That sequence is your capabilities working together as judgment. AI can analyze. Judgment is yours.
+          </p>
+        </div>
+      </div>
+
       {/* Closing Reflection */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
         <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -115,6 +172,34 @@ const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
           </p>
         </div>
       )}
+
+      {/* Congratulations Modal */}
+      <Dialog open={showCongratsModal} onOpenChange={setShowCongratsModal}>
+        <DialogContent className="max-w-md text-center">
+          <DialogHeader className="sm:text-center">
+            <div className="text-5xl mb-2">🎉</div>
+            <DialogTitle className="text-2xl font-bold text-purple-800">
+              Congratulations!
+            </DialogTitle>
+            <DialogDescription className="text-base text-gray-700 mt-3 space-y-3">
+              <span className="block">
+                You've completed the Imaginal Agility microcourse. Your development arc is now active.
+              </span>
+              <span className="block text-purple-600 font-medium">
+                The Teamwork and Organization modules are now unlocked in the menu if you'd like to explore them.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <Button
+              onClick={() => setShowCongratsModal(false)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-2"
+            >
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

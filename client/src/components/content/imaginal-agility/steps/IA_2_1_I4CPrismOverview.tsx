@@ -2,24 +2,12 @@ import React from 'react';
 import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
-import { useContinuity } from '@/hooks/useContinuity';
-import CapabilityPulse from '@/components/ia/CapabilityPulse';
 
 interface IA21ContentProps {
   onNext?: (stepId: string) => void;
 }
 
 const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
-  const { state, set } = useContinuity();
-
-  const handlePulseComplete = (data: any) => {
-    set(prev => ({ ...prev, ia_2_1_pulse: data }));
-  };
-
-  const handlePulseContinue = () => {
-    onNext?.('ia-2-2');
-  };
-
   // Get video data for ia-2-1 using the existing video hook
   const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
     'ia',
@@ -64,8 +52,8 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={youtubeId}
         title={videoData?.title || "The i4C Prism Model"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={null}
+        glossary={null}
       />
       
       {/* Content Card */}
@@ -124,12 +112,15 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
         </div>
       </div>
 
-      {/* Capability Pulse — forced-choice pairs before assessment */}
-      <CapabilityPulse
-        onComplete={handlePulseComplete}
-        onContinue={handlePulseContinue}
-        savedData={state?.ia_2_1_pulse || null}
-      />
+      {/* Continue to Understanding Your Capabilities */}
+      <div className="flex justify-end mt-8">
+        <button
+          onClick={() => onNext?.('ia-2-2')}
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
+        >
+          Continue
+        </button>
+      </div>
     </div>
   );
 };

@@ -104,10 +104,10 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
               PURPOSE:
             </p>
             <p className="text-lg leading-relaxed">
-              You've been exploring your capabilities and visualizing your potential. Now let's give that direction. This rung is about naming what matters to you — in your work, your field, or the wider world — and identifying where you're positioned to act on it.
+              You've been exploring your capabilities and visualizing who you are. Now let's give that direction. This is about naming what matters to you — in your work, your field, or the wider world — and where you're positioned to act on it.
             </p>
             <p className="text-lg leading-relaxed">
-              Your answers here will carry forward into later exercises, so be honest rather than aspirational. Start where you are.
+              In a later exercise, an AI will use what you write here to show you how your intention connects to something bigger than you expected. Be honest rather than aspirational — real answers produce better results than polished ones.
             </p>
           </div>
         </div>
@@ -123,12 +123,15 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           <p className="text-gray-700 mb-3 italic">
             What problem, question, or cause keeps pulling your attention — at work, in your field, or in the wider world?
           </p>
+          <p className="text-xs text-gray-400 mb-2">
+            e.g., &ldquo;Too many decisions in my field get made without the people affected&rdquo; or &ldquo;My students graduate technically skilled but not prepared for ambiguity&rdquo;
+          </p>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
             value={data.whyReflection}
             onChange={e => updateData({ whyReflection: e.target.value })}
-            placeholder="Reflect on what you care about deeply..."
+            placeholder="What keeps pulling your attention..."
           />
         </div>
 
@@ -138,12 +141,15 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           <p className="text-gray-700 mb-3 italic">
             Where are you positioned to make a difference — through your role, your skills, or the people you work with?
           </p>
+          <p className="text-xs text-gray-400 mb-2">
+            e.g., &ldquo;I run our team's planning process and have credibility with leadership&rdquo; or &ldquo;I teach three sections and advise the department chair&rdquo;
+          </p>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
             value={data.howReflection}
             onChange={e => updateData({ howReflection: e.target.value })}
-            placeholder="Describe your approach and methods..."
+            placeholder="Where are you positioned to act on this..."
           />
         </div>
 
@@ -153,12 +159,15 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           <p className="text-gray-700 mb-3 italic">
             If colleagues described your impact a year from now, what would you want them to say?
           </p>
+          <p className="text-xs text-gray-400 mb-2">
+            e.g., &ldquo;She helped us get comfortable with not knowing the answer yet&rdquo; or &ldquo;He changed how we think about who we're building for&rdquo;
+          </p>
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
             value={data.whatReflection}
             onChange={e => updateData({ whatReflection: e.target.value })}
-            placeholder="Outline your first step and alignment..."
+            placeholder="What would you want them to say about your impact..."
           />
         </div>
       </div>
@@ -174,7 +183,7 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           rows={2}
           value={data.nextStep}
           onChange={e => updateData({ nextStep: e.target.value })}
-          placeholder="What's one concrete step you can take this week?"
+          placeholder="e.g., Block 30 minutes to map one challenge using a different approach than usual"
         />
       </div>
 

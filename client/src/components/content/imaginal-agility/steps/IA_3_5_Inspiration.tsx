@@ -146,7 +146,8 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     if (hasIncompleteInterludes) {
       setShowIncompleteWarning(true);
     } else {
-      // No need to manually save - auto-save handles everything
+      // Save reflection fields before navigating
+      await autoSaveCompletionState(completed);
       console.log('🧭 IA-3-5 calling onNext to ia-3-6');
       onNext && onNext('ia-3-6');
     }
@@ -160,12 +161,13 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     const newResponses = Object.fromEntries(
       Object.entries(responses).filter(([id]) => completedInterludeIds.includes(id))
     );
-    
+
     setSelectedInterludes(newSelectedInterludes);
     setResponses(newResponses);
     setShowIncompleteWarning(false);
-    
-    // Auto-save will handle the server sync automatically
+
+    // Save reflection fields before navigating
+    await autoSaveCompletionState(completedInterludeIds);
     console.log('🧭 IA-3-5 calling onNext to ia-3-6 (with incomplete warning)');
     onNext && onNext('ia-3-6');
   };
@@ -268,10 +270,15 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
           return;
         }
         
-        const data = json.data as { selectedInterludes?: string[]; responses?: Record<string, string>; completed?: string[] };
+        const data = json.data as { selectedInterludes?: string[]; responses?: Record<string, string>; completed?: string[]; patternReflection?: string; momentStory?: string; feelingClaim?: string };
         const selIds = data.selectedInterludes || [];
         const resp = data.responses || {};
         const comp = data.completed || [];
+
+        // Restore reflection fields from server
+        setPatternReflection(data.patternReflection || '');
+        setMomentStory(data.momentStory || '');
+        setFeelingClaim(data.feelingClaim || '');
         
         // Server has data - use it as source of truth, ignore any localStorage
         console.log('💾 Server IA-3-5 data loaded:', { selIds, responses: Object.keys(resp), completed: comp });
@@ -310,6 +317,9 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
       selectedInterludes: ids,
       responses: pruned,
       completed: ids,
+      patternReflection,
+      momentStory,
+      feelingClaim,
       meta: { lastEditedAt: new Date().toISOString() }
     };
   };
@@ -333,6 +343,9 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
           selectedInterludes: nextCompleted, // Only save completed interludes
           responses: savedResponses, // Only save responses for completed interludes
           completed: nextCompleted,
+          patternReflection,
+          momentStory,
+          feelingClaim,
           meta: { lastEditedAt: new Date().toISOString() }
         }
       };
@@ -432,6 +445,19 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
       } catch {}
     };
   }, []);
+
+  // Auto-save reflection fields when they change
+  useEffect(() => {
+    if (completed.length === 0) return; // Nothing to save against
+    if (!patternReflection && !momentStory && !feelingClaim) return; // All empty
+
+    const timer = setTimeout(async () => {
+      await autoSaveCompletionState(completed);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patternReflection, momentStory, feelingClaim]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -745,7 +771,8 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                   </div>
                   <div className="text-center">
                     <Button
-                      onClick={() => {
+                      onClick={async () => {
+                        await autoSaveCompletionState(completed);
                         console.log('🧭 IA-3-5 calling onNext to ia-3-6 (from reflection step 3)');
                         onNext && onNext('ia-3-6');
                       }}

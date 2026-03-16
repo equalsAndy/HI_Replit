@@ -51,12 +51,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         title: 'The Bigger Picture',
         type: 'video',
         contentKey: 'ia-1-4'
-      },
-      {
-        id: 'ia-1-5',
-        title: 'Extra: Reality and Words',
-        type: 'interactive',
-        contentKey: 'ia-1-5'
       }
     ]
   },
@@ -74,9 +68,15 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-2-2',
-        title: 'Prism Reflection',
-        type: 'assessment',
+        title: 'Understanding Your Capabilities',
+        type: 'interactive',
         contentKey: 'ia-2-2'
+      },
+      {
+        id: 'ia-2-3',
+        title: 'Your Prism',
+        type: 'assessment',
+        contentKey: 'ia-2-3'
       }
     ]
   },
@@ -124,7 +124,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-3-7',
-        title: 'Module Reflection',
+        title: 'Module 3 Reflection',
         type: 'reflection',
         contentKey: 'ia-3-7'
       }
@@ -162,7 +162,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-4-5',
-        title: 'Inspiration Support',
+        title: 'Inviting the Muse',
         type: 'reflection',
         contentKey: 'ia-4-5'
       },
@@ -174,8 +174,8 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-4-7',
-        title: 'Module Reflection',
-        type: 'interactive',
+        title: 'Module 4 Reflection',
+        type: 'reflection',
         contentKey: 'ia-4-7'
       }
     ]

@@ -452,7 +452,7 @@ const hasPracticesData = (assessments: any[]): boolean => {
 // IA validation function
 const validateIAStep = (stepId: string, userAssessments: any[]): boolean => {
   switch (stepId) {
-    case 'ia-2-2': return hasI4CAssessment(userAssessments);
+    case 'ia-2-3': return hasI4CAssessment(userAssessments);
     case 'ia-3-2': return hasAutoflowData(userAssessments);
     case 'ia-3-4': return hasHigherPurposeReflection(userAssessments);
     case 'ia-4-2': return hasAdvancedAutoflowData(userAssessments);

@@ -46,6 +46,26 @@ export const searchUnsplash = async (query: string, perPage: number = 20) => {
   }
 };
 
+/**
+ * Calls Vision API to describe an image. Fire-and-forget friendly.
+ * Returns the description string, or empty string on failure.
+ */
+export async function describeImage(imageUrl: string): Promise<string> {
+  try {
+    const resp = await fetch('/api/ai/image/describe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ image_url: imageUrl }),
+    });
+    const data = await resp.json();
+    return data?.description || '';
+  } catch (err) {
+    console.error('[describeImage] Failed:', err);
+    return '';
+  }
+}
+
 // Define unified result type
 export interface UnifiedImageSearchResult {
   unsplash: any[];

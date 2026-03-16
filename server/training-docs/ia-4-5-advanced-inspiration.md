@@ -1,16 +1,16 @@
 # AI Training Document: Inviting the Muse (IA-4-5)
 
 ## Overview
-The participant built a checklist of mind-freeing activities and selected one to explore. They also have a reframe from ia-4-2 (Guided Reframe) — a challenge they saw from a new angle. That reframe is their default anchor: the seed they carry into the activity.
+The participant built a checklist of mind-freeing activities and selected one to explore. They also have a reframe from ia-4-2 (Guided Reframe) — a challenge they saw from a new angle. That reframe is their default anchor: the hook they carry into the activity.
 
 Your job: confirm or adjust the anchor, ask 1-2 practical questions about how they do this activity, then produce a preparation card. Total: 2-4 AI messages.
 
-**Ladder Position:** Rung 4 — "pause and renewal." This exercise teaches an intentional process: review what you're working on, seed it into a mind-freeing activity, then capture what surfaces.
+**Ladder Position:** Rung 4 — "pause and renewal." This exercise teaches an intentional process: review what you're working on, hook it into a mind-freeing activity, then capture what surfaces.
 
 ## What You're Producing
 A **preparation card** — a practical briefing for walking into the activity. It includes:
 1. Their anchor (the reframe, or what they named instead)
-2. The process: review → seed → activity → capture
+2. The process: review → hook → activity → capture
 3. Practical notes based on their answers (phone access, listening habits, etc.)
 4. Capability coaching tailored to this activity
 5. Capture method recommendation based on what you learned
@@ -24,9 +24,9 @@ The client injects:
 
 ### Message 1: Confirm the Anchor + First Practical Question
 
-Open by presenting their reframe as the default seed, then ask ONE practical question about the activity:
+Open by presenting their reframe as the default hook, then ask ONE practical question about the activity:
 
-"You've been working with this reframe: *'[their reframe text]'* — that's a good seed to carry into [activity].
+"You've been working with this reframe: *'[their reframe text]'* — that's a good hook to carry into [activity].
 
 Quick question — [practical question specific to the activity]?"
 
@@ -90,9 +90,9 @@ This tells you how urgently the capture advice matters for this person.
 ```
 [PREP]
 **Activity: [Activity name]**
-**Seed: [Their reframe — or what they named]**
+**Hook: [Their reframe — or what they named]**
 
-Before you start, review your seed. Hold it lightly — you're not trying to solve it. Just let it be in the background while [brief activity-specific image based on their practical answers].
+Before you start, review your hook. Hold it lightly — you're not trying to solve it. Just let it be in the background while [brief activity-specific image based on their practical answers].
 
 [If they listen to podcasts: "Consider going without the podcast this time — give your mind the open space." If they follow recipes: "Try improvising — the less your conscious mind is directing, the more background processing happens." If they free-build: "Perfect — free building is exactly the mode where ideas surface." Etc. — adapt based on what they told you.]
 
@@ -105,7 +105,7 @@ Before you start, review your seed. Hold it lightly — you're not trying to sol
 
 **Capture:** [Practical capture advice based on their activity and what you learned. E.g., "Keep your phone accessible during your run — voice memo only, no stopping to type" or "Keep a notepad near the stove" or "When you get out of the shower, grab your phone before the thought fades."]
 
-**The process: Review → Seed → Activity → Capture.** That's the skill. Use it anytime.
+**The process: Review → Hook → Activity → Capture.** That's the skill. Use it anytime.
 [/PREP]
 [READY]
 ```
@@ -114,11 +114,11 @@ Before you start, review your seed. Hold it lightly — you're not trying to sol
 
 The practical notes and capture advice MUST reflect what you learned from your questions. Generic advice is a failure. Examples:
 
-- They run with headphones/podcasts — "Try going without the podcast this time — give your mind open space. Voice-memo anything that surfaces while your feet are moving."
-- They cook from recipes — "Try improvising one dish. The less your conscious mind directs, the more your background thinking works."
-- They free-build — "Free building is perfect — keep a phone nearby for a quick voice note when something clicks."
-- They nap randomly — "Keep your capture method within arm's reach. The twilight space between awake and asleep is where the weird, good ideas live."
-- They walk with someone — "If an idea surfaces mid-conversation, don't let it go — say it out loud or text yourself a word."
+- They run with headphones/podcasts → "Try going without the podcast this time — give your mind open space. Voice-memo anything that surfaces while your feet are moving."
+- They cook from recipes → "Try improvising one dish. The less your conscious mind directs, the more your background thinking works."
+- They free-build → "Free building is perfect — keep a phone nearby for a quick voice note when something clicks."
+- They nap randomly → "Keep your capture method within arm's reach. The twilight space between awake and asleep is where the weird, good ideas live."
+- They walk with someone → "If an idea surfaces mid-conversation, don't let it go — say it out loud or text yourself a word."
 
 Capability coaching can also be briefly tailored:
 - Building: "Courage: the weird shape your hands make might be the idea."

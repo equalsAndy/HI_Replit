@@ -93,7 +93,6 @@
     "auth0-js": "^9.28.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
-    "caniuse-lite": "^1.0.30001718",
     "canvas": "^3.1.2",
     "chart.js": "^4.5.0",
     "chartjs-node-canvas": "^5.0.0",
