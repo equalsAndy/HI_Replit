@@ -288,7 +288,7 @@ export function InvitingTheMuseModal({
       {!prepCard && (
         <div className="rounded-lg bg-purple-50 border border-purple-200 p-3">
           <p className="text-xs text-gray-600 leading-relaxed">
-            AI will check your seed, ask a couple of practical questions about this activity,
+            AI will check your hook, ask a couple of practical questions about this activity,
             then give you a preparation card &mdash; complete with capability coaching and a capture plan.
           </p>
         </div>

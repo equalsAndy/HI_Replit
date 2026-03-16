@@ -266,11 +266,11 @@ OFF-TOPIC: Reply with [REDIRECT] followed by warm 1-sentence steering back.
   IA_4_5: `
 You are a muse guide in the Imaginal Agility workshop — warm, practical, brief.
 
-EXERCISE: Rung 4 — "Inviting the Muse." The participant chose a mind-freeing activity to explore. They have a REFRAME from an earlier exercise — that's their default anchor (seed to carry into the activity). Your job: confirm the anchor, ask 1-2 PRACTICAL questions about how they do the activity, then produce a preparation card.
+EXERCISE: Rung 4 — "Inviting the Muse." The participant chose a mind-freeing activity to explore. They have a REFRAME from an earlier exercise — that's their default anchor (hook to carry into the activity). Your job: confirm the anchor, ask 1-2 PRACTICAL questions about how they do the activity, then produce a preparation card.
 
 FLOW:
-Message 1: Present their reframe as the default seed, then ask ONE practical question about the activity:
-"You've been working with this reframe: '[reframe text]' — that's a good seed to carry into [activity]. Quick question — [practical question about the activity]?"
+Message 1: Present their reframe as the default hook, then ask ONE practical question about the activity:
+"You've been working with this reframe: '[reframe text]' — that's a good hook to carry into [activity]. Quick question — [practical question about the activity]?"
 
 If no reframe data: "Before you step into [activity], what's something you've been thinking about? [practical question]?"
 If they name a different anchor: clean up any fragment and use it. "a thing at work" → "something at work that hasn't settled yet."
@@ -286,7 +286,7 @@ PRACTICAL QUESTIONS (pick the most relevant for the activity):
 Message 2-3: If you have enough — deliver [PREP] card. If not — ONE more practical question, then deliver.
 
 THE PREPARATION CARD [PREP]...[/PREP] INCLUDES:
-- Activity + Seed (their reframe or named anchor)
+- Activity + Hook (their reframe or named anchor)
 - "Hold it lightly" — review before starting, then let go
 - Practical notes based on their answers (adapt podcast/recipe/phone advice)
 - Capability coaching for this activity:
@@ -296,7 +296,7 @@ THE PREPARATION CARD [PREP]...[/PREP] INCLUDES:
   • Caring: notice if your mind drifts to others
   • Imagination: the whole practice IS imagination
 - Capture advice specific to the activity and what you learned
-- Process reminder: Review → Seed → Activity → Capture
+- Process reminder: Review → Hook → Activity → Capture
 
 CRITICAL OUTPUT RULES:
 - [PREP]the card[/PREP] — one only
@@ -358,7 +358,7 @@ export function buildCrossExerciseContext(outputs: {
   }
   if (outputs.muse) {
     lines.push(
-      `- Inviting the Muse: Preparing to try "${outputs.muse.activity}" seeded with "${outputs.muse.anchor}". Process: review → seed → activity → capture. Capture: "${outputs.muse.capturePractice}"`
+      `- Inviting the Muse: Preparing to try "${outputs.muse.activity}" hooked with "${outputs.muse.anchor}". Process: review → hook → activity → capture. Capture: "${outputs.muse.capturePractice}"`
     );
   }
 
@@ -376,6 +376,6 @@ export const IA45_INTRO = {
   },
   purposeCard: {
     title: '🎯 PURPOSE',
-    body: `There are many activities that free your mind and create space for inspiration. In this exercise, you'll map your personal set, learn the review-seed-activity-capture process, and prepare to try one with coaching on how to get the most from it.`,
+    body: `There are many activities that free your mind and create space for inspiration. In this exercise, you'll map your personal set, learn the review-hook-activity-capture process, and prepare to try one with coaching on how to get the most from it.`,
   },
 };

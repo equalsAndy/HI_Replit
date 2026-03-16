@@ -13,7 +13,7 @@ const TRAINING_DOC_FILES: Record<string, string> = {
   'ia-4-2': 'ia-4-2-reframe.md',
   'ia-4-3': 'ia-4-3-stretch.md',
   'ia-4-4': 'ia-4-4-global-purpose-bridge.md',
-  'ia-4-5': 'ia-4-5-action-planning.md',
+  'ia-4-5': 'ia-4-5-advanced-inspiration.md',
 };
 
 // Load all docs at startup

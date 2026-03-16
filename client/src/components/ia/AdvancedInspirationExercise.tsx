@@ -608,11 +608,11 @@ export default function InvitingTheMuseExercise() {
           {/* ─── Section 3: The Process ────────────────────────────────────── */}
           <div className="mb-6 p-5 border border-purple-200 rounded-lg bg-white">
             <h3 className="text-base font-semibold text-purple-800 mb-3">
-              The Process: Review &rarr; Seed &rarr; Activity &rarr; Capture
+              The Process: Review &rarr; Hook &rarr; Activity &rarr; Capture
             </h3>
 
             <p className="text-gray-700 leading-relaxed mb-3">
-              Mind-freeing activities are most powerful when you walk in with a seed &mdash;
+              Mind-freeing activities are most powerful when you walk in with a hook &mdash;
               something you&rsquo;ve been working on that you want your background thinking
               to process. You don&rsquo;t try to solve it. You just review it, hold it lightly,
               then let the activity do its work.
@@ -630,7 +630,7 @@ export default function InvitingTheMuseExercise() {
                   <strong className="text-purple-700">&ldquo;{reframeData.reframe}&rdquo;</strong>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  That reframe is your seed. AI will help you carry it into the activity you pick.
+                  That reframe is your hook. AI will help you carry it into the activity you pick.
                 </p>
               </div>
             ) : (
@@ -645,7 +645,7 @@ export default function InvitingTheMuseExercise() {
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">Review</span>
               <span className="text-gray-400">&rarr;</span>
-              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">Seed</span>
+              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">Hook</span>
               <span className="text-gray-400">&rarr;</span>
               <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">Activity</span>
               <span className="text-gray-400">&rarr;</span>
@@ -657,7 +657,7 @@ export default function InvitingTheMuseExercise() {
           <div className="mb-6 p-5 bg-white border border-purple-200 rounded-lg">
             <h3 className="text-base font-semibold text-purple-800 mb-1">Pick one to explore</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Pick any activity you checked &mdash; AI will help you prepare to walk into it with your seed.
+              Pick any activity you checked &mdash; AI will help you prepare to walk into it with your hook.
             </p>
 
             {explorableItems.length === 0 ? (
@@ -688,7 +688,7 @@ export default function InvitingTheMuseExercise() {
           {/* ─── Section 5: Orientation + Launch ───────────────────────────── */}
           <div className="text-center mb-8">
             <p className="text-sm text-gray-600 mb-4 max-w-lg mx-auto">
-              AI will check your seed, ask a couple of practical questions about this activity,
+              AI will check your hook, ask a couple of practical questions about this activity,
               then give you a preparation card &mdash; complete with capability coaching and a capture plan.
             </p>
             <Button
@@ -820,11 +820,11 @@ export default function InvitingTheMuseExercise() {
           <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
             <h3 className="font-semibold text-purple-800 mb-2">What You Just Did</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              You just practiced the full loop: review what you&rsquo;re working on, seed it into
+              You just practiced the full loop: review what you&rsquo;re working on, hook it into
               a mind-freeing activity, and prepare to capture what surfaces.
             </p>
             <p className="text-sm text-gray-700 leading-relaxed mt-2">
-              <strong>Review &rarr; Seed &rarr; Activity &rarr; Capture.</strong> That&rsquo;s the process.
+              <strong>Review &rarr; Hook &rarr; Activity &rarr; Capture.</strong> That&rsquo;s the process.
               Use it anytime you want inspiration to work on something real.
             </p>
           </div>
@@ -971,12 +971,12 @@ export default function InvitingTheMuseExercise() {
             <strong>Activity:</strong> Cooking or baking
           </div>
           <div>
-            <strong>Seed:</strong> A reframe about a stuck project at work
+            <strong>Hook:</strong> A reframe about a stuck project at work
           </div>
           <div className="bg-amber-100 rounded p-3 space-y-2">
-            <p><strong>AI:</strong> <em>&ldquo;You&rsquo;ve been working with this reframe about your stuck project &mdash; good seed for cooking. Quick question: recipes or improvise?&rdquo;</em></p>
+            <p><strong>AI:</strong> <em>&ldquo;You&rsquo;ve been working with this reframe about your stuck project &mdash; good hook for cooking. Quick question: recipes or improvise?&rdquo;</em></p>
             <p><strong>Participant:</strong> <em>&ldquo;Usually recipes, but I freestyle with stir fry.&rdquo;</em></p>
-            <p><strong>AI:</strong> <em>Delivers preparation card with seed, practical advice (try freestyle tonight), capability coaching, and capture reminder.</em></p>
+            <p><strong>AI:</strong> <em>Delivers preparation card with hook, practical advice (try freestyle tonight), capability coaching, and capture reminder.</em></p>
           </div>
           <div>
             <strong>Tag:</strong> A practice

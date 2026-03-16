@@ -114,7 +114,7 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-4-5', 
-        title: 'Inspiration Support', 
+        title: 'Inviting the Muse',
         type: 'reflection',
         contentKey: 'ia-4-5'
       },
