@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-import ActivationMatrix from '../ActivationMatrix';
+import CapabilityMatrix from '../CapabilityMatrix';
 
 interface IA51ContentProps {
   onNext?: (stepId: string) => void;
@@ -46,8 +46,9 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
 
   const snapshot = snapshotResponse?.snapshot;
   const prism: Record<CapabilityKey, number> | null = snapshot?.prism ?? null;
-  const soloActivations: Record<CapabilityKey, number> = snapshot?.soloActivations ?? { imagination: 0, curiosity: 0, caring: 0, creativity: 0, courage: 0 };
-  const aiActivations: Record<CapabilityKey, number> = snapshot?.aiActivations ?? { imagination: 0, curiosity: 0, caring: 0, creativity: 0, courage: 0 };
+  const pulseRanking: CapabilityKey[] | null = snapshot?.pulseRanking ?? null;
+  const soloExercises = snapshot?.soloExercises ?? [];
+  const aiExercises = snapshot?.aiExercises ?? [];
   const completeness = snapshot?.completeness;
 
   const RungPreview: React.FC<{ n: 1 | 2 | 3 | 4 | 5 }> = ({ n }) => (
@@ -81,9 +82,9 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       />
 
       <h2 className="text-2xl font-semibold text-purple-700 mt-8 mb-2">
-        Your Activation Pattern
+        Your Capability Matrix
       </h2>
-      <p className="text-lg text-gray-600 mb-8">Your Prism baseline meets your exercise patterns. See what you reached for.</p>
+      <p className="text-lg text-gray-600 mb-8">Each row is a capability. Each column is a different moment of noticing — from first instinct to AI-partnered exercises.</p>
 
       {/* Video 2: The Imaginal Agility Matrix */}
       <VideoTranscriptGlossary
@@ -93,22 +94,23 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
         glossary={null}
       />
 
-      {/* ── Activation Matrix ─────────────────────────────────────────────────── */}
+      {/* ── Capability Matrix ──────────────────────────────────────────────────── */}
       {snapshotLoading ? (
         <div className="flex justify-center items-center h-32 mb-8">
           <Loader2 className="w-6 h-6 animate-spin text-purple-600 mr-2" />
           <span className="text-gray-600">Loading your snapshot…</span>
         </div>
-      ) : prism ? (
-        <ActivationMatrix
+      ) : (pulseRanking || prism || soloExercises.length > 0 || aiExercises.length > 0) ? (
+        <CapabilityMatrix
           prism={prism}
-          soloActivations={soloActivations}
-          aiActivations={aiActivations}
+          pulseRanking={pulseRanking}
+          soloExercises={soloExercises}
+          aiExercises={aiExercises}
           completeness={completeness}
         />
       ) : (
         <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
-          Complete the I4C Self-Assessment (Module 2) to see your Activation Matrix.
+          Complete the Capability Pulse (Module 2) or exercises (Modules 3–4) to see your Capability Matrix.
         </div>
       )}
 
