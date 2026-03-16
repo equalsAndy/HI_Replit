@@ -93,7 +93,7 @@ export function GlobalPurposeBridgeModal({
         setReframedView(viewMatch[1].trim());
       } else {
         // Fallback: use first 2 sentences before "Does this feel like"
-        const beforeFeel = msg.match(/^([\s\S]+?)(?:\n\n)?Does this feel like/i);
+        const beforeFeel = msg.match(/^([\s\S]+?)(?:\n\n)?Does this (?:feel like|connection land)/i);
         if (beforeFeel) {
           const sentences = beforeFeel[1].trim().split(/\.\s+/);
           setReframedView(sentences.slice(0, 2).join('. ').trim() + '.');
@@ -264,11 +264,11 @@ export function GlobalPurposeBridgeModal({
 
           {/* Section 1: Reframed view */}
           <section className="mb-5">
-            <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">How you see this challenge</h2>
+            <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">The bridge</h2>
             <div className={`min-h-[70px] p-3 border rounded text-sm ${
               reframedView.trim() ? 'bg-purple-50/50 border-purple-200 text-gray-900' : 'bg-gray-50 text-gray-400'
             }`}>
-              {reframedView.trim() || 'Work with AI to see the challenge through your intention. The bridge will appear here.'}
+              {reframedView.trim() || 'The AI will offer a bridge between your intention and this challenge. It will appear here.'}
             </div>
             {phase === 'reframe' && (
               <Button onClick={handleTransitionToExplore} disabled={!reframedView.trim()} className="w-full mt-3">
