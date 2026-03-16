@@ -1,7 +1,7 @@
 // Centralized training/runtime configuration for assistants and IA exercises
 
 export type TrainingId =
-  | 'ia-4-2' | 'ia-4-3' | 'ia-4-4' | 'ia-4-5'
+  | 'ia-4-2' | 'ia-4-3' | 'ia-4-4' | 'ia-4-5' | 'ia-4-7-synopsis'
   | 'talia-v1' | 'talia-v2'
   | 'ultra-talia'
   | 'reflection-talia';
@@ -46,6 +46,16 @@ export const TRAININGS: TrainingConfig[] = [
   {
     id: 'ia-4-5',
     name: 'IA 4-5: Inviting the Muse',
+    kind: 'exercise',
+    use_retrieval: false,
+    model_default: 'gpt-4.1-mini',
+    api_key_env: 'OPENAI_KEY_IA',
+  },
+
+  // IA 4-7 Synopsis (no-RAG, no training doc — system prompt is client-side)
+  {
+    id: 'ia-4-7-synopsis',
+    name: 'IA 4-7: Module 4 Reflection Synopsis',
     kind: 'exercise',
     use_retrieval: false,
     model_default: 'gpt-4.1-mini',

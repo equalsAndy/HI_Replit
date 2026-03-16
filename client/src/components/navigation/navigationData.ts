@@ -124,7 +124,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-3-7',
-        title: 'Module Reflection',
+        title: 'Module 3 Reflection',
         type: 'reflection',
         contentKey: 'ia-3-7'
       }
@@ -174,8 +174,8 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       {
         id: 'ia-4-7',
-        title: 'Module Reflection',
-        type: 'interactive',
+        title: 'Module 4 Reflection',
+        type: 'reflection',
         contentKey: 'ia-4-7'
       }
     ]
