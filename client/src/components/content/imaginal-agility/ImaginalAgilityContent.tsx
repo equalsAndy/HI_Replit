@@ -3,7 +3,7 @@ import IA_1_1_Overview from './steps/IA_1_1_Overview';
 import IA_1_2_WhatIsImagination from './steps/IA_1_2_WhatIsImagination';
 import IA_1_3_ImaginationDeficit from './steps/IA_1_3_ImaginationDeficit';
 import IA_1_4_TheBiggerPicture from './steps/IA_1_4_TheBiggerPicture';
-import IA_1_5_RealityAndWords from './steps/IA_1_5_RealityAndWords';
+
 import IA_2_1_I4CPrismOverview from './steps/IA_2_1_I4CPrismOverview';
 import IA_2_2_CapabilityDynamics from './steps/IA_2_2_CapabilityDynamics';
 import IA_2_3_SelfAssessment from './steps/IA_2_3_SelfAssessment';
@@ -52,8 +52,6 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
         return <IA_1_3_ImaginationDeficit onNext={onNext} />;
       case 'ia-1-4':
         return <IA_1_4_TheBiggerPicture onNext={onNext} />;
-      case 'ia-1-5':
-        return <IA_1_5_RealityAndWords onNext={onNext} />;
       case 'ia-2-1':
         return <IA_2_1_I4CPrismOverview onNext={onNext} />;
       case 'ia-2-2':

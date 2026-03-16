@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface IA55ContentProps {
   onNext?: (stepId: string) => void;
@@ -19,6 +26,7 @@ const INITIAL_DATA: IA55StepData = {
 };
 
 const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
+  const [showCongratsModal, setShowCongratsModal] = useState(false);
   const { data, updateData, saving } = useWorkshopStepData<IA55StepData>(
     'ia',
     'ia-5-5',
@@ -28,8 +36,9 @@ const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
 
   const handleComplete = () => {
     updateData({ workshop_completed_at: new Date().toISOString() });
-    // Mark ia-5-5 as completed so modules 6 & 7 unlock
-    if (onNext) onNext('ia-6-1');
+    // Mark ia-5-5 as completed so modules 6 & 7 unlock, but stay on this page
+    if (onNext) onNext('ia-5-5');
+    setShowCongratsModal(true);
   };
 
   return (
@@ -163,6 +172,34 @@ const IA_5_5_DevelopmentArc: React.FC<IA55ContentProps> = ({ onNext }) => {
           </p>
         </div>
       )}
+
+      {/* Congratulations Modal */}
+      <Dialog open={showCongratsModal} onOpenChange={setShowCongratsModal}>
+        <DialogContent className="max-w-md text-center">
+          <DialogHeader className="sm:text-center">
+            <div className="text-5xl mb-2">🎉</div>
+            <DialogTitle className="text-2xl font-bold text-purple-800">
+              Congratulations!
+            </DialogTitle>
+            <DialogDescription className="text-base text-gray-700 mt-3 space-y-3">
+              <span className="block">
+                You've completed the Imaginal Agility microcourse. Your development arc is now active.
+              </span>
+              <span className="block text-purple-600 font-medium">
+                The Teamwork and Organization modules are now unlocked in the menu if you'd like to explore them.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <Button
+              onClick={() => setShowCongratsModal(false)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-2"
+            >
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -117,10 +117,10 @@ const IA_1_4_TheBiggerPicture: React.FC<IA14TheBiggerPictureProps> = ({ onNext }
 
       <div className="flex justify-end mt-8">
         <Button
-          onClick={() => onNext && onNext('ia-1-5')}
+          onClick={() => onNext && onNext('ia-2-1')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to Reality and Words
+          Continue to the i4C Prism
         </Button>
       </div>
     </div>

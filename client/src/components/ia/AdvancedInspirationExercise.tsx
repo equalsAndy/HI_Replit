@@ -287,6 +287,15 @@ export default function InvitingTheMuseExercise() {
         }));
       }
     }
+
+    // Migrate single capturePractice string to capturePractices array
+    if (data.capturePractice && typeof data.capturePractice === 'string' && !data.capturePractices) {
+      setState((prev) => ({
+        ...prev,
+        ia_4_5: { ...prev.ia_4_5, capturePractices: [data.capturePractice] },
+      }));
+      return;
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -370,11 +379,23 @@ export default function InvitingTheMuseExercise() {
     setTimeout(() => saveNow(), 0);
   };
 
-  // Select capture practice (post-modal)
-  const selectCapturePractice = (id: string) => {
+  // Toggle capture practice (post-modal, multi-select)
+  const toggleCapturePractice = (id: string) => {
+    const current: string[] = Array.isArray(ia45.capturePractices)
+      ? ia45.capturePractices
+      : (ia45.capturePractice ? [ia45.capturePractice] : []);
+
+    const next = current.includes(id)
+      ? current.filter(p => p !== id)
+      : [...current, id];
+
     setState((prev) => ({
       ...prev,
-      ia_4_5: { ...prev.ia_4_5, capturePractice: id, capturePracticeCustom: id === 'other' ? prev.ia_4_5?.capturePracticeCustom : undefined },
+      ia_4_5: {
+        ...prev.ia_4_5,
+        capturePractices: next,
+        capturePracticeCustom: next.includes('other') ? prev.ia_4_5?.capturePracticeCustom : undefined,
+      },
     }));
     setTimeout(() => saveNow(), 0);
   };
@@ -418,7 +439,7 @@ export default function InvitingTheMuseExercise() {
         transcript: undefined,
         selectedCoachingLines: undefined,
         coachingReaction: undefined,
-        capturePractice: undefined,
+        capturePractices: undefined,
         capturePracticeCustom: undefined,
       },
     }));
@@ -444,10 +465,13 @@ export default function InvitingTheMuseExercise() {
   };
 
   // Completion gate: tag + at least 1 coaching line tapped + capture practice selected
+  const capturePractices: string[] = Array.isArray(ia45.capturePractices)
+    ? ia45.capturePractices
+    : (ia45.capturePractice ? [ia45.capturePractice] : []);
   const isComplete =
     Boolean(ia45.tag) &&
     selectedCoachingLines.length >= 1 &&
-    Boolean(ia45.capturePractice);
+    capturePractices.length >= 1;
 
   // Auto-mark complete
   React.useEffect(() => {
@@ -782,27 +806,30 @@ export default function InvitingTheMuseExercise() {
           <div className="mb-5 p-4 bg-white border border-purple-200 rounded-lg">
             <h3 className="text-sm font-semibold text-purple-800 mb-2">Your Capture Practice</h3>
             <p className="text-sm text-gray-600 mb-3">
-              The prep card recommended a capture method for this activity. Pick the one you&rsquo;ll actually use:
+              The prep card recommended a capture method for this activity. Pick the ones you&rsquo;ll actually use:
             </p>
 
             <div className="flex flex-wrap gap-2 mb-3">
-              {CAPTURE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => selectCapturePractice(opt.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
-                    ia45.capturePractice === opt.id
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
-                  }`}
-                >
-                  <span>{opt.icon}</span>
-                  {opt.label}
-                </button>
-              ))}
+              {CAPTURE_OPTIONS.map((opt) => {
+                const isSelected = capturePractices.includes(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => toggleCapturePractice(opt.id)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
+                    }`}
+                  >
+                    <span>{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
 
-            {ia45.capturePractice === 'other' && (
+            {capturePractices.includes('other') && (
               <input
                 type="text"
                 className="w-full p-2 border border-gray-300 rounded-md text-sm mb-3"
@@ -921,34 +948,6 @@ export default function InvitingTheMuseExercise() {
             </p>
           )}
 
-          {/* g. Optional Action Step */}
-          <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">When will you try this process? (optional)</h3>
-            <p className="text-xs text-gray-500 mb-3">
-              Pick an activity and a time. Not required to complete the exercise.
-            </p>
-            <Textarea
-              rows={2}
-              className="text-sm resize-y mb-2"
-              placeholder="One step that feels connected to what you prepared for..."
-              value={ia45.actionStep ?? ''}
-              onChange={(e) =>
-                setState((prev) => ({ ...prev, ia_4_5: { ...prev.ia_4_5, actionStep: e.target.value } }))
-              }
-              onBlur={() => saveNow()}
-            />
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              placeholder="Timeframe (e.g., 'this week', 'tomorrow morning')"
-              value={ia45.actionTimeframe ?? ''}
-              onChange={(e) =>
-                setState((prev) => ({ ...prev, ia_4_5: { ...prev.ia_4_5, actionTimeframe: e.target.value } }))
-              }
-              onBlur={() => saveNow()}
-            />
-          </div>
-
           {/* Explore another activity */}
           <div className="text-center mb-6">
             <Button
@@ -962,27 +961,6 @@ export default function InvitingTheMuseExercise() {
           </div>
         </>
       )}
-
-      {/* ─── Example Section ─────────────────────────────────────────────── */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6">
-        <h4 className="text-lg font-semibold text-amber-800 mb-3">&#128161; Example</h4>
-        <div className="space-y-3 text-amber-800 text-sm">
-          <div>
-            <strong>Activity:</strong> Cooking or baking
-          </div>
-          <div>
-            <strong>Hook:</strong> A reframe about a stuck project at work
-          </div>
-          <div className="bg-amber-100 rounded p-3 space-y-2">
-            <p><strong>AI:</strong> <em>&ldquo;You&rsquo;ve been working with this reframe about your stuck project &mdash; good hook for cooking. Quick question: recipes or improvise?&rdquo;</em></p>
-            <p><strong>Participant:</strong> <em>&ldquo;Usually recipes, but I freestyle with stir fry.&rdquo;</em></p>
-            <p><strong>AI:</strong> <em>Delivers preparation card with hook, practical advice (try freestyle tonight), capability coaching, and capture reminder.</em></p>
-          </div>
-          <div>
-            <strong>Tag:</strong> A practice
-          </div>
-        </div>
-      </div>
 
       {/* ─── Modal ───────────────────────────────────────────────────────── */}
       <InvitingTheMuseModal

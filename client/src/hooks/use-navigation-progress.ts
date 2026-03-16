@@ -504,8 +504,8 @@ const getNextStepFromCompletedSteps = (completedSteps: string[], appType: 'ast' 
   if (appType === 'ia') {
     // IA progression sequence
     const iaMainSequence = [
-      // Module 1: WELCOME (5 steps)
-      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4', 'ia-1-5',
+      // Module 1: WELCOME (4 steps)
+      'ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4',
       // Module 2: THE I4C MODEL
       'ia-2-1', 'ia-2-2',
       // Module 3: LADDER OF IMAGINATION
