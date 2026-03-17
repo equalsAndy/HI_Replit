@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
@@ -184,6 +185,14 @@ function getTagForRung(rungIndex: number, ex: Exercises): string | null {
   return sources[rungIndex]?.tag || null;
 }
 
+const LADDER_PAIRS = [
+  { n: 1, solo: 'Autoflow',      soloSub: 'Self-awareness',      ai: 'Reframing',         aiSub: 'Finding new angles' },
+  { n: 2, solo: 'Visualization', soloSub: 'Inner clarity',       ai: 'Stretching',        aiSub: 'Expanded possibility' },
+  { n: 3, solo: 'Purpose',       soloSub: 'Values coherence',    ai: 'Global Bridge',     aiSub: 'Connecting to what matters' },
+  { n: 4, solo: 'Inspiration',   soloSub: 'Openness',            ai: 'Inviting the Muse', aiSub: 'Creative partnering' },
+  { n: 5, solo: 'Unimaginable',  soloSub: 'Ambiguity tolerance', ai: 'Your What If',      aiSub: 'Solo synthesis' },
+];
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
@@ -200,6 +209,7 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
   });
 
   const [synopsisLoading, setSynopsisLoading] = useState(false);
+  const [ladderOpen, setLadderOpen] = useState(false);
 
   // ── Fetch prior exercise data ──────────────────────────────────────────────
   useEffect(() => {
@@ -454,11 +464,108 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
         })()}
       </div>
 
+      {/* ── Section 3: Why This Matters — Takeaway Cards ── */}
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
+        <p className="text-2xl font-bold text-purple-700 mb-3">
+          AI generated. You decided.
+        </p>
+        <p className="text-gray-600 mb-8">
+          In each exercise, AI offered something — a reframe, a stretch, a connection, an approach. The work happened when you judged whether it was right.
+        </p>
+
+        <div className="space-y-3">
+          {[
+            {
+              key: 'imagination',
+              label: 'Imagination',
+              color: '#8b5cf6',
+              icon: '/assets/Imagination_sq.png',
+              youBring: "Your imagination is directional — drawn toward what matters to you, not just what's possible.",
+              aiLine: 'AI produces options.',
+              youLine: 'You see which one is worth building.',
+            },
+            {
+              key: 'curiosity',
+              label: 'Curiosity',
+              color: '#10b981',
+              icon: '/assets/Curiosity_sq.png',
+              youBring: "Your curiosity has an inward face — asking yourself the question you've been avoiding. It takes you somewhere AI wouldn't go.",
+              aiLine: 'AI asks questions.',
+              youLine: 'You feel the itch of not knowing.',
+            },
+            {
+              key: 'caring',
+              label: 'Caring',
+              color: '#3b82f6',
+              icon: '/assets/Caring_sq.png',
+              youBring: 'Real caring includes the hard side — honesty that risks friction because the person matters more than comfort.',
+              aiLine: 'AI simulates concern.',
+              youLine: "You weigh what's actually at stake.",
+            },
+            {
+              key: 'creativity',
+              label: 'Creativity',
+              color: '#f59e0b',
+              icon: '/assets/Creativity_sq.png',
+              youBring: "Creativity isn't making something from nothing — it's seeing a bridge, and knowing when a combination is right, not just novel.",
+              aiLine: 'AI makes combinations at scale.',
+              youLine: 'You feel which one clicks.',
+            },
+            {
+              key: 'courage',
+              label: 'Courage',
+              color: '#ef4444',
+              icon: '/assets/courage_sq.png',
+              youBring: 'Courage to act, courage to pause, and courage to be wrong. AI has no stakes — nothing is at risk for it.',
+              aiLine: 'AI can be a safe space to explore a scary idea.',
+              youLine: "But the decision — saying the thing, admitting you were wrong — that's yours.",
+              extraLine: "AI doesn't judge you. But you must judge it.",
+            },
+          ].map((card) => (
+            <div
+              key={card.key}
+              className="flex gap-4 p-4 rounded-xl border-l-4 bg-white border border-gray-100"
+              style={{ borderLeftColor: card.color }}
+            >
+              <img
+                src={card.icon}
+                alt={card.label}
+                className="w-11 h-11 rounded-lg flex-shrink-0 mt-0.5"
+                style={{ objectFit: 'cover' }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-base mb-1" style={{ color: card.color }}>
+                  {card.label}
+                </p>
+                <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                  {card.youBring}
+                </p>
+                <div className="bg-gray-50 rounded-lg px-3 py-2 space-y-1">
+                  <p className="text-gray-400 text-sm">{card.aiLine}</p>
+                  <p className="text-sm font-medium" style={{ color: card.color }}>
+                    {card.youLine}
+                  </p>
+                </div>
+                {'extraLine' in card && card.extraLine && (
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    {card.extraLine}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-center text-gray-600 font-medium mt-8">
+          These aren't soft skills. They're the hard part — and they're what make your work worth more, not less, in a world full of generated content.
+        </p>
+      </div>
+
       {/* ── Continue button ── */}
       {isComplete && (
         <div className="flex justify-end mb-8">
           <button
-            onClick={() => onNext?.('ia-5-1')}
+            onClick={() => onNext?.('ia-5-4')}
             disabled={saving}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg rounded-lg font-medium transition-colors disabled:opacity-50"
           >

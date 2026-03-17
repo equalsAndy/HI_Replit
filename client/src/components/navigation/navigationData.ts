@@ -187,14 +187,20 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     expanded: false,
     steps: [
       {
+        id: 'ia-5-4',
+        title: 'HaiQ',
+        type: 'interactive',
+        contentKey: 'ia-5-4'
+      },
+      {
         id: 'ia-5-1',
-        title: 'Imaginal Agility Matrix',
+        title: 'Your Capability Matrix',
         type: 'video',
         contentKey: 'ia-5-1'
       },
       {
         id: 'ia-5-2',
-        title: 'Capability Commitment',
+        title: 'Choose Your Focus',
         type: 'video',
         contentKey: 'ia-5-2'
       },
@@ -205,14 +211,8 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         contentKey: 'ia-5-3'
       },
       {
-        id: 'ia-5-4',
-        title: 'HaiQ',
-        type: 'interactive',
-        contentKey: 'ia-5-4'
-      },
-      {
         id: 'ia-5-5',
-        title: 'Development Path',
+        title: 'Your Development Path',
         type: 'interactive',
         contentKey: 'ia-5-5'
       }

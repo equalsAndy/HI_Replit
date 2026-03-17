@@ -267,10 +267,10 @@ const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
       {/* Continue — not gated */}
       <div className="flex justify-end">
         <Button
-          onClick={() => onNext?.('ia-5-4')}
+          onClick={() => onNext?.('ia-5-5')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to HaiQ →
+          Continue to Your Development Path →
         </Button>
       </div>
     </div>

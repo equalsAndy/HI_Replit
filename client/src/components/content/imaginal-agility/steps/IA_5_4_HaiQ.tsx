@@ -25,11 +25,11 @@ const IQ_EQ_HAIQ = [
 ];
 
 const RUNG_PAIRS = [
-  { solo: 'Autoflow',      soloSub: 'Self-awareness',       ai: 'Mindful Prompts',      aiSub: 'Intentional framing' },
-  { solo: 'Visualization', soloSub: 'Inner clarity',         ai: 'Stretch',              aiSub: 'Expanded possibility' },
-  { solo: 'Purpose',       soloSub: 'Values coherence',      ai: 'Global Bridge',        aiSub: 'Ethical reasoning' },
-  { solo: 'Inspiration',   soloSub: 'Openness',              ai: 'Muse Collaboration',   aiSub: 'Creative partnering' },
-  { solo: 'Unimaginable',  soloSub: 'Ambiguity tolerance',   ai: 'What If…',             aiSub: 'Visionary agency' },
+  { solo: 'Autoflow',      soloSub: 'Self-awareness',       ai: 'Reframing',          aiSub: 'Finding new angles' },
+  { solo: 'Visualization', soloSub: 'Inner clarity',         ai: 'Stretching',         aiSub: 'Expanded possibility' },
+  { solo: 'Purpose',       soloSub: 'Values coherence',      ai: 'Global Bridge',      aiSub: 'Connecting to what matters' },
+  { solo: 'Inspiration',   soloSub: 'Openness',              ai: 'Inviting the Muse',  aiSub: 'Creative partnering' },
+  { solo: 'Unimaginable',  soloSub: 'Ambiguity tolerance',   ai: 'Your What If',       aiSub: 'Solo synthesis' },
 ];
 
 const IA_5_4_HaiQ: React.FC<IA54ContentProps> = ({ onNext }) => {
@@ -76,9 +76,7 @@ const IA_5_4_HaiQ: React.FC<IA54ContentProps> = ({ onNext }) => {
       {/* Introduction */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-6">
         <p className="text-lg text-gray-700 leading-relaxed">
-          HaiQ measures your ability to work with AI in ways that strengthen — not replace — your human
-          capabilities. Each time you work with AI intentionally — questioning, refining, choosing — you
-          strengthen your human agency.
+          HaiQ is your ability to work with AI in ways that strengthen — not replace — your human capabilities. Every time you questioned an AI output, refined it with your own judgment, or decided it wasn't right for your situation, you were exercising HaiQ.
         </p>
       </div>
 
@@ -141,10 +139,62 @@ const IA_5_4_HaiQ: React.FC<IA54ContentProps> = ({ onNext }) => {
         </p>
       </div>
 
+      {/* Capabilities as Daily Judgment */}
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-6">
+        <h2 className="text-xl font-semibold text-purple-800 mb-4">Your Capabilities as Daily Judgment</h2>
+        <p className="text-gray-700 leading-relaxed mb-6">
+          Every day you encounter content that may have been created by AI, by a person, or both. There's often no way to tell. Your capabilities are the filter.
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-9 h-9 bg-red-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+              1
+            </div>
+            <div>
+              <p className="text-gray-900 font-semibold">Pause before reacting</p>
+              <p className="text-gray-600 text-sm">
+                <span className="font-medium" style={{ color: '#ef4444' }}>Courage</span> — resist the pull of urgency. What looks authoritative isn't always right.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-9 h-9 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+              2
+            </div>
+            <div>
+              <p className="text-gray-900 font-semibold">Ask what it wants you to believe</p>
+              <p className="text-gray-600 text-sm">
+                <span className="font-medium" style={{ color: '#10b981' }}>Curiosity</span> + <span className="font-medium" style={{ color: '#8b5cf6' }}>Imagination</span> — question your own response. Picture what's missing.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
+              3
+            </div>
+            <div>
+              <p className="text-gray-900 font-semibold">Consider who's affected</p>
+              <p className="text-gray-600 text-sm">
+                <span className="font-medium" style={{ color: '#3b82f6' }}>Caring</span> — think about impact before you share, forward, or decide.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-6">
+          <p className="text-sm text-purple-800">
+            That sequence is your capabilities working as judgment. AI can analyze. Judgment is yours.
+          </p>
+        </div>
+      </div>
+
       {/* Optional Reflection */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
         <p className="text-sm font-semibold text-gray-700 mb-2">
-          What did you notice about working with AI versus working solo?
+          What did you notice about how you worked with AI across this microcourse?
         </p>
         <Textarea
           rows={2}
@@ -158,10 +208,10 @@ const IA_5_4_HaiQ: React.FC<IA54ContentProps> = ({ onNext }) => {
       {/* Continue */}
       <div className="flex justify-end">
         <Button
-          onClick={() => onNext?.('ia-5-5')}
+          onClick={() => onNext?.('ia-5-1')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to Development Arc →
+          Continue to Your Capability Matrix →
         </Button>
       </div>
     </div>
