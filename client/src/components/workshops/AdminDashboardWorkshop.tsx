@@ -6,7 +6,7 @@ const FullUserManagement = React.lazy(() =>
 const FeedbackManagement = React.lazy(() => import('@/components/admin/FeedbackManagement'));
 const AIManagement = React.lazy(() => import('@/components/admin/AIManagement'));
 const IAExerciseInstructions = React.lazy(() => import('@/components/admin/IAExerciseInstructions'));
-const AdminChat = React.lazy(() => import('@/components/admin/AdminChat'));
+const ExerciseTrainingDocsAdmin = React.lazy(() => import('@/components/admin/ExerciseTrainingDocsAdmin'));
 const EnhancedVideoManagement = React.lazy(() =>
   import('@/components/admin/EnhancedVideoManagement').then(m => ({ default: m.EnhancedVideoManagement }))
 );
@@ -105,128 +105,6 @@ const ReportAssistantLauncher: React.FC = () => {
   );
 };
 
-// IA Assistant Launcher Component  
-const IAAssistantLauncher: React.FC = () => {
-  const [showIAChat, setShowIAChat] = React.useState(false);
-
-  const styles = {
-    container: { padding: '20px' },
-    header: { marginBottom: '30px' },
-    title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' },
-    subtitle: { color: '#6b7280', fontSize: '14px' },
-    launchCard: {
-      padding: '40px',
-      border: '2px solid #e5e7eb',
-      borderRadius: '12px',
-      textAlign: 'center' as const,
-      backgroundColor: '#faf5ff'
-    },
-    launchButton: {
-      padding: '12px 24px',
-      backgroundColor: '#8b5cf6',
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      fontSize: '16px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      margin: '0 auto'
-    },
-    modal: {
-      position: 'fixed' as const,
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      width: '95vw',
-      height: '90vh',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column' as const
-    },
-    modalHeader: {
-      padding: '20px',
-      borderBottom: '1px solid #e5e7eb',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    },
-    modalBody: {
-      flex: 1,
-      overflow: 'auto'
-    },
-    closeButton: {
-      padding: '8px 16px',
-      backgroundColor: '#6b7280',
-      color: 'white',
-      border: 'none',
-      borderRadius: '6px',
-      cursor: 'pointer'
-    }
-  };
-
-  return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h2 style={styles.title}>Imaginal Agility Assistant</h2>
-        <p style={styles.subtitle}>
-          AI chat interface for Imaginal Agility workshop support and testing
-        </p>
-      </div>
-
-      <div style={styles.launchCard}>
-        <h3 style={{ marginBottom: '16px', fontSize: '20px' }}>IA AI Assistant</h3>
-        <p style={{ marginBottom: '24px', color: '#6b7280' }}>
-          Launch the AI assistant interface configured specifically for Imaginal Agility workshop participants and facilitators.
-        </p>
-        <button
-          style={styles.launchButton}
-          onClick={() => setShowIAChat(true)}
-        >
-          <Bot size={20} />
-          Launch IA Assistant
-        </button>
-      </div>
-
-      {/* IA Chat Modal */}
-      {showIAChat && (
-        <div style={styles.modal}>
-          <div style={styles.modalContent}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
-                Imaginal Agility AI Assistant
-              </h3>
-              <button
-                style={styles.closeButton}
-                onClick={() => setShowIAChat(false)}
-              >
-                Close
-              </button>
-            </div>
-            <div style={styles.modalBody}>
-              <Suspense fallback={<div className="flex items-center justify-center p-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600"></div></div>}>
-                <AdminChat />
-              </Suspense>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 
 // Cohort Management Component (Disabled)
@@ -1388,7 +1266,9 @@ export default function AdminDashboardWorkshop() {
                   <div style={styles.subTabsList}>
                     {[
                       { id: 'overview', label: 'Overview', icon: Bot },
-                      { id: 'training', label: 'Training', icon: BookOpen }
+                      { id: 'training-docs', label: 'Training Docs', icon: BookOpen },
+                      { id: 'exercise-instructions', label: 'Exercise Instructions', icon: Brain },
+                      { id: 'vector-stores', label: 'Vector Stores', icon: Brain },
                     ].map((subTab) => (
                       <button
                         key={subTab.id}
@@ -1406,22 +1286,9 @@ export default function AdminDashboardWorkshop() {
                 </div>
                 <div style={styles.subTabContent}>
                   {activeAITab === 'overview' && <AIManagement />}
-                  {activeAITab === 'training' && (
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h2 className="text-xl font-semibold">Training Tools</h2>
-                          <p className="text-sm text-gray-600">Manage per‑exercise instructions</p>
-                        </div>
-                      </div>
-
-                      {/* IA Exercise Instructions inline */}
-                      <IAExerciseInstructions />
-
-                      {/* Vector Store Panels */}
-                      <AIVectorStoresPanel />
-                    </div>
-                  )}
+                  {activeAITab === 'training-docs' && <ExerciseTrainingDocsAdmin />}
+                  {activeAITab === 'exercise-instructions' && <IAExerciseInstructions />}
+                  {activeAITab === 'vector-stores' && <AIVectorStoresPanel />}
                 </div>
               </div>
             )}

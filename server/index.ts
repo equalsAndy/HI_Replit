@@ -35,8 +35,9 @@ import coachingRoutes from './routes/coaching-routes.ts';
 import featureFlagRoutes from './routes/feature-flag-routes.ts';
 import jiraRoutes from './routes/jira-routes.ts';
 import feedbackRoutes from './routes/feedback-routes.ts';
-import trainingDocumentsRoutes from './routes/training-documents-routes.ts';
-import trainingRoutes from './routes/training-routes.ts';
+// ARCHIVED: RAG pipeline routes (not used by exercise training docs)
+// import trainingDocumentsRoutes from './routes/training-documents-routes.ts';
+// import trainingRoutes from './routes/training-routes.ts';
 import aiManagementRoutes from './routes/ai-management-routes.ts';
 // import personaManagementRoutes from './routes/persona-management-routes.ts'; // Temporarily disabled - causes startup hang
 import betaTesterRoutes from './routes/beta-tester-routes.ts';
@@ -44,11 +45,15 @@ import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.ts';
 import beyondASTRoutes from './routes/beyond-ast-routes.ts';
 import metaliaRoutes from './routes/metalia-routes.ts';
 import growthPlanRoutes from './routes/growth-plan-routes.ts';
-import adminChatRoutes from './routes/admin-chat-routes.ts';
-import trainingUploadRoutes from './routes/training-upload-routes.ts';
+// ARCHIVED: RAG pipeline route (AdminChat backend)
+// import adminChatRoutes from './routes/admin-chat-routes.ts';
+// ARCHIVED: RAG pipeline route (training doc upload to vector stores)
+// import trainingUploadRoutes from './routes/training-upload-routes.ts';
 import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.ts';
+import exerciseTrainingDocsRoutes from './routes/exercise-training-docs-routes.ts';
 import taliaStatusRoutes from './routes/talia-status-routes.ts';
-import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
+// ARCHIVED: RAG pipeline route (persona-document sync)
+// import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
 import assistantTestRoutes from './routes/assistant-test-routes.ts';
 import adminAIResourcesRoutes from './routes/admin-ai-resources.ts';
 import iaStepRoutes from './routes/ia-step-routes.ts';
@@ -328,6 +333,14 @@ async function initializeApp() {
         console.log('⚠️ Continuing without database...');
       }
       
+      // Seed exercise training docs from files if the table is empty
+      try {
+        const { seedTrainingDocsIfEmpty } = await import('./config/training-doc-loader.js');
+        await seedTrainingDocsIfEmpty();
+      } catch (err) {
+        console.warn('⚠️ Training doc seed failed (non-fatal):', err);
+      }
+
       // Load persona configurations from database
       console.log('🤖 Skipping persona configurations (temporarily disabled due to startup hang)');
       // try {
@@ -477,13 +490,18 @@ async function initializeApp() {
       app.use('/api', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
       app.use('/api/feedback', feedbackRoutes);
-      app.use('/api/training-docs', trainingDocumentsRoutes);
-      app.use('/api/training', trainingRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/training-docs', trainingDocumentsRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/training', trainingRoutes);
       app.use('/api/admin/ai', aiManagementRoutes);
       // app.use('/api/admin/ai', personaManagementRoutes); // Temporarily disabled - causes startup hang
-      app.use('/api/admin/chat', adminChatRoutes);
-app.use('/api/admin/ai', trainingUploadRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/admin/chat', adminChatRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/admin/ai', trainingUploadRoutes);
 app.use('/api/admin/ai/exercise-instructions', iaExerciseInstructionsRoutes);
+app.use('/api/admin/exercise-training-docs', exerciseTrainingDocsRoutes);
 app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/admin/ai', adminAIResourcesRoutes);
       app.use('/api/admin/ai', aiComparisonRoutes);
@@ -494,7 +512,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/ai', moduleReflectionRoutes);
       app.use('/api/ai/image', imageGenRouter);
       app.use('/api/talia-status', taliaStatusRoutes);
-      app.use('/api/admin/ai', personaDocumentSyncRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
       app.use('/api/beta-tester', betaTesterNotesRoutes);
       app.use('/api/beyond-ast', beyondASTRoutes);

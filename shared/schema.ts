@@ -707,3 +707,14 @@ export const insertFeedbackSchema = createInsertSchema(feedback).extend({
 // Type definitions for feedback
 export type Feedback = typeof feedback.$inferSelect;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+
+// Exercise training documents — markdown content prepended to AI exercise system prompts
+// Replaces file-based loading in server/config/training-doc-loader.ts
+// Editable in-browser via the admin Training Docs panel; changes take effect immediately (no restart needed)
+export const exerciseTrainingDocs = pgTable('exercise_training_docs', {
+  trainingId: varchar('training_id', { length: 50 }).primaryKey(), // e.g., 'ia-4-2'
+  title: varchar('title', { length: 255 }).notNull(),              // e.g., 'Guided Reframe'
+  content: text('content').notNull(),                               // Full markdown
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  updatedBy: integer('updated_by').references(() => users.id),
+});
