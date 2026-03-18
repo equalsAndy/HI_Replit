@@ -12,7 +12,7 @@ import AuthCallback from '@/pages/AuthCallback';
 // KAN-147 Phase 3: Lazy load main workshop components 
 const AllStarTeamsPage = React.lazy(() => import('@/pages/allstarteams'));
 const ImaginalAgilityPage = React.lazy(() => import('@/pages/imaginal-agility'));
-import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
+const ImaginalAgilityWorkshopNew = React.lazy(() => import('@/pages/ImaginalAgilityWorkshopNew'));
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 import WorkshopSelectionPage from '@/pages/WorkshopSelectionPage';
 
@@ -259,7 +259,13 @@ const App: React.FC = () => {
                     </Route>
                     <Route path="/imaginal-agility">
                       <ProtectedRoute>
-                        <ImaginalAgilityWorkshopNew />
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+                          </div>
+                        }>
+                          <ImaginalAgilityWorkshopNew />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ia-legacy">
