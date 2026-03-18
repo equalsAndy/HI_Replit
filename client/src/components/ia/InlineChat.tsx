@@ -55,6 +55,7 @@ export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [style, setStyle] = React.useState<string | undefined>(undefined);
+  const [aiMeta, setAiMeta] = React.useState<{ provider: string; model: string } | null>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
   React.useImperativeHandle(ref, () => ({
@@ -128,6 +129,7 @@ export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
       const reply: string = data.reply || '';
       const assistant: Msg = { role: 'assistant', content: reply, ts: Date.now() };
       setMessages(prev => [...prev, assistant]);
+      if (data.provider && data.model) setAiMeta({ provider: data.provider, model: data.model });
       if (onReply) onReply(reply);
       setError(null);
     } catch (e: any) {
@@ -147,8 +149,15 @@ export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
     }
   };
 
+  function formatModelShort(model: string): string {
+    if (model.includes('claude')) {
+      return model.replace('claude-', '').split('-').slice(0, 2).join('-');
+    }
+    return model;
+  }
+
   return (
-    <div className={`rounded-md border p-3 space-y-3 ${className || ''}`}>
+    <div className={`relative rounded-md border p-3 space-y-3 ${className || ''}`}>
       {!hideHistory && (
         <div className="space-y-2" aria-live="polite">
           {lastThree.map((m, idx) => (
@@ -197,6 +206,21 @@ export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
           </span>
         </div>
       </div>
+      {aiMeta && (
+        <div style={{
+          position: 'absolute',
+          bottom: '4px',
+          right: '8px',
+          fontSize: '8px',
+          color: 'rgba(0, 0, 0, 0.2)',
+          fontFamily: 'monospace',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          zIndex: 1,
+        }}>
+          {aiMeta.provider} · {formatModelShort(aiMeta.model)}
+        </div>
+      )}
     </div>
   );
 });
