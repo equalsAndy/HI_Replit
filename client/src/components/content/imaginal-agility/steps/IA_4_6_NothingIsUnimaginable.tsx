@@ -12,121 +12,184 @@ interface IA_4_6_ContentProps {
 
 // Data structure for this step
 interface IA46StepData {
-  vision: string;
-  wordCount: number;
+  whatIf: string;
+  processReflection: string;
+  // Legacy fields so old data doesn't break on load
+  vision?: string;
+  wordCount?: number;
   capstone_reflection?: string;
+}
+
+// Activity ID → display title lookup (mirrored from AdvancedInspirationExercise)
+const ACTIVITY_TITLES: Record<string, string> = {
+  nature: 'Walking in nature',
+  walking: 'Walking or hiking',
+  running: 'Running or exercise',
+  swimming: 'Swimming or being in water',
+  driving: 'Driving alone',
+  'painting-drawing': 'Painting, drawing, or clay',
+  cooking: 'Cooking or baking',
+  gardening: 'Gardening',
+  doodling: 'Doodling or sketching',
+  'playing-music': 'Playing music',
+  puzzles: 'Puzzles or jigsaw',
+  meditating: 'Meditating',
+  napping: 'Napping',
+  'sitting-outdoors': 'Sitting quietly outdoors',
+  showering: 'Showering or bathing',
+  dishes: 'Doing dishes or housework',
+  writing: 'Writing without a plan',
+  reading: 'Reading something absorbing',
+  learning: 'Trying something new',
+  'collecting-images': 'Collecting inspiring images',
+  photography: 'Photography or noticing details',
+  'galleries-music': 'Live music, galleries, or film',
+  building: 'Building (Lego, blocks, models)',
+  'being-playful': 'Being silly or playful',
+  games: 'Card or board games',
+  friends: 'Hanging out with friends or colleagues',
+};
+
+function resolveActivityTitle(id: string): string {
+  return ACTIVITY_TITLES[id] || id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, ' ');
 }
 
 const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
-  
-  // Initialize with empty data structure
+
   const initialData: IA46StepData = {
-    vision: '',
-    wordCount: 0,
-    capstone_reflection: ''
+    whatIf: '',
+    processReflection: '',
   };
-  
-  // Use workshop step data persistence hook
-  const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-4-6', initialData);
 
-  // Destructure data for easier access
-  const { vision, wordCount } = data;
+  const { data, updateData, saving, loaded, saveNow } = useWorkshopStepData('ia', 'ia-4-6', initialData);
 
-  // Display mode: show saved vision as read-only after save; edit mode: show textarea
+  // Rung 1-4 read-only data
+  const [rungData, setRungData] = useState<{
+    ia42: any; ia43: any; ia44: any; ia45: any; loading: boolean;
+  }>({ ia42: null, ia43: null, ia44: null, ia45: null, loading: true });
+
+  // Display/edit mode for whatIf
   const [isEditing, setIsEditing] = useState(true);
 
-  // When data loads from DB, if a vision already exists show display mode
+  // Fetch prior exercise data
   useEffect(() => {
-    if (loaded && data.vision.trim()) {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [r42, r43, r44, r45] = await Promise.all([
+          fetch('/api/workshop-data/step/ia/ia-4-2', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/workshop-data/step/ia/ia-4-3', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/workshop-data/step/ia/ia-4-4', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/workshop-data/step/ia/ia-4-5', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+        ]);
+        if (cancelled) return;
+        setRungData({
+          ia42: r42?.data ?? null,
+          ia43: r43?.data ?? null,
+          ia44: r44?.data ?? null,
+          ia45: r45?.data ?? null,
+          loading: false,
+        });
+      } catch {
+        if (!cancelled) setRungData(prev => ({ ...prev, loading: false }));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // When data loads from DB, if whatIf already exists show display mode
+  useEffect(() => {
+    if (loaded && data.whatIf?.trim()) {
       setIsEditing(false);
     }
   }, [loaded]);
 
-  const handleVisionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-    updateData({
-      vision: text,
-      wordCount: words.length
-    });
-  };
-
-  const handleSaveVision = async () => {
+  const handleSave = async () => {
     try {
       await saveNow();
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to save vision:', error);
+      console.error('Failed to save:', error);
     }
   };
 
+  const wordCount = data.whatIf.trim() ? data.whatIf.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
 
-  // Demo data function for test users
+  // Demo data
   const fillWithDemoData = () => {
-    if (!shouldShowDemoButtons) {
-      console.warn('Demo functionality only available to test users');
-      return;
-    }
-    
-    const demoVision = "A world where imagination is recognized as humanity's greatest strategic asset, where every organization has dedicated spaces for creative thinking, and where the marriage of human imagination and artificial intelligence creates solutions to our most complex global challenges.";
-    const words = demoVision.trim().split(/\s+/).filter(word => word.length > 0);
-    
+    if (!shouldShowDemoButtons) return;
     updateData({
-      vision: demoVision,
-      wordCount: words.length
+      whatIf: "What if the fear people feel about AI displacement is actually the signal that tells us exactly who needs to be at the table shaping these systems \u2014 and what if we built that table?",
+      processReflection: "The reframe and the bridge were saying the same thing from different angles. I didn't see that until they were side by side.",
     });
-    
-    console.log('IA 4-6 Content filled with demo final vision data');
   };
 
-  const isOverLimit = wordCount > 50;
+  // Journey card config
+  const journeyCards = [
+    {
+      label: 'The Reframe',
+      content: rungData.ia42?.new_perspective,
+    },
+    {
+      label: 'The Bigger Vision',
+      title: rungData.ia43?.new_title,
+      content: rungData.ia43?.story,
+    },
+    {
+      label: 'The Global Connection',
+      content: rungData.ia44?.reframed_view,
+    },
+    {
+      label: 'The Practice',
+      content: rungData.ia45
+        ? [
+            rungData.ia45.exploredActivity ? resolveActivityTitle(rungData.ia45.exploredActivity) : null,
+            rungData.ia45.anchor,
+          ].filter(Boolean).join(' \u2014 ')
+        : null,
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Scroll Indicator - appears when user is idle */}
-      <ScrollIndicator
-        idleTime={3000}
-        position="nav-adjacent"
-        colorScheme="purple"
-      />
+      <ScrollIndicator idleTime={3000} position="nav-adjacent" colorScheme="purple" />
+
+      {/* A. Page Title */}
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
         Nothing is Unimaginable
       </h1>
-      
-      {/* ADV Rung 5 Graphic and Purpose Side by Side */}
+
+      {/* B. Rung Graphic + Purpose */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* ADV Rung 5 Graphic */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="flex justify-center">
-            <img 
-              src="/assets/ADV_Rung5.png" 
+            <img
+              src="/assets/ADV_Rung5.png"
               alt="Advanced Rung 5: Unlimited Vision"
               className="w-full h-auto max-w-md mx-auto"
               style={{ maxHeight: '400px', objectFit: 'contain' }}
-              onLoad={() => console.log('✅ ADV Rung 5 graphic loaded successfully')}
+              onLoad={() => console.log('\u2705 ADV Rung 5 graphic loaded successfully')}
               onError={(e) => {
-                console.error('❌ Failed to load ADV Rung 5 graphic');
+                console.error('\u274c Failed to load ADV Rung 5 graphic');
                 console.log('Image src:', e.currentTarget.src);
               }}
             />
           </div>
         </div>
 
-        {/* Purpose Section */}
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
           <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
           <div className="text-gray-700 space-y-2 mb-4">
             <p>You've climbed the Ladder of Imagination.</p>
-            <p>You've seen patterns, tensions, possibilities, mysteries.</p>
-            <p>You've invited the muse and stretched into moral imagination.</p>
+            <p>You've reframed, stretched, bridged, and invited the muse.</p>
             <p className="font-medium">
-              Now we ask you to pause—at the edge of structure—and imagine not just for yourself, but for the world.
+              Now look across everything you've built &mdash; and see what emerges.
             </p>
           </div>
           <div className="bg-purple-100 border border-purple-300 rounded-lg p-4">
             <p className="text-lg font-medium text-purple-800 text-center">
-              From Mastery to Vision: Cross the threshold. Say what only you can say.
+              From Mastery to Vision: See what only you can see.
             </p>
             <p className="text-purple-700 text-center mt-2 font-semibold">
               No tools. No AI. Just your voice and vision, awakened.
@@ -134,130 +197,158 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
           </div>
         </div>
       </div>
-      
-      {/* Content Card */}
+
+      {/* C. Your Four Rungs — Read-Only Journey Cards */}
+      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
+        <h2 className="text-xl font-semibold text-gray-800 mb-5">Your Four Rungs</h2>
+
+        {rungData.loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="animate-pulse border border-gray-200 rounded-lg p-5">
+                <div className="h-3 bg-purple-100 rounded w-24 mb-3" />
+                <div className="h-4 bg-gray-100 rounded w-full mb-2" />
+                <div className="h-4 bg-gray-100 rounded w-3/4" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {journeyCards.map((card) => {
+              const hasContent = card.title || card.content;
+              return (
+                <div
+                  key={card.label}
+                  className="border border-purple-100 bg-purple-50/30 rounded-lg p-5"
+                >
+                  <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-2">
+                    {card.label}
+                  </p>
+                  {hasContent ? (
+                    <div>
+                      {card.title && (
+                        <p className="text-sm font-medium text-gray-800 mb-1">{card.title}</p>
+                      )}
+                      {card.content && (
+                        <p className={`text-sm text-gray-700 leading-relaxed ${card.title ? 'text-gray-500' : ''}`}>
+                          {card.content.length > 200 ? card.content.slice(0, 200).replace(/\s+\S*$/, '') + '\u2026' : card.content}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">Not yet completed</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* D–G: Content Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
         <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-          
-          {/* The Challenge */}
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h4 className="text-lg font-semibold text-red-800 mb-3">🌍 The Challenge</h4>
-            <p className="text-red-700 mb-4">
-              The world is politically divided, economically fragile, ecologically destabilized, and spiritually confused.
-            </p>
-            <p className="text-red-700 mb-4">
-              But you have something no machine can offer: an awakened imagination.
-            </p>
-            <p className="text-red-700 font-medium">
-              If you had the power to imagine <strong>into reality</strong> a future for humanity and the planet...
-            </p>
-          </div>
-          
-          {/* Vision Input / Display */}
+
+          {/* D. Your What If — Synthesis Input */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h4 className="text-lg font-semibold text-blue-800 mb-4">
-              🌍 In 50 words or less, describe your imagined "save the world" solution.
+              Your &ldquo;What If&rdquo;
             </h4>
+            <p className="text-blue-700 text-sm mb-4">
+              You've reframed a challenge, stretched a vision, connected your purpose to the world, and found where the muse lives.
+              <br /><br />
+              Looking across all four &mdash; what's the &ldquo;What If&rdquo; that emerges when you hold them together?
+            </p>
 
             {isEditing ? (
               <div className="space-y-3">
-                <p className="text-blue-700 text-sm">
-                  Be brave. Be clear. Be poetic.<br/>
-                  This is not a plan. It's a message from the imaginative you.
-                </p>
-
                 <div className="relative">
                   <Textarea
-                    placeholder="My 'What If' Vision..."
-                    value={vision}
-                    onChange={handleVisionChange}
-                    className={`w-full h-32 resize-none ${isOverLimit ? 'border-red-500 focus:border-red-500' : ''}`}
-                    maxLength={500}
+                    placeholder="What if..."
+                    value={data.whatIf}
+                    onChange={(e) => updateData({ whatIf: e.target.value })}
+                    className="w-full h-32 resize-none"
                   />
-                  <div className={`absolute bottom-2 right-2 text-xs ${isOverLimit ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
-                    {wordCount}/50 words
-                  </div>
+                  {wordCount > 0 && (
+                    <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+                      {wordCount} {wordCount === 1 ? 'word' : 'words'}
+                    </div>
+                  )}
                 </div>
-
-                {isOverLimit && (
-                  <p className="text-red-600 text-sm font-medium">
-                    Please reduce your vision to 50 words or less.
-                  </p>
-                )}
-
                 <div className="flex gap-4 justify-center pt-2">
                   <Button
-                    onClick={handleSaveVision}
+                    onClick={handleSave}
                     className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-                    disabled={!vision.trim() || isOverLimit || saving}
+                    disabled={!data.whatIf.trim() || saving}
                   >
-                    {saving ? 'Saving…' : 'Save Vision'}
+                    {saving ? 'Saving\u2026' : 'Save'}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
                 <blockquote className="border-l-4 border-purple-400 pl-5 py-3 bg-purple-50 rounded-r-lg">
-                  <p className="text-purple-900 italic text-lg leading-relaxed">{vision}</p>
+                  <p className="text-purple-900 italic text-lg leading-relaxed">{data.whatIf}</p>
                 </blockquote>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">{wordCount} words</span>
+                  <span className="text-xs text-gray-400">{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditing(true)}
                     className="text-purple-600 border-purple-300 hover:bg-purple-50"
                   >
-                    Edit Vision
+                    Edit
                   </Button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Important Note */}
+          {/* E. No AI Callout */}
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <p className="text-orange-700 text-sm font-medium">
-              <strong>Important:</strong> Do not use AI to support or generate your ideas.<br/>
+              <strong>Important:</strong> Do not use AI to support or generate your ideas.<br />
               This is about your <strong>own</strong> inner vision.
             </p>
           </div>
 
-          {/* Capstone Reflection */}
-          {vision.trim() && !isOverLimit && (
+          {/* F. Process Reflection */}
+          {data.whatIf.trim() && !isEditing && (
             <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
               <h4 className="text-lg font-semibold text-indigo-800 mb-3">
                 Reflect on the Process
               </h4>
               <label className="block text-indigo-700 text-sm mb-3">
-                Writing your vision without AI support — what did that require of you?
+                What did you notice while looking across your own work?
               </label>
               <Textarea
-                placeholder="What this brought up for me..."
-                value={data.capstone_reflection || ''}
-                onChange={(e) => updateData({ capstone_reflection: e.target.value })}
+                placeholder="What stood out, surprised you, or connected..."
+                value={data.processReflection || ''}
+                onChange={(e) => updateData({ processReflection: e.target.value })}
                 className="w-full h-24 resize-none"
               />
             </div>
           )}
 
-          {/* Closing */}
+          {/* G. Closing */}
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 text-center">
             <h4 className="text-lg font-semibold text-purple-800 mb-3">CLOSING</h4>
             <div className="text-purple-700 space-y-2">
               <p>You've crossed the threshold.</p>
               <p>You've glimpsed who you are when imagination becomes courage.</p>
-              <p className="font-medium">There is no final answer—only a deeper beginning.</p>
+              <p className="font-medium">There is no final answer&mdash;only a deeper beginning.</p>
               <p className="text-xl font-semibold">Thank you.</p>
             </div>
           </div>
         </div>
       </div>
-      
+
+      {/* H. Continue + Demo Buttons */}
       <div className="flex justify-end items-center gap-3 mt-8">
         {shouldShowDemoButtons && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={fillWithDemoData}
             className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
@@ -266,11 +357,11 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
             Add Demo Data
           </Button>
         )}
-        <Button 
+        <Button
           onClick={() => onNext && onNext('ia-4-7')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue →
+          Continue &rarr;
         </Button>
       </div>
     </div>

@@ -70,7 +70,7 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-purple-700 mb-8">
-        Introduction
+        Your Capability Matrix
       </h1>
 
       {/* Video 1: Introduction to Module 5 */}
@@ -140,7 +140,7 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-purple-700 mb-1">Outcomes &amp; Benefits</h2>
-          <p className="text-gray-600">Expand each set of rungs to discover the psychological and neurocognitive benefits — click the first one below to get started.</p>
+          <p className="text-gray-600">Expand each rung pair to see what you gain from the progression — click the first one below to get started.</p>
         </div>
 
         <Accordion type="single" collapsible defaultValue="item-1" className="w-full space-y-3">
@@ -155,22 +155,22 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
               <Card className="border-0">
                 <CardContent className="pt-4">
                   <div className="mb-4">
-                    <div className="font-medium">AUTO-FLOW <span className="text-muted-foreground">→</span> PROMPT YOUR FLOW</div>
+                    <div className="font-medium">AUTO-FLOW <span className="text-muted-foreground">→</span> REFRAMING</div>
                     <div className="text-sm text-muted-foreground">Self-awareness and spontaneous expression</div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
+                      <Badge variant="outline" className="mb-2">What You Gain</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Enhances emotional self-awareness and presence.</li>
-                        <li>Builds confidence in spontaneous creative expression and reflective noticing.</li>
+                        <li>Sharper awareness of your own thought patterns and automatic reactions</li>
+                        <li>More confidence in spontaneous expression and reflective noticing</li>
                       </ul>
                     </div>
                     <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
+                      <Badge variant="outline" className="mb-2">What Strengthens</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Strengthens salience network, attentional control, and metacognitive switching.</li>
-                        <li>Improves fluid recall and pattern interruption.</li>
+                        <li>Your ability to notice what matters and shift focus intentionally</li>
+                        <li>Faster recall and the skill of interrupting unproductive patterns</li>
                       </ul>
                     </div>
                   </div>
@@ -190,22 +190,22 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
               <Card className="border-0">
                 <CardContent className="pt-4">
                   <div className="mb-4">
-                    <div className="font-medium">VISUALIZATION <span className="text-muted-foreground">→</span> STRETCH POTENTIAL</div>
-                    <div className="text-sm text-muted-foreground">Symbolic thinking and inner clarity</div>
+                    <div className="font-medium">VISUALIZATION <span className="text-muted-foreground">→</span> STRETCHING</div>
+                    <div className="text-sm text-muted-foreground">Inner clarity and bigger vision</div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
+                      <Badge variant="outline" className="mb-2">What You Gain</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Activates self-symbolization.</li>
-                        <li>Deepens inner clarity and aspirational identity.</li>
+                        <li>Clearer sense of who you're becoming, not just who you are</li>
+                        <li>Deeper connection between what you picture and what you plan</li>
                       </ul>
                     </div>
                     <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
+                      <Badge variant="outline" className="mb-2">What Strengthens</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Engages visual cortex and DMN to integrate imagery with executive planning.</li>
-                        <li>Supports future scenario modeling.</li>
+                        <li>Your ability to hold a mental image and build from it</li>
+                        <li>The bridge between imagining a future and taking steps toward it</li>
                       </ul>
                     </div>
                   </div>
@@ -225,22 +225,22 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
               <Card className="border-0">
                 <CardContent className="pt-4">
                   <div className="mb-4">
-                    <div className="font-medium">HIGHER PURPOSE <span className="text-muted-foreground">→</span> WORLD CHALLENGES</div>
-                    <div className="text-sm text-muted-foreground">Coherence between values and vision</div>
+                    <div className="font-medium">PURPOSE <span className="text-muted-foreground">→</span> GLOBAL BRIDGE</div>
+                    <div className="text-sm text-muted-foreground">Connecting values to direction</div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
+                      <Badge variant="outline" className="mb-2">What You Gain</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Fosters coherence between values and vision.</li>
-                        <li>Builds a moral and motivational compass.</li>
+                        <li>Stronger alignment between your values and your direction</li>
+                        <li>A clearer sense of why your work matters beyond your immediate context</li>
                       </ul>
                     </div>
                     <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
+                      <Badge variant="outline" className="mb-2">What Strengthens</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Enhances theory of mind, empathy circuits, and long-range goal scaffolding.</li>
-                        <li>Activates moral reasoning networks.</li>
+                        <li>Your ability to understand how others see a situation differently</li>
+                        <li>Long-range thinking that connects personal purpose to broader impact</li>
                       </ul>
                     </div>
                   </div>
@@ -261,21 +261,21 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
                 <CardContent className="pt-4">
                   <div className="mb-4">
                     <div className="font-medium">INSPIRATION <span className="text-muted-foreground">→</span> INVITING THE MUSE</div>
-                    <div className="text-sm text-muted-foreground">Openness and meaningful resonance</div>
+                    <div className="text-sm text-muted-foreground">Openness and creative responsiveness</div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
+                      <Badge variant="outline" className="mb-2">What You Gain</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Amplifies openness and intrinsic motivation.</li>
-                        <li>Strengthens affective resonance with aesthetic and meaningful experiences.</li>
+                        <li>More openness to what excites and motivates you</li>
+                        <li>Stronger connection between what inspires you and what you create</li>
                       </ul>
                     </div>
                     <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
+                      <Badge variant="outline" className="mb-2">What Strengthens</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Stimulates dopaminergic novelty response and limbic-affective integration.</li>
-                        <li>Engages right-hemisphere associative networks.</li>
+                        <li>Your responsiveness to novelty and meaningful experience</li>
+                        <li>The link between feeling moved by something and making something from it</li>
                       </ul>
                     </div>
                   </div>
@@ -295,22 +295,22 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
               <Card className="border-0">
                 <CardContent className="pt-4">
                   <div className="mb-4">
-                    <div className="font-medium">UNIMAGINED <span className="text-muted-foreground">→</span> WHAT IF...</div>
-                    <div className="text-sm text-muted-foreground">Tolerating ambiguity; visionary expression</div>
+                    <div className="font-medium">UNIMAGINABLE <span className="text-muted-foreground">→</span> YOUR WHAT IF</div>
+                    <div className="text-sm text-muted-foreground">Sitting with the unknown; finding your voice</div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Badge variant="outline" className="mb-2">Psychological Benefits</Badge>
+                      <Badge variant="outline" className="mb-2">What You Gain</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Builds tolerance for ambiguity and deepens existential awareness.</li>
-                        <li>Encourages visionary expression and meaning-making.</li>
+                        <li>Greater comfort with not knowing and not having a plan</li>
+                        <li>The ability to express a vision that doesn't have a roadmap yet</li>
                       </ul>
                     </div>
                     <div>
-                      <Badge variant="outline" className="mb-2">Neurocognitive Growth</Badge>
+                      <Badge variant="outline" className="mb-2">What Strengthens</Badge>
                       <ul className="list-disc pl-5 space-y-1 text-sm">
-                        <li>Activates integration across DMN, limbic, and executive systems.</li>
-                        <li>Enhances generative ideation and transcendent cognition.</li>
+                        <li>Integration across imagination, emotion, and decision-making</li>
+                        <li>The capacity to think beyond what's currently possible</li>
                       </ul>
                     </div>
                   </div>
@@ -325,11 +325,11 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <div className="mt-8 bg-white rounded-xl border p-6">
         <h3 className="text-xl font-semibold mb-3">Framework Overview</h3>
         <ol className="list-decimal pl-6 space-y-1 text-sm">
-          <li><strong>AUTO-FLOW → PROMPT YOUR FLOW</strong>: Building foundational self-awareness</li>
-          <li><strong>VISUALIZATION → STRETCH POTENTIAL</strong>: Developing symbolic thinking capabilities</li>
-          <li><strong>HIGHER PURPOSE → WORLD CHALLENGES</strong>: Cultivating social responsibility</li>
-          <li><strong>INSPIRATION → INVITING THE MUSE</strong>: Enhancing overall well-being</li>
-          <li><strong>UNIMAGINED → WHAT IF...</strong>: Achieving meta-cognitive transcendence</li>
+          <li><strong>AUTO-FLOW → REFRAMING</strong>: Building self-awareness and the skill of seeing differently</li>
+          <li><strong>VISUALIZATION → STRETCHING</strong>: Developing the ability to picture and pursue bigger possibilities</li>
+          <li><strong>PURPOSE → GLOBAL BRIDGE</strong>: Connecting what drives you to what the world needs</li>
+          <li><strong>INSPIRATION → INVITING THE MUSE</strong>: Strengthening your creative responsiveness</li>
+          <li><strong>UNIMAGINABLE → YOUR WHAT IF</strong>: Learning to act from vision, not just from plans</li>
         </ol>
       </div>
 
@@ -339,7 +339,7 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
           onClick={() => onNext?.('ia-5-2')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to Capability Commitment →
+          Continue to Choose Your Focus →
         </Button>
       </div>
     </div>

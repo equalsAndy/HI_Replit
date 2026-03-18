@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
@@ -8,72 +9,77 @@ interface IA47ContentProps {
   onNext?: (stepId: string) => void;
 }
 
-type AnchorKey = 'reframe' | 'stretch' | 'bridge' | 'muse';
+type AnchorKey = 'reframe' | 'stretch' | 'bridge' | 'muse' | 'whatif';
 
 interface IA47StepData {
-  synopsis: string;
-  tags: { exercise: string; tag: string }[];
-  capabilityCounts: Record<string, number>;
-  topCapabilities: string[];
-  capabilitySummaryLine: string;
+  rungSummaries: string[];
   selectedAnchor: AnchorKey | null;
   anchorContent: string;
 }
 
 const INITIAL_DATA: IA47StepData = {
-  synopsis: '',
-  tags: [],
-  capabilityCounts: {},
-  topCapabilities: [],
-  capabilitySummaryLine: '',
+  rungSummaries: [],
   selectedAnchor: null,
   anchorContent: '',
 };
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
-
-const CAPABILITIES: { key: CapabilityKey; label: string; color: string }[] = [
-  { key: 'imagination', label: 'Imagination', color: '#8b5cf6' },
-  { key: 'curiosity',   label: 'Curiosity',   color: '#10b981' },
-  { key: 'caring',      label: 'Caring',      color: '#3b82f6' },
-  { key: 'creativity',  label: 'Creativity',  color: '#f59e0b' },
-  { key: 'courage',     label: 'Courage',     color: '#ef4444' },
-];
-
 const EXERCISE_LABELS: Record<AnchorKey, { label: string; subtitle: string }> = {
-  reframe:    { label: 'Reframe',    subtitle: 'The perspective shift' },
-  stretch:    { label: 'Stretch',    subtitle: 'The bigger vision' },
-  bridge:     { label: 'Bridge',     subtitle: 'The global connection' },
-  muse:       { label: 'Muse',       subtitle: 'The practice' },
+  reframe: { label: 'Reframing', subtitle: 'The perspective shift' },
+  stretch: { label: 'Stretching', subtitle: 'The bigger vision' },
+  bridge:  { label: 'Connecting', subtitle: 'The global connection' },
+  muse:    { label: 'Inviting the Muse', subtitle: 'The practice' },
+  whatif:  { label: 'Your What If', subtitle: 'The synthesis' },
 };
 
-const TAG_EXERCISE_ORDER: { key: AnchorKey; stepId: string }[] = [
-  { key: 'reframe', stepId: 'ia-4-2' },
-  { key: 'stretch', stepId: 'ia-4-3' },
-  { key: 'bridge',  stepId: 'ia-4-4' },
-  { key: 'muse',    stepId: 'ia-4-5' },
+const RUNG_CONFIG: { key: AnchorKey; rungNumber: number; tagField: string | null }[] = [
+  { key: 'reframe', rungNumber: 1, tagField: 'ia42' },
+  { key: 'stretch', rungNumber: 2, tagField: 'ia43' },
+  { key: 'bridge',  rungNumber: 3, tagField: 'ia44' },
+  { key: 'muse',    rungNumber: 4, tagField: 'ia45' },
+  { key: 'whatif',   rungNumber: 5, tagField: null },
 ];
 
-// ─── Synopsis Prompt ─────────────────────────────────────────────────────────
+// ─── Rung Summaries Prompt ──────────────────────────────────────────────────
 
-const SYNOPSIS_SYSTEM_PROMPT = `You are writing a brief personal synopsis for someone who just completed four imagination exercises where they collaborated with AI using their human capabilities. Use THEIR specific words and details — never generalize, never use abstract language.
+const RUNG_SUMMARIES_PROMPT = `You are writing five brief rung summaries for someone who just completed five imagination exercises — four collaborating with AI, then one final exercise on their own.
 
-Write 4-5 sentences that thread their journey as a single narrative arc:
-- Sentence 1-2: What challenge they started with and what the reframe revealed
-- Sentence 3: How they stretched their vision beyond its original scope
-- Sentence 4: What they discovered when they connected their purpose to a global challenge
-- Sentence 5: The activity they chose to invite the muse into and the anchor they're carrying, stated in their words
+For each rung, write 2-3 sentences that describe what the participant did using THEIR specific words and details. Each summary should feel like a trusted colleague reflecting back what they witnessed.
+
+Return your response in this EXACT format with these exact markers:
+
+[RUNG1]
+2-3 sentences about their reframe. What challenge they took on and what the new angle revealed. Use their actual nouns.
+[/RUNG1]
+
+[RUNG2]
+2-3 sentences about their stretch. How their vision shifted and what the bigger scope revealed.
+[/RUNG2]
+
+[RUNG3]
+2-3 sentences about their global connection. What happened when they connected their purpose to a global challenge, and what their questions uncovered.
+[/RUNG3]
+
+[RUNG4]
+2-3 sentences about inviting the muse. What activity they chose, the anchor they're carrying, and what this practice opens up.
+[/RUNG4]
+
+[RUNG5]
+2-3 sentences about their synthesis. What "What If" emerged when they looked across all four exercises. This one was done without AI — acknowledge that naturally without making it preachy. End with their What If statement close to verbatim.
+[/RUNG5]
 
 CRITICAL RULES:
-- Use their actual nouns. If they said "funding cuts" say "funding cuts." If they said "sales pipeline" say "sales pipeline."
-- The last sentence must reference their chosen activity and anchor as close to verbatim as possible with NO commentary, NO encouragement, NO "Great job!" wrapper
+- Use their actual nouns. If they said "funding cuts" say "funding cuts."
 - Do NOT congratulate them
-- Do NOT use phrases like "you discovered," "you learned," "you realized" — just state what happened
+- Do NOT use "you discovered," "you learned," "you realized" — just state what happened
 - Do NOT add coaching language like "this shows" or "this demonstrates"
-- Tone: Like a trusted colleague reflecting back what they witnessed. Warm, grounded, specific.
-- If any exercise data is missing, skip that part of the narrative gracefully — don't mention the gap`;
+- Tone: Warm, grounded, specific. Not congratulatory.
+- If any exercise data is missing, write a brief generic summary for that rung (e.g., "You practiced reframing a challenge to find a new angle.")
+- The 5th rung should include their What If statement as close to verbatim as possible, with no wrapper or commentary
+
+PARTICIPANT DATA:
+{exerciseData}`;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -82,8 +88,9 @@ function truncate(text: string, maxLen: number): string {
   return text.slice(0, maxLen).replace(/\s+\S*$/, '') + '…';
 }
 
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+function formatActivityName(id: string): string {
+  if (!id) return '';
+  return id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 function buildExerciseDataString(
@@ -91,6 +98,7 @@ function buildExerciseDataString(
   ia43: any,
   ia44: any,
   ia45: any,
+  ia46: any,
 ): string {
   const sections: string[] = [];
 
@@ -132,76 +140,51 @@ function buildExerciseDataString(
     );
   }
 
+  if (ia46) {
+    sections.push(
+      `\nEXERCISE 5 — SYNTHESIS (no AI):`,
+      `What If statement: ${ia46.whatIf || ia46.vision || '(not provided)'}`,
+      `Process reflection: ${ia46.processReflection || ia46.capstone_reflection || '(not provided)'}`,
+    );
+  }
+
   return sections.join('\n');
 }
 
-function aggregateCapabilities(ia42: any, ia43: any, ia45: any) {
-  const allSelected: string[] = [
-    ...(Array.isArray(ia42?.capabilities_applied) ? ia42.capabilities_applied : []),
-    ...Object.keys(ia43?.capability_stretches || {}),
-    ...(Array.isArray(ia45?.selectedCoachingLines) ? ia45.selectedCoachingLines : []),
-  ].map(c => c.toLowerCase());
-
-  const counts: Record<string, number> = {};
-  allSelected.forEach(cap => {
-    if (CAPABILITIES.some(c => c.key === cap)) {
-      counts[cap] = (counts[cap] || 0) + 1;
-    }
-  });
-
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  let topCapabilities: string[];
-  let summaryLine: string;
-
-  if (sorted.length === 0) {
-    topCapabilities = [];
-    summaryLine = '';
-  } else if (sorted.length === 1 || sorted[0][1] > (sorted[1]?.[1] ?? 0)) {
-    // One dominant
-    const [cap, count] = sorted[0];
-    if (count >= 3) {
-      topCapabilities = [cap];
-      summaryLine = `${capitalize(cap)} showed up in all three exercises where you selected capabilities.`;
-    } else {
-      topCapabilities = sorted.slice(0, 2).map(([c]) => c);
-      if (topCapabilities.length === 2) {
-        summaryLine = `${capitalize(topCapabilities[0])} and ${capitalize(topCapabilities[1])} showed up in ${sorted[0][1]} of your exercises.`;
-      } else {
-        summaryLine = `${capitalize(cap)} showed up across your exercises.`;
-      }
-    }
-  } else if (sorted[0][1] === sorted[1][1] && sorted[2]?.[1] === sorted[0][1]) {
-    // 3+ tied
-    topCapabilities = sorted.filter(([, c]) => c === sorted[0][1]).slice(0, 3).map(([cap]) => cap);
-    const names = topCapabilities.map(capitalize);
-    summaryLine = `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]} each appeared across your exercises.`;
-  } else {
-    // 2 tied at top
-    topCapabilities = sorted.filter(([, c]) => c === sorted[0][1]).slice(0, 2).map(([cap]) => cap);
-    const names = topCapabilities.map(capitalize);
-    summaryLine = `${names[0]} and ${names[1]} showed up in ${sorted[0][1]} of your exercises.`;
+function parseRungSummaries(response: string): string[] {
+  const summaries: string[] = [];
+  for (let i = 1; i <= 5; i++) {
+    const regex = new RegExp(`\\[RUNG${i}\\]([\\s\\S]*?)\\[/RUNG${i}\\]`);
+    const match = response.match(regex);
+    summaries.push(match ? match[1].trim() : '');
   }
-
-  return { counts, topCapabilities, summaryLine };
+  return summaries;
 }
 
-function buildTags(ia42: any, ia43: any, ia44: any, ia45: any) {
-  const tags: { exercise: string; tag: string }[] = [];
-  if (ia42?.tag) tags.push({ exercise: 'reframe', tag: ia42.tag });
-  if (ia43?.tag) tags.push({ exercise: 'stretch', tag: ia43.tag });
-  if (ia44?.tag) tags.push({ exercise: 'bridge', tag: ia44.tag });
-  if (ia45?.tag) tags.push({ exercise: 'muse', tag: ia45.tag });
-  return tags;
+interface Exercises {
+  ia42: any;
+  ia43: any;
+  ia44: any;
+  ia45: any;
+  ia46: any;
 }
 
-function getAnchorContent(key: AnchorKey, ia42: any, ia43: any, ia44: any, ia45: any): string {
+function getAnchorContent(key: AnchorKey, ex: Exercises): string {
   switch (key) {
-    case 'reframe': return ia42?.new_perspective || '';
-    case 'stretch': return [ia43?.new_title, ia43?.story].filter(Boolean).join(' — ');
-    case 'bridge':  return ia44?.reframed_view || '';
-    case 'muse':    return [ia45?.exploredActivity, ia45?.anchor].filter(Boolean).join(' — ');
+    case 'reframe': return ex.ia42?.new_perspective || '';
+    case 'stretch': return [ex.ia43?.new_title, ex.ia43?.story].filter(Boolean).join(' — ');
+    case 'bridge':  return ex.ia44?.reframed_view || '';
+    case 'muse':    return [formatActivityName(ex.ia45?.exploredActivity), ex.ia45?.anchor].filter(Boolean).join(' — ');
+    case 'whatif':   return ex.ia46?.whatIf || ex.ia46?.vision || '';
   }
 }
+
+function getTagForRung(rungIndex: number, ex: Exercises): string | null {
+  const sources = [ex.ia42, ex.ia43, ex.ia44, ex.ia45];
+  if (rungIndex >= 4) return null; // Rung 5 has no tag
+  return sources[rungIndex]?.tag || null;
+}
+
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -214,9 +197,9 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
   );
 
   // Raw exercise data from prior steps
-  const [exerciseData, setExerciseData] = useState<{
-    ia42: any; ia43: any; ia44: any; ia45: any; loading: boolean;
-  }>({ ia42: null, ia43: null, ia44: null, ia45: null, loading: true });
+  const [exerciseData, setExerciseData] = useState<Exercises & { loading: boolean }>({
+    ia42: null, ia43: null, ia44: null, ia45: null, ia46: null, loading: true,
+  });
 
   const [synopsisLoading, setSynopsisLoading] = useState(false);
 
@@ -225,11 +208,12 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
     let cancelled = false;
     (async () => {
       try {
-        const [r42, r43, r44, r45] = await Promise.all([
+        const [r42, r43, r44, r45, r46] = await Promise.all([
           fetch('/api/workshop-data/step/ia/ia-4-2', { credentials: 'include' }).then(r => r.json()).catch(() => null),
           fetch('/api/workshop-data/step/ia/ia-4-3', { credentials: 'include' }).then(r => r.json()).catch(() => null),
           fetch('/api/workshop-data/step/ia/ia-4-4', { credentials: 'include' }).then(r => r.json()).catch(() => null),
           fetch('/api/workshop-data/step/ia/ia-4-5', { credentials: 'include' }).then(r => r.json()).catch(() => null),
+          fetch('/api/workshop-data/step/ia/ia-4-6', { credentials: 'include' }).then(r => r.json()).catch(() => null),
         ]);
         if (cancelled) return;
         setExerciseData({
@@ -237,6 +221,7 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
           ia43: r43?.data ?? null,
           ia44: r44?.data ?? null,
           ia45: r45?.data ?? null,
+          ia46: r46?.data ?? null,
           loading: false,
         });
       } catch {
@@ -246,41 +231,19 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Compute capability aggregation + tags ──────────────────────────────────
-  const { counts, topCaps, summaryLine, tags } = useMemo(() => {
-    if (exerciseData.loading) return { counts: {}, topCaps: [] as string[], summaryLine: '', tags: [] as { exercise: string; tag: string }[] };
-    const { ia42, ia43, ia44, ia45 } = exerciseData;
-    const agg = aggregateCapabilities(ia42, ia43, ia45);
-    const t = buildTags(ia42, ia43, ia44, ia45);
-    return { counts: agg.counts, topCaps: agg.topCapabilities, summaryLine: agg.summaryLine, tags: t };
-  }, [exerciseData]);
-
-  // ── Save computed data once available ──────────────────────────────────────
+  // ── Generate rung summaries (one-shot, first visit only) ───────────────────
   useEffect(() => {
     if (exerciseData.loading || !loaded) return;
-    // Only save computed fields if they haven't been saved yet
-    if (!data.capabilitySummaryLine && summaryLine) {
-      updateData({
-        capabilityCounts: counts,
-        topCapabilities: topCaps,
-        capabilitySummaryLine: summaryLine,
-        tags,
-      });
-    }
-  }, [exerciseData.loading, loaded, summaryLine]);
+    // If all 5 rung summaries already saved and non-empty, don't regenerate
+    if (data.rungSummaries?.filter(Boolean).length === 5) return;
 
-  // ── Generate synopsis (one-shot, first visit only) ─────────────────────────
-  useEffect(() => {
-    if (exerciseData.loading || !loaded) return;
-    // If synopsis already saved, don't regenerate
-    if (data.synopsis) return;
-
-    const { ia42, ia43, ia44, ia45 } = exerciseData;
-    const hasAny = ia42 || ia43 || ia44 || ia45;
+    const { ia42, ia43, ia44, ia45, ia46 } = exerciseData;
+    const hasAny = ia42 || ia43 || ia44 || ia45 || ia46;
     if (!hasAny) return;
 
     setSynopsisLoading(true);
-    const exerciseDataStr = buildExerciseDataString(ia42, ia43, ia44, ia45);
+    const exerciseDataStr = buildExerciseDataString(ia42, ia43, ia44, ia45, ia46);
+    const prompt = RUNG_SUMMARIES_PROMPT.replace('{exerciseData}', exerciseDataStr);
 
     fetch('/api/ai/chat/plain', {
       method: 'POST',
@@ -289,25 +252,25 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
       body: JSON.stringify({
         training_id: 'ia-4-7-synopsis',
         messages: [
-          { role: 'system', content: SYNOPSIS_SYSTEM_PROMPT },
-          { role: 'user', content: `Write the synopsis based on the participant data provided.\n\n${exerciseDataStr}` },
+          { role: 'system', content: prompt },
+          { role: 'user', content: 'Write the five rung summaries based on the participant data provided.' },
         ],
       }),
     })
       .then(r => r.json())
       .then(result => {
         if (result.success && result.reply) {
-          updateData({ synopsis: result.reply });
+          const parsed = parseRungSummaries(result.reply);
+          updateData({ rungSummaries: parsed });
         }
       })
-      .catch(err => console.error('[ia-4-7] Synopsis generation failed:', err))
+      .catch(err => console.error('[ia-4-7] Rung summaries generation failed:', err))
       .finally(() => setSynopsisLoading(false));
-  }, [exerciseData.loading, loaded, data.synopsis]);
+  }, [exerciseData.loading, loaded, data.rungSummaries]);
 
   // ── Anchor selection handler ───────────────────────────────────────────────
   const handleSelectAnchor = useCallback((key: AnchorKey) => {
-    const { ia42, ia43, ia44, ia45 } = exerciseData;
-    const content = getAnchorContent(key, ia42, ia43, ia44, ia45);
+    const content = getAnchorContent(key, exerciseData);
     updateData({
       selectedAnchor: key,
       anchorContent: content,
@@ -315,7 +278,7 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
   }, [exerciseData, updateData]);
 
   // ── Derived state ──────────────────────────────────────────────────────────
-  const synopsis = data.synopsis;
+  const rungSummaries = data.rungSummaries || [];
   const selectedAnchor = data.selectedAnchor;
   const isComplete = selectedAnchor !== null;
 
@@ -325,7 +288,10 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
     stretch: Boolean(exerciseData.ia43?.new_title || exerciseData.ia43?.story),
     bridge:  Boolean(exerciseData.ia44?.reframed_view),
     muse:    Boolean(exerciseData.ia45?.exploredActivity || exerciseData.ia45?.anchor),
+    whatif:  Boolean(exerciseData.ia46?.whatIf || exerciseData.ia46?.vision),
   }), [exerciseData]);
+
+  const anchorKeys: AnchorKey[] = ['reframe', 'stretch', 'bridge', 'muse', 'whatif'];
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -338,113 +304,79 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
           Your Collaboration Journey
         </h1>
         <p className="text-lg text-gray-600">
-          How your human capabilities worked with AI across four exercises
+          How your human capabilities worked — with AI and on your own — across five exercises
         </p>
       </div>
 
-      {/* ── Section 1: What You Practiced ── */}
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
+      {/* ── Section 1: What You Practiced — Five Rung Cards ── */}
+      <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">What You Practiced</h2>
 
-        {/* Synopsis */}
         {synopsisLoading ? (
-          <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-purple-100 rounded w-full" />
-            <div className="h-4 bg-purple-100 rounded w-5/6" />
-            <div className="h-4 bg-purple-100 rounded w-4/6" />
-            <div className="h-4 bg-purple-100 rounded w-3/4" />
-          </div>
-        ) : synopsis ? (
-          <div className="bg-purple-50/60 border border-purple-100 rounded-lg p-5">
-            <p className="text-gray-800 leading-relaxed">{synopsis}</p>
+          // Loading skeleton — 5 card placeholders
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="animate-pulse bg-white rounded-xl border border-gray-200 p-6">
+                <div className="h-4 bg-purple-100 rounded w-1/3 mb-3" />
+                <div className="h-4 bg-purple-100 rounded w-full mb-2" />
+                <div className="h-4 bg-purple-100 rounded w-5/6 mb-2" />
+                <div className="h-4 bg-purple-100 rounded w-2/3" />
+              </div>
+            ))}
           </div>
         ) : (
-          <p className="text-gray-400 italic">Complete the Module 4 exercises to see your journey summary.</p>
-        )}
+          <div className="space-y-4">
+            {RUNG_CONFIG.map(({ key, rungNumber }, index) => {
+              const summary = rungSummaries[index] || '';
+              const tag = getTagForRung(index, exerciseData);
+              const isCapstone = rungNumber === 5;
 
-        {/* Tag badges row */}
-        <div className="flex gap-2 mt-5 flex-wrap">
-          {TAG_EXERCISE_ORDER.map(({ key }) => {
-            const tag = tags.find(t => t.exercise === key);
-            return (
-              <span
-                key={key}
-                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                  tag
-                    ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                    : 'bg-gray-100 text-gray-400 border border-gray-200'
-                }`}
-              >
-                {tag ? tag.tag : EXERCISE_LABELS[key].label}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Section 2: Capabilities That Showed Up ── */}
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-5">Capabilities That Showed Up</h2>
-
-        {/* Capability pills row */}
-        <div className="flex justify-center gap-4 flex-wrap mb-4">
-          {CAPABILITIES.map(({ key, label, color }) => {
-            const count = counts[key] || 0;
-            const isTop = topCaps.includes(key);
-            return (
-              <div key={key} className="flex flex-col items-center gap-1.5">
+              return (
                 <div
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                    isTop
-                      ? 'text-white shadow-md'
-                      : 'border-2 bg-white'
+                  key={key}
+                  className={`rounded-xl border p-6 ${
+                    isCapstone
+                      ? 'bg-gradient-to-br from-purple-50/80 to-indigo-50/60 border-purple-200'
+                      : 'bg-white border-gray-200'
                   }`}
-                  style={
-                    isTop
-                      ? { backgroundColor: color }
-                      : { borderColor: color, color, opacity: count > 0 ? 1 : 0.4 }
-                  }
                 >
-                  {label}
-                </div>
-                {/* Count indicator */}
-                <div className="flex gap-0.5">
-                  {count > 0 ? (
-                    Array.from({ length: count }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))
+                  <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide mb-3">
+                    Rung {rungNumber}: {EXERCISE_LABELS[key].label}
+                  </h3>
+
+                  {summary ? (
+                    <p className="text-gray-800 leading-relaxed">{summary}</p>
                   ) : (
-                    <div className="w-2 h-2 rounded-full bg-gray-200" />
+                    <p className="text-gray-400 italic">Complete this exercise to see your summary here.</p>
+                  )}
+
+                  {tag && (
+                    <div className="mt-3">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200">
+                        {tag}
+                      </span>
+                    </div>
                   )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Summary line */}
-        {summaryLine && (
-          <p className="text-center text-gray-600 mt-3">{summaryLine}</p>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* ── Section 3: One Thing to Carry Forward ── */}
+      {/* ── Section 2: One Thing to Carry Forward — Five Anchor Cards ── */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
         <h2 className="text-xl font-semibold text-gray-800 mb-2">One Thing to Carry Forward</h2>
         <p className="text-gray-500 mb-5">Tap the one that feels most alive right now.</p>
 
-        {/* 2×2 grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {(Object.keys(EXERCISE_LABELS) as AnchorKey[]).map(key => {
+        {/* 2×2 grid for rungs 1-4 */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {anchorKeys.slice(0, 4).map(key => {
             const { subtitle } = EXERCISE_LABELS[key];
             const has = hasExercise[key];
             const isSelected = selectedAnchor === key;
             const content = has
-              ? truncate(getAnchorContent(key, exerciseData.ia42, exerciseData.ia43, exerciseData.ia44, exerciseData.ia45), 120)
+              ? truncate(getAnchorContent(key, exerciseData), 120)
               : '';
 
             return (
@@ -460,7 +392,6 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
                       : 'bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm cursor-pointer'
                 }`}
               >
-                {/* Selected checkmark */}
                 {isSelected && (
                   <div className="absolute top-3 right-3 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -474,9 +405,7 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
                 </p>
 
                 {has ? (
-                  <p className="text-sm text-gray-700 leading-relaxed">
-                    {content}
-                  </p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{content}</p>
                 ) : (
                   <p className="text-sm text-gray-400 italic">Not yet completed</p>
                 )}
@@ -484,13 +413,59 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
             );
           })}
         </div>
+
+        {/* Full-width capstone card for rung 5 */}
+        {(() => {
+          const key: AnchorKey = 'whatif';
+          const { subtitle } = EXERCISE_LABELS[key];
+          const has = hasExercise[key];
+          const isSelected = selectedAnchor === key;
+          const content = has ? getAnchorContent(key, exerciseData) : '';
+
+          return (
+            <button
+              disabled={!has}
+              onClick={() => has && handleSelectAnchor(key)}
+              className={`relative w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${
+                !has
+                  ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-50'
+                  : isSelected
+                    ? 'bg-purple-50 border-purple-500 shadow-md'
+                    : 'bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm cursor-pointer'
+              }`}
+            >
+              {isSelected && (
+                <div className="absolute top-3 right-3 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
+
+              <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">
+                {subtitle}
+              </p>
+
+              {has ? (
+                <p className="text-sm text-gray-700 leading-relaxed">{content}</p>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Not yet completed</p>
+              )}
+            </button>
+          );
+        })()}
       </div>
+
+      {/* Bridge line */}
+      <p className="text-center text-gray-600 mt-6 mb-2">
+        In each exercise, AI offered something. The work happened when you decided whether it was right. In Module 5, you'll see why that matters.
+      </p>
 
       {/* ── Continue button ── */}
       {isComplete && (
         <div className="flex justify-end mb-8">
           <button
-            onClick={() => onNext?.('ia-5-1')}
+            onClick={() => onNext?.('ia-5-4')}
             disabled={saving}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg rounded-lg font-medium transition-colors disabled:opacity-50"
           >

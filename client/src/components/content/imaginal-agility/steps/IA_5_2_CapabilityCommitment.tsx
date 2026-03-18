@@ -7,6 +7,7 @@ import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import type { CapabilityType } from '@/lib/types';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface IA52ContentProps {
   onNext?: (stepId: string) => void;
@@ -52,9 +53,66 @@ const CAPABILITY_EXAMPLES: Record<string, string[]> = {
   ],
 };
 
+const ACTIVATION_CARDS: {
+  key: string;
+  label: string;
+  color: string;
+  lightBg: string;
+  border: string;
+  icon: string;
+  oneLiner: string;
+}[] = [
+  {
+    key: 'imagination',
+    label: 'Imagination',
+    color: '#8b5cf6',
+    lightBg: '#faf5ff',
+    border: '#d8b4fe',
+    icon: '/assets/Imagination_sq.png',
+    oneLiner: "More than creativity — it's your mind's ability to build what doesn't exist yet",
+  },
+  {
+    key: 'curiosity',
+    label: 'Curiosity',
+    color: '#10b981',
+    lightBg: '#ecfdf5',
+    border: '#6ee7b7',
+    icon: '/assets/Curiosity_sq.png',
+    oneLiner: "Not just asking questions — it's the willingness to be changed by the answers",
+  },
+  {
+    key: 'caring',
+    label: 'Caring',
+    color: '#3b82f6',
+    lightBg: '#eff6ff',
+    border: '#93c5fd',
+    icon: '/assets/Caring_sq.png',
+    oneLiner: "Not just empathy — it includes the hardest kind of honesty",
+  },
+  {
+    key: 'creativity',
+    label: 'Creativity',
+    color: '#f59e0b',
+    lightBg: '#fffbeb',
+    border: '#fcd34d',
+    icon: '/assets/Creativity_sq.png',
+    oneLiner: "Not just art — it's making connections between things that weren't connected",
+  },
+  {
+    key: 'courage',
+    label: 'Courage',
+    color: '#ef4444',
+    lightBg: '#fef2f2',
+    border: '#fca5a5',
+    icon: '/assets/courage_sq.png',
+    oneLiner: "Not just boldness — sometimes the bravest thing is to pause",
+  },
+];
+
 const IA_5_2_CapabilityCommitment: React.FC<IA52ContentProps> = ({ onNext }) => {
   const { data: videoData, isLoading } = useVideoByStepId('ia', 'ia-5-2');
   const [reasonExpanded, setReasonExpanded] = useState(false);
+  const [openBrowseCards, setOpenBrowseCards] = useState<Set<string>>(new Set());
 
   const extractYouTubeId = (url: string): string | null => {
     if (!url) return null;
@@ -82,6 +140,27 @@ const IA_5_2_CapabilityCommitment: React.FC<IA52ContentProps> = ({ onNext }) => 
   const handleContinue = async () => {
     await saveNow();
     onNext?.('ia-5-3');
+  };
+
+  const toggleBrowseCard = (key: string) => {
+    setOpenBrowseCards(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  const handleExampleTap = (capabilityKey: string, example: string) => {
+    // Auto-select the capability
+    if (data.selected_capability !== capabilityKey) {
+      updateData({ selected_capability: capabilityKey });
+    }
+    // Populate or append to commitment text
+    if (!data.commitment_text.trim()) {
+      updateData({ commitment_text: example });
+    } else {
+      updateData({ commitment_text: data.commitment_text.trimEnd() + '\n' + example });
+    }
   };
 
   return (
@@ -115,6 +194,81 @@ const IA_5_2_CapabilityCommitment: React.FC<IA52ContentProps> = ({ onNext }) => 
         </p>
       </div>
 
+      {/* ── Browsable Activation Cards ── */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-purple-800 mb-1">What Activating Each Capability Looks Like</h2>
+        <p className="text-sm text-gray-600 mb-4">Browse all five before choosing your focus.</p>
+
+        <div className="space-y-3">
+          {ACTIVATION_CARDS.map(card => {
+            const isOpen = openBrowseCards.has(card.key);
+            const examples = CAPABILITY_EXAMPLES[card.key] || [];
+
+            return (
+              <div
+                key={card.key}
+                className="rounded-xl border overflow-hidden transition-all"
+                style={{
+                  borderColor: isOpen ? card.color : card.border,
+                  backgroundColor: isOpen ? card.lightBg : '#fff',
+                }}
+              >
+                {/* Header — always visible */}
+                <button
+                  type="button"
+                  onClick={() => toggleBrowseCard(card.key)}
+                  className="w-full flex items-center gap-4 px-5 py-4 text-left"
+                >
+                  <img
+                    src={card.icon}
+                    alt={card.label}
+                    className="w-11 h-11 rounded-lg flex-shrink-0"
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-base uppercase tracking-wide" style={{ color: card.color }}>
+                      {card.label}
+                    </p>
+                    <p className="text-sm text-gray-600 leading-snug">
+                      {card.oneLiner}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {isOpen
+                      ? <ChevronUp size={18} className="text-gray-400" />
+                      : <ChevronDown size={18} className="text-gray-400" />
+                    }
+                  </div>
+                </button>
+
+                {/* Expanded content */}
+                {isOpen && (
+                  <div className="px-5 pb-5 space-y-4">
+                    {/* Practice examples */}
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Try:</p>
+                      <div className="flex flex-col gap-2">
+                        {examples.map((example, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleExampleTap(card.key, example)}
+                            className="text-left px-4 py-3 rounded-lg border border-purple-200 bg-white hover:bg-purple-50 hover:border-purple-300 transition-colors text-sm text-gray-700 leading-relaxed"
+                          >
+                            <span className="text-purple-500 mr-2">→</span>
+                            {example}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Capability Selector */}
       <CapabilitySelector
         mode="single"
@@ -126,71 +280,39 @@ const IA_5_2_CapabilityCommitment: React.FC<IA52ContentProps> = ({ onNext }) => 
 
       {/* Commitment textarea — progressive reveal */}
       {data.selected_capability && (
-        <>
-          {/* Strengthening Examples */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">
-              Ideas to get you started
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Tap any example to use it as a starting point, or write your own below.
-            </p>
-            <div className="flex flex-col gap-2">
-              {(CAPABILITY_EXAMPLES[data.selected_capability] || []).map((example, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    if (!data.commitment_text.trim()) {
-                      updateData({ commitment_text: example });
-                    } else {
-                      updateData({ commitment_text: data.commitment_text.trimEnd() + '\n' + example });
-                    }
-                  }}
-                  className="text-left px-4 py-3 rounded-lg border border-purple-200 bg-purple-50/50 hover:bg-purple-100 hover:border-purple-300 transition-colors text-sm text-gray-700 leading-relaxed"
-                >
-                  <span className="text-purple-500 mr-2">→</span>
-                  {example}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="bg-purple-50 rounded-xl shadow-lg p-8 border border-purple-200 mb-6">
+          <h2 className="text-xl font-semibold text-purple-800 mb-1">Your 30-Day Commitment</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            What specific practice will you commit to for the next 30 days?
+          </p>
+          <Textarea
+            rows={3}
+            placeholder="Each week, I will..."
+            value={data.commitment_text}
+            onChange={(e) => updateData({ commitment_text: e.target.value })}
+            className="bg-white border-purple-200 focus:border-purple-400"
+          />
 
-          {/* Commitment card */}
-          <div className="bg-purple-50 rounded-xl shadow-lg p-8 border border-purple-200 mb-6">
-            <h2 className="text-xl font-semibold text-purple-800 mb-1">Your 30-Day Commitment</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              What specific practice will you commit to for the next 30 days?
-            </p>
-            <Textarea
-              rows={3}
-              placeholder="Each week, I will..."
-              value={data.commitment_text}
-              onChange={(e) => updateData({ commitment_text: e.target.value })}
-              className="bg-white border-purple-200 focus:border-purple-400"
-            />
-
-            {/* Optional: Why this capability */}
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={() => setReasonExpanded(prev => !prev)}
-                className="text-sm text-purple-600 hover:text-purple-800 font-medium"
-              >
-                {reasonExpanded ? '▾ Why this capability?' : '▸ Why this capability?'}
-              </button>
-              {reasonExpanded && (
-                <Textarea
-                  rows={2}
-                  placeholder="I chose this because..."
-                  value={data.commitment_reason}
-                  onChange={(e) => updateData({ commitment_reason: e.target.value })}
-                  className="mt-3 bg-white border-purple-200 focus:border-purple-400"
-                />
-              )}
-            </div>
+          {/* Optional: Why this capability */}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setReasonExpanded(prev => !prev)}
+              className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+            >
+              {reasonExpanded ? '▾ Why this capability?' : '▸ Why this capability?'}
+            </button>
+            {reasonExpanded && (
+              <Textarea
+                rows={2}
+                placeholder="I chose this because..."
+                value={data.commitment_reason}
+                onChange={(e) => updateData({ commitment_reason: e.target.value })}
+                className="mt-3 bg-white border-purple-200 focus:border-purple-400"
+              />
+            )}
           </div>
-        </>
+        </div>
       )}
 
       {/* What Happens Next */}
