@@ -25,6 +25,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -327,12 +328,31 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData, hid
   const [choices, setChoices] = useState<Choice[]>([]);
   const [isExiting, setIsExiting] = useState(false);
   const [exitSide, setExitSide] = useState<'left' | 'right' | null>(null);
+  const [showCloseWarning, setShowCloseWarning] = useState(false);
 
   const startPulse = useCallback(() => {
     setPairs(generatePairs());
     setCurrentIndex(0);
     setChoices([]);
     setModalOpen(true);
+  }, []);
+
+  const handleAttemptClose = useCallback(() => {
+    setShowCloseWarning(true);
+  }, []);
+
+  const handleConfirmClose = useCallback(() => {
+    setShowCloseWarning(false);
+    setModalOpen(false);
+    setIsExiting(false);
+    setExitSide(null);
+    setChoices([]);
+    setCurrentIndex(0);
+    setPairs([]);
+  }, []);
+
+  const handleCancelClose = useCallback(() => {
+    setShowCloseWarning(false);
   }, []);
 
   const handleModalClose = useCallback(() => {
@@ -506,12 +526,38 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData, hid
       </div>
 
       {/* Modal for the choosing interaction */}
-      <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) handleModalClose(); }}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+      <Dialog open={modalOpen}>
+        <DialogContent
+          className="max-w-2xl p-0 overflow-hidden"
+          hideClose
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <style>{KEYFRAMES}</style>
 
           {/* Persistent instruction header */}
-          <div style={{ padding: '24px 28px 16px', textAlign: 'center', borderBottom: '1px solid #f3f4f6' }}>
+          <div style={{ padding: '24px 28px 16px', textAlign: 'center', borderBottom: '1px solid #f3f4f6', position: 'relative' }}>
+            {/* Custom X button */}
+            <button
+              onClick={handleAttemptClose}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#9ca3af',
+                padding: 4,
+                borderRadius: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
             <DialogTitle style={{ fontSize: 18, fontWeight: 700, color: '#1e1b4b', marginBottom: 8 }}>
               Quick Pulse
             </DialogTitle>
@@ -524,7 +570,7 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData, hid
             </DialogDescription>
           </div>
 
-          {currentPair && (
+          {currentPair && !showCloseWarning && (
             <div style={{ padding: '20px 28px 28px' }}>
               {/* Counter */}
               <div style={{ textAlign: 'center', marginBottom: 20 }}>
@@ -571,6 +617,64 @@ export default function CapabilityPulse({ onComplete, onContinue, savedData, hid
               </div>
 
               <ProgressDots current={currentIndex} total={10} />
+            </div>
+          )}
+
+          {/* Close warning overlay */}
+          {showCloseWarning && (
+            <div style={{ padding: '32px 28px', textAlign: 'center' }}>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                background: '#fef3c7',
+                border: '1.5px solid #fcd34d',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 22,
+                margin: '0 auto 16px',
+              }}>
+                ⚠️
+              </div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1e1b4b', marginBottom: 10 }}>
+                Exit the Pulse?
+              </h3>
+              <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4b5563', marginBottom: 24 }}>
+                If you exit now, your progress will be reset and you'll need to start all 10 pairs over from the beginning.
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <button
+                  onClick={handleCancelClose}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: 10,
+                    border: '1.5px solid #e5e7eb',
+                    background: '#fff',
+                    color: '#374151',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Keep Going
+                </button>
+                <button
+                  onClick={handleConfirmClose}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: 10,
+                    border: 'none',
+                    background: '#ef4444',
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Exit & Reset
+                </button>
+              </div>
             </div>
           )}
         </DialogContent>
