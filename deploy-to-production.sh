@@ -54,6 +54,7 @@ IMAGINAL_AGILITY_PROJECT_ID=$(aws ssm get-parameter --name "/prod/hi-replit/IMAG
 # Claude / AI Provider Configuration
 CLAUDE_API_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_API_KEY" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
 AI_PROVIDER=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
+AI_PROVIDER_IA=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER_IA" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 CLAUDE_MODEL=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_MODEL" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "claude-haiku-4-5-20251001")
 
 # Auth0 Configuration - Main app credentials
@@ -153,6 +154,10 @@ aws lightsail create-container-service-deployment \
         \"VITE_AUTH0_DOMAIN\": \"${VITE_AUTH0_DOMAIN}\",
         \"VITE_AUTH0_AUDIENCE\": \"${VITE_AUTH0_AUDIENCE}\",
         \"VITE_AUTH0_REDIRECT_URI\": \"${VITE_AUTH0_REDIRECT_URI}\",
+        \"CLAUDE_API_KEY\": \"${CLAUDE_API_KEY}\",
+        \"AI_PROVIDER\": \"${AI_PROVIDER}\",
+        \"AI_PROVIDER_IA\": \"${AI_PROVIDER_IA}\",
+        \"CLAUDE_MODEL\": \"${CLAUDE_MODEL}\",
         \"NODE_ENV\": \"production\",
         \"PORT\": \"8080\"
       }
