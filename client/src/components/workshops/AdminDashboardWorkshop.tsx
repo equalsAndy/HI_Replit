@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserManagement as FullUserManagement } from '@/components/admin/UserManagement';
-import FeedbackManagement from '@/components/admin/FeedbackManagement';
-import AIManagement from '@/components/admin/AIManagement';
-import IAExerciseInstructions from '@/components/admin/IAExerciseInstructions';
-import AdminChat from '@/components/admin/AdminChat';
-import { EnhancedVideoManagement } from '@/components/admin/EnhancedVideoManagement';
+const FullUserManagement = React.lazy(() =>
+  import('@/components/admin/UserManagement').then(m => ({ default: m.UserManagement }))
+);
+const FeedbackManagement = React.lazy(() => import('@/components/admin/FeedbackManagement'));
+const AIManagement = React.lazy(() => import('@/components/admin/AIManagement'));
+const IAExerciseInstructions = React.lazy(() => import('@/components/admin/IAExerciseInstructions'));
+const AdminChat = React.lazy(() => import('@/components/admin/AdminChat'));
+const EnhancedVideoManagement = React.lazy(() =>
+  import('@/components/admin/EnhancedVideoManagement').then(m => ({ default: m.EnhancedVideoManagement }))
+);
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
 import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video } from 'lucide-react';
@@ -213,7 +217,9 @@ const IAAssistantLauncher: React.FC = () => {
               </button>
             </div>
             <div style={styles.modalBody}>
-              <AdminChat />
+              <Suspense fallback={<div className="flex items-center justify-center p-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600"></div></div>}>
+                <AdminChat />
+              </Suspense>
             </div>
           </div>
         </div>
@@ -1372,53 +1378,55 @@ export default function AdminDashboardWorkshop() {
         </div>
 
         <div style={styles.tabContent}>
-          {activeTab === 'users' && <UserManagement />}
-          {activeTab === 'invites' && <InviteManagement />}
-          {activeTab === 'videos' && isAdmin && <EnhancedVideoManagement />}
-          {activeTab === 'ai' && (
-            <div>
-              <div style={styles.subTabsContainer}>
-                <div style={styles.subTabsList}>
-                  {[
-                    { id: 'overview', label: 'Overview', icon: Bot },
-                    { id: 'training', label: 'Training', icon: BookOpen }
-                  ].map((subTab) => (
-                    <button
-                      key={subTab.id}
-                      style={{
-                        ...styles.subTab,
-                        ...(activeAITab === subTab.id ? styles.activeSubTab : {})
-                      }}
-                      onClick={() => setActiveAITab(subTab.id)}
-                    >
-                      {subTab.icon && <subTab.icon size={16} style={{ marginRight: '8px' }} />}
-                      {subTab.label}
-                    </button>
-                  ))}
+          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div></div>}>
+            {activeTab === 'users' && <UserManagement />}
+            {activeTab === 'invites' && <InviteManagement />}
+            {activeTab === 'videos' && isAdmin && <EnhancedVideoManagement />}
+            {activeTab === 'ai' && (
+              <div>
+                <div style={styles.subTabsContainer}>
+                  <div style={styles.subTabsList}>
+                    {[
+                      { id: 'overview', label: 'Overview', icon: Bot },
+                      { id: 'training', label: 'Training', icon: BookOpen }
+                    ].map((subTab) => (
+                      <button
+                        key={subTab.id}
+                        style={{
+                          ...styles.subTab,
+                          ...(activeAITab === subTab.id ? styles.activeSubTab : {})
+                        }}
+                        onClick={() => setActiveAITab(subTab.id)}
+                      >
+                        {subTab.icon && <subTab.icon size={16} style={{ marginRight: '8px' }} />}
+                        {subTab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={styles.subTabContent}>
+                  {activeAITab === 'overview' && <AIManagement />}
+                  {activeAITab === 'training' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-xl font-semibold">Training Tools</h2>
+                          <p className="text-sm text-gray-600">Manage per‑exercise instructions</p>
+                        </div>
+                      </div>
+
+                      {/* IA Exercise Instructions inline */}
+                      <IAExerciseInstructions />
+
+                      {/* Vector Store Panels */}
+                      <AIVectorStoresPanel />
+                    </div>
+                  )}
                 </div>
               </div>
-              <div style={styles.subTabContent}>
-                {activeAITab === 'overview' && <AIManagement />}
-                {activeAITab === 'training' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-xl font-semibold">Training Tools</h2>
-                        <p className="text-sm text-gray-600">Manage per‑exercise instructions</p>
-                      </div>
-                    </div>
-
-                    {/* IA Exercise Instructions inline */}
-                    <IAExerciseInstructions />
-
-                    {/* Vector Store Panels */}
-                    <AIVectorStoresPanel />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          {activeTab === 'feedback' && <FeedbackManagement />}
+            )}
+            {activeTab === 'feedback' && <FeedbackManagement />}
+          </Suspense>
         </div>
       </div>
     </div>

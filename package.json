@@ -32,6 +32,8 @@
     "version:major": "./update-version.sh major",
     "bundle:analyze": "node scripts/bundle-size-check.js",
     "bundle:check": "npm run build && node scripts/bundle-size-check.js",
+    "bundle:verify": "node scripts/bundle-size-verify.js",
+    "bundle:verify:ci": "npm run build && node scripts/bundle-size-verify.js",
     "danger:backup-delete-users": "USER_IDS=2-11,17-28,31-32 node scripts/backup-and-delete-users.cjs",
     "danger:backup-only": "DRY_RUN=1 USER_IDS=2-11,17-28,31-32 node scripts/backup-and-delete-users.cjs",
     "danger:backup": "npm run danger:backup-only",
