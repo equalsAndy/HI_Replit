@@ -56,6 +56,7 @@ CLAUDE_API_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_API_KEY" -
 AI_PROVIDER=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 AI_PROVIDER_IA=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER_IA" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 CLAUDE_MODEL=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_MODEL" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "claude-haiku-4-5-20251001")
+TRAINING_DOC_SYNC_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/TRAINING_DOC_SYNC_KEY" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
 
 # Auth0 Configuration - Main app credentials
 AUTH0_DOMAIN=$(aws ssm get-parameter --name "/prod/hi-replit/AUTH0_DOMAIN" --with-decryption --query "Parameter.Value" --output text)
@@ -158,6 +159,7 @@ aws lightsail create-container-service-deployment \
         \"AI_PROVIDER\": \"${AI_PROVIDER}\",
         \"AI_PROVIDER_IA\": \"${AI_PROVIDER_IA}\",
         \"CLAUDE_MODEL\": \"${CLAUDE_MODEL}\",
+        \"TRAINING_DOC_SYNC_KEY\": \"${TRAINING_DOC_SYNC_KEY}\",
         \"NODE_ENV\": \"production\",
         \"PORT\": \"8080\"
       }
