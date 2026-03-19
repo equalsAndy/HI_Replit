@@ -876,6 +876,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               <Button
                 onClick={() => setIsAssessmentModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                disabled={isStepLocked}
               >
                 <Zap className="w-5 h-5 mr-2" />
                 Take the Flow Assessment
@@ -1271,6 +1272,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           <FlowReflections
             setCurrentContent={setCurrentContent}
             markStepCompleted={markStepCompleted}
+            workshopLocked={isStepLocked}
             onComplete={async () => {
               if (user?.id) {
                 try {

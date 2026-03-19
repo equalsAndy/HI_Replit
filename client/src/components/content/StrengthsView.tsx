@@ -12,6 +12,8 @@ import StrengthReflections from './StrengthReflections';
 import StrengthShapesExplainer from './StrengthShapesExplainer';
 import { ChevronRight } from 'lucide-react';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import WorkshopCompletionBanner from '@/components/common/WorkshopCompletionBanner';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -44,6 +46,8 @@ const StrengthsView: React.FC<ContentViewProps> = ({
   const stepId = "2-1";
   const { updateVideoProgress } = useNavigationProgress();
   const { updateContext, setCurrentStep } = useFloatingAI();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ast', stepId);
 
   // Fetch video from database using tRPC
   const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
@@ -185,6 +189,7 @@ const StrengthsView: React.FC<ContentViewProps> = ({
         position="nav-adjacent"
         colorScheme="blue"
       />
+      <WorkshopCompletionBanner stepId={stepId} />
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Strengths</h1>
 
       <div className="prose max-w-none">
@@ -396,10 +401,10 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                     </div>
 
                     <StrengthReflections
-                      strengths={strengthsOrdered.map((s, i) => ({ 
-                        label: s.label, 
-                        score: s.score, 
-                        position: i + 1 
+                      strengths={strengthsOrdered.map((s, i) => ({
+                        label: s.label,
+                        score: s.score,
+                        position: i + 1
                       }))}
                       onComplete={() => {
                         // This will be handled by the StrengthReflections component
@@ -407,6 +412,7 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                       }}
                       setCurrentContent={setCurrentContent}
                       markStepCompleted={markStepCompleted}
+                      workshopLocked={isStepLocked}
                     />
                   </div>
                 )}
@@ -415,14 +421,15 @@ const StrengthsView: React.FC<ContentViewProps> = ({
                 {preloadReflections && !showReflections && (
                   <div style={{ position: 'absolute', left: '-9999px', visibility: 'hidden', height: 0, overflow: 'hidden' }}>
                     <StrengthReflections
-                      strengths={strengthsOrdered.map((s, i) => ({ 
-                        label: s.label, 
-                        score: s.score, 
-                        position: i + 1 
+                      strengths={strengthsOrdered.map((s, i) => ({
+                        label: s.label,
+                        score: s.score,
+                        position: i + 1
                       }))}
                       onComplete={() => {}}
                       setCurrentContent={() => {}}
                       markStepCompleted={() => {}}
+                      workshopLocked={isStepLocked}
                     />
                   </div>
                 )}

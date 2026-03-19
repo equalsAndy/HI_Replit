@@ -284,7 +284,7 @@ router.get('/cantril-ladder', async (req: Request, res: Response) => {
  * Final Insights Reflection endpoints
  */
 // POST /api/workshop-data/final-insights
-router.post('/final-insights', async (req: Request, res: Response) => {
+router.post('/final-insights', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
 

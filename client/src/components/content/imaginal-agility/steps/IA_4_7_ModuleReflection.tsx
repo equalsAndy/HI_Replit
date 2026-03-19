@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -195,6 +196,8 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
     INITIAL_DATA,
     { debounceMs: 1500, enableAutoSave: true },
   );
+  const { isWorkshopLocked, iaCompleted, completeWorkshop } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-4-7');
 
   // Raw exercise data from prior steps
   const [exerciseData, setExerciseData] = useState<Exercises & { loading: boolean }>({
@@ -382,10 +385,10 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
             return (
               <button
                 key={key}
-                disabled={!has}
-                onClick={() => has && handleSelectAnchor(key)}
+                disabled={!has || isStepLocked}
+                onClick={() => has && !isStepLocked && handleSelectAnchor(key)}
                 className={`relative text-left p-5 rounded-xl border-2 transition-all duration-200 ${
-                  !has
+                  !has || isStepLocked
                     ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-50'
                     : isSelected
                       ? 'bg-purple-50 border-purple-500 shadow-md'
@@ -424,10 +427,10 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
 
           return (
             <button
-              disabled={!has}
-              onClick={() => has && handleSelectAnchor(key)}
+              disabled={!has || isStepLocked}
+              onClick={() => has && !isStepLocked && handleSelectAnchor(key)}
               className={`relative w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${
-                !has
+                !has || isStepLocked
                   ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-50'
                   : isSelected
                     ? 'bg-purple-50 border-purple-500 shadow-md'
@@ -462,10 +465,20 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
       </p>
 
       {/* ── Continue button ── */}
-      {isComplete && (
+      {(isComplete || isStepLocked) && (
         <div className="flex justify-end mb-8">
           <button
-            onClick={() => onNext?.('ia-5-4')}
+            onClick={async () => {
+              if (!iaCompleted) {
+                const result = await completeWorkshop('ia');
+                if (result.success) {
+                  console.log('✅ IA workshop completed — modules 1-4 now locked');
+                } else {
+                  console.warn('⚠️ IA workshop completion not ready:', result.error);
+                }
+              }
+              onNext?.('ia-5-1');
+            }}
             disabled={saving}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg rounded-lg font-medium transition-colors disabled:opacity-50"
           >

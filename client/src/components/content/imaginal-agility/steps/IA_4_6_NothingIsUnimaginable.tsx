@@ -4,6 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA_4_6_ContentProps {
@@ -56,6 +57,8 @@ function resolveActivityTitle(id: string): string {
 
 const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-4-6');
 
   const initialData: IA46StepData = {
     whatIf: '',
@@ -267,7 +270,9 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
                     placeholder="What if..."
                     value={data.whatIf}
                     onChange={(e) => updateData({ whatIf: e.target.value })}
-                    className="w-full h-32 resize-none"
+                    className={`w-full h-32 resize-none ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+                    disabled={isStepLocked}
+                    readOnly={isStepLocked}
                   />
                   {wordCount > 0 && (
                     <div className="absolute bottom-2 right-2 text-xs text-gray-400">
@@ -279,7 +284,7 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
                   <Button
                     onClick={handleSave}
                     className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-                    disabled={!data.whatIf.trim() || saving}
+                    disabled={!data.whatIf.trim() || saving || isStepLocked}
                   >
                     {saving ? 'Saving\u2026' : 'Save'}
                   </Button>
@@ -296,7 +301,8 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditing(true)}
-                    className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                    disabled={isStepLocked}
+                    className={`text-purple-600 border-purple-300 hover:bg-purple-50 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     Edit
                   </Button>
@@ -326,7 +332,9 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
                 placeholder="What stood out, surprised you, or connected..."
                 value={data.processReflection || ''}
                 onChange={(e) => updateData({ processReflection: e.target.value })}
-                className="w-full h-24 resize-none"
+                className={`w-full h-24 resize-none ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
               />
             </div>
           )}
@@ -351,7 +359,8 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
             variant="outline"
             size="sm"
             onClick={fillWithDemoData}
-            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+            disabled={isStepLocked}
+            className={`text-purple-600 hover:text-purple-800 hover:bg-purple-50 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <FileText className="w-4 h-4 mr-2" />
             Add Demo Data

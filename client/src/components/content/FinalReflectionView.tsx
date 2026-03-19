@@ -228,7 +228,7 @@ export default function FinalReflectionView({
             
             <div className="input-section">
               <div className="textarea-wrapper">
-                <LockedInputWrapper stepId="3-4">
+                <LockedInputWrapper stepId="3-3">
                   <textarea
                     className={`insight-input ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
                     value={insight}

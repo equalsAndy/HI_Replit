@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useContinuity } from '@/hooks/useContinuity';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { Button } from '@/components/ui/button';
 import { ReframeModal } from './ReframeModal';
 import { CapabilitiesExplorerModal, ExplorerRound } from './CapabilitiesExplorerModal';
@@ -14,6 +15,8 @@ function formatCapabilityList(caps: string[]): string {
 
 export default function ReframeExercise() {
   const { state, setState, loading, saveNow } = useContinuity();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-4-2');
   const [modalOpen, setModalOpen] = React.useState(false);
   const [explorerOpen, setExplorerOpen] = React.useState(false);
   const newPerspectiveRef = React.useRef<HTMLTextAreaElement | null>(null);
@@ -160,9 +163,11 @@ export default function ReframeExercise() {
         </p>
         <textarea
           id="challenge-textarea"
-          className="w-full border border-gray-300 rounded p-2 resize-y bg-white"
+          className={`w-full border border-gray-300 rounded p-2 resize-y ${isStepLocked ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-white'}`}
           rows={5}
           value={challenge}
+          disabled={isStepLocked}
+          readOnly={isStepLocked}
           onChange={(e) =>
             setState((prev) => ({
               ...prev,
@@ -185,7 +190,7 @@ export default function ReframeExercise() {
       </div>
 
       <div className="mb-6">
-        <Button onClick={openModal} disabled={!isChallengeValid}>
+        <Button onClick={openModal} disabled={!isChallengeValid || isStepLocked}>
           Work with AI to reframe this
         </Button>
       </div>
@@ -226,9 +231,11 @@ export default function ReframeExercise() {
             <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">New Perspective</h3>
             <textarea
               ref={newPerspectiveRef}
-              className="w-full border border-gray-300 rounded p-2 resize-y bg-white"
+              className={`w-full border border-gray-300 rounded p-2 resize-y ${isStepLocked ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-white'}`}
               rows={3}
               value={ia.new_perspective ?? ''}
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
               onChange={(e) =>
                 setState((prev) => ({
                   ...prev,
@@ -264,10 +271,12 @@ export default function ReframeExercise() {
               With your new perspective, what&apos;s your first instinct for a next step? Don&apos;t overthink it — just capture your gut response.
             </p>
             <textarea
-              className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
+              className={`w-full border border-gray-300 rounded p-3 resize-y ${isStepLocked ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-white'}`}
               rows={3}
               placeholder="My first instinct is..."
               value={ia.instinct_approach ?? ''}
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
               onChange={(e) =>
                 setState((prev) => ({
                   ...prev,
@@ -288,6 +297,7 @@ export default function ReframeExercise() {
             <div className="mb-6">
               <Button
                 onClick={() => setExplorerOpen(true)}
+                disabled={isStepLocked}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 Explore with Capabilities
@@ -327,6 +337,7 @@ export default function ReframeExercise() {
                 variant="outline"
                 size="sm"
                 onClick={() => setExplorerOpen(true)}
+                disabled={isStepLocked}
                 className="mt-3 text-purple-600 border-purple-300"
               >
                 Explore again
@@ -358,10 +369,12 @@ export default function ReframeExercise() {
                 What stood out to you about the approach you chose?
               </p>
               <textarea
-                className="w-full border border-gray-300 rounded p-3 resize-y bg-white"
+                className={`w-full border border-gray-300 rounded p-3 resize-y ${isStepLocked ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-white'}`}
                 rows={3}
                 placeholder="What stands out when you compare these two approaches?"
                 value={ia.explorer_reflection ?? ''}
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
                 onChange={(e) =>
                   setState((prev) => ({
                     ...prev,

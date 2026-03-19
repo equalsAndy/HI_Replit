@@ -39,12 +39,18 @@ const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
  * @param isWorkshopCompleted Whether the workshop is completed
  * @returns true if the module should be locked for editing
  */
-const isModuleLocked = (module: number, isWorkshopCompleted: boolean): boolean => {
+const isModuleLocked = (module: number, isWorkshopCompleted: boolean, workshopType: 'ast' | 'ia' = 'ast'): boolean => {
+  if (workshopType === 'ia') {
+    // IA: Modules 1-4 lock after completion, Module 5+ stays open
+    if (module >= 1 && module <= 4) {
+      return isWorkshopCompleted;
+    }
+    return false;
+  }
+  // AST: Modules 1-3 lock after completion, 4-5 lock before completion (unlock after)
   if (module >= 1 && module <= 3) {
-    // Modules 1-3: Lock AFTER workshop completion
     return isWorkshopCompleted;
   } else if (module >= 4 && module <= 5) {
-    // Modules 4-5: Lock BEFORE workshop completion (unlock AFTER completion)
     return !isWorkshopCompleted;
   }
   return false;
@@ -156,12 +162,29 @@ export function useWorkshopStatus() {
       return isWorkshopCompleted;
     }
 
-    return isModuleLocked(module, isWorkshopCompleted);
+    return isModuleLocked(module, isWorkshopCompleted, appType);
   };
 
+  /**
+   * Check if a module is accessible for navigation (viewing).
+   * After workshop completion, ALL modules are navigable (read-only).
+   * Before completion, modules 4-5 are locked (AST only).
+   * This is separate from isWorkshopLocked which controls editing.
+   */
   const isModuleAccessible = (appType: 'ast' | 'ia', module: number) => {
     const isWorkshopCompleted = appType === 'ast' ? status.astWorkshopCompleted : status.iaWorkshopCompleted;
-    return !isModuleLocked(module, isWorkshopCompleted);
+
+    if (isWorkshopCompleted) {
+      // After completion: all modules are navigable (1-3 in read-only mode)
+      return true;
+    }
+
+    // Before completion: modules 4-5 locked for AST, IA handles its own progression
+    if (appType === 'ast' && module >= 4 && module <= 5) {
+      return false;
+    }
+
+    return true;
   };
 
   return {

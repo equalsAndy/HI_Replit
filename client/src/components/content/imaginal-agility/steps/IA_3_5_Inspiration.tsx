@@ -5,6 +5,7 @@ import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary
 import { useVideoByStepId } from '@/hooks/use-videos';
 import { Card, CardContent } from '@/components/ui/card';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 interface IA35ContentProps {
   onNext?: (stepId: string) => void;
@@ -66,6 +67,8 @@ const interludes: InterludeData[] = [
 ];
 
 const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-3-5');
   const [selectedInterludes, setSelectedInterludes] = useState<InterludeData[]>([]);
   const [responses, setResponses] = useState<{ [key: string]: string }>({});
   const [completed, setCompleted] = useState<string[]>([]);
@@ -198,8 +201,8 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     return (
       <div className="space-y-2">
         <div
-          onClick={() => handleInterludeClick(interlude)}
-          className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+          onClick={isStepLocked ? undefined : () => handleInterludeClick(interlude)}
+          className={`p-4 rounded-lg border-2 transition-all duration-200 ${isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
             isSelected 
               ? `${theme.border} ${theme.bg} shadow-md ring-2 ${theme.ring}`
               : 'border-gray-300 hover:border-purple-300 hover:bg-purple-25 hover:shadow-sm'
@@ -547,7 +550,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                   </div>
                   <div className="flex gap-2">
                     {hasChanges && (
-                      <Button onClick={clearDraft} variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
+                      <Button onClick={clearDraft} variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50" disabled={isStepLocked}>
                         Reset Selection
                       </Button>
                     )}
@@ -568,7 +571,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                             variant="outline"
                             size="sm"
                             className="text-gray-500 border-gray-200 hover:bg-gray-50 text-xs"
-                            disabled={saving}
+                            disabled={saving || isStepLocked}
                             onClick={async () => {
                               const newSelectedInterludes = selectedInterludes.filter(i => i.id !== sel.id);
                               setSelectedInterludes(newSelectedInterludes);
@@ -590,17 +593,20 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                           onChange={(e) => handleResponseChange(sel.id, e.target.value)}
                           placeholder="Take your time... reflect on this moment and let the words flow..."
                           rows={6}
-                          disabled={completed.includes(sel.id)}
+                          disabled={completed.includes(sel.id) || isStepLocked}
+                          readOnly={isStepLocked}
                           className={`w-full block p-4 border-2 rounded-lg text-gray-800 leading-relaxed resize-none box-border ${
-                            completed.includes(sel.id) 
-                              ? 'border-green-300 bg-green-50 cursor-not-allowed' 
-                              : 'border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500'
+                            isStepLocked
+                              ? 'opacity-60 cursor-not-allowed bg-gray-50'
+                              : completed.includes(sel.id)
+                                ? 'border-green-300 bg-green-50 cursor-not-allowed'
+                                : 'border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500'
                           }`}
                         />
                         {/* Mark Complete — anchored bottom-right of each card */}
                         <div className="flex justify-end mt-4 pt-3 border-t border-gray-100">
                           <Button
-                            disabled={saving}
+                            disabled={saving || isStepLocked}
                             onClick={async () => {
                               const isCurrentlyCompleted = completed.includes(sel.id);
                               const next = isCurrentlyCompleted
@@ -637,7 +643,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                 <Button
                   onClick={handleContinue}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
-                  disabled={!canProceedToReflection}
+                  disabled={!canProceedToReflection || isStepLocked}
                 >
                   Continue to The Unimaginable
                 </Button>
@@ -667,7 +673,9 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
               onChange={(e) => setPatternReflection(e.target.value)}
               placeholder="What patterns do you notice in your chosen interludes? Take your time to reflect..."
               rows={5}
-              className="w-full p-4 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 leading-relaxed resize-none"
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
+              className={`w-full p-4 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 leading-relaxed resize-none ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             />
             <div className="flex justify-between">
               <Button
@@ -711,7 +719,9 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
               onChange={(e) => setMomentStory(e.target.value)}
               placeholder="Tell the story of one moment that unites your experiences... Paint the scene with your words..."
               rows={7}
-              className="w-full p-4 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 leading-relaxed resize-none"
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
+              className={`w-full p-4 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 leading-relaxed resize-none ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             />
             <div className="flex justify-between">
               <Button
@@ -752,7 +762,9 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
               onChange={(e) => setFeelingClaim(e.target.value)}
               placeholder="How does inspiration live in you? Claim this truth about yourself..."
               rows={5}
-              className="w-full p-4 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 leading-relaxed resize-none"
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
+              className={`w-full p-4 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 leading-relaxed resize-none ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             />
             <div className="flex justify-between">
               <Button
@@ -777,6 +789,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                         onNext && onNext('ia-3-6');
                       }}
                       className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+                      disabled={isStepLocked}
                     >
                       Continue to The Unimaginable
                     </Button>
@@ -810,6 +823,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
               <Button
                 onClick={handleContinueWithIncomplete}
                 className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={isStepLocked}
               >
                 Continue & Delete Incomplete
               </Button>

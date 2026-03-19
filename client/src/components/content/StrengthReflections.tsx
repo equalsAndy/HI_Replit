@@ -14,6 +14,7 @@ interface StrengthReflectionsProps {
   onComplete?: () => void;
   setCurrentContent?: (content: string) => void;
   markStepCompleted?: (stepId: string) => void;
+  workshopLocked?: boolean;
 }
 
 const getStrengthColors = (label: string) => {
@@ -87,11 +88,12 @@ const getStrengthPrompt = (strengthLabel: string, position: number) => {
   return prompts[strengthLabel as keyof typeof prompts] || { instruction: "", bullets: [], examples: [] };
 };
 
-export default function StrengthReflections({ 
-  strengths, 
-  onComplete, 
+export default function StrengthReflections({
+  strengths,
+  onComplete,
   setCurrentContent,
-  markStepCompleted 
+  markStepCompleted,
+  workshopLocked = false
 }: StrengthReflectionsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
@@ -539,10 +541,11 @@ export default function StrengthReflections({
               <textarea
                 ref={textareaRef}
                 value={currentResponse}
-                onChange={(e) => handleResponseChange(e.target.value)}
+                onChange={workshopLocked ? undefined : (e) => handleResponseChange(e.target.value)}
                 placeholder="Share your thoughts here..."
-                className="w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                disabled={isSaving}
+                className={`w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${workshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+                disabled={isSaving || workshopLocked}
+                readOnly={workshopLocked}
               />
               <div className="flex justify-between mt-3">
                 <div className="text-base text-gray-500">
@@ -564,13 +567,38 @@ export default function StrengthReflections({
             <div className="flex justify-between items-center">
               <div className="text-base text-gray-500">
                 Reflection {currentIndex + 1} of {reflectionConfigs.length}
-                {allReflectionsCompleted && isEditing && (
+                {workshopLocked && (
+                  <span className="ml-2 text-gray-400">🔒 Read only</span>
+                )}
+                {!workshopLocked && allReflectionsCompleted && isEditing && (
                   <span className="ml-2 text-blue-600">• Editing</span>
                 )}
               </div>
-              
+
               <div className="space-x-3">
-                {allReflectionsCompleted && isEditing ? (
+                {workshopLocked ? (
+                  /* When locked, show navigation between reflections but no save/complete */
+                  <div className="flex gap-2">
+                    {currentIndex > 0 && (
+                      <Button
+                        onClick={() => setCurrentIndex(currentIndex - 1)}
+                        variant="outline"
+                        className="text-base px-4 py-2"
+                      >
+                        Previous
+                      </Button>
+                    )}
+                    {currentIndex < reflectionConfigs.length - 1 && (
+                      <Button
+                        onClick={() => setCurrentIndex(currentIndex + 1)}
+                        variant="outline"
+                        className="text-base px-4 py-2"
+                      >
+                        Next
+                      </Button>
+                    )}
+                  </div>
+                ) : allReflectionsCompleted && isEditing ? (
                   <Button
                     onClick={() => setIsEditing(false)}
                     className="bg-gray-600 hover:bg-gray-700 text-base px-6 py-3"

@@ -379,7 +379,7 @@ router.get('/flow-assessment', async (req: Request, res: Response) => {
 });
 
 // POST /api/workshop-data/flow-assessment
-router.post('/flow-assessment', async (req: Request, res: Response) => {
+router.post('/flow-assessment', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
 
@@ -487,7 +487,7 @@ router.get('/ia-assessment/:userId?', async (req: Request, res: Response) => {
 });
 
 // Save IA assessment results
-router.post('/ia-assessment', async (req: Request, res: Response) => {
+router.post('/ia-assessment', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
 

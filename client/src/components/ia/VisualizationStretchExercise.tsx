@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useContinuity } from '@/hooks/useContinuity';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StretchModal, TAG_OPTIONS } from './StretchModal';
@@ -78,6 +79,8 @@ function Thumb({ src, fallback, alt }: { src: string; fallback: string; alt: str
 
 export default function VisualizationStretchExercise() {
   const { state, setState, loading, saveNow } = useContinuity();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-4-3');
   const [modalOpen, setModalOpen] = React.useState(false);
   const [enlargedImg, setEnlargedImg] = React.useState<{ src: string; alt: string } | null>(null);
   const [showExamples, setShowExamples] = React.useState(true);
@@ -437,14 +440,16 @@ export default function VisualizationStretchExercise() {
               <div className="flex flex-col sm:flex-row gap-3 items-start">
                 <Button
                   onClick={() => setModalOpen(true)}
-                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white text-base px-8 py-3"
+                  disabled={isStepLocked}
+                  className={`w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white text-base px-8 py-3 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
                   Start Stretching
                 </Button>
                 <button
                   type="button"
                   onClick={() => setShowImageReplace(true)}
-                  className="text-sm text-gray-500 hover:text-purple-600 underline transition-colors"
+                  disabled={isStepLocked}
+                  className={`text-sm text-gray-500 hover:text-purple-600 underline transition-colors ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
                   Choose a different starting image
                 </button>
@@ -452,7 +457,8 @@ export default function VisualizationStretchExercise() {
                   <button
                     type="button"
                     onClick={clearOverride}
-                    className="text-sm text-gray-400 hover:text-gray-600 underline transition-colors"
+                    disabled={isStepLocked}
+                    className={`text-sm text-gray-400 hover:text-gray-600 underline transition-colors ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     Revert to original
                   </button>
@@ -493,11 +499,13 @@ export default function VisualizationStretchExercise() {
                   value={replaceSearch}
                   onChange={(e) => setReplaceSearch(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); runReplaceSearch(); } }}
-                  className="flex-1"
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
+                  className={`flex-1 ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 />
                 <Button
                   onClick={runReplaceSearch}
-                  disabled={!replaceSearch.trim() || replaceLoading}
+                  disabled={isStepLocked || !replaceSearch.trim() || replaceLoading}
                   size="sm"
                 >
                   {replaceLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
@@ -542,13 +550,15 @@ export default function VisualizationStretchExercise() {
                     value={overrideTitle}
                     onChange={(e) => setOverrideTitle(e.target.value)}
                     placeholder="What does this image represent?"
-                    className="w-full"
+                    disabled={isStepLocked}
+                    readOnly={isStepLocked}
+                    className={`w-full ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                   />
                   <Button
                     onClick={confirmOverride}
-                    disabled={!overrideTitle.trim()}
+                    disabled={isStepLocked || !overrideTitle.trim()}
                     size="sm"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className={`w-full bg-purple-600 hover:bg-purple-700 text-white ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     Use This Image
                   </Button>
@@ -565,7 +575,8 @@ export default function VisualizationStretchExercise() {
               <button
                 type="button"
                 onClick={() => setShowImageReplace(true)}
-                className="text-sm text-purple-600 hover:text-purple-800 underline"
+                disabled={isStepLocked}
+                className={`text-sm text-purple-600 hover:text-purple-800 underline ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 Or choose an image now
               </button>
@@ -653,7 +664,7 @@ export default function VisualizationStretchExercise() {
                 What do these two images reveal together?
               </label>
               <textarea
-                className="w-full min-h-[80px] p-3 border border-gray-300 rounded-lg text-sm resize-y bg-white"
+                className={`w-full min-h-[80px] p-3 border border-gray-300 rounded-lg text-sm resize-y ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : 'bg-white'}`}
                 value={ia.story ?? ''}
                 onChange={(e) =>
                   setState((prev) => ({
@@ -663,6 +674,8 @@ export default function VisualizationStretchExercise() {
                 }
                 onBlur={() => saveNow()}
                 placeholder="Together, these images show..."
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
               />
             </div>
           </div>
@@ -674,9 +687,9 @@ export default function VisualizationStretchExercise() {
               {TAG_OPTIONS.map(({ value, label, helper }) => (
                 <label
                   key={value}
-                  className={`flex items-start gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 transition-all ${
+                  className={`flex items-start gap-2 p-3 border rounded-lg transition-all ${
                     ia.tag === value ? 'border-purple-400 bg-purple-50' : 'border-gray-200'
-                  }`}
+                  } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}
                 >
                   <input
                     type="radio"
@@ -684,6 +697,7 @@ export default function VisualizationStretchExercise() {
                     value={value}
                     checked={ia.tag === value}
                     onChange={() => handleTagSelect(value)}
+                    disabled={isStepLocked}
                     className="mt-1"
                   />
                   <div>
@@ -694,9 +708,9 @@ export default function VisualizationStretchExercise() {
               ))}
               {/* Other option */}
               <label
-                className={`flex items-start gap-2 cursor-pointer p-3 border rounded-lg hover:bg-gray-50 transition-all col-span-2 ${
+                className={`flex items-start gap-2 p-3 border rounded-lg transition-all col-span-2 ${
                   ia.tag === 'other' ? 'border-purple-400 bg-purple-50' : 'border-gray-200'
-                }`}
+                } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}
               >
                 <input
                   type="radio"
@@ -706,6 +720,7 @@ export default function VisualizationStretchExercise() {
                   onChange={() => {
                     if (otherTagText.trim()) handleTagSelect('other');
                   }}
+                  disabled={isStepLocked}
                   className="mt-1"
                 />
                 <div className="flex-1">
@@ -723,14 +738,17 @@ export default function VisualizationStretchExercise() {
                       }
                     }}
                     placeholder="In your own words..."
-                    className="mt-1 text-sm"
+                    disabled={isStepLocked}
+                    readOnly={isStepLocked}
+                    className={`mt-1 text-sm ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                     onClick={(e) => e.stopPropagation()}
                   />
                   {ia.tag !== 'other' && otherTagText.trim() && (
                     <button
                       type="button"
                       onClick={() => handleTagSelect('other')}
-                      className="mt-1 text-xs text-purple-600 hover:text-purple-800 font-medium"
+                      disabled={isStepLocked}
+                      className={`mt-1 text-xs text-purple-600 hover:text-purple-800 font-medium ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       Select this
                     </button>
@@ -761,8 +779,8 @@ export default function VisualizationStretchExercise() {
                         key={key}
                         type="button"
                         onClick={() => !isLoading && setSelectedCapability(isSelected ? null : key)}
-                        disabled={isLoading}
-                        className={`p-3 rounded-lg border text-sm font-medium transition-all text-left ${
+                        disabled={isStepLocked || isLoading}
+                        className={`p-3 rounded-lg border text-sm font-medium transition-all text-left ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''} ${
                           isSelected
                             ? 'border-purple-400 bg-purple-50 text-purple-700 ring-1 ring-purple-200'
                             : `border-gray-200 hover:border-${color}-300 hover:bg-${color}-50 text-gray-700`
@@ -784,7 +802,8 @@ export default function VisualizationStretchExercise() {
                     <Button
                       size="sm"
                       onClick={() => handleCapabilityStretch(selectedCapability)}
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      disabled={isStepLocked}
+                      className={`bg-purple-600 hover:bg-purple-700 text-white ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       Generate {CAPABILITY_OPTIONS.find(c => c.key === selectedCapability)?.label} stretch
                     </Button>
@@ -813,11 +832,13 @@ export default function VisualizationStretchExercise() {
                   </div>
                 </div>
                 <textarea
-                  className="w-full min-h-[60px] p-2 border border-gray-300 rounded text-sm resize-y bg-white"
+                  className={`w-full min-h-[60px] p-2 border border-gray-300 rounded text-sm resize-y ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : 'bg-white'}`}
                   value={data.response || ''}
                   onChange={(e) => updateCapStretchResponse(cap, e.target.value)}
                   onBlur={() => saveNow()}
                   placeholder="What does this perspective add to your stretch?"
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
                 />
               </div>
             ))}
@@ -828,7 +849,8 @@ export default function VisualizationStretchExercise() {
             <Button
               variant="outline"
               onClick={() => setModalOpen(true)}
-              className="text-purple-700 border-purple-300 hover:bg-purple-50"
+              disabled={isStepLocked}
+              className={`text-purple-700 border-purple-300 hover:bg-purple-50 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Redo Visualization Stretch
             </Button>
