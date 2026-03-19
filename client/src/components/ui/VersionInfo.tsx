@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 interface VersionInfo {
   version: string;
   build: string;
+  gitHash: string;
   timestamp: string;
   environment: string;
   databaseType?: string;
@@ -21,6 +22,7 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
   const [versionInfo, setVersionInfo] = useState<VersionInfo>({
     version: 'N/A',
     build: '',
+    gitHash: '',
     timestamp: '',
     environment: 'unknown',
     databaseType: 'unknown'
@@ -37,6 +39,7 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
           setVersionInfo({
             version: data.version || 'N/A',
             build: data.build || '',
+            gitHash: data.gitHash || '',
             timestamp: data.timestamp || '',
             environment: data.environment || 'unknown',
             databaseType: data.databaseType || 'unknown'
@@ -52,9 +55,10 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
             setVersionInfo({
               version: fallbackData.version || 'N/A',
               build: fallbackData.build || '',
+              gitHash: fallbackData.gitHash || '',
               timestamp: fallbackData.timestamp || '',
               environment: fallbackData.environment || 'unknown',
-              databaseType: 'unknown' // No database info in fallback
+              databaseType: 'unknown'
             });
           }
         }
@@ -66,7 +70,7 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
     fetchVersionInfo();
   }, []);
 
-  const versionString = `v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}`;
+  const versionString = `v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}${versionInfo.gitHash ? ' (' + versionInfo.gitHash + ')' : ''}`;
 
   if (variant === 'badge') {
     return (

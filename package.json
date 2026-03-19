@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
+    "dev": "npm run build && NODE_ENV=development tsx server/index.ts",
     "dev:hmr": "NODE_ENV=development tsx dev-server.js",
     "dev:clean": "bash scripts/run_dev_hmr.sh",
     "dev:ports": "lsof -ti tcp:8080,24679 || echo 'Ports 8080 and 24679 are free'",

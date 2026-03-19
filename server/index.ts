@@ -242,23 +242,25 @@ app.get('/health', async (req, res) => {
 app.get('/api/system/info', async (req, res) => {
   try {
     // Get version info from file
-    let versionInfo = {
+    let versionInfo: Record<string, string> = {
       version: 'unknown',
-      build: 'unknown',
+      build: '',
+      gitHash: 'unknown',
       environment: 'unknown',
       timestamp: 'unknown'
     };
-    
+
     try {
       // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
+      const versionPath = process.env.NODE_ENV === 'production'
         ? path.join(__dirname, './public/version.json')
         : path.join(__dirname, '../public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
-        build: versionData.build || 'unknown',
+        build: versionData.build || '',
+        gitHash: versionData.gitHash || 'unknown',
         environment: versionData.environment || 'unknown',
         timestamp: versionData.timestamp || 'unknown'
       };
@@ -293,6 +295,7 @@ app.get('/api/system/info', async (req, res) => {
     res.status(200).json({
       version: versionInfo.version,
       build: versionInfo.build,
+      gitHash: versionInfo.gitHash,
       environment: actualEnvironment,
       timestamp: versionInfo.timestamp,
       databaseType,
