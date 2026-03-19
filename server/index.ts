@@ -483,6 +483,10 @@ async function initializeApp() {
       app.use('/api', router);
       app.use('/api/reports/holistic', holisticReportRoutes);
       app.use('/api/reports/holistic', holisticReportDebugRoutes);
+      // Mount exercise-training-docs BEFORE adminUploadRoutes — that router has global
+      // requireAuth/requireAdmin middleware that would otherwise block X-Sync-Key requests.
+      // Our router handles its own dual-auth (session OR X-Sync-Key).
+app.use('/api/admin/exercise-training-docs', exerciseTrainingDocsRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
@@ -501,7 +505,6 @@ async function initializeApp() {
       // ARCHIVED: RAG pipeline route, not used by exercise training docs
       // app.use('/api/admin/ai', trainingUploadRoutes);
 app.use('/api/admin/ai/exercise-instructions', iaExerciseInstructionsRoutes);
-app.use('/api/admin/exercise-training-docs', exerciseTrainingDocsRoutes);
 app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/admin/ai', adminAIResourcesRoutes);
       app.use('/api/admin/ai', aiComparisonRoutes);
