@@ -10,7 +10,7 @@
 #  MINOR  — New features added, backwards-compatible  (e.g. 2.7.x → 2.8.0)
 #  PATCH  — Bug fixes and small patches               (e.g. 2.8.0 → 2.8.1)
 #
-# Build numbers are derived from git commit count (not stored in version.json).
+# Build numbers are stored in version.json and increment by 1 on each build.
 # ─────────────────────────────────────────────────
 # Examples:
 #   ./version-manager.sh staging minor   → bumps 2.7.x to 2.8.0, build resets to 1
@@ -87,8 +87,9 @@ else
     echo "💻 Development version: v$VERSION"
 fi
 
-# Derive build number from git commit count (no more stored state to conflict)
-BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+# Derive build number from stored value in version.json (increment on each build)
+CURRENT_BUILD=$(node -p "JSON.parse(require('fs').readFileSync('$VERSION_JSON', 'utf8')).build" 2>/dev/null || echo "0")
+BUILD_NUMBER=$((CURRENT_BUILD + 1))
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
 echo "Updating version to v$VERSION build $BUILD_NUMBER for $ENVIRONMENT"
@@ -137,4 +138,4 @@ else
 fi
 
 echo ""
-echo "Build number is derived from git commit count (currently $BUILD_NUMBER commits)"
+echo "Build number is stored in version.json and increments on each build (now at $BUILD_NUMBER)"

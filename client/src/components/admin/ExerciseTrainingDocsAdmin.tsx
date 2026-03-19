@@ -333,14 +333,9 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
 
       {/* ── LEFT: Doc list ──────────────────────────────────────────────── */}
       <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {/* Sync controls — only available on dev (production can't reach localhost) */}
+        {/* Sync / Push controls */}
         <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
-          {currentEnv === 'production' && (
-            <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 8px', fontStyle: 'italic' }}>
-              Sync unavailable from production — use dev to push/pull.
-            </p>
-          )}
-          {currentEnv === 'dev' && !confirmSync ? (
+          {!confirmSync ? (
             <button
               onClick={() => setConfirmSync(true)}
               disabled={syncing}
@@ -348,7 +343,7 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
             >
               {syncing ? 'Syncing…' : `Sync from ${syncLabel}`}
             </button>
-          ) : currentEnv === 'dev' ? (
+          ) : (
             <div>
               <p style={{ fontSize: '12px', color: '#374151', marginBottom: '6px' }}>
                 Overwrite local docs with content from {syncLabel}?
@@ -362,15 +357,14 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
                 </button>
               </div>
             </div>
-          ) : null}
+          )}
           {syncResult && (
             <p style={{ fontSize: '11px', color: syncResult.startsWith('Sync') && !syncResult.includes('failed') && !syncResult.includes('error') ? '#059669' : '#dc2626', marginTop: '4px', margin: 0 }}>
               {syncResult}
             </p>
           )}
 
-          {/* Push to other environment — dev only */}
-          {currentEnv === 'dev' && !confirmPush ? (
+          {!confirmPush ? (
             <button
               onClick={() => setConfirmPush(true)}
               disabled={pushing}
@@ -378,7 +372,7 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
             >
               {pushing ? 'Pushing…' : `Push to ${pushLabel}`}
             </button>
-          ) : currentEnv === 'dev' ? (
+          ) : (
             <div style={{ marginTop: '6px' }}>
               <p style={{ fontSize: '12px', color: '#374151', marginBottom: '6px' }}>
                 Push ALL local docs to {pushLabel}? This overwrites remote content.
@@ -392,7 +386,7 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
                 </button>
               </div>
             </div>
-          ) : null}
+          )}
           {pushResult && (
             <p style={{ fontSize: '11px', color: pushResult.startsWith('Push') && !pushResult.includes('failed') && !pushResult.includes('error') ? '#059669' : '#dc2626', marginTop: '4px', margin: 0 }}>
               {pushResult}
