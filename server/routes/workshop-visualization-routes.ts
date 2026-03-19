@@ -154,7 +154,7 @@ router.get('/debug/step-1-1', async (req: Request, res: Response) => {
  * Visualization/Well-being endpoints for Cantril Ladder
  */
 // POST /api/visualization
-router.post('/visualization', async (req: Request, res: Response) => {
+router.post('/visualization', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
 

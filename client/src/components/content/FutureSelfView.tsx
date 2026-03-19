@@ -17,7 +17,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const { toast } = useToast();
-  const { astCompleted: workshopCompleted } = useWorkshopStatus();
+  const { astCompleted: workshopCompleted, isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ast', '3-2');
 
   // Local state for search (no auto-save)
   const [localSearchQuery, setLocalSearchQuery] = useState('');
@@ -577,6 +578,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           }}
           setCurrentContent={setCurrentContent}
           markStepCompleted={markStepCompleted}
+          workshopLocked={isStepLocked}
         />
       )}
 

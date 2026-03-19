@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
 
 interface IA37ContentProps {
@@ -125,6 +126,9 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
     INITIAL_DATA,
     { debounceMs: 1500, enableAutoSave: true }
   );
+
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-3-7');
 
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
   const capabilitiesRef = useRef<HTMLDivElement>(null);
@@ -425,8 +429,9 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
                 <button
                   key={exercise}
                   type="button"
-                  onClick={() => handleSelectExercise(exercise)}
-                  className={`w-full text-left flex items-start gap-3 pl-4 pr-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
+                  onClick={() => !isStepLocked && handleSelectExercise(exercise)}
+                  disabled={isStepLocked}
+                  className={`w-full text-left flex items-start gap-3 pl-4 pr-4 py-3 rounded-xl transition-all duration-200 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'} ${
                     isSelected
                       ? 'bg-purple-50 border-2 border-purple-400 shadow-sm'
                       : 'bg-white border border-gray-200 hover:bg-purple-50/50 hover:border-purple-200'
@@ -480,7 +485,9 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
                 value={data.scenario_notes}
                 onChange={(e) => updateData({ scenario_notes: e.target.value })}
                 placeholder="A few words about why this one..."
-                className="min-h-[72px]"
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
+                className={`min-h-[72px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
               />
             </div>
           )}
@@ -586,8 +593,9 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
                         <button
                           key={btnValue}
                           type="button"
-                          onClick={() => handleNotice(cap.key, btnValue)}
-                          className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer"
+                          onClick={() => !isStepLocked && handleNotice(cap.key, btnValue)}
+                          disabled={isStepLocked}
+                          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                           style={noticeButtonStyle(cap, btnValue, value)}
                         >
                           {label}
@@ -615,7 +623,9 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
                         value={noteValue}
                         onChange={(e) => handleNote(cap.key, e.target.value)}
                         placeholder="Optional — a few words..."
-                        className="min-h-[52px] text-sm resize-none"
+                        disabled={isStepLocked}
+                        readOnly={isStepLocked}
+                        className={`min-h-[52px] text-sm resize-none ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                       />
                     </div>
                   )}
@@ -642,7 +652,7 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
                 </p>
                 <Button
                   onClick={() => onNext?.('ia-4-1')}
-                  disabled={saving}
+                  disabled={saving || isStepLocked}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
                 >
                   {saving ? 'Saving...' : 'Continue to Module 4 →'}

@@ -17,7 +17,8 @@ const ReflectionView: React.FC<ContentViewProps> = ({
   starCard
 }) => {
   const { shouldShowDemoButtons } = useTestUser();
-  const { completed: workshopLocked, loading: workshopLoading, isWorkshopLocked } = useWorkshopStatus();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const workshopLocked = isWorkshopLocked('ast', '2-1');
 
   // Validation state
   const [validationError, setValidationError] = useState<string>('');

@@ -7,7 +7,8 @@ interface FutureSelfReflectionsProps {
   onComplete?: () => void;
   setCurrentContent?: (content: string) => void;
   markStepCompleted?: (stepId: string) => void;
-  imageCount?: number; // Add imageCount prop
+  imageCount?: number;
+  workshopLocked?: boolean;
 }
 
 const getFutureSelfPrompt = (reflectionIndex: number, imageCount: number = 1) => {
@@ -58,7 +59,8 @@ const FutureSelfReflections: React.FC<FutureSelfReflectionsProps> = ({
   onComplete,
   setCurrentContent,
   markStepCompleted,
-  imageCount = 1 // Default to 1 if not provided
+  imageCount = 1,
+  workshopLocked = false
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
@@ -418,10 +420,11 @@ const FutureSelfReflections: React.FC<FutureSelfReflectionsProps> = ({
             <textarea
               ref={textareaRef}
               value={currentResponse}
-              onChange={(e) => handleResponseChange(e.target.value)}
+              onChange={workshopLocked ? undefined : (e) => handleResponseChange(e.target.value)}
               placeholder="Share your thoughts here..."
-              className="w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-              disabled={isSaving}
+              className={`w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors ${workshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+              disabled={isSaving || workshopLocked}
+              readOnly={workshopLocked}
             />
             <div className="flex justify-between mt-3">
               <div className="text-base text-gray-500">
@@ -443,10 +446,34 @@ const FutureSelfReflections: React.FC<FutureSelfReflectionsProps> = ({
           <div className="flex justify-between items-center">
             <div className="text-base text-gray-500">
               Reflection {currentIndex + 1} of {reflectionConfigs.length}
+              {workshopLocked && (
+                <span className="ml-2 text-gray-400">🔒 Read only</span>
+              )}
             </div>
 
             <div className="space-x-3">
-              {currentIndex < reflectionConfigs.length - 1 ? (
+              {workshopLocked ? (
+                <div className="flex gap-2">
+                  {currentIndex > 0 && (
+                    <Button
+                      onClick={() => setCurrentIndex(currentIndex - 1)}
+                      variant="outline"
+                      className="text-base px-4 py-2"
+                    >
+                      Previous
+                    </Button>
+                  )}
+                  {currentIndex < reflectionConfigs.length - 1 && (
+                    <Button
+                      onClick={() => setCurrentIndex(currentIndex + 1)}
+                      variant="outline"
+                      className="text-base px-4 py-2"
+                    >
+                      Next
+                    </Button>
+                  )}
+                </div>
+              ) : currentIndex < reflectionConfigs.length - 1 ? (
                 <Button
                   onClick={handleNext}
                   disabled={!isCurrentComplete || isSaving}

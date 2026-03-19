@@ -5,6 +5,7 @@ import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useContinuity } from '@/hooks/useContinuity';
 import { GlobalPurposeBridgeModal } from './GlobalPurposeBridgeModal';
 import { Globe, Target } from 'lucide-react';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 const TAG_OPTIONS = [
   { value: 'Bigger Than I Thought',           label: 'Bigger than I thought',           helper: 'My intention isn\'t small \u2014 it connects to something real.' },
@@ -23,6 +24,8 @@ interface IA34StepData {
 
 export default function GlobalPurposeBridgeExercise() {
   const { state, setState, saveNow } = useContinuity();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-4-4');
   const [modalOpen, setModalOpen] = React.useState(false);
 
   const { data: ia34Data } = useWorkshopStepData<IA34StepData>('ia', 'ia-3-4', {
@@ -164,12 +167,15 @@ export default function GlobalPurposeBridgeExercise() {
                   onChange={(e) => setHigherPurpose(e.target.value)}
                   placeholder={effectivePurpose}
                   rows={3}
-                  className="text-sm"
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
+                  className={`text-sm ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={() => setHigherPurpose('')}
-                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    disabled={isStepLocked}
+                    className={`text-xs text-gray-500 hover:text-gray-700 underline ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     Reset to original
                   </button>
@@ -187,7 +193,9 @@ export default function GlobalPurposeBridgeExercise() {
               onChange={(e) => setHigherPurpose(e.target.value)}
               placeholder="Your deeper intention or core purpose..."
               rows={3}
-              className="text-sm"
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
+              className={`text-sm ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             />
           </div>
         )}
@@ -208,7 +216,9 @@ export default function GlobalPurposeBridgeExercise() {
           {globalChallenges.map((challenge) => (
             <label
               key={challenge}
-              className={`block p-3 rounded-lg border-2 cursor-pointer transition-all ${
+              className={`block p-3 rounded-lg border-2 transition-all ${
+                isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+              } ${
                 selectedChallenge === challenge
                   ? 'border-purple-500 bg-purple-50'
                   : 'border-gray-200 hover:border-purple-300'
@@ -221,6 +231,7 @@ export default function GlobalPurposeBridgeExercise() {
                   value={challenge}
                   checked={selectedChallenge === challenge}
                   onChange={() => handleChallengeSelect(challenge)}
+                  disabled={isStepLocked}
                   className="mt-1"
                 />
                 <span className="text-sm font-medium text-gray-800">{challenge}</span>
@@ -236,7 +247,9 @@ export default function GlobalPurposeBridgeExercise() {
             onChange={(e) => handleCustomChallengeChange(e.target.value)}
             placeholder="Describe a global challenge that draws you in..."
             rows={2}
-            className="text-sm"
+            disabled={isStepLocked}
+            readOnly={isStepLocked}
+            className={`text-sm ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
           />
         </div>
       </div>
@@ -252,7 +265,8 @@ export default function GlobalPurposeBridgeExercise() {
         ) : (
           <Button
             onClick={handleOpenModal}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+            disabled={isStepLocked}
+            className={`bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <Globe className="w-5 h-5 mr-2" />
             {isModalDone ? 'Explore Again' : 'Explore with AI'}
@@ -277,7 +291,7 @@ export default function GlobalPurposeBridgeExercise() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">The bridge</h3>
             <div className="bg-white border-[1.5px] border-purple-200 rounded-lg p-4">
               <textarea
-                className="w-full border-0 bg-transparent text-[15px] text-gray-800 leading-relaxed resize-y focus:outline-none focus:ring-0 min-h-[60px]"
+                className={`w-full border-0 bg-transparent text-[15px] text-gray-800 leading-relaxed resize-y focus:outline-none focus:ring-0 min-h-[60px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 rows={2}
                 value={ia.reframed_view ?? ''}
                 onChange={(e) =>
@@ -287,6 +301,8 @@ export default function GlobalPurposeBridgeExercise() {
                   }))
                 }
                 onBlur={() => saveNow()}
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
               />
               <p className="text-xs text-gray-400 italic mt-1">✏️ Edit to make this yours</p>
             </div>
@@ -299,7 +315,9 @@ export default function GlobalPurposeBridgeExercise() {
               {TAG_OPTIONS.map(({ value, label, helper }) => (
                 <label
                   key={value}
-                  className={`flex items-start gap-3 cursor-pointer p-3 border-[1.5px] rounded-lg transition-all ${
+                  className={`flex items-start gap-3 p-3 border-[1.5px] rounded-lg transition-all ${
+                    isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                  } ${
                     ia.tag === value
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 hover:border-purple-300 bg-white'
@@ -317,7 +335,9 @@ export default function GlobalPurposeBridgeExercise() {
                     name="tag44"
                     value={value}
                     checked={ia.tag === value}
+                    disabled={isStepLocked}
                     onChange={() => {
+                      if (isStepLocked) return;
                       setState((prev) => ({
                         ...prev,
                         ia_4_4: { ...(prev.ia_4_4 || {}), tag: value },
@@ -339,7 +359,7 @@ export default function GlobalPurposeBridgeExercise() {
           <div className="mb-6">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">What changed</h3>
             <textarea
-              className="w-full border-[1.5px] border-gray-200 rounded-lg p-4 text-sm leading-relaxed resize-y bg-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 min-h-[100px]"
+              className={`w-full border-[1.5px] border-gray-200 rounded-lg p-4 text-sm leading-relaxed resize-y bg-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 min-h-[100px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
               rows={4}
               placeholder="Now that I've stretched to global scale, when I come back to my intention I notice..."
               value={ia.intention_reflection ?? ''}
@@ -350,6 +370,8 @@ export default function GlobalPurposeBridgeExercise() {
                 }))
               }
               onBlur={() => saveNow()}
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
             />
             <div className="flex justify-between items-center mt-1.5">
               <p className="text-xs text-gray-400">

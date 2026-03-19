@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useContinuity } from '@/hooks/useContinuity';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { InvitingTheMuseModal, type MuseResult } from './AdvancedInspirationModal';
 import { Zap, Plus, X, CheckCircle2 } from 'lucide-react';
 
@@ -215,6 +216,8 @@ function renderPrepCardContent(text: string) {
 
 export default function InvitingTheMuseExercise() {
   const { state, setState, saveNow } = useContinuity();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-4-5');
   const [modalOpen, setModalOpen] = React.useState(false);
   const [showAddCustom, setShowAddCustom] = React.useState(false);
   const [customInput, setCustomInput] = React.useState('');
@@ -546,13 +549,14 @@ export default function InvitingTheMuseExercise() {
                       return (
                         <button
                           key={act.id}
-                          onClick={() => handleChipToggle(act.id)}
+                          onClick={() => !isStepLocked && handleChipToggle(act.id)}
+                          disabled={isStepLocked}
                           title={act.hint || ''}
                           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
                             isChecked
                               ? 'bg-purple-600 text-white'
                               : 'bg-white text-gray-600 border border-gray-300 hover:border-purple-300'
-                          }`}
+                          } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                           {act.title}
                           {isM3 && <span className="ml-1 text-[10px] bg-purple-200 text-purple-700 px-1 rounded">M3</span>}
@@ -575,18 +579,20 @@ export default function InvitingTheMuseExercise() {
                       return (
                         <div key={activity} className="flex items-center gap-1">
                           <button
-                            onClick={() => handleChipToggle(activity)}
+                            onClick={() => !isStepLocked && handleChipToggle(activity)}
+                            disabled={isStepLocked}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
                               isChecked
                                 ? 'bg-purple-600 text-white'
                                 : 'bg-white text-gray-600 border border-gray-300 hover:border-purple-300'
-                            }`}
+                            } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                           >
                             {activity}
                           </button>
                           <button
-                            onClick={() => removeCustomActivity(activity)}
-                            className="text-gray-400 hover:text-red-500 p-0.5"
+                            onClick={() => !isStepLocked && removeCustomActivity(activity)}
+                            disabled={isStepLocked}
+                            className={`text-gray-400 hover:text-red-500 p-0.5 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                             title="Remove"
                           >
                             <X className="w-3 h-3" />
@@ -600,7 +606,7 @@ export default function InvitingTheMuseExercise() {
             </div>
 
             {/* Add your own */}
-            {showAddCustom ? (
+            {!isStepLocked && (showAddCustom ? (
               <div className="flex items-center gap-2 mt-3">
                 <input
                   type="text"
@@ -626,7 +632,7 @@ export default function InvitingTheMuseExercise() {
                 <Plus className="w-4 h-4" />
                 Add your own
               </button>
-            )}
+            ))}
           </div>
 
           {/* ─── Section 3: The Process ────────────────────────────────────── */}
@@ -695,12 +701,13 @@ export default function InvitingTheMuseExercise() {
                 {explorableItems.map(({ id, title }) => (
                   <button
                     key={id}
-                    onClick={() => selectExploredActivity(id)}
+                    onClick={() => !isStepLocked && selectExploredActivity(id)}
+                    disabled={isStepLocked}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                       ia45.exploredActivity === id
                         ? 'bg-purple-600 text-white shadow-md'
                         : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
-                    }`}
+                    } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     {title}
                   </button>
@@ -717,7 +724,7 @@ export default function InvitingTheMuseExercise() {
             </p>
             <Button
               onClick={() => setModalOpen(true)}
-              disabled={!ia45.exploredActivity}
+              disabled={!ia45.exploredActivity || isStepLocked}
               className="bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white px-8 py-4 text-lg"
             >
               <Zap className="w-5 h-5 mr-2" />
@@ -757,12 +764,13 @@ export default function InvitingTheMuseExercise() {
                   return (
                     <button
                       key={line.id}
-                      onClick={() => toggleCoachingLine(line.id)}
+                      onClick={() => !isStepLocked && toggleCoachingLine(line.id)}
+                      disabled={isStepLocked}
                       className={`w-full text-left p-3 rounded-lg border-2 transition-all flex items-start gap-3 ${
                         isSelected
                           ? `${colors.activeBg} ${colors.activeBorder} shadow-sm`
                           : `${colors.bg} ${colors.border} hover:shadow-sm`
-                      }`}
+                      } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex-shrink-0 mt-0.5">
                         {isSelected ? (
@@ -787,7 +795,9 @@ export default function InvitingTheMuseExercise() {
                 </label>
                 <Textarea
                   rows={2}
-                  className="resize-y text-sm"
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
+                  className={`resize-y text-sm ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                   placeholder="Optional — just if something came to mind..."
                   value={ia45.coachingReaction ?? ''}
                   onChange={(e) =>
@@ -815,12 +825,13 @@ export default function InvitingTheMuseExercise() {
                 return (
                   <button
                     key={opt.id}
-                    onClick={() => toggleCapturePractice(opt.id)}
+                    onClick={() => !isStepLocked && toggleCapturePractice(opt.id)}
+                    disabled={isStepLocked}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
                       isSelected
                         ? 'bg-purple-600 text-white shadow-md'
                         : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
-                    }`}
+                    } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     <span>{opt.icon}</span>
                     {opt.label}
@@ -832,7 +843,9 @@ export default function InvitingTheMuseExercise() {
             {capturePractices.includes('other') && (
               <input
                 type="text"
-                className="w-full p-2 border border-gray-300 rounded-md text-sm mb-3"
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
+                className={`w-full p-2 border border-gray-300 rounded-md text-sm mb-3 ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 placeholder="Describe your capture method..."
                 value={ia45.capturePracticeCustom ?? ''}
                 onChange={(e) =>
@@ -915,7 +928,9 @@ export default function InvitingTheMuseExercise() {
               {TAG_OPTIONS.map(({ value, label, helper }) => (
                 <label
                   key={value}
-                  className={`flex items-start gap-2 cursor-pointer p-3 border-2 rounded-lg transition-all ${
+                  className={`flex items-start gap-2 p-3 border-2 rounded-lg transition-all ${
+                    isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                  } ${
                     ia45.tag === value
                       ? 'border-purple-500 bg-purple-50 shadow-sm'
                       : 'border-gray-200 hover:border-purple-300'
@@ -926,6 +941,7 @@ export default function InvitingTheMuseExercise() {
                     name="tag45"
                     value={value}
                     checked={ia45.tag === value}
+                    disabled={isStepLocked}
                     onChange={() => {
                       setState((prev) => ({ ...prev, ia_4_5: { ...prev.ia_4_5, tag: value } }));
                       setTimeout(() => saveNow(), 0);
@@ -952,8 +968,9 @@ export default function InvitingTheMuseExercise() {
           <div className="text-center mb-6">
             <Button
               onClick={handleExploreAnother}
+              disabled={isStepLocked}
               variant="outline"
-              className="border-purple-300 text-purple-600 hover:bg-purple-50"
+              className={`border-purple-300 text-purple-600 hover:bg-purple-50 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               <Zap className="w-4 h-4 mr-2" />
               Explore Another Activity

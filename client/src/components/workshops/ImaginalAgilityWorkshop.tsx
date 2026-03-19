@@ -235,6 +235,12 @@ export default function ImaginalAgilityWorkshop() {
     // Always allow access to the first step
     if (stepId === 'ia-1-1') return true;
 
+    // After workshop completion: all steps are navigable (modules 1-4 in read-only mode)
+    const iaCompleted = isWorkshopLocked('ia');
+    if (iaCompleted) {
+      return true;
+    }
+
     // Sections 6 & 7 (TEAMWORK, ORGANIZATION) - all unlock after Module 5 completion
     if (stepId === 'ia-6-1' || stepId === 'ia-6-2' || stepId === 'ia-7-1') {
       return completedSteps.includes('ia-5-5');

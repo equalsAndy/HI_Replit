@@ -6,6 +6,7 @@ import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 interface IA34ContentProps {
   onNext?: (stepId: string) => void;
@@ -22,7 +23,9 @@ interface IA34StepData {
 
 const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
-  
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-3-4');
+
   // Initialize with empty data structure
   const initialData: IA34StepData = {
     whyReflection: '',
@@ -127,11 +130,13 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
             e.g., &ldquo;Too many decisions in my field get made without the people affected&rdquo; or &ldquo;My students graduate technically skilled but not prepared for ambiguity&rdquo;
           </p>
           <textarea
-            className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+            className={`w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             rows={3}
             value={data.whyReflection}
             onChange={e => updateData({ whyReflection: e.target.value })}
             placeholder="What keeps pulling your attention..."
+            disabled={isStepLocked}
+            readOnly={isStepLocked}
           />
         </div>
 
@@ -145,11 +150,13 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
             e.g., &ldquo;I run our team's planning process and have credibility with leadership&rdquo; or &ldquo;I teach three sections and advise the department chair&rdquo;
           </p>
           <textarea
-            className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+            className={`w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             rows={3}
             value={data.howReflection}
             onChange={e => updateData({ howReflection: e.target.value })}
             placeholder="Where are you positioned to act on this..."
+            disabled={isStepLocked}
+            readOnly={isStepLocked}
           />
         </div>
 
@@ -163,11 +170,13 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
             e.g., &ldquo;She helped us get comfortable with not knowing the answer yet&rdquo; or &ldquo;He changed how we think about who we're building for&rdquo;
           </p>
           <textarea
-            className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+            className={`w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             rows={3}
             value={data.whatReflection}
             onChange={e => updateData({ whatReflection: e.target.value })}
             placeholder="What would you want them to say about your impact..."
+            disabled={isStepLocked}
+            readOnly={isStepLocked}
           />
         </div>
       </div>
@@ -179,11 +188,13 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           What's one small action you could take this week to move in that direction?
         </p>
         <textarea
-          className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+          className={`w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
           rows={2}
           value={data.nextStep}
           onChange={e => updateData({ nextStep: e.target.value })}
           placeholder="e.g., Block 30 minutes to map one challenge using a different approach than usual"
+          disabled={isStepLocked}
+          readOnly={isStepLocked}
         />
       </div>
 
@@ -195,17 +206,19 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           onSelect={(val) => updateData({ capability_activations: val as CapabilityType[] })}
           prompt="You just applied your I4C capabilities. Which two felt strongest as you worked through this?"
           className="mb-8"
+          disabled={isStepLocked}
         />
       )}
 
       {/* Save & Next */}
       <div className="flex justify-end items-center gap-3 mt-8">
         {shouldShowDemoButtons && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={fillWithDemoData}
             className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+            disabled={isStepLocked}
           >
             <FileText className="w-4 h-4 mr-2" />
             Add Demo Data
@@ -214,7 +227,7 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         <Button
           onClick={handleSave}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-          disabled={saving || !isFormComplete || !data.capability_activations || data.capability_activations.length !== 2}
+          disabled={isStepLocked || saving || !isFormComplete || !data.capability_activations || data.capability_activations.length !== 2}
         >
           {saving ? 'Saving...' : 'Continue to Inspiration'}
         </Button>

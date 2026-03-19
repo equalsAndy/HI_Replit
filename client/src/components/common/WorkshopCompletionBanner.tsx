@@ -9,26 +9,25 @@ interface WorkshopCompletionBannerProps {
 }
 
 export default function WorkshopCompletionBanner({ stepId, className = '' }: WorkshopCompletionBannerProps) {
-  const { astCompleted, astCompletedAt, isWorkshopLocked, getStepModule, isModuleAccessible } = useWorkshopStatus();
+  const { astCompleted, astCompletedAt, iaCompleted, iaCompletedAt, isWorkshopLocked, getStepModule, isModuleAccessible } = useWorkshopStatus();
   const { currentApp } = useApplication();
 
-  // Only show for AST workshop
-  if (currentApp !== 'allstarteams') {
-    return null;
-  }
+  const isAST = currentApp === 'allstarteams';
+  const isIA = currentApp === 'imaginal-agility';
+  const appType = isAST ? 'ast' : 'ia';
+  const isCompleted = isAST ? astCompleted : iaCompleted;
+  const completedAt = isAST ? astCompletedAt : iaCompletedAt;
+
+  // Only show for supported workshops
+  if (!isAST && !isIA) return null;
 
   const module = stepId ? getStepModule(stepId) : null;
-  const isStepLocked = stepId ? isWorkshopLocked('ast', stepId) : false;
 
   // Don't show banner if workshop isn't completed
-  if (!astCompleted) {
-    return null;
-  }
+  if (!isCompleted) return null;
 
   const getModuleStatus = () => {
     if (!module) return null;
-
-    const isAccessible = isModuleAccessible('ast', module);
 
     if (module >= 1 && module <= 3) {
       return {
@@ -39,7 +38,7 @@ export default function WorkshopCompletionBanner({ stepId, className = '' }: Wor
         borderColor: 'border-gray-200',
         textColor: 'text-gray-600'
       };
-    } else if (module >= 4 && module <= 5) {
+    } else if (isAST && module >= 4 && module <= 5) {
       return {
         status: 'unlocked',
         icon: <Award className="w-4 h-4" />,
@@ -61,9 +60,9 @@ export default function WorkshopCompletionBanner({ stepId, className = '' }: Wor
       <div className="flex items-center gap-2 mb-2">
         <CheckCircle className="w-5 h-5 text-green-600" />
         <span className="font-semibold text-green-700">Workshop Completed</span>
-        {astCompletedAt && (
+        {completedAt && (
           <span className="text-sm text-gray-500">
-            on {new Date(astCompletedAt).toLocaleDateString()}
+            on {new Date(completedAt).toLocaleDateString()}
           </span>
         )}
       </div>
@@ -84,7 +83,9 @@ export default function WorkshopCompletionBanner({ stepId, className = '' }: Wor
       {/* General locking message */}
       {!moduleStatus && (
         <div className="text-sm text-gray-600">
-          Modules 1-3 are locked for reference. Modules 4-5 contain your takeaways.
+          {isAST
+            ? 'Modules 1-3 are locked for reference. Modules 4-5 contain your takeaways.'
+            : 'Modules 1-3 are locked for reference. Modules 4+ remain active for continued learning.'}
         </div>
       )}
     </div>

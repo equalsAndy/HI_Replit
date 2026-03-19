@@ -112,10 +112,17 @@ export const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
  * Helper function to check if a module should be locked
  */
 export const isModuleLocked = (module: number, isWorkshopCompleted: boolean, workshopType: string = 'ast'): boolean => {
+  if (workshopType === 'ia') {
+    // IA: Modules 1-4 lock after completion, Module 5+ stays open
+    if (module >= 1 && module <= 4) {
+      return isWorkshopCompleted;
+    }
+    return false;
+  }
+  // AST: Modules 1-3 lock after completion, 4-5 lock before completion (unlock after)
   if (module >= 1 && module <= 3) {
     return isWorkshopCompleted;
   } else if (module >= 4 && module <= 5) {
-    if (workshopType === 'ia') return false;
     return !isWorkshopCompleted;
   }
   return false;
