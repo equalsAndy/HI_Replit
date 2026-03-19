@@ -112,12 +112,12 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
   const [testing, setTesting] = useState(false);
   const [testError, setTestError] = useState<string | null>(null);
 
-  // Sync
+  // Sync from other environment
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
   const [confirmSync, setConfirmSync] = useState(false);
 
-  // Push
+  // Push to other environment
   const [pushing, setPushing] = useState(false);
   const [pushResult, setPushResult] = useState<string | null>(null);
   const [confirmPush, setConfirmPush] = useState(false);
@@ -333,9 +333,14 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
 
       {/* ── LEFT: Doc list ──────────────────────────────────────────────── */}
       <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {/* Sync controls */}
+        {/* Sync controls — only available on dev (production can't reach localhost) */}
         <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
-          {!confirmSync ? (
+          {currentEnv === 'production' && (
+            <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 8px', fontStyle: 'italic' }}>
+              Sync unavailable from production — use dev to push/pull.
+            </p>
+          )}
+          {currentEnv === 'dev' && !confirmSync ? (
             <button
               onClick={() => setConfirmSync(true)}
               disabled={syncing}
@@ -343,7 +348,7 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
             >
               {syncing ? 'Syncing…' : `Sync from ${syncLabel}`}
             </button>
-          ) : (
+          ) : currentEnv === 'dev' ? (
             <div>
               <p style={{ fontSize: '12px', color: '#374151', marginBottom: '6px' }}>
                 Overwrite local docs with content from {syncLabel}?
@@ -357,15 +362,15 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
           {syncResult && (
             <p style={{ fontSize: '11px', color: syncResult.startsWith('Sync') && !syncResult.includes('failed') && !syncResult.includes('error') ? '#059669' : '#dc2626', marginTop: '4px', margin: 0 }}>
               {syncResult}
             </p>
           )}
 
-          {/* Push to other environment */}
-          {!confirmPush ? (
+          {/* Push to other environment — dev only */}
+          {currentEnv === 'dev' && !confirmPush ? (
             <button
               onClick={() => setConfirmPush(true)}
               disabled={pushing}
@@ -373,7 +378,7 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
             >
               {pushing ? 'Pushing…' : `Push to ${pushLabel}`}
             </button>
-          ) : (
+          ) : currentEnv === 'dev' ? (
             <div style={{ marginTop: '6px' }}>
               <p style={{ fontSize: '12px', color: '#374151', marginBottom: '6px' }}>
                 Push ALL local docs to {pushLabel}? This overwrites remote content.
@@ -387,7 +392,7 @@ const ExerciseTrainingDocsAdmin: React.FC = () => {
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
           {pushResult && (
             <p style={{ fontSize: '11px', color: pushResult.startsWith('Push') && !pushResult.includes('failed') && !pushResult.includes('error') ? '#059669' : '#dc2626', marginTop: '4px', margin: 0 }}>
               {pushResult}
