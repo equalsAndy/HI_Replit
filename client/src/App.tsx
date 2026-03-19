@@ -23,7 +23,7 @@ import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import ResetTestPage from '@/pages/reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
-import { ApplicationProvider } from '@/hooks/use-application';
+import { ApplicationProvider, useApplication } from '@/hooks/use-application';
 import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
 // Removed WorkshopLoader import - no longer needed after lazy loading rollback
@@ -56,7 +56,8 @@ const AutoSyncWrapper: React.FC = () => {
 // Component to handle beta tester welcome modal
 const BetaWelcomeWrapper: React.FC = () => {
   const { data: user } = useCurrentUser();
-  
+  const { currentApp } = useApplication();
+
   console.log('🔍 BetaWelcomeWrapper render - User data:', {
     userId: user?.id,
     username: user?.username,
@@ -64,7 +65,7 @@ const BetaWelcomeWrapper: React.FC = () => {
     hasSeenBetaWelcome: user?.hasSeenBetaWelcome,
     role: user?.role
   });
-  
+
   const {
     showWelcomeModal,
     handleCloseModal,
@@ -90,6 +91,7 @@ const BetaWelcomeWrapper: React.FC = () => {
       onDontShowAgain={handleDontShowAgain}
       onStartWorkshop={handleStartWorkshop}
       user={user}
+      appType={currentApp}
     />
   );
 };

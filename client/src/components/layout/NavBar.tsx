@@ -391,9 +391,10 @@ export function NavBar() {
           }}
           onStartWorkshop={() => {
             setIsBetaTesterModalOpen(false);
-            navigate('/allstarteams');
+            navigate(currentApp === 'imaginal-agility' ? '/imaginal-agility' : '/allstarteams');
           }}
           user={user}
+          appType={currentApp}
         />
       </div>
     </div>
