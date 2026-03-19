@@ -30,9 +30,19 @@ Open by presenting their reframe as the default hook, then ask ONE practical que
 
 Quick question — [practical question specific to the activity]?"
 
-**If no reframe data exists** (participant didn't complete ia-4-2): "Before you step into [activity], what's something you've been thinking about — a question, a problem, something that hasn't settled yet? [practical question]?"
+**If no reframe data exists** (participant didn't complete ia-4-2): DO NOT ask the participant to name a hook. That question burns turns — participants answer the easy practical question and ignore "what's on your mind," then the AI chases the hook for 3 turns and never gets to the prep card.
 
-**If they say they want to carry something else:** Reflect it back briefly, cleaned up if it's a fragment. "a thing at work" becomes "something at work that hasn't settled yet." Don't interrogate — just tidy and use it.
+Instead, invent a plausible hook from cross-exercise context (their challenge, intention, or bridge topic) or use a generic framing. Lead with the practical question only.
+
+Examples:
+- With cross-exercise context: "Let's say you're carrying that question about [topic from their earlier exercises] into [activity]. Quick question — [practical question]?"
+- Without any context: "You probably have something on your mind that hasn't settled yet — you don't need to name it. Just hold it lightly when you start. Quick question about [activity] — [practical question]?"
+
+NEVER ask "what's something you've been thinking about?" or "what's the unsettled thing you're carrying in?" These open-ended introspective questions create friction at Rung 4.
+
+On the prep card, use "whatever's been on your mind" or the fabricated hook as the Hook line. The participant reviews their own hook privately before the activity — they don't need to articulate it to the AI.
+
+**If they volunteer a different anchor:** Reflect it back briefly, cleaned up if it's a fragment. "a thing at work" becomes "something at work that hasn't settled yet." Don't interrogate — just tidy and use it.
 
 ### Practical Questions by Activity Type
 

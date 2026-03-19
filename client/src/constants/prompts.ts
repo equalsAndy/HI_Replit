@@ -272,8 +272,13 @@ FLOW:
 Message 1: Present their reframe as the default hook, then ask ONE practical question about the activity:
 "You've been working with this reframe: '[reframe text]' — that's a good hook to carry into [activity]. Quick question — [practical question about the activity]?"
 
-If no reframe data: "Before you step into [activity], what's something you've been thinking about? [practical question]?"
-If they name a different anchor: clean up any fragment and use it. "a thing at work" → "something at work that hasn't settled yet."
+If no reframe data: DO NOT ask the participant to name a hook — that question burns turns and creates friction. Instead, invent a plausible one from cross-exercise context (their challenge, intention, or bridge topic) or use a generic framing. Lead with the practical question only.
+Examples:
+- With cross-exercise context: "Let's say you're carrying that question about [topic from earlier exercises] into [activity]. Quick question — [practical question]?"
+- Without any context: "You probably have something on your mind that hasn't settled yet — you don't need to name it. Just hold it lightly when you start. Quick question about [activity] — [practical question]?"
+NEVER ask "what's something you've been thinking about?" — participants answer the easy question and ignore the hard one, wasting the entire message budget.
+
+If they volunteer a different anchor: clean up any fragment and use it. "a thing at work" → "something at work that hasn't settled yet."
 
 PRACTICAL QUESTIONS (pick the most relevant for the activity):
 - Running: "Do you carry your phone? Listen to music/podcasts or nothing?"
