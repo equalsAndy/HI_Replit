@@ -69,8 +69,9 @@ increment_version() {
     echo "${major}.${minor}.${patch}"
 }
 
-# Get git short hash for exact code identification
+# Get git short hash and branch for exact code identification
 GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 
 # Determine version based on environment
 if [ "$ENVIRONMENT" = "production" ]; then
@@ -112,6 +113,7 @@ if [ -n "$BUILD_NUMBER" ]; then
   \"version\": \"$VERSION\",
   \"build\": \"$BUILD_NUMBER\",
   \"gitHash\": \"$GIT_HASH\",
+  \"gitBranch\": \"$GIT_BRANCH\",
   \"timestamp\": \"$TIMESTAMP\",
   \"environment\": \"$ENVIRONMENT\"
 }"
@@ -119,6 +121,7 @@ else
     VERSION_CONTENT="{
   \"version\": \"$VERSION\",
   \"gitHash\": \"$GIT_HASH\",
+  \"gitBranch\": \"$GIT_BRANCH\",
   \"timestamp\": \"$TIMESTAMP\",
   \"environment\": \"$ENVIRONMENT\"
 }"

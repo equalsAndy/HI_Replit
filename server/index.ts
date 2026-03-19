@@ -246,6 +246,7 @@ app.get('/api/system/info', async (req, res) => {
       version: 'unknown',
       build: '',
       gitHash: 'unknown',
+      gitBranch: 'unknown',
       environment: 'unknown',
       timestamp: 'unknown'
     };
@@ -261,6 +262,7 @@ app.get('/api/system/info', async (req, res) => {
         version: versionData.version || 'unknown',
         build: versionData.build || '',
         gitHash: versionData.gitHash || 'unknown',
+        gitBranch: versionData.gitBranch || 'unknown',
         environment: versionData.environment || 'unknown',
         timestamp: versionData.timestamp || 'unknown'
       };
@@ -296,6 +298,7 @@ app.get('/api/system/info', async (req, res) => {
       version: versionInfo.version,
       build: versionInfo.build,
       gitHash: versionInfo.gitHash,
+      gitBranch: versionInfo.gitBranch,
       environment: actualEnvironment,
       timestamp: versionInfo.timestamp,
       databaseType,

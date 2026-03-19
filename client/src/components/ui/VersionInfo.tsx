@@ -5,6 +5,7 @@ interface VersionInfo {
   version: string;
   build: string;
   gitHash: string;
+  gitBranch: string;
   timestamp: string;
   environment: string;
   databaseType?: string;
@@ -23,6 +24,7 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
     version: 'N/A',
     build: '',
     gitHash: '',
+    gitBranch: '',
     timestamp: '',
     environment: 'unknown',
     databaseType: 'unknown'
@@ -40,6 +42,7 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
             version: data.version || 'N/A',
             build: data.build || '',
             gitHash: data.gitHash || '',
+            gitBranch: data.gitBranch || '',
             timestamp: data.timestamp || '',
             environment: data.environment || 'unknown',
             databaseType: data.databaseType || 'unknown'
@@ -56,6 +59,7 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
               version: fallbackData.version || 'N/A',
               build: fallbackData.build || '',
               gitHash: fallbackData.gitHash || '',
+              gitBranch: fallbackData.gitBranch || '',
               timestamp: fallbackData.timestamp || '',
               environment: fallbackData.environment || 'unknown',
               databaseType: 'unknown'
@@ -100,6 +104,9 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
         <div style={{ marginBottom: '2px' }}>
           Database: {versionInfo.databaseType}
         </div>
+        {versionInfo.gitBranch && (
+          <div style={{ marginBottom: '2px' }}>Branch: {versionInfo.gitBranch}</div>
+        )}
         {versionInfo.build && (
           <div>Build: {versionInfo.build}</div>
         )}
