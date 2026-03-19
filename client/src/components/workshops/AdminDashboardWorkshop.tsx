@@ -1268,7 +1268,6 @@ export default function AdminDashboardWorkshop() {
                       { id: 'overview', label: 'Overview', icon: Bot },
                       { id: 'training-docs', label: 'Training Docs', icon: BookOpen },
                       { id: 'exercise-instructions', label: 'Exercise Instructions', icon: Brain },
-                      { id: 'vector-stores', label: 'Vector Stores', icon: Brain },
                     ].map((subTab) => (
                       <button
                         key={subTab.id}
@@ -1288,7 +1287,6 @@ export default function AdminDashboardWorkshop() {
                   {activeAITab === 'overview' && <AIManagement />}
                   {activeAITab === 'training-docs' && <ExerciseTrainingDocsAdmin />}
                   {activeAITab === 'exercise-instructions' && <IAExerciseInstructions />}
-                  {activeAITab === 'vector-stores' && <AIVectorStoresPanel />}
                 </div>
               </div>
             )}
@@ -1300,81 +1298,3 @@ export default function AdminDashboardWorkshop() {
   );
 }
 
-// Small panel to show vector store files for key assistants
-const AIVectorStoresPanel: React.FC = () => {
-  const [assistants, setAssistants] = useState<any[]>([]);
-  const [filesByStore, setFilesByStore] = useState<Record<string, any[]>>({});
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/admin/ai/assistants/resources', { credentials: 'include' });
-        const data = await res.json();
-        if (data?.assistants) {
-          setAssistants(data.assistants);
-          // Load files for Report Talia and Reflection Talia if available
-          const targets = data.assistants.filter((a: any) => /Report Talia|Reflection Talia/i.test(a.name));
-          for (const a of targets) {
-            try {
-              const fr = await fetch(`/api/admin/ai/vector-store/${a.vectorStoreId}/files`, { credentials: 'include' });
-              const fdata = await fr.json();
-              setFilesByStore(prev => ({ ...prev, [a.vectorStoreId]: fdata.files || [] }));
-            } catch {}
-          }
-          // Load Ultra vector store files if configured (uses projectKey=ultra)
-          try {
-            const frUltra = await fetch(`/api/admin/ai/vector-store/${ULTRA_VECTOR_STORE_ID}/files?projectKey=ultra`, { credentials: 'include' });
-            const fdataUltra = await frUltra.json();
-            setFilesByStore(prev => ({ ...prev, [ULTRA_VECTOR_STORE_ID]: fdataUltra.files || [] }));
-          } catch {}
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  const reportAssistant = assistants.find(a => /Report Talia/i.test(a.name));
-  const reflectionAssistant = assistants.find(a => /Reflection Talia/i.test(a.name));
-  const ULTRA_VECTOR_STORE_ID = 'vs_689c0216a784819180bd2d242c868588';
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="border rounded p-4 bg-white">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">Production Report Writer</h3>
-          {!reportAssistant && <span className="text-xs text-red-600">Not configured</span>}
-        </div>
-        {reportAssistant && (
-          <div className="text-sm text-gray-600 mb-2">Vector Store: {reportAssistant.vectorStoreId}</div>
-        )}
-        <ul className="text-sm list-disc pl-4">
-          {(reportAssistant ? (filesByStore[reportAssistant.vectorStoreId] || []) : []).map((f: any) => (
-            <li key={f.id}>{f.filename || f.id}</li>
-          ))}
-          {!loading && reportAssistant && (filesByStore[reportAssistant.vectorStoreId] || []).length === 0 && (
-            <li className="text-gray-500">No files found or no access</li>
-          )}
-        </ul>
-      </div>
-
-      <div className="border rounded p-4 bg-white">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">Ultra Talia Report Writer</h3>
-          {!ULTRA_VECTOR_STORE_ID && <span className="text-xs text-red-600">Not configured</span>}
-        </div>
-        <div className="text-sm text-gray-600 mb-2">Vector Store: {ULTRA_VECTOR_STORE_ID || '—'}</div>
-        <ul className="text-sm list-disc pl-4">
-          {(filesByStore[ULTRA_VECTOR_STORE_ID] || []).map((f: any) => (
-            <li key={f.id}>{f.filename || f.id}</li>
-          ))}
-          {!loading && (filesByStore[ULTRA_VECTOR_STORE_ID] || []).length === 0 && (
-            <li className="text-gray-500">No files found or no access</li>
-          )}
-        </ul>
-      </div>
-    </div>
-  );
-};

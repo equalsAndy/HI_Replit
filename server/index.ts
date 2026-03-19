@@ -55,7 +55,8 @@ import taliaStatusRoutes from './routes/talia-status-routes.ts';
 // ARCHIVED: RAG pipeline route (persona-document sync)
 // import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
 import assistantTestRoutes from './routes/assistant-test-routes.ts';
-import adminAIResourcesRoutes from './routes/admin-ai-resources.ts';
+// REMOVED: Vector store admin panel (feature abandoned)
+// import adminAIResourcesRoutes from './routes/admin-ai-resources.ts';
 import iaStepRoutes from './routes/ia-step-routes.ts';
 import aiRoutes from './routes/ai.ts';
 import moduleReflectionRoutes from './routes/module-reflection-routes.ts';
@@ -506,7 +507,8 @@ app.use('/api/admin/exercise-training-docs', exerciseTrainingDocsRoutes);
       // app.use('/api/admin/ai', trainingUploadRoutes);
 app.use('/api/admin/ai/exercise-instructions', iaExerciseInstructionsRoutes);
 app.use('/api/admin/ai', assistantTestRoutes);
-      app.use('/api/admin/ai', adminAIResourcesRoutes);
+      // REMOVED: Vector store admin panel (feature abandoned)
+      // app.use('/api/admin/ai', adminAIResourcesRoutes);
       app.use('/api/admin/ai', aiComparisonRoutes);
       app.use('/api', iaStepRoutes);
       app.use('/api/ia', iaContinuityRoutes);

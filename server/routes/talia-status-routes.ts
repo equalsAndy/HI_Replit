@@ -1,168 +1,54 @@
 /**
- * Talia Status Routes
- * ==================
- * Check if Reflection Talia and Report Talia are connected and working
+ * AI Status Routes
+ * ================
+ * Lightweight status endpoint for the admin AI Overview tab.
+ * Checks API key presence and provider config — does NOT make real API calls.
  */
 
 import express from 'express';
-import { generateOpenAICoachingResponse, isOpenAIAPIAvailable } from '../services/openai-api-service.js';
 import { getProviderName } from '../services/ai-provider.js';
 
 const router = express.Router();
 
 /**
- * GET /api/talia-status/reflection
- * Test if Reflection Talia is connected and working
- */
-router.get('/reflection', async (req, res) => {
-  try {
-    // Quick basic availability check
-    if (!isOpenAIAPIAvailable()) {
-      return res.json({
-        connected: false,
-        status: 'api_key_missing',
-        message: 'OpenAI API key not configured'
-      });
-    }
-
-    // Test actual API connection with a simple message
-    const testResponse = await generateOpenAICoachingResponse({
-      userMessage: 'Hello',
-      personaType: 'ast_reflection',
-      userName: 'Test User',
-      contextData: { stepId: 'test' },
-      maxTokens: 50
-    });
-
-    // If we got a response and it's not a fallback error message
-    const isConnected = testResponse && 
-                       !testResponse.includes('having trouble connecting') &&
-                       !testResponse.includes('connection error');
-
-    res.json({
-      connected: isConnected,
-      status: isConnected ? 'connected' : 'connection_failed',
-      message: isConnected ? 'Reflection Talia is ready' : 'Talia is feeling disconnected, she\'ll be back later.',
-      testResponse: process.env.NODE_ENV === 'development' ? testResponse.substring(0, 100) + '...' : undefined
-    });
-
-  } catch (error) {
-    console.error('❌ Talia connection test failed:', error);
-    
-    res.json({
-      connected: false,
-      status: 'connection_error',
-      message: 'Talia is feeling disconnected, she\'ll be back later.',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-/**
- * GET /api/talia-status/reports
- * Test if Report Talia (report generation) is working
- */
-router.get('/reports', async (req, res) => {
-  try {
-    // Quick basic availability check
-    if (!isOpenAIAPIAvailable()) {
-      return res.json({
-        connected: false,
-        status: 'api_key_missing',
-        message: 'Report generation unavailable - API not configured'
-      });
-    }
-
-    // Test with a minimal report generation call
-    const testResponse = await generateOpenAICoachingResponse({
-      userMessage: 'Generate a test response',
-      personaType: 'star_report',
-      userName: 'Test User',
-      contextData: { 
-        reportContext: 'test',
-        selectedUserId: 1,
-        selectedUserName: 'Test User',
-        userData: { basic: 'test' }
-      },
-      maxTokens: 50
-    });
-
-    const isConnected = testResponse && 
-                       !testResponse.includes('having trouble connecting') &&
-                       !testResponse.includes('connection error');
-
-    res.json({
-      connected: isConnected,
-      status: isConnected ? 'connected' : 'connection_failed',
-      message: isConnected ? 'Report generation available' : 'Report generation temporarily unavailable',
-      testResponse: process.env.NODE_ENV === 'development' ? testResponse.substring(0, 100) + '...' : undefined
-    });
-
-  } catch (error) {
-    console.error('❌ Report Talia connection test failed:', error);
-    
-    res.json({
-      connected: false,
-      status: 'connection_error', 
-      message: 'Report generation temporarily unavailable',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-/**
  * GET /api/talia-status/all
- * Get status of both Reflection Talia and Report Talia
+ * Return AI provider configuration and key availability.
+ * No real API calls — just env var checks.
  */
-router.get('/all', async (req, res) => {
+router.get('/all', async (_req, res) => {
   try {
-    // Run both tests in parallel
-    const [reflectionTest, reportsTest] = await Promise.allSettled([
-      fetch(`${req.protocol}://${req.get('host')}/api/talia-status/reflection`).then(r => r.json()),
-      fetch(`${req.protocol}://${req.get('host')}/api/talia-status/reports`).then(r => r.json())
-    ]);
-
-    const reflectionStatus = reflectionTest.status === 'fulfilled' ? reflectionTest.value : { connected: false };
-    const reportsStatus = reportsTest.status === 'fulfilled' ? reportsTest.value : { connected: false };
+    const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
+    const hasClaudeKey = !!process.env.CLAUDE_API_KEY;
+    const hasOpenAIKeyIA = !!process.env.OPENAI_KEY_IA;
 
     res.json({
-      reflection: reflectionStatus,
-      reports: reportsStatus,
-      overall: {
-        anyConnected: reflectionStatus.connected || reportsStatus.connected,
-        allConnected: reflectionStatus.connected && reportsStatus.connected,
-        status: reflectionStatus.connected && reportsStatus.connected ? 'all_connected' :
-                reflectionStatus.connected || reportsStatus.connected ? 'partial_connection' :
-                'disconnected'
-      },
-      // Back-compat summary fields expected by admin UI
-      openai: isOpenAIAPIAvailable(),
-      reflection_talia: !!reflectionStatus.connected,
-      report_talia: !!reportsStatus.connected,
-      response_time: null,
-      timestamp: new Date().toISOString(),
-      // AI provider configuration
+      // Provider configuration
       aiProvider: {
         global: getProviderName(),
         ia: getProviderName('ia'),
         coaching: getProviderName('coaching'),
         reports: getProviderName('reports'),
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ Overall Talia status check failed:', error);
-    
-    res.json({
-      reflection: { connected: false },
-      reports: { connected: false },
-      overall: {
-        anyConnected: false,
-        allConnected: false,
-        status: 'error'
       },
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      timestamp: new Date().toISOString()
+      // Key availability (NOT connectivity — just whether the key exists)
+      keys: {
+        claude: hasClaudeKey,
+        openai: hasOpenAIKey,
+        openaiIA: hasOpenAIKeyIA,
+      },
+      // What each provider powers
+      providerUsage: {
+        claude: 'IA exercises (Module 4 modals, AI conversations)',
+        openai: 'AST sectional reports (Assistants API)',
+        openaiIA: 'DALL-E image generation (ia-4-3 visualization)',
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('AI status check failed:', error);
+    res.json({
+      aiProvider: { global: 'unknown', ia: 'unknown', coaching: 'unknown', reports: 'unknown' },
+      keys: { claude: false, openai: false, openaiIA: false },
+      timestamp: new Date().toISOString(),
     });
   }
 });

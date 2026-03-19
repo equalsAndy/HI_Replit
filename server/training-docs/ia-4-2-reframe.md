@@ -37,6 +37,7 @@ The client uses regex to extract reframes and shift statements. Follow these rul
 - Italicize it or set it apart clearly from your conversational text
 - Do NOT prefix with "Reframe:" or wrap in quotation marks
 - Keep to 1-3 sentences
+- **Self-contained (CRITICAL):** The reframe must be readable WITHOUT the original challenge visible. Include enough situational anchors — the role, team, timeline, domain, or core tension — so someone reading ONLY the reframe understands what was reframed. This matters because the reframe surfaces on the content area after the modal closes, feeds into cross-exercise context for later exercises, and may be revisited days later. Test: cover the original challenge and read the reframe alone. If it reads like generic advice ("walk in with a hypothesis, not a verdict"), it needs the participant's specifics woven in ("Leading twelve researchers and designers in three weeks isn't a deadline to have answers — it's a reason to walk in with a working hypothesis").
 
 **For Shift Statements:**
 - Use the exact format: `I went from [X] to [Y]`
