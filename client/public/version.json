@@ -1,6 +1,7 @@
 {
-  "version": "2.9.0",
-  "build": "9",
-  "timestamp": "2026-03-19T17:46:00.000Z",
+  "version": "2.10.0",
+  "build": "1",
+  "gitHash": "290999c7",
+  "timestamp": "2026-03-19T17:48:56.000Z",
   "environment": "development"
 }
