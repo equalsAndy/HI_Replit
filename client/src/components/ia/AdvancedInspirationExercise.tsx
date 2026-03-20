@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useContinuity } from '@/hooks/useContinuity';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
-import { InvitingTheMuseModal, type MuseResult } from './AdvancedInspirationModal';
-import { Zap, Plus, X, CheckCircle2 } from 'lucide-react';
+import { InvitingTheMuseModal, renderGuideContent, type MuseResult } from './AdvancedInspirationModal';
+import { Zap, Plus, X } from 'lucide-react';
 
 // ─── Activity Constants (categorized) ────────────────────────────────────────
 
@@ -29,6 +28,7 @@ const FLOW_CATEGORIES: FlowCategory[] = [
     activities: [
       { id: 'nature', title: 'Walking in nature', hint: 'open attention, sensory presence', m3Source: 'nature' },
       { id: 'walking', title: 'Walking or hiking', hint: 'rhythmic movement, wandering mind' },
+      { id: 'pet-walk', title: 'Walking or playing with a pet', hint: 'their pace, not yours' },
       { id: 'running', title: 'Running or exercise', hint: 'physical effort frees thinking' },
       { id: 'swimming', title: 'Swimming or being in water', hint: 'sensory immersion, breathing rhythm' },
       { id: 'driving', title: 'Driving alone', hint: 'motion, music, uninterrupted' },
@@ -83,6 +83,7 @@ const FLOW_CATEGORIES: FlowCategory[] = [
       { id: 'being-playful', title: 'Being silly or playful', hint: 'self-consciousness disappears', m3Source: 'play' },
       { id: 'games', title: 'Card or board games', hint: 'low stakes, full attention' },
       { id: 'friends', title: 'Hanging out with friends or colleagues', hint: 'ideas bounce between people' },
+      { id: 'talking-through', title: 'Talking it through', hint: 'say it out loud, hear what you think' },
     ],
   },
 ];
@@ -114,48 +115,6 @@ const migrateIds = (ids: string[]): string[] => {
   return [...new Set(migrated)];
 };
 
-// ─── Capture Practice Options ────────────────────────────────────────────────
-
-const CAPTURE_OPTIONS = [
-  { id: 'voice-memo', label: 'Voice memo', icon: '\uD83C\uDFA4' },
-  { id: 'photo', label: 'Photo or screenshot', icon: '\uD83D\uDCF7' },
-  { id: 'text-self', label: 'Text yourself', icon: '\uD83D\uDCAC' },
-  { id: 'notebook', label: 'Notebook or paper', icon: '\uD83D\uDCD3' },
-  { id: 'notes-app', label: 'Notes app', icon: '\uD83D\uDCF1' },
-  { id: 'other', label: 'Other', icon: '\u270F\uFE0F' },
-];
-
-// ─── Coaching line parsing from prep card ────────────────────────────────────
-
-interface CoachingLine {
-  id: string;
-  capability: string;
-  text: string;
-}
-
-const CAPABILITY_COLORS: Record<string, { bg: string; border: string; text: string; activeBg: string; activeBorder: string }> = {
-  courage:     { bg: 'bg-red-50',    border: 'border-red-200',    text: 'text-red-700',    activeBg: 'bg-red-100',    activeBorder: 'border-red-400' },
-  creativity:  { bg: 'bg-amber-50',  border: 'border-amber-200',  text: 'text-amber-700',  activeBg: 'bg-amber-100',  activeBorder: 'border-amber-400' },
-  curiosity:   { bg: 'bg-green-50',  border: 'border-green-200',  text: 'text-green-700',  activeBg: 'bg-green-100',  activeBorder: 'border-green-400' },
-  caring:      { bg: 'bg-blue-50',   border: 'border-blue-200',   text: 'text-blue-700',   activeBg: 'bg-blue-100',   activeBorder: 'border-blue-400' },
-  imagination: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', activeBg: 'bg-purple-100', activeBorder: 'border-purple-400' },
-};
-
-function parseCoachingLines(prepCard: string): CoachingLine[] {
-  const lines: CoachingLine[] = [];
-  const regex = /\*\*(Courage|Creativity|Curiosity|Caring|Imagination)\*\*:\s*(.+)/gi;
-  let match;
-  while ((match = regex.exec(prepCard)) !== null) {
-    const capability = match[1];
-    lines.push({
-      id: capability.toLowerCase(),
-      capability,
-      text: match[2].trim(),
-    });
-  }
-  return lines;
-}
-
 const TAG_OPTIONS = [
   { value: 'A practice', label: 'A practice', helper: 'I have a deliberate way to invite inspiration' },
   { value: 'Recognition', label: 'Recognition', helper: 'I\'ve been doing this without realizing how it works' },
@@ -184,33 +143,14 @@ function getActivityTitle(idOrTitle: string): string {
   return idOrTitle;
 }
 
-// ─── Simple prep card renderer (for content area) ────────────────────────────
+// ─── Activity category lookup ─────────────────────────────────────────────────
 
-function renderPrepCardContent(text: string) {
-  return text.split('\n').map((line, i) => {
-    const trimmed = line.trim();
-    if (!trimmed) return <br key={i} />;
-
-    const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
-    const rendered = parts.map((part, j) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={j} className="text-purple-800">{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
-
-    if (trimmed.startsWith('- ')) {
-      return (
-        <div key={i} className="flex gap-2 ml-2 text-sm text-gray-700">
-          <span className="text-purple-500 flex-shrink-0">&bull;</span>
-          <span>{rendered.map((r) => typeof r === 'string' ? r.replace(/^- /, '') : r)}</span>
-        </div>
-      );
-    }
-
-    return <p key={i} className="text-sm text-gray-700">{rendered}</p>;
-  });
-}
+const getActivityCategory = (activityId: string): string => {
+  for (const cat of FLOW_CATEGORIES) {
+    if (cat.activities.some(a => a.id === activityId)) return cat.id;
+  }
+  return 'general';
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -299,6 +239,15 @@ export default function InvitingTheMuseExercise() {
       }));
       return;
     }
+
+    // Migrate prepCard -> guide
+    if (data.prepCard && !data.guide) {
+      setState((prev) => ({
+        ...prev,
+        ia_4_5: { ...prev.ia_4_5, guide: data.prepCard },
+      }));
+      return;
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -325,7 +274,7 @@ export default function InvitingTheMuseExercise() {
   const primaryOriginalMuse = completedInterludes[0] ?? null;
 
   // Whether the modal exercise is done
-  const isModalDone = Boolean(ia45.prepCard);
+  const isModalDone = Boolean(ia45.guide);
 
   // Simple chip toggle: checked or not
   const handleChipToggle = (id: string) => {
@@ -382,27 +331,6 @@ export default function InvitingTheMuseExercise() {
     setTimeout(() => saveNow(), 0);
   };
 
-  // Toggle capture practice (post-modal, multi-select)
-  const toggleCapturePractice = (id: string) => {
-    const current: string[] = Array.isArray(ia45.capturePractices)
-      ? ia45.capturePractices
-      : (ia45.capturePractice ? [ia45.capturePractice] : []);
-
-    const next = current.includes(id)
-      ? current.filter(p => p !== id)
-      : [...current, id];
-
-    setState((prev) => ({
-      ...prev,
-      ia_4_5: {
-        ...prev.ia_4_5,
-        capturePractices: next,
-        capturePracticeCustom: next.includes('other') ? prev.ia_4_5?.capturePracticeCustom : undefined,
-      },
-    }));
-    setTimeout(() => saveNow(), 0);
-  };
-
   // All checked items available for AI exploration
   const explorableItems = React.useMemo(() => {
     const items: { id: string; title: string }[] = [];
@@ -420,8 +348,9 @@ export default function InvitingTheMuseExercise() {
       ...prev,
       ia_4_5: {
         ...prev.ia_4_5,
-        anchor: result.anchor,
-        prepCard: result.prepCard,
+        guide: result.guide,
+        chipSelections: result.chipSelections,
+        activityCategory: result.activityCategory,
         transcript: result.transcript,
         last_updated: new Date().toISOString(),
       },
@@ -437,44 +366,17 @@ export default function InvitingTheMuseExercise() {
       ia_4_5: {
         ...prev.ia_4_5,
         exploredActivity: undefined,
-        anchor: undefined,
-        prepCard: undefined,
+        guide: undefined,
+        chipSelections: undefined,
+        activityCategory: undefined,
         transcript: undefined,
-        selectedCoachingLines: undefined,
-        coachingReaction: undefined,
-        capturePractices: undefined,
-        capturePracticeCustom: undefined,
+        tag: undefined,
       },
     }));
   };
 
-  // Coaching lines parsed from prep card
-  const coachingLines = React.useMemo(() => {
-    if (!ia45.prepCard) return [];
-    return parseCoachingLines(ia45.prepCard);
-  }, [ia45.prepCard]);
-
-  const selectedCoachingLines: string[] = Array.isArray(ia45.selectedCoachingLines) ? ia45.selectedCoachingLines : [];
-
-  const toggleCoachingLine = (id: string) => {
-    const next = selectedCoachingLines.includes(id)
-      ? selectedCoachingLines.filter(l => l !== id)
-      : [...selectedCoachingLines, id];
-    setState((prev) => ({
-      ...prev,
-      ia_4_5: { ...prev.ia_4_5, selectedCoachingLines: next },
-    }));
-    setTimeout(() => saveNow(), 0);
-  };
-
-  // Completion gate: tag + at least 1 coaching line tapped + capture practice selected
-  const capturePractices: string[] = Array.isArray(ia45.capturePractices)
-    ? ia45.capturePractices
-    : (ia45.capturePractice ? [ia45.capturePractice] : []);
-  const isComplete =
-    Boolean(ia45.tag) &&
-    selectedCoachingLines.length >= 1 &&
-    capturePractices.length >= 1;
+  // Completion gate: guide + tag
+  const isComplete = Boolean(ia45.tag) && Boolean(ia45.guide);
 
   // Auto-mark complete
   React.useEffect(() => {
@@ -737,139 +639,19 @@ export default function InvitingTheMuseExercise() {
       {/* ─── Post-Modal Content ────────────────────────────────────────── */}
       {isModalDone && (
         <>
-          {/* a. Your Preparation Card (centerpiece) */}
-          {ia45.prepCard && (
+          {/* a. Your Guide */}
+          {ia45.guide && (
             <div className="mb-5 p-5 bg-white border-2 border-purple-400 rounded-lg shadow-sm">
               <h3 className="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-3">
-                Your Preparation Card
+                Your Guide
               </h3>
               <div className="space-y-1.5">
-                {renderPrepCardContent(ia45.prepCard)}
+                {renderGuideContent(ia45.guide)}
               </div>
             </div>
           )}
 
-          {/* b. Coaching Lines — tappable capability coaching from prep card */}
-          {coachingLines.length > 0 && (
-            <div className="mb-5 p-4 bg-white border-2 border-purple-300 rounded-lg">
-              <h3 className="font-semibold text-purple-700 mb-1">Which coaching struck you?</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Tap the line(s) you want to carry with you into this activity.
-              </p>
-
-              <div className="space-y-2 mb-4">
-                {coachingLines.map((line) => {
-                  const colors = CAPABILITY_COLORS[line.id] ?? CAPABILITY_COLORS.imagination;
-                  const isSelected = selectedCoachingLines.includes(line.id);
-                  return (
-                    <button
-                      key={line.id}
-                      onClick={() => !isStepLocked && toggleCoachingLine(line.id)}
-                      disabled={isStepLocked}
-                      className={`w-full text-left p-3 rounded-lg border-2 transition-all flex items-start gap-3 ${
-                        isSelected
-                          ? `${colors.activeBg} ${colors.activeBorder} shadow-sm`
-                          : `${colors.bg} ${colors.border} hover:shadow-sm`
-                      } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="flex-shrink-0 mt-0.5">
-                        {isSelected ? (
-                          <CheckCircle2 className={`w-5 h-5 ${colors.text}`} />
-                        ) : (
-                          <div className={`w-5 h-5 rounded-full border-2 ${colors.border}`} />
-                        )}
-                      </div>
-                      <div>
-                        <span className={`font-semibold ${colors.text}`}>{line.capability}:</span>{' '}
-                        <span className="text-sm text-gray-700">{line.text}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Optional reaction */}
-              <div className="mt-3">
-                <label className="block text-sm italic text-gray-500 mb-2">
-                  What about this struck you?
-                </label>
-                <Textarea
-                  rows={2}
-                  disabled={isStepLocked}
-                  readOnly={isStepLocked}
-                  className={`resize-y text-sm ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
-                  placeholder="Optional — just if something came to mind..."
-                  value={ia45.coachingReaction ?? ''}
-                  onChange={(e) =>
-                    setState((prev) => ({
-                      ...prev,
-                      ia_4_5: { ...prev.ia_4_5, coachingReaction: e.target.value },
-                    }))
-                  }
-                  onBlur={() => saveNow()}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* c. Capture Practice Selector (AFTER modal) */}
-          <div className="mb-5 p-4 bg-white border border-purple-200 rounded-lg">
-            <h3 className="text-sm font-semibold text-purple-800 mb-2">Your Capture Practice</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              The prep card recommended a capture method for this activity. Pick the ones you&rsquo;ll actually use:
-            </p>
-
-            <div className="flex flex-wrap gap-2 mb-3">
-              {CAPTURE_OPTIONS.map((opt) => {
-                const isSelected = capturePractices.includes(opt.id);
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => !isStepLocked && toggleCapturePractice(opt.id)}
-                    disabled={isStepLocked}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-purple-600 text-white shadow-md'
-                        : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
-                    } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
-                  >
-                    <span>{opt.icon}</span>
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {capturePractices.includes('other') && (
-              <input
-                type="text"
-                disabled={isStepLocked}
-                readOnly={isStepLocked}
-                className={`w-full p-2 border border-gray-300 rounded-md text-sm mb-3 ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
-                placeholder="Describe your capture method..."
-                value={ia45.capturePracticeCustom ?? ''}
-                onChange={(e) =>
-                  setState((prev) => ({ ...prev, ia_4_5: { ...prev.ia_4_5, capturePracticeCustom: e.target.value } }))
-                }
-                onBlur={() => saveNow()}
-              />
-            )}
-          </div>
-
-          {/* d. What You Just Did */}
-          <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
-            <h3 className="font-semibold text-purple-800 mb-2">What You Just Did</h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              You just practiced the full loop: review what you&rsquo;re working on, hook it into
-              a mind-freeing activity, and prepare to capture what surfaces.
-            </p>
-            <p className="text-sm text-gray-700 leading-relaxed mt-2">
-              <strong>Review &rarr; Hook &rarr; Activity &rarr; Capture.</strong> That&rsquo;s the process.
-              Use it anytime you want inspiration to work on something real.
-            </p>
-          </div>
-
-          {/* e. Your Flow Inventory (takeaway artifact) */}
+          {/* b. Your Flow Inventory (takeaway artifact) */}
           <div className="mb-5 p-4 bg-white border-2 border-purple-300 rounded-lg">
             <h3 className="text-sm font-semibold text-purple-800 mb-3">Your Flow Inventory</h3>
             <div className="space-y-2">
@@ -958,9 +740,9 @@ export default function InvitingTheMuseExercise() {
           </div>
 
           {/* Completion hint */}
-          {!isComplete && (
+          {ia45.guide && !ia45.tag && (
             <p className="mb-4 text-xs font-semibold text-amber-600 flex items-center gap-1">
-              <span>&#9888;</span> Required to continue: select a tag, tap at least one coaching line, and choose a capture practice.
+              <span>&#9888;</span> Required to continue: select a tag.
             </p>
           )}
 
@@ -985,6 +767,7 @@ export default function InvitingTheMuseExercise() {
         onOpenChange={setModalOpen}
         originalMuse={primaryOriginalMuse}
         chosenActivity={ia45.exploredActivity ? getActivityTitle(ia45.exploredActivity) : ''}
+        activityCategory={getActivityCategory(ia45.exploredActivity || '')}
         reframeData={reframeData}
         onComplete={handleModalComplete}
       />

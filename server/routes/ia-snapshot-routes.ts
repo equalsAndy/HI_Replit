@@ -233,16 +233,26 @@ router.get('/activation-snapshot', requireAuth, async (req, res) => {
       }
     }
 
-    // ia-4-5: capability_stretched + selectedCoachingLines (coaching line IDs are capability names)
+    // ia-4-5: capability from chipSelections.capability (new) OR capability_stretched / selectedCoachingLines (old)
     const d45 = byStep['ia-4-5'];
     if (d45) {
       const capSet = new Set<CapabilityKey>();
+      // Old format: capability_stretched
       if (d45.capability_stretched) {
         const norm = normalise(d45.capability_stretched);
         if (norm) capSet.add(norm);
       }
+      // Old format: selectedCoachingLines (coaching line IDs are capability names)
       if (Array.isArray(d45.selectedCoachingLines)) {
         for (const c of d45.selectedCoachingLines) {
+          const norm = normalise(c);
+          if (norm) capSet.add(norm);
+        }
+      }
+      // New format: chipSelections.capability (array of chip labels like "Courage", "Curiosity")
+      if (d45.chipSelections?.capability && Array.isArray(d45.chipSelections.capability)) {
+        for (const c of d45.chipSelections.capability) {
+          if (c.toLowerCase() === 'open to whatever') continue;
           const norm = normalise(c);
           if (norm) capSet.add(norm);
         }

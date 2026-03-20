@@ -158,7 +158,7 @@ export function ReframeModal({
       setTranscript([
         {
           role: 'assistant',
-          content: 'Hi! I see you have a challenge. I put a starter prompt in the box below—feel free to edit and hit Send.',
+          content: 'Hi! I can see your challenge above. Hit Send to get started, or type your own message.',
           skipReframe: true
         },
       ]);
@@ -180,10 +180,29 @@ export function ReframeModal({
     const isRedirect = /^\[REDIRECT\]/i.test(msg.trimStart());
 
     // Strip all protocol markers from chat display — [REDIRECT] and [REFRAME] are internal signals only
-    const displayContent = msg
+    // Strip protocol markers AND the reframe text itself from chat display
+    // since the reframe is extracted to the right panel — no need to show it twice
+    const markedReframeForStrip = extractMarkedReframe(msg);
+    let displayContent = msg
       .replace(/^\[REDIRECT\]\s*/i, '')
       .replace(/\[REFRAME\]\s*/gi, '')
       .trim();
+    // If we extracted a reframe, strip those sentences from the chat bubble
+    if (markedReframeForStrip.length > 0) {
+      // Remove the reframe sentences, keeping only the conversational parts (questions, commentary)
+      const reframeRaw = msg.match(/\[REFRAME\]\s*([\s\S]+)/i);
+      if (reframeRaw) {
+        const afterMarker = reframeRaw[1].trim();
+        // Split into sentences, keep only questions (the "How does that land?" part)
+        const sentences = afterMarker.match(/[^.!?]+[.!?]+/g) || [];
+        const questionParts = sentences.filter(s => s.trim().endsWith('?')).map(s => s.trim());
+        // Get any text BEFORE the [REFRAME] marker
+        const beforeMarker = msg.split(/\[REFRAME\]/i)[0]
+          .replace(/^\[REDIRECT\]\s*/i, '')
+          .trim();
+        displayContent = [beforeMarker, ...questionParts].filter(Boolean).join(' ').trim();
+      }
+    }
 
     if (phase === 'reframe') {
       // Only update the reframe box when the AI explicitly marks a reframe with [REFRAME]
@@ -239,10 +258,14 @@ export function ReframeModal({
         ...prev,
         {
           role: 'assistant',
-          content: "Now let's capture what shifted for you. Tell me in your own words — where did you start, and where are you now?",
+          content: 'Nice. Now let\'s name the shift. I\'ll suggest one — hit Send below.',
           skipReframe: true
         },
       ]);
+      // Pre-fill the input so the participant can just hit Send to get the AI's shift proposal
+      setTimeout(() => {
+        chatRef.current?.setInput('Suggest a shift statement for me.');
+      }, 200);
     } else if (phase === 'shift' && shiftBox.trim().length > 0 && !hasBrackets(shiftBox)) {
       setPhase('tag');
     }
@@ -311,8 +334,8 @@ export function ReframeModal({
             <InlineChat
               ref={chatRef}
               trainingId="ia-4-2"
-              systemPrompt={`${PROMPTS.IA_4_2}\n\nCURRENT_PHASE: ${phase}`}
-              seed={`I need a new perspective. Help me reframe my challenge: "${challenge}"`}
+              systemPrompt={`${PROMPTS.IA_4_2}\n\nCURRENT_PHASE: ${phase}\n\nPARTICIPANT'S CHALLENGE:\n"${challenge}"`}
+              seed="I'd like a new perspective on my challenge."
               onUserSend={onChatUserSend}
               onReply={onChatReply}
               onBeforeSend={onBeforeSend}

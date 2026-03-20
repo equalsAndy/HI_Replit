@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
@@ -12,63 +11,16 @@ interface IA37ContentProps {
 
 type CapabilityKey = 'imagination' | 'curiosity' | 'caring' | 'creativity' | 'courage';
 type ExerciseKey = 'autoflow' | 'visualization' | 'intention' | 'inspiration' | 'mystery';
-type NoticeValue = 'yes' | 'not_really' | 'unsure';
 
-const CAPABILITIES: {
-  key: CapabilityKey;
-  label: string;
-  color: string;
-  colorFaint: string;
-  colorBg: string;
-  icon: string;
-  question: string;
-}[] = [
-  {
-    key: 'imagination',
-    label: 'Imagination',
-    color: '#8b5cf6',
-    colorFaint: 'rgba(139,92,246,0.08)',
-    colorBg: 'rgba(139,92,246,0.1)',
-    icon: '/assets/Imagination_sq.png',
-    question: "Did you see possibilities in the situation that weren't immediately obvious to others?",
-  },
-  {
-    key: 'curiosity',
-    label: 'Curiosity',
-    color: '#10b981',
-    colorFaint: 'rgba(16,185,129,0.08)',
-    colorBg: 'rgba(16,185,129,0.1)',
-    icon: '/assets/Curiosity_sq.png',
-    question: 'Did you find yourself asking questions — of yourself or others — to understand what was really going on?',
-  },
-  {
-    key: 'caring',
-    label: 'Caring',
-    color: '#3b82f6',
-    colorFaint: 'rgba(59,130,246,0.08)',
-    colorBg: 'rgba(59,130,246,0.1)',
-    icon: '/assets/Caring_sq.png',
-    question: 'Did concern for someone or something beyond the immediate task influence how you acted?',
-  },
-  {
-    key: 'creativity',
-    label: 'Creativity',
-    color: '#f59e0b',
-    colorFaint: 'rgba(245,158,11,0.08)',
-    colorBg: 'rgba(245,158,11,0.1)',
-    icon: '/assets/Creativity_sq.png',
-    question: 'Did you try something different from your usual approach, or combine ideas in a new way?',
-  },
-  {
-    key: 'courage',
-    label: 'Courage',
-    color: '#ef4444',
-    colorFaint: 'rgba(239,68,68,0.08)',
-    colorBg: 'rgba(239,68,68,0.1)',
-    icon: '/assets/courage_sq.png',
-    question: 'Did you do something that felt risky or uncomfortable because it seemed like the right thing to do?',
-  },
-];
+const CAPABILITY_KEYS: CapabilityKey[] = ['imagination', 'curiosity', 'caring', 'creativity', 'courage'];
+
+const CAPABILITY_META: Record<CapabilityKey, { label: string; color: string }> = {
+  imagination: { label: 'Imagination', color: '#8b5cf6' },
+  curiosity:   { label: 'Curiosity',   color: '#10b981' },
+  caring:      { label: 'Caring',      color: '#3b82f6' },
+  creativity:  { label: 'Creativity',  color: '#f59e0b' },
+  courage:     { label: 'Courage',     color: '#ef4444' },
+};
 
 const EXERCISE_LABELS: Record<ExerciseKey, string> = {
   autoflow: 'Autoflow',
@@ -78,22 +30,34 @@ const EXERCISE_LABELS: Record<ExerciseKey, string> = {
   mystery: 'Mystery',
 };
 
+const EXERCISE_ORDER: ExerciseKey[] = ['autoflow', 'visualization', 'intention', 'inspiration', 'mystery'];
+
+const INTERLUDE_TITLES: Record<string, string> = {
+  nature: 'Walk in Nature',
+  beauty: 'Capture Beauty',
+  journal: 'Journal Thoughts',
+  create: 'Create Art',
+  vision: 'Vision Board',
+  play: 'Play',
+  learn: 'Learn New Skills',
+  heroes: 'Read Heroes',
+  art: 'Experience Art',
+};
+
 interface IA37StepData {
-  scenario_notes: string;
   selectedExercise: string | null;
-  capability_noticed: Record<string, NoticeValue>;
-  capability_notes: Record<string, string>;
-  // Legacy — keep so old data doesn't break
-  capability_ratings?: Record<string, number | 'unsure'>;
+  capability_ratings: Record<CapabilityKey, number>;
+  // Legacy fields so old data doesn't crash
+  capability_noticed?: Record<string, string>;
+  capability_notes?: Record<string, string>;
+  scenario_notes?: string;
   ai_summaries?: Record<string, string>;
   ai_questions?: Record<string, string>;
 }
 
 const INITIAL_DATA: IA37StepData = {
-  scenario_notes: '',
   selectedExercise: null,
-  capability_noticed: {},
-  capability_notes: {},
+  capability_ratings: {} as Record<CapabilityKey, number>,
 };
 
 // ── Module Journey Data (read-only from prior steps) ──────────────────────────
@@ -108,14 +72,86 @@ interface ModuleJourneyData {
   loading: boolean;
 }
 
-// Generic summaries used as fallback
-const GENERIC_SUMMARIES: Record<ExerciseKey, (data: ModuleJourneyData) => string> = {
-  autoflow: (d) => `You noticed your mind's automatic stream · ${d.autoflow?.momentCount ?? 0} moment${d.autoflow?.momentCount !== 1 ? 's' : ''} captured`,
-  visualization: (d) => `You found an image for a side of yourself waiting to be used${d.visualization?.imageTitle ? ` — "${d.visualization.imageTitle}"` : ''}`,
-  intention: () => 'You named what pulls your attention and where you\'re positioned to act',
-  inspiration: (d) => `You sat with what makes you feel most alive · ${d.inspiration?.interludeCount ?? 0} interlude${d.inspiration?.interludeCount !== 1 ? 's' : ''} completed`,
-  mystery: (d) => `You leapt into ${d.mystery?.mysteryName ?? 'the unknown'}`,
-};
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function truncateToFirstSentence(text: string, maxLen = 120): string {
+  if (!text) return '';
+  const match = text.match(/^[^.!?]+[.!?]/);
+  const sentence = match ? match[0] : text;
+  if (sentence.length <= maxLen) return sentence;
+  return sentence.slice(0, maxLen).trimEnd() + '\u2026';
+}
+
+function truncateText(text: string, maxLen: number): string {
+  if (!text) return '';
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen).trimEnd() + '\u2026';
+}
+
+function getRichDescription(exercise: ExerciseKey, rawData: Record<string, any>): string {
+  const d = rawData[exercise];
+  if (!d) return '';
+
+  switch (exercise) {
+    case 'autoflow': {
+      const moments = d.savedMoments;
+      if (!moments || moments.length === 0) return 'You noticed your mind\'s automatic stream';
+      const firstText = truncateText(moments[0].text || '', 80);
+      const tag = moments[0].tag ? ` (${moments[0].tag})` : '';
+      if (moments.length === 1) {
+        return `You noticed your mind's automatic stream \u2014 captured "${firstText}"${tag}`;
+      }
+      return `You noticed your mind's automatic stream \u2014 captured ${moments.length} moments, starting with "${firstText}"${tag}`;
+    }
+
+    case 'visualization': {
+      const title = d.imageTitle || '';
+      const reflection = d.reflection || '';
+      const firstSentence = truncateToFirstSentence(reflection);
+      if (title && firstSentence) {
+        return `You found an image for a side of yourself waiting to be used \u2014 "${title}". ${firstSentence}`;
+      }
+      if (title) {
+        return `You found an image for a side of yourself waiting to be used \u2014 "${title}"`;
+      }
+      return 'You found an image for a side of yourself waiting to be used';
+    }
+
+    case 'intention': {
+      const why = d.whyReflection || '';
+      if (!why) return 'You named what pulls your attention';
+      if (why.length < 120) return `You named what pulls your attention \u2014 ${why}`;
+      return `You named what pulls your attention \u2014 ${truncateToFirstSentence(why)}`;
+    }
+
+    case 'inspiration': {
+      const completed: string[] = d.completed || [];
+      const responses: Record<string, string> = d.responses || {};
+      if (completed.length === 0) return 'You sat with what makes you feel most alive';
+      const firstId = completed[0];
+      const firstTitle = INTERLUDE_TITLES[firstId] || firstId;
+      if (completed.length === 1) {
+        const response = responses[firstId] || '';
+        const firstSentence = truncateToFirstSentence(response);
+        const suffix = firstSentence ? `. ${firstSentence}` : '';
+        return `You sat with what makes you feel most alive \u2014 chose "${firstTitle}"${suffix}`;
+      }
+      return `You sat with what makes you feel most alive \u2014 ${completed.length} interludes completed, including "${firstTitle}"`;
+    }
+
+    case 'mystery': {
+      const mystery = d.selectedMystery || 'the unknown';
+      const question = d.selectedQuestion || '';
+      if (question) {
+        return `You leapt into ${mystery} \u2014 asking "${truncateText(question, 100)}"`;
+      }
+      return `You leapt into ${mystery}`;
+    }
+
+    default:
+      return '';
+  }
+}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -130,29 +166,11 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
   const { isWorkshopLocked } = useWorkshopStatus();
   const isStepLocked = isWorkshopLocked('ia', 'ia-3-7');
 
-  const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
-  const capabilitiesRef = useRef<HTMLDivElement>(null);
-
   // Module 3 journey data (read-only)
   const [moduleData, setModuleData] = useState<ModuleJourneyData>({
     autoflow: null, visualization: null, intention: null,
     inspiration: null, mystery: null, rawData: {}, loading: true,
   });
-
-  // AI state
-  const [aiSummaries, setAiSummaries] = useState<Record<string, string> | null>(null);
-  const [aiQuestions, setAiQuestions] = useState<Record<string, string> | null>(null);
-  const [summariesLoading, setSummariesLoading] = useState(false);
-  const [questionsLoading, setQuestionsLoading] = useState(false);
-  const tailorCacheRef = useRef<Record<string, Record<string, string>>>({});
-
-  // Reset selection and AI-generated content on mount so user always starts fresh
-  // TODO: Remove this once training docs are stable — let saved state persist
-  useEffect(() => {
-    if (loaded && data.selectedExercise) {
-      updateData({ selectedExercise: null, ai_summaries: undefined, ai_questions: undefined, capability_noticed: {} });
-    }
-  }, [loaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch Module 3 journey data on mount
   useEffect(() => {
@@ -206,125 +224,7 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
     fetchModuleData();
   }, []);
 
-  // Fetch AI summaries once module data and step data are loaded
-  useEffect(() => {
-    if (moduleData.loading || !loaded) return;
-
-    const hasAnyData = moduleData.autoflow || moduleData.visualization ||
-      moduleData.intention || moduleData.inspiration || moduleData.mystery;
-    if (!hasAnyData) return;
-
-    // Always fetch fresh summaries
-    // TODO: Re-enable caching once training docs are stable
-
-    setSummariesLoading(true);
-    fetch('/api/ai/module-reflection', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'summarize' }),
-    })
-      .then(r => r.json())
-      .then(result => {
-        if (result.success && result.summaries) {
-          setAiSummaries(result.summaries);
-          updateData({ ai_summaries: result.summaries });
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch AI summaries:', err);
-      })
-      .finally(() => setSummariesLoading(false));
-  }, [moduleData.loading, loaded]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Auto-expand notes that already have content
-  useEffect(() => {
-    if (loaded && data.capability_notes) {
-      const hasContent: Record<string, boolean> = {};
-      for (const cap of CAPABILITIES) {
-        if (data.capability_notes[cap.key]?.trim()) {
-          hasContent[cap.key] = true;
-        }
-      }
-      if (Object.keys(hasContent).length > 0) {
-        setExpandedNotes(prev => ({ ...prev, ...hasContent }));
-      }
-    }
-  }, [loaded]);
-
-  // Derived state
-  const noticed = data.capability_noticed || {};
-  const noticedCount = CAPABILITIES.filter(c => noticed[c.key] !== undefined).length;
-  const allNoticed = noticedCount === 5;
-  const presentCount = CAPABILITIES.filter(c => noticed[c.key] === 'yes').length;
-  const hasSelection = data.selectedExercise !== null;
-
-  const handleNotice = useCallback((capability: CapabilityKey, value: NoticeValue) => {
-    const current = noticed[capability];
-    // Toggle off if tapping the same value
-    if (current === value) {
-      const newNoticed = { ...noticed };
-      delete newNoticed[capability];
-      updateData({ capability_noticed: newNoticed });
-    } else {
-      updateData({
-        capability_noticed: { ...noticed, [capability]: value },
-      });
-    }
-  }, [noticed, updateData]);
-
-  const handleNote = useCallback((capability: CapabilityKey, value: string) => {
-    updateData({
-      capability_notes: { ...data.capability_notes, [capability]: value },
-    });
-  }, [data.capability_notes, updateData]);
-
-  const toggleNote = useCallback((capability: CapabilityKey) => {
-    setExpandedNotes(prev => ({ ...prev, [capability]: !prev[capability] }));
-  }, []);
-
-  // Handle exercise selection — triggers tailor call
-  const handleSelectExercise = useCallback((exercise: ExerciseKey) => {
-    // Clear previous notices when changing exercise
-    updateData({ selectedExercise: exercise, capability_noticed: {} });
-
-    const exerciseContent = moduleData.rawData[exercise];
-    if (!exerciseContent) return;
-
-    setQuestionsLoading(true);
-    fetch('/api/ai/module-reflection', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'tailor', selectedExercise: exercise, exerciseContent }),
-    })
-      .then(r => r.json())
-      .then(result => {
-        if (result.success && result.questions) {
-          tailorCacheRef.current[exercise] = result.questions;
-          setAiQuestions(result.questions);
-          updateData({ ai_questions: result.questions });
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch tailored questions:', err);
-      })
-      .finally(() => setQuestionsLoading(false));
-  }, [moduleData.rawData, updateData]);
-
-  // Check if any journey steps have data
-  const hasAnyJourneyData = !moduleData.loading && (
-    moduleData.autoflow || moduleData.visualization || moduleData.intention ||
-    moduleData.inspiration || moduleData.mystery
-  );
-
-  // Get the display summary for an exercise
-  const getSummary = (exercise: ExerciseKey): string => {
-    if (aiSummaries && aiSummaries[exercise]) return aiSummaries[exercise];
-    return GENERIC_SUMMARIES[exercise](moduleData);
-  };
-
-  // Which exercises have data (and are therefore selectable)
+  // Which exercises have data
   const exerciseHasData: Record<ExerciseKey, boolean> = {
     autoflow: !!moduleData.autoflow,
     visualization: !!moduleData.visualization,
@@ -333,48 +233,50 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
     mystery: !!moduleData.mystery,
   };
 
-  // Get the question for a capability — tailored if available, else generic
-  const getQuestion = (capKey: CapabilityKey): string => {
-    if (aiQuestions && aiQuestions[capKey]) return aiQuestions[capKey];
-    return CAPABILITIES.find(c => c.key === capKey)!.question;
-  };
+  const hasAnyJourneyData = !moduleData.loading && (
+    moduleData.autoflow || moduleData.visualization || moduleData.intention ||
+    moduleData.inspiration || moduleData.mystery
+  );
 
-  const EXERCISE_ORDER: ExerciseKey[] = ['autoflow', 'visualization', 'intention', 'inspiration', 'mystery'];
+  // Exercise selection handler
+  const handleSelectExercise = useCallback((exercise: ExerciseKey) => {
+    const ratings = data.capability_ratings || {};
+    const hasAllRatings = CAPABILITY_KEYS.every(k => ratings[k] !== undefined);
 
-  // Button style helper
-  const noticeButtonStyle = (
-    cap: typeof CAPABILITIES[0],
-    value: NoticeValue,
-    currentValue: NoticeValue | undefined
-  ): React.CSSProperties => {
-    const isActive = currentValue === value;
-    if (value === 'yes') {
-      return {
-        border: `2px solid ${isActive ? cap.color : '#e5e7eb'}`,
-        backgroundColor: isActive ? cap.color : '#ffffff',
-        color: isActive ? 'white' : '#6b7280',
-      };
+    if (hasAllRatings) {
+      updateData({ selectedExercise: exercise });
+    } else {
+      // Initialize all ratings to 3
+      const initialRatings = {} as Record<CapabilityKey, number>;
+      for (const k of CAPABILITY_KEYS) {
+        initialRatings[k] = ratings[k] ?? 3;
+      }
+      updateData({ selectedExercise: exercise, capability_ratings: initialRatings });
     }
-    if (value === 'not_really') {
-      return {
-        border: `2px solid ${isActive ? '#9ca3af' : '#e5e7eb'}`,
-        backgroundColor: isActive ? '#f3f4f6' : '#ffffff',
-        color: isActive ? '#4b5563' : '#9ca3af',
-      };
-    }
-    // unsure
-    return {
-      border: `2px solid ${isActive ? '#d1d5db' : '#e5e7eb'}`,
-      backgroundColor: isActive ? '#f9fafb' : '#ffffff',
-      color: isActive ? '#6b7280' : '#d1d5db',
-    };
-  };
+  }, [data.capability_ratings, updateData]);
+
+  // Slider rating handler
+  const handleRatingChange = useCallback((capability: CapabilityKey, value: number) => {
+    updateData({
+      capability_ratings: { ...data.capability_ratings, [capability]: value },
+    });
+  }, [data.capability_ratings, updateData]);
+
+  // Completion logic
+  const hasSelection = data.selectedExercise !== null;
+  const ratings = data.capability_ratings || {};
+  const allRated = CAPABILITY_KEYS.every(k => ratings[k] !== undefined);
+  const isComplete = hasSelection && allRated;
+
+  const ratingValues = Object.values(ratings);
+  const highCaps = CAPABILITY_KEYS.filter(k => (ratings[k] || 0) >= 4);
+  const highCapNames = highCaps.map(k => CAPABILITY_META[k].label).join(', ');
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <ScrollIndicator idleTime={3000} position="nav-adjacent" colorScheme="purple" />
 
-      {/* ── Section 1: Module 3 Journey Timeline ── */}
+      {/* ── Section 1: Module 3 Journey Header ── */}
       <div className="bg-gradient-to-br from-purple-700 to-purple-900 rounded-2xl p-8 text-white mb-8 relative overflow-hidden">
         <div className="absolute -top-[40%] -right-[20%] w-[300px] h-[300px] bg-[radial-gradient(circle,rgba(255,255,255,0.06)_0%,transparent_70%)] rounded-full" />
         <div className="absolute -bottom-[30%] -left-[10%] w-[200px] h-[200px] bg-[radial-gradient(circle,rgba(168,85,247,0.3)_0%,transparent_70%)] rounded-full" />
@@ -390,11 +292,9 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
         </p>
       </div>
 
-      {/* Journey Timeline Rows */}
-      {moduleData.loading || summariesLoading ? (
-        <div className="text-sm text-gray-400 italic mb-8 pl-2">
-          {summariesLoading ? 'Reflecting on your journey...' : 'Loading your journey...'}
-        </div>
+      {/* Journey Cards */}
+      {moduleData.loading ? (
+        <div className="text-sm text-gray-400 italic mb-8 pl-2">Loading your journey...</div>
       ) : hasAnyJourneyData ? (
         <>
           {/* Selection instruction */}
@@ -420,6 +320,7 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
             {EXERCISE_ORDER.map(exercise => {
               if (!exerciseHasData[exercise]) return null;
               const isSelected = data.selectedExercise === exercise;
+              const description = getRichDescription(exercise, moduleData.rawData);
 
               const vizImage = exercise === 'visualization'
                 ? (moduleData.rawData.visualization?.selectedImage || moduleData.rawData.visualization?.uploadedImage || null)
@@ -438,8 +339,25 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
                   }`}
                 >
                   <span className={`mt-0.5 flex-shrink-0 ${isSelected ? 'text-purple-600' : 'text-green-500'}`}>
-                    {isSelected ? '◉' : '✓'}
+                    {isSelected ? (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" fill="none" />
+                        <circle cx="8" cy="8" r="4" />
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 8.5L6.5 12L13 4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
                   </span>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-[14px] font-bold ${isSelected ? 'text-purple-800' : 'text-gray-800'}`}>
+                      {EXERCISE_LABELS[exercise]}
+                    </p>
+                    <p className={`text-[13px] ${isSelected ? 'text-purple-600' : 'text-gray-500'}`}>
+                      {description}
+                    </p>
+                  </div>
                   {vizImage && (
                     <img
                       src={vizImage}
@@ -447,14 +365,6 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
                       className="w-12 h-12 rounded-lg object-cover flex-shrink-0 mt-0.5"
                     />
                   )}
-                  <div className="min-w-0">
-                    <p className={`text-sm font-medium ${isSelected ? 'text-purple-800' : 'text-gray-800'}`}>
-                      {EXERCISE_LABELS[exercise]}
-                    </p>
-                    <p className={`text-sm ${isSelected ? 'text-purple-600' : 'text-gray-500'}`}>
-                      {getSummary(exercise)}
-                    </p>
-                  </div>
                 </button>
               );
             })}
@@ -465,7 +375,7 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
             <div className="space-y-2 mb-8 opacity-50">
               {EXERCISE_ORDER.filter(ex => !exerciseHasData[ex]).map(exercise => (
                 <div key={exercise} className="flex items-start gap-3 pl-4 pr-4 py-2">
-                  <span className="text-gray-300 mt-0.5 flex-shrink-0">○</span>
+                  <span className="text-gray-300 mt-0.5 flex-shrink-0">&#9675;</span>
                   <div>
                     <p className="text-sm font-medium text-gray-400">{EXERCISE_LABELS[exercise]}</p>
                     <p className="text-sm text-gray-300">Not yet completed</p>
@@ -474,188 +384,92 @@ const IA_3_7_ModuleReflection: React.FC<IA37ContentProps> = ({ onNext }) => {
               ))}
             </div>
           )}
-
-          {/* Optional elaboration textarea */}
-          {hasSelection && (
-            <div className="mb-8 animate-in fade-in duration-300">
-              <p className="text-xs text-gray-400 mb-2 pl-1">
-                Want to add anything about why this moment stands out? (optional)
-              </p>
-              <Textarea
-                value={data.scenario_notes}
-                onChange={(e) => updateData({ scenario_notes: e.target.value })}
-                placeholder="A few words about why this one..."
-                disabled={isStepLocked}
-                readOnly={isStepLocked}
-                className={`min-h-[72px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
-              />
-            </div>
-          )}
         </>
       ) : (
         <p className="text-sm text-gray-400 italic mb-8 pl-2">Complete the exercises above to see your journey here.</p>
       )}
 
-      {/* ── Section 2: Capability Noticing ── */}
+      {/* ── Section 2: Capability Ratings ── */}
       {hasSelection && (
-        <div ref={capabilitiesRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* Intro */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="text-center mb-7 px-2">
             <h3 className="text-xl font-bold mb-2 text-gray-900">
               What showed up in that moment?
             </h3>
             <p className="text-sm leading-relaxed text-gray-500">
-              Read each prompt. Just notice — was this present in the moment you selected?
+              For the moment you selected, how present was each capability? Tap a number.
             </p>
           </div>
 
-          {/* Questions loading state */}
-          {questionsLoading && (
-            <div className="text-sm text-purple-500 italic text-center mb-6 animate-pulse">
-              Tailoring prompts to your moment...
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="space-y-4">
+              {CAPABILITY_KEYS.map(cap => {
+                const meta = CAPABILITY_META[cap];
+                const value = ratings[cap] ?? 3;
+
+                return (
+                  <div key={cap} className="flex items-center gap-3">
+                    <span
+                      className="text-[13px] font-medium w-[90px] flex-shrink-0"
+                      style={{ color: meta.color }}
+                    >
+                      {meta.label}
+                    </span>
+                    <div className="flex gap-2 flex-1">
+                      {[1, 2, 3, 4, 5].map(n => {
+                        const isActive = value === n;
+                        return (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => !isStepLocked && handleRatingChange(cap, n)}
+                            disabled={isStepLocked}
+                            className={`flex-1 h-10 rounded-lg text-[14px] font-medium transition-all duration-150 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                            style={{
+                              border: `1.5px solid ${isActive ? meta.color : '#e5e7eb'}`,
+                              backgroundColor: isActive ? meta.color : 'white',
+                              color: isActive ? 'white' : '#9ca3af',
+                            }}
+                          >
+                            {n}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
 
-          {/* Progress indicator */}
-          <div className="flex gap-1.5 mb-8 px-1">
-            {CAPABILITIES.map(cap => {
-              const value = noticed[cap.key];
-              return (
-                <div
-                  key={cap.key}
-                  className="flex-1 h-1 rounded-sm transition-colors duration-300"
-                  style={{
-                    backgroundColor: value === 'yes'
-                      ? cap.color
-                      : value !== undefined
-                        ? '#d1d5db'
-                        : '#e5e7eb',
-                  }}
-                />
-              );
-            })}
-          </div>
-
-          {/* Capability Cards */}
-          <div className="space-y-4">
-            {CAPABILITIES.map(cap => {
-              const value = noticed[cap.key];
-              const isPresent = value === 'yes';
-              const isEngaged = value !== undefined;
-              const noteExpanded = expandedNotes[cap.key] || false;
-              const noteValue = data.capability_notes?.[cap.key] || '';
-
-              return (
-                <Card
-                  key={cap.key}
-                  className="overflow-hidden transition-all duration-200"
-                  style={{
-                    borderColor: isPresent ? cap.color : undefined,
-                    boxShadow: isPresent ? `0 0 0 1px ${cap.colorFaint}` : undefined,
-                  }}
-                >
-                  {/* Colored top border */}
-                  <div className="h-1" style={{ backgroundColor: cap.color }} />
-
-                  <CardContent className="p-5 md:p-6">
-                    {/* Capability top: icon + name */}
-                    <div className="flex items-center gap-3 mb-3.5">
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 p-1.5"
-                        style={{ backgroundColor: cap.colorBg }}
-                      >
-                        <img
-                          src={cap.icon}
-                          alt={cap.label}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <span
-                        className="text-xs font-semibold tracking-wide uppercase"
-                        style={{ color: cap.color }}
-                      >
-                        {cap.label}
-                      </span>
-                    </div>
-
-                    {/* Question / prompt */}
-                    <p className="text-[15px] leading-relaxed text-gray-900 mb-4">
-                      {getQuestion(cap.key)}
-                    </p>
-
-                    {/* Three-choice buttons */}
-                    <div className="flex gap-2">
-                      {([
-                        { value: 'yes' as NoticeValue, label: 'Yes' },
-                        { value: 'not_really' as NoticeValue, label: 'Not really' },
-                        { value: 'unsure' as NoticeValue, label: "I don't know" },
-                      ]).map(({ value: btnValue, label }) => (
-                        <button
-                          key={btnValue}
-                          type="button"
-                          onClick={() => !isStepLocked && handleNotice(cap.key, btnValue)}
-                          disabled={isStepLocked}
-                          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                          style={noticeButtonStyle(cap, btnValue, value)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </CardContent>
-
-                  {/* Note toggle + area — only show after engaged */}
-                  {isEngaged && (
-                    <div className="px-5 md:px-6 pb-1.5">
-                      <button
-                        type="button"
-                        onClick={() => toggleNote(cap.key)}
-                        className="text-xs text-gray-400 hover:text-purple-500 transition-colors duration-150 cursor-pointer py-1"
-                      >
-                        {noteExpanded ? '− Hide notes' : 'What makes you say that?'}
-                      </button>
-                    </div>
-                  )}
-
-                  {noteExpanded && (
-                    <div className="px-5 md:px-6 pb-4.5 animate-in fade-in slide-in-from-top-2 duration-250">
-                      <Textarea
-                        value={noteValue}
-                        onChange={(e) => handleNote(cap.key, e.target.value)}
-                        placeholder="Optional — a few words..."
-                        disabled={isStepLocked}
-                        readOnly={isStepLocked}
-                        className={`min-h-[52px] text-sm resize-none ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
-                      />
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
+            {/* Scale anchors */}
+            <div className="flex justify-between mt-2" style={{ paddingLeft: '102px' }}>
+              <span className="text-[11px] text-gray-400">barely there</span>
+              <span className="text-[11px] text-gray-400">fully present</span>
+            </div>
           </div>
 
           {/* ── Section 3: Closing ── */}
-          {allNoticed && (
+          {isComplete && (
             <Card className="text-center border-purple-200 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <CardContent className="py-8">
                 <h3 className="text-xl font-bold text-purple-800 mb-3">Reflection Complete</h3>
                 <p className="text-gray-600 mb-3 max-w-md mx-auto">
-                  {presentCount === 5
-                    ? 'All five capabilities showed up in that moment.'
-                    : presentCount === 0
-                      ? "None of the five felt clearly present — and that's useful to notice too."
-                      : `You noticed ${presentCount} capabilit${presentCount === 1 ? 'y' : 'ies'} in that moment.`
+                  {highCaps.length === 0
+                    ? "Interesting \u2014 none of the capabilities felt strongly present. That's useful to notice."
+                    : highCaps.length <= 2
+                      ? `You noticed ${highCapNames} showing up most in that moment.`
+                      : `Multiple capabilities were active in that moment \u2014 ${highCapNames}.`
                   }
                 </p>
                 <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-                  Next, you'll work with an AI thinking partner — and see what a different kind of reflection surfaces.
+                  Next, you'll work with an AI thinking partner &mdash; and see what a different kind of reflection surfaces.
                 </p>
                 <Button
                   onClick={() => onNext?.('ia-4-1')}
                   disabled={saving || isStepLocked}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
                 >
-                  {saving ? 'Saving...' : 'Continue to Module 4 →'}
+                  {saving ? 'Saving...' : 'Continue to Module 4 \u2192'}
                 </Button>
               </CardContent>
             </Card>

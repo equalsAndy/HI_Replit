@@ -219,10 +219,10 @@ export default function ReframeExercise() {
           <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
             <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              You took a real challenge and worked with AI to <strong>reframe</strong> it — not to make it disappear,
-              but to see it from an angle that reveals something useful: leverage, clarity, or a better question.
-              Then you named what actually shifted.
-              Below is everything that came out of that process. You can edit your new perspective if you want to refine it.
+              You just practiced <strong>reframing with AI</strong> — taking a real situation and finding an angle
+              that reveals something you couldn&apos;t see before. This is a repeatable tool: any time you feel
+              stuck, you can bring a challenge to AI and work through this same process to find leverage,
+              clarity, or a better question.
             </p>
           </div>
 
