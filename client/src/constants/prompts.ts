@@ -35,12 +35,15 @@ EXERCISE: Help the participant reframe ONE challenging thought through dialogue.
 
 CRITICAL OUTPUT RULES:
 - Reframes MUST be in first person ("I am..." never "You are...")
-- Every reframe sentence MUST be prefixed with [REFRAME] exactly — e.g. [REFRAME] I am discovering what matters to me here. — no quotation marks, no other prefix
-- Only tag the reframe sentence(s) with [REFRAME]. Questions and commentary must NOT include [REFRAME].
+- OUTPUT TWO MARKERS on your reframe response:
+  [SITUATION] 1-2 sentence summary of the participant's specific situation — their role, team, timeline, stakes, and core tension as you understand it from the conversation. Third person or neutral voice. This is YOU demonstrating you heard them. Must contain at least 3 specific nouns from the conversation. [/SITUATION]
+  [REFRAME] The perspective shift only — first person, 1-2 sentences, punchy. Does NOT need to restate the situation because [SITUATION] already did that. [/REFRAME]
+- Questions and commentary go OUTSIDE both markers. The closing question ("How does that land?") comes after [/REFRAME].
+- The [SITUATION] block carries the context. The [REFRAME] block carries the shift. Don't mix them.
 - Shift statements use exact format: I went from [X] to [Y] — standalone line, no prefix
 - Replies ≤ 100 words. One reframe per response. One question per response.
 - QUESTION BREVITY: Questions should be ONE short sentence, under 20 words. Don't repeat the participant's challenge back to them inside the question — they just said it. "What does 'fast' actually mean — days, weeks?" not "When you say leadership wants the vision and plan fast, what does that timeline actually look like?"
-- GROUNDED REFRAME OPENER: The [REFRAME] must open with a situational anchor — a phrase that places the reader in the participant's specific context. "When I walk into a twelve-person research and design team in three weeks" not "I'm not choosing between moving fast and moving slow." The participant's nouns (team size, timeline, role, domain) belong in the FIRST sentence, not buried later or absent.
+- GROUNDED SITUATION SUMMARY: The [SITUATION] block must contain the participant's specific nouns — team size, timeline, role, domain, the core tension. This is where situational grounding lives. The [REFRAME] can be short and punchy because [SITUATION] already set the scene.
 
 APPROACH:
 - The participant's challenge text is injected into your system prompt under PARTICIPANT'S CHALLENGE. You already have it — don't ask them to repeat it or summarize it back.
@@ -60,7 +63,11 @@ EXAMPLE FIRST RESPONSE (asks, doesn't reframe yet):
 "Before I reframe this, I want to make sure I'm reading it right. When you say 'send an outline to someone,' is that a separate deliverable or part of finishing the courses? And of these four things, which one would feel like the biggest relief to have done?"
 
 EXAMPLE SECOND RESPONSE (after they answer — NOW reframe):
-"[REFRAME] AllStarTeams and Imaginal Agility aren't blocking the microcourse — they're building it. Every module I finish is a section of the outline I owe, and the AI work I'm doing right now is the method the microcourse will teach. How does that land? I can adjust — more grounded, different angle altogether."
+"[SITUATION] A course designer juggling AllStarTeams, Imaginal Agility, and a microcourse outline due soon — feeling like each project blocks the others. [/SITUATION]
+
+[REFRAME] Every module I finish IS a section of the outline I owe, and the AI work I'm doing right now is the method the microcourse will teach. [/REFRAME]
+
+How does that land? I can adjust — more grounded, different angle altogether."
 
 OFF-TOPIC HANDLING: If the user's message is unrelated to their challenge or this exercise, reply ONLY with: [REDIRECT] followed by a warm 1-sentence message steering them back. Do NOT include a reframe in a [REDIRECT] response.
   `.trim(),
@@ -351,7 +358,7 @@ export const RUNG_ART: Record<IAExerciseKey, string> = {
  *   const fullPrompt = PROMPTS.IA_4_5 + '\n\n' + context;
  */
 export function buildCrossExerciseContext(outputs: {
-  reframe?: { challenge: string; reframe: string; shift: string; tag: string };
+  reframe?: { challenge: string; reframe: string; shift: string; tag: string; situation?: string };
   stretch?: { original_title: string; new_title: string; story: string };
   bridge?: { purpose: string; challenge: string; reframedView: string; tag: string; observation?: string };
   muse?: { activity: string };
@@ -359,8 +366,11 @@ export function buildCrossExerciseContext(outputs: {
   const lines: string[] = ['PARTICIPANT CONTEXT (from earlier exercises):'];
 
   if (outputs.reframe) {
+    const situationLine = outputs.reframe.situation
+      ? `Situation: "${outputs.reframe.situation}". `
+      : '';
     lines.push(
-      `- Reframe: They shifted from "${outputs.reframe.challenge}" to "${outputs.reframe.reframe}" (tagged as ${outputs.reframe.tag})`
+      `- Reframe: ${situationLine}They shifted to "${outputs.reframe.reframe}" (tagged as ${outputs.reframe.tag})`
     );
   }
   if (outputs.stretch) {

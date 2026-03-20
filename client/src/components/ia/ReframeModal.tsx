@@ -24,7 +24,7 @@ export interface ReframeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   challenge: string;
-  onApply: (result: { transcript: string[]; shift: string; tag: string; reframe: string }) => void;
+  onApply: (result: { transcript: string[]; shift: string; tag: string; reframe: string; situation: string }) => void;
   onStartOver: () => void;
   onKeepContext?: () => void;
 }
@@ -42,6 +42,7 @@ export function ReframeModal({
   const [shiftBox, setShiftBox] = React.useState('');
   const [tag, setTag] = React.useState(TAG_OPTIONS[0].value);
   const [currentReframe, setCurrentReframe] = React.useState('');
+  const [currentSituation, setCurrentSituation] = React.useState('');
 
   const chatStreamRef = React.useRef<HTMLDivElement | null>(null);
   const chatRef = React.useRef<InlineChatHandle | null>(null);
@@ -92,11 +93,27 @@ export function ReframeModal({
     return t;
   }
 
+  function extractMarkedSituation(raw: string): string {
+    const match = raw.match(/\[SITUATION\]\s*([\s\S]*?)\[\/SITUATION\]/i);
+    if (!match) return '';
+    const text = match[1].trim();
+    if (text.length < 10) return '';
+    return text.slice(0, 500);
+  }
+
   function extractMarkedReframe(raw: string): string {
+    // Try closed marker first: [REFRAME]...[/REFRAME]
+    const closedMatch = raw.match(/\[REFRAME\]\s*([\s\S]*?)\[\/REFRAME\]/i);
+    if (closedMatch) {
+      const text = closedMatch[1].trim();
+      if (text.length >= 10) {
+        return cleanReframeText(toFirstPerson(text)).slice(0, 400);
+      }
+    }
+    // Fallback to existing open-ended extraction for backward compatibility
     const markerMatch = raw.match(/\[REFRAME\]\s*([\s\S]+)/i);
     if (!markerMatch) return '';
     const afterMarker = markerMatch[1].trim();
-    // Collect non-question sentences (the reframe is always a statement)
     const sentences = afterMarker.match(/[^.!?]+[.!?]*/g) || [];
     const reframeSentences: string[] = [];
     for (const s of sentences) {
@@ -106,7 +123,7 @@ export function ReframeModal({
     }
     const reframeText = reframeSentences.join(' ').trim();
     if (reframeText.length < 10) return '';
-    return cleanReframeText(toFirstPerson(reframeText)).slice(0, 300);
+    return cleanReframeText(toFirstPerson(reframeText)).slice(0, 400);
   }
 
   function cleanShiftPart(text: string) {
@@ -152,6 +169,7 @@ export function ReframeModal({
       setShiftBox('');
       setTag(TAG_OPTIONS[0].value);
       setCurrentReframe('');
+      setCurrentSituation('');
     } else {
       // Initial opening - start with the challenge from props
       setPhase('reframe');
@@ -164,6 +182,7 @@ export function ReframeModal({
       ]);
       setShiftBox('');
       setCurrentReframe('');
+      setCurrentSituation('');
     }
   }, [open]);
 
@@ -179,37 +198,43 @@ export function ReframeModal({
     // Detect off-topic redirect
     const isRedirect = /^\[REDIRECT\]/i.test(msg.trimStart());
 
-    // Strip all protocol markers from chat display — [REDIRECT] and [REFRAME] are internal signals only
-    // Strip protocol markers AND the reframe text itself from chat display
-    // since the reframe is extracted to the right panel — no need to show it twice
+    // Strip all protocol markers from chat display — [REDIRECT], [SITUATION], and [REFRAME] are internal signals only
+    // Strip protocol markers AND the reframe/situation text itself from chat display
+    // since they are extracted to the right panel — no need to show them twice
     const markedReframeForStrip = extractMarkedReframe(msg);
     let displayContent = msg
       .replace(/^\[REDIRECT\]\s*/i, '')
-      .replace(/\[REFRAME\]\s*/gi, '')
       .trim();
-    // If we extracted a reframe, strip those sentences from the chat bubble
-    if (markedReframeForStrip.length > 0) {
-      // Remove the reframe sentences, keeping only the conversational parts (questions, commentary)
+    // Strip closed markers first (reliable)
+    displayContent = displayContent.replace(/\[SITUATION\][\s\S]*?\[\/SITUATION\]\s*/gi, '');
+    displayContent = displayContent.replace(/\[REFRAME\][\s\S]*?\[\/REFRAME\]\s*/gi, '');
+    // Then strip any remaining open-ended [REFRAME] (backward compat / fallback)
+    displayContent = displayContent.replace(/\[REFRAME\]\s*/gi, '');
+    // If we extracted a reframe via open-ended match, strip those sentences from the chat bubble
+    if (markedReframeForStrip.length > 0 && !msg.match(/\[\/REFRAME\]/i)) {
       const reframeRaw = msg.match(/\[REFRAME\]\s*([\s\S]+)/i);
       if (reframeRaw) {
         const afterMarker = reframeRaw[1].trim();
-        // Split into sentences, keep only questions (the "How does that land?" part)
         const sentences = afterMarker.match(/[^.!?]+[.!?]+/g) || [];
         const questionParts = sentences.filter(s => s.trim().endsWith('?')).map(s => s.trim());
-        // Get any text BEFORE the [REFRAME] marker
         const beforeMarker = msg.split(/\[REFRAME\]/i)[0]
           .replace(/^\[REDIRECT\]\s*/i, '')
+          .replace(/\[SITUATION\][\s\S]*?\[\/SITUATION\]\s*/gi, '')
           .trim();
         displayContent = [beforeMarker, ...questionParts].filter(Boolean).join(' ').trim();
       }
     }
 
     if (phase === 'reframe') {
-      // Only update the reframe box when the AI explicitly marks a reframe with [REFRAME]
+      // Only update the reframe/situation boxes when the AI explicitly marks them
       if (!isRedirect) {
         const markedReframe = extractMarkedReframe(msg);
+        const markedSituation = extractMarkedSituation(msg);
         if (markedReframe.length > 0) {
           setCurrentReframe(markedReframe);
+        }
+        if (markedSituation.length > 0) {
+          setCurrentSituation(markedSituation);
         }
       }
 
@@ -281,7 +306,7 @@ export function ReframeModal({
     const transcriptLines = transcript
       .filter(m => m.content.trim().length > 0)
       .map(m => m.content);
-    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag, reframe: currentReframe.trim() });
+    onApply({ transcript: transcriptLines, shift: shiftBox.trim(), tag, reframe: currentReframe.trim(), situation: currentSituation.trim() });
     onOpenChange(false);
   };
 
@@ -348,10 +373,21 @@ export function ReframeModal({
 
         {/* Right Column: Results */}
         <div className="flex flex-col bg-white p-4 pt-16 overflow-y-auto">
+          <section className="mb-4">
+            <h2 className="text-sm font-semibold uppercase mb-2 text-gray-500">YOUR SITUATION</h2>
+            <div className="min-h-[60px] p-3 border rounded bg-gray-50 text-sm mb-3">
+              {currentSituation.trim()
+                ? currentSituation
+                : 'AI will summarize your situation here after your conversation.'}
+            </div>
+          </section>
+
           <section className="mb-6">
-            <h2 className="text-sm font-semibold uppercase mb-2">YOUR CHALLENGE REFRAMED</h2>
-            <div className="min-h-[100px] p-3 border rounded bg-gray-50 text-sm mb-3">
-              {currentReframe.trim() ? currentReframe : 'Work with AI to reframe your challenge and it will appear here.'}
+            <h2 className="text-sm font-semibold uppercase mb-2">YOUR REFRAME</h2>
+            <div className="min-h-[80px] p-3 border rounded bg-purple-50 text-sm mb-3 font-medium">
+              {currentReframe.trim()
+                ? currentReframe
+                : 'The perspective shift will appear here.'}
             </div>
             {phase === 'reframe' && (
               <Button onClick={onNext} disabled={!currentReframe.trim()} className="w-full">

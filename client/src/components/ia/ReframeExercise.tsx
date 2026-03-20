@@ -58,7 +58,7 @@ export default function ReframeExercise() {
     setModalOpen(open);
   }
 
-  function onModalApply(result: { transcript: string[]; shift: string; tag: string; reframe: string }) {
+  function onModalApply(result: { transcript: string[]; shift: string; tag: string; reframe: string; situation: string }) {
     setState((prev) => {
       const prevIA = prev.ia_4_2 || {};
       return {
@@ -76,6 +76,7 @@ export default function ReframeExercise() {
           user_shift: result.shift,
           tag: result.tag,
           new_perspective: result.reframe,
+          situation_summary: result.situation,
           original_thought: challenge,
         },
       };
@@ -107,6 +108,7 @@ export default function ReframeExercise() {
           user_shift: '',
           tag: '',
           new_perspective: '',
+          situation_summary: '',
           shift: '',
           challenge: '',
           instinct_approach: '',
@@ -225,6 +227,14 @@ export default function ReframeExercise() {
               clarity, or a better question.
             </p>
           </div>
+
+          {/* Situation Summary */}
+          {ia.situation_summary && (
+            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">Your Situation</h3>
+              <p className="text-sm text-gray-700">{ia.situation_summary}</p>
+            </div>
+          )}
 
           {/* 1. New Perspective */}
           <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
