@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
+import ImageResize from 'tiptap-extension-resize-image';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,11 @@ const ToolbarButton: React.FC<{
 
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
 
-const Toolbar: React.FC<{ editor: ReturnType<typeof useEditor> }> = ({ editor }) => {
+const Toolbar: React.FC<{
+  editor: ReturnType<typeof useEditor>;
+  sourceMode: boolean;
+  onToggleSource: () => void;
+}> = ({ editor, sourceMode, onToggleSource }) => {
   const handleImageUpload = useCallback(() => {
     if (!editor) return;
 
@@ -89,114 +93,130 @@ const Toolbar: React.FC<{ editor: ReturnType<typeof useEditor> }> = ({ editor })
       padding: '6px 8px',
       borderBottom: '1px solid #e5e7eb',
       backgroundColor: '#f9fafb',
+      alignItems: 'center',
     }}>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        active={editor.isActive('bold')}
-        title="Bold"
-      >
-        <strong>B</strong>
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        active={editor.isActive('italic')}
-        title="Italic"
-      >
-        <em>I</em>
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleStrike().run()}
-        active={editor.isActive('strike')}
-        title="Strikethrough"
-      >
-        <s>S</s>
-      </ToolbarButton>
+      {!sourceMode && (
+        <>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            active={editor.isActive('bold')}
+            title="Bold"
+          >
+            <strong>B</strong>
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            active={editor.isActive('italic')}
+            title="Italic"
+          >
+            <em>I</em>
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            active={editor.isActive('strike')}
+            title="Strikethrough"
+          >
+            <s>S</s>
+          </ToolbarButton>
 
-      <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
+          <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            active={editor.isActive('heading', { level: 1 })}
+            title="Heading 1"
+          >
+            H1
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            active={editor.isActive('heading', { level: 2 })}
+            title="Heading 2"
+          >
+            H2
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            active={editor.isActive('heading', { level: 3 })}
+            title="Heading 3"
+          >
+            H3
+          </ToolbarButton>
+
+          <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            active={editor.isActive('bulletList')}
+            title="Bullet List"
+          >
+            &bull; List
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            active={editor.isActive('orderedList')}
+            title="Numbered List"
+          >
+            1. List
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            active={editor.isActive('blockquote')}
+            title="Blockquote"
+          >
+            &ldquo; Quote
+          </ToolbarButton>
+
+          <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            active={editor.isActive('codeBlock')}
+            title="Code Block"
+          >
+            {'</>'}
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            title="Horizontal Rule"
+          >
+            &mdash;
+          </ToolbarButton>
+
+          <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
+
+          <ToolbarButton onClick={handleImageUpload} title="Insert Image">
+            Image
+          </ToolbarButton>
+
+          <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            title="Undo"
+          >
+            Undo
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            title="Redo"
+          >
+            Redo
+          </ToolbarButton>
+        </>
+      )}
+
+      {/* Spacer to push HTML toggle to right */}
+      <div style={{ flex: 1 }} />
 
       <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        active={editor.isActive('heading', { level: 1 })}
-        title="Heading 1"
+        onClick={onToggleSource}
+        active={sourceMode}
+        title={sourceMode ? 'Switch to visual editor' : 'Edit HTML source'}
       >
-        H1
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        active={editor.isActive('heading', { level: 2 })}
-        title="Heading 2"
-      >
-        H2
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        active={editor.isActive('heading', { level: 3 })}
-        title="Heading 3"
-      >
-        H3
-      </ToolbarButton>
-
-      <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
-
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        active={editor.isActive('bulletList')}
-        title="Bullet List"
-      >
-        &bull; List
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        active={editor.isActive('orderedList')}
-        title="Numbered List"
-      >
-        1. List
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        active={editor.isActive('blockquote')}
-        title="Blockquote"
-      >
-        &ldquo; Quote
-      </ToolbarButton>
-
-      <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
-
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        active={editor.isActive('codeBlock')}
-        title="Code Block"
-      >
-        {'</>'}
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().setHorizontalRule().run()}
-        title="Horizontal Rule"
-      >
-        &mdash;
-      </ToolbarButton>
-
-      <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
-
-      <ToolbarButton onClick={handleImageUpload} title="Insert Image">
-        Image
-      </ToolbarButton>
-
-      <span style={{ width: '1px', backgroundColor: '#d1d5db', margin: '0 4px' }} />
-
-      <ToolbarButton
-        onClick={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
-        title="Undo"
-      >
-        Undo
-      </ToolbarButton>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
-        title="Redo"
-      >
-        Redo
+        {sourceMode ? 'Visual' : 'HTML'}
       </ToolbarButton>
     </div>
   );
@@ -205,15 +225,16 @@ const Toolbar: React.FC<{ editor: ReturnType<typeof useEditor> }> = ({ editor })
 // ─── Editor Component ─────────────────────────────────────────────────────────
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, placeholder }) => {
+  const [sourceMode, setSourceMode] = useState(false);
+  const [sourceHtml, setSourceHtml] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({
+      ImageResize.configure({
         inline: false,
         allowBase64: false,
-        HTMLAttributes: {
-          style: 'max-width: 100%; height: auto; border-radius: 4px;',
-        },
       }),
     ],
     content,
@@ -225,7 +246,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
         style: 'outline: none; min-height: 400px; padding: 16px; font-size: 14px; line-height: 1.7;',
       },
       handleDrop: (view, event, _slice, moved) => {
-        // Handle image drops
         if (!moved && event.dataTransfer?.files?.length) {
           const file = event.dataTransfer.files[0];
           if (!file.type.startsWith('image/')) return false;
@@ -259,7 +279,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
         return false;
       },
       handlePaste: (view, event) => {
-        // Handle pasted images
         const items = event.clipboardData?.items;
         if (!items) return false;
 
@@ -296,15 +315,67 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
     },
   });
 
+  const handleToggleSource = useCallback(() => {
+    if (!editor) return;
+
+    if (!sourceMode) {
+      // Switching TO source mode: grab current HTML
+      setSourceHtml(editor.getHTML());
+      setSourceMode(true);
+    } else {
+      // Switching BACK to visual: apply edited HTML
+      editor.commands.setContent(sourceHtml);
+      onChange(sourceHtml);
+      setSourceMode(false);
+    }
+  }, [editor, sourceMode, sourceHtml, onChange]);
+
+  // Keep onChange in sync when editing source
+  const handleSourceChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setSourceHtml(e.target.value);
+    onChange(e.target.value);
+  }, [onChange]);
+
+  // Auto-focus textarea when entering source mode
+  useEffect(() => {
+    if (sourceMode && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [sourceMode]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      <Toolbar editor={editor} />
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        <EditorContent
-          editor={editor}
-          placeholder={placeholder}
+      <Toolbar editor={editor} sourceMode={sourceMode} onToggleSource={handleToggleSource} />
+
+      {sourceMode ? (
+        <textarea
+          ref={textareaRef}
+          value={sourceHtml}
+          onChange={handleSourceChange}
+          spellCheck={false}
+          style={{
+            flex: 1,
+            padding: '16px',
+            fontFamily: 'monospace',
+            fontSize: '12px',
+            lineHeight: '1.6',
+            border: 'none',
+            resize: 'none',
+            outline: 'none',
+            overflowY: 'auto',
+            backgroundColor: '#1f2937',
+            color: '#e5e7eb',
+          }}
         />
-      </div>
+      ) : (
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <EditorContent
+            editor={editor}
+            placeholder={placeholder}
+          />
+        </div>
+      )}
+
       <style>{`
         .tiptap {
           outline: none;
