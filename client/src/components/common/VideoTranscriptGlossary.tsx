@@ -355,7 +355,7 @@ export default function VideoTranscriptGlossary({
           hidden={tab !== 'read'}
           className="vtg-tabpanel"
         >
-          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: transcriptHtml || formatTranscript(transcriptMd!) }} />
+          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: (transcriptHtml || formatTranscript(transcriptMd!)).replace(/\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/g, '') }} />
         </div>
       )}
 

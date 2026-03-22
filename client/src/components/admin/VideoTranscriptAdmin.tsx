@@ -175,7 +175,8 @@ const VideoTranscriptAdmin: React.FC = () => {
       const data = await res.json();
       if (data.success && data.video) {
         // Prefer HTML content; convert markdown to HTML for TipTap if no HTML exists
-        const content = data.video.transcriptHtml || mdToHtml(data.video.transcriptMd) || '';
+        const raw = data.video.transcriptHtml || mdToHtml(data.video.transcriptMd) || '';
+        const content = stripTimecodes(raw);
         setEditorContent(content);
         setSavedContent(content);
       }
