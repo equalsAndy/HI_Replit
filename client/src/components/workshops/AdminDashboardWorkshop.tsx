@@ -873,9 +873,23 @@ export default function AdminDashboardWorkshop() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const appLogout = useLogout();
-  const [activeTab, setActiveTab] = React.useState('users');
-  const [activeAITab, setActiveAITab] = React.useState('overview');
-  const [activeVideoTab, setActiveVideoTab] = React.useState('manage');
+  // Persist admin tab selections across sessions
+  const savedAdminState = React.useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('adminDashboard_state') || '{}');
+    } catch { return {}; }
+  }, []);
+  const [activeTab, setActiveTab] = React.useState(savedAdminState.tab || 'users');
+  const [activeAITab, setActiveAITab] = React.useState(savedAdminState.aiTab || 'overview');
+  const [activeVideoTab, setActiveVideoTab] = React.useState(savedAdminState.videoTab || 'manage');
+
+  React.useEffect(() => {
+    localStorage.setItem('adminDashboard_state', JSON.stringify({
+      tab: activeTab,
+      aiTab: activeAITab,
+      videoTab: activeVideoTab,
+    }));
+  }, [activeTab, activeAITab, activeVideoTab]);
   const [contentAccess, setContentAccess] = React.useState<'student' | 'professional'>('professional');
   const [astLogoError, setAstLogoError] = React.useState(false);
   const [iaLogoError, setIaLogoError] = React.useState(false);

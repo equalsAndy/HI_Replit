@@ -79,8 +79,11 @@ const VideoTranscriptAdmin: React.FC = () => {
   const [videos, setVideos] = useState<VideoSummary[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
 
-  // Editor
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  // Editor — restore last selected video from localStorage
+  const savedVideoId = (() => {
+    try { return Number(localStorage.getItem('transcriptAdmin_selectedVideo')) || null; } catch { return null; }
+  })();
+  const [selectedId, setSelectedId] = useState<number | null>(savedVideoId);
   const [selectedVideo, setSelectedVideo] = useState<VideoSummary | null>(null);
   const [editorContent, setEditorContent] = useState('');
   const [savedContent, setSavedContent] = useState('');
@@ -152,11 +155,20 @@ const VideoTranscriptAdmin: React.FC = () => {
 
   useEffect(() => { fetchVideos(); }, [fetchVideos]);
 
+  // Auto-select previously selected video after list loads
+  useEffect(() => {
+    if (!loadingVideos && videos.length > 0 && savedVideoId && !selectedVideo) {
+      const video = videos.find(v => v.id === savedVideoId);
+      if (video) selectVideo(video);
+    }
+  }, [loadingVideos, videos]);
+
   // ── Select a video ─────────────────────────────────────────────────────────
 
   const selectVideo = async (video: VideoSummary) => {
     setSelectedId(video.id);
     setSelectedVideo(video);
+    localStorage.setItem('transcriptAdmin_selectedVideo', String(video.id));
     setLoadingDoc(true);
     try {
       const res = await fetch(`/api/admin/video-transcripts/${video.id}`, { credentials: 'include' });
