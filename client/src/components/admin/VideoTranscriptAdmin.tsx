@@ -31,6 +31,25 @@ function formatDate(iso: string): string {
   });
 }
 
+// Convert markdown transcript to HTML paragraphs for TipTap
+function mdToHtml(md: string): string {
+  if (!md) return '';
+  return md
+    .split('\n')
+    .map(line => {
+      const trimmed = line.trim();
+      if (trimmed === '') return '';
+      if (trimmed.startsWith('# ')) return `<h1>${trimmed.slice(2)}</h1>`;
+      if (trimmed.startsWith('## ')) return `<h2>${trimmed.slice(3)}</h2>`;
+      if (trimmed.startsWith('### ')) return `<h3>${trimmed.slice(4)}</h3>`;
+      if (trimmed.startsWith('> *"') && trimmed.endsWith('"*'))
+        return `<blockquote><p>${trimmed.slice(4, -2)}</p></blockquote>`;
+      return `<p>${trimmed}</p>`;
+    })
+    .filter(Boolean)
+    .join('');
+}
+
 function workshopBadge(workshopType: string): { label: string; color: string; bg: string } {
   if (workshopType === 'ia' || workshopType === 'imaginal-agility') {
     return { label: 'IA', color: '#7c3aed', bg: '#ede9fe' };
@@ -128,8 +147,8 @@ const VideoTranscriptAdmin: React.FC = () => {
       const res = await fetch(`/api/admin/video-transcripts/${video.id}`, { credentials: 'include' });
       const data = await res.json();
       if (data.success && data.video) {
-        // Prefer HTML content; fall back to markdown for legacy data
-        const content = data.video.transcriptHtml || data.video.transcriptMd || '';
+        // Prefer HTML content; convert markdown to HTML for TipTap if no HTML exists
+        const content = data.video.transcriptHtml || mdToHtml(data.video.transcriptMd) || '';
         setEditorContent(content);
         setSavedContent(content);
       }
