@@ -228,6 +228,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
   const [sourceMode, setSourceMode] = useState(false);
   const [sourceHtml, setSourceHtml] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null);
 
   const editor = useEditor({
     extensions: [
@@ -245,7 +246,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
       attributes: {
         style: 'outline: none; min-height: 400px; padding: 16px; font-size: 14px; line-height: 1.7;',
       },
-      handleDrop: (view, event, _slice, moved) => {
+      handleDrop: (_view, event, _slice, moved) => {
         if (!moved && event.dataTransfer?.files?.length) {
           const file = event.dataTransfer.files[0];
           if (!file.type.startsWith('image/')) return false;
@@ -263,13 +264,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
             .then(res => res.json())
             .then(data => {
               if (data.success && data.url) {
-                const { schema } = view.state;
-                const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
-                if (coordinates) {
-                  const node = schema.nodes.image.create({ src: data.url, alt: file.name });
-                  const transaction = view.state.tr.insert(coordinates.pos, node);
-                  view.dispatch(transaction);
-                }
+                editorRef.current?.chain().focus().setImage({ src: data.url, alt: file.name }).run();
               }
             })
             .catch(err => console.error('Drop upload failed:', err));
@@ -278,7 +273,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
         }
         return false;
       },
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
 
@@ -299,10 +294,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
               .then(res => res.json())
               .then(data => {
                 if (data.success && data.url) {
-                  const { schema } = view.state;
-                  const node = schema.nodes.image.create({ src: data.url, alt: 'Pasted image' });
-                  const transaction = view.state.tr.replaceSelectionWith(node);
-                  view.dispatch(transaction);
+                  editorRef.current?.chain().focus().setImage({ src: data.url, alt: 'Pasted image' }).run();
                 }
               })
               .catch(err => console.error('Paste upload failed:', err));
@@ -314,6 +306,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
       },
     },
   });
+
+  // Keep ref in sync so drop/paste handlers can access editor
+  editorRef.current = editor;
 
   const handleToggleSource = useCallback(() => {
     if (!editor) return;
