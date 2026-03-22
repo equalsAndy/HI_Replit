@@ -110,8 +110,8 @@ const IA_1_4_TheBiggerPicture: React.FC<IA14TheBiggerPictureProps> = ({ onNext }
         <VideoTranscriptGlossary
           youtubeId={youtubeId}
           title={videoData?.title || "The Bigger Picture"}
-          transcriptMd={null}
-          glossary={null}
+          transcriptMd={videoData?.transcriptMd}
+          glossary={videoData?.glossary}
         />
       </div>
 

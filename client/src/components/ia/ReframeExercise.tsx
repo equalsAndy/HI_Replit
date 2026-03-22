@@ -114,7 +114,6 @@ export default function ReframeExercise() {
           instinct_approach: '',
           explorer_rounds: [],
           explorer_chosen: null,
-          explorer_reflection: '',
           capabilities_applied: [],
           capabilities_imagine: '',
           tested_capability: '',
@@ -220,7 +219,7 @@ export default function ReframeExercise() {
           {/* Exercise summary — what just happened */}
           <div className="mb-5 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
             <h3 className="font-semibold text-purple-800 mb-2">What you just did</h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-base text-gray-700 leading-relaxed">
               You just practiced <strong>reframing with AI</strong> — taking a real situation and finding an angle
               that reveals something you couldn&apos;t see before. This is a repeatable tool: any time you feel
               stuck, you can bring a challenge to AI and work through this same process to find leverage,
@@ -232,7 +231,7 @@ export default function ReframeExercise() {
           {ia.situation_summary && (
             <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
               <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">Your Situation</h3>
-              <p className="text-sm text-gray-700">{ia.situation_summary}</p>
+              <p className="text-base text-gray-700">{ia.situation_summary}</p>
             </div>
           )}
 
@@ -253,21 +252,21 @@ export default function ReframeExercise() {
                 }))
               }
             />
-            <p className="mt-1 text-xs text-gray-500">Edit if you'd like to refine the wording.</p>
+            <p className="mt-1 text-sm text-gray-500">Edit if you'd like to refine the wording.</p>
           </div>
 
           {/* 2. What Shifted */}
           {ia.user_shift && (
             <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
               <h3 className="text-sm font-semibold uppercase text-gray-600 mb-2">What Shifted</h3>
-              <p className="text-base text-gray-800 italic">"{ia.user_shift}"</p>
+              <p className="text-base text-gray-700 italic">"{ia.user_shift}"</p>
             </div>
           )}
 
           {/* 3. What Reframing Gave You */}
           {ia.tag && (
             <div className="mb-6 p-3 bg-purple-50/50 border border-purple-100 rounded-lg">
-              <h3 className="text-xs font-semibold uppercase text-gray-500 mb-1">What reframing gave you</h3>
+              <h3 className="text-sm font-semibold uppercase text-gray-500 mb-1">What reframing gave you</h3>
               <span className="inline-block bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full font-medium">
                 {ia.tag}
               </span>
@@ -277,7 +276,7 @@ export default function ReframeExercise() {
           {/* 4. Your Instinct — capture gut response before capabilities exploration */}
           <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
             <h3 className="font-semibold text-purple-700 mb-1">Your Instinct</h3>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-base text-gray-600 mb-3">
               With your new perspective, what&apos;s your first instinct for a next step? Don&apos;t overthink it — just capture your gut response.
             </p>
             <textarea
@@ -302,9 +301,15 @@ export default function ReframeExercise() {
             </p>
           </div>
 
-          {/* 5. Explore with Capabilities button — gated on instinct >= 8 chars */}
+          {/* 5. Explore with Capabilities — gated on instinct >= 8 chars */}
           {(ia.instinct_approach ?? '').trim().length >= 8 && !ia.explorer_chosen && (
-            <div className="mb-6">
+            <div className="mb-6 p-4 bg-purple-50/50 border border-purple-200 rounded-lg">
+              <h3 className="font-semibold text-purple-700 mb-1">Explore with Capabilities</h3>
+              <p className="text-base text-gray-600 mb-3">
+                You wrote down your first instinct. Now see what happens when you look at your reframe
+                through different capability lenses — imagination, curiosity, caring, creativity, courage.
+                Each lens reveals something different. You&apos;ll pick the one that resonates most.
+              </p>
               <Button
                 onClick={() => setExplorerOpen(true)}
                 disabled={isStepLocked}
@@ -315,34 +320,37 @@ export default function ReframeExercise() {
             </div>
           )}
 
-          {/* 6. What the Capabilities Revealed — shows after explorer completion */}
-          {ia.explorer_chosen && (
-            <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <h3 className="text-sm font-semibold uppercase text-purple-700 mb-2">What the Capabilities Revealed</h3>
-              {ia.explorer_rounds && ia.explorer_rounds.length > 0 && (
-                <p className="text-xs text-gray-500 mb-2">
-                  You explored {ia.explorer_rounds.length} combination{ia.explorer_rounds.length > 1 ? 's' : ''}.
-                  You chose {formatCapabilityList(ia.explorer_chosen.capabilities.map((c: string) => CAPABILITY_LABELS[c as keyof typeof CAPABILITY_LABELS] || c))}:
-                </p>
-              )}
-              <div className="flex gap-1.5 mb-2">
-                {ia.explorer_chosen.capabilities.map((cap: string) => {
-                  const color = CAPABILITY_COLORS[cap as keyof typeof CAPABILITY_COLORS] || 'purple';
-                  const bgClass = color === 'green' ? 'bg-green-100 text-green-700'
-                    : color === 'blue' ? 'bg-blue-100 text-blue-700'
-                    : color === 'orange' ? 'bg-orange-100 text-orange-700'
-                    : color === 'red' ? 'bg-red-100 text-red-700'
-                    : 'bg-purple-100 text-purple-700';
-                  return (
-                    <span key={cap} className={`text-xs font-medium px-2.5 py-1 rounded-full ${bgClass}`}>
-                      {CAPABILITY_LABELS[cap as keyof typeof CAPABILITY_LABELS] || cap}
-                    </span>
-                  );
-                })}
+          {/* 6. The Comparison — instinct vs chosen capability approach */}
+          {ia.explorer_chosen && ia.instinct_approach && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold uppercase text-purple-700 mb-3">Your Instinct vs. Capabilities</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <h4 className="text-sm font-semibold uppercase text-gray-500 mb-2">Your first instinct</h4>
+                  <p className="text-base text-gray-700">{ia.instinct_approach}</p>
+                </div>
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <h4 className="text-sm font-semibold uppercase text-purple-600 mb-2">
+                    Through {formatCapabilityList(ia.explorer_chosen.capabilities.map((c: string) => CAPABILITY_LABELS[c as keyof typeof CAPABILITY_LABELS] || c))}
+                  </h4>
+                  <div className="flex gap-1.5 mb-2">
+                    {ia.explorer_chosen.capabilities.map((cap: string) => {
+                      const color = CAPABILITY_COLORS[cap as keyof typeof CAPABILITY_COLORS] || 'purple';
+                      const bgClass = color === 'green' ? 'bg-green-100 text-green-700'
+                        : color === 'blue' ? 'bg-blue-100 text-blue-700'
+                        : color === 'orange' ? 'bg-orange-100 text-orange-700'
+                        : color === 'red' ? 'bg-red-100 text-red-700'
+                        : 'bg-purple-100 text-purple-700';
+                      return (
+                        <span key={cap} className={`text-xs font-medium px-2.5 py-1 rounded-full ${bgClass}`}>
+                          {CAPABILITY_LABELS[cap as keyof typeof CAPABILITY_LABELS] || cap}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <p className="text-base text-gray-800">{ia.explorer_chosen.ai_response}</p>
+                </div>
               </div>
-              <p className="text-sm text-gray-800">{ia.explorer_chosen.ai_response}</p>
-
-              {/* Re-explore button */}
               <Button
                 variant="outline"
                 size="sm"
@@ -352,52 +360,6 @@ export default function ReframeExercise() {
               >
                 Explore again
               </Button>
-            </div>
-          )}
-
-          {/* 7. The Comparison — instinct vs chosen capability approach */}
-          {ia.explorer_chosen && ia.instinct_approach && (
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <h4 className="text-xs font-semibold uppercase text-gray-500 mb-2">Your first instinct</h4>
-                <p className="text-sm text-gray-700">{ia.instinct_approach}</p>
-              </div>
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <h4 className="text-xs font-semibold uppercase text-purple-600 mb-2">
-                  Through {formatCapabilityList(ia.explorer_chosen.capabilities.map((c: string) => CAPABILITY_LABELS[c as keyof typeof CAPABILITY_LABELS] || c))}
-                </h4>
-                <p className="text-sm text-gray-800">{ia.explorer_chosen.ai_response}</p>
-              </div>
-            </div>
-          )}
-
-          {/* 8. Reflection — post-exploration */}
-          {ia.explorer_chosen && (
-            <div className="mb-6 p-4 bg-white border-2 border-purple-300 rounded-lg">
-              <h3 className="font-semibold text-purple-700 mb-1">Reflection</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                What stood out to you about the approach you chose?
-              </p>
-              <textarea
-                className={`w-full border border-gray-300 rounded p-3 resize-y ${isStepLocked ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-white'}`}
-                rows={3}
-                placeholder="What stands out when you compare these two approaches?"
-                value={ia.explorer_reflection ?? ''}
-                disabled={isStepLocked}
-                readOnly={isStepLocked}
-                onChange={(e) =>
-                  setState((prev) => ({
-                    ...prev,
-                    ia_4_2: { ...(prev.ia_4_2 || {}), explorer_reflection: e.target.value },
-                  }))
-                }
-                onBlur={() => saveNow()}
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {(ia.explorer_reflection ?? '').trim().length < 10
-                  ? `${(ia.explorer_reflection ?? '').trim().length} characters — write at least 10`
-                  : `${(ia.explorer_reflection ?? '').trim().length} characters`}
-              </p>
             </div>
           )}
         </>

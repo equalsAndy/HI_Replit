@@ -198,9 +198,10 @@ RULES:
             <span className="text-xs font-semibold text-purple-600 uppercase">Your reframed perspective: </span>
             {reframedChallenge}
           </div>
-          <p className="text-sm text-gray-600 italic">
-            This isn't about finding the solution. It's about seeing what different starting points your capabilities reveal.
-          </p>
+          <div className="text-sm text-gray-600 space-y-1">
+            <p>Each capability — imagination, curiosity, caring, creativity, courage — reveals a different starting point for the same situation.</p>
+            <p>You'll try a single capability first, then a combination, then any mix you want. After at least two rounds, pick the one that resonates most.</p>
+          </div>
         </div>
 
         {/* Scrollable cards area */}

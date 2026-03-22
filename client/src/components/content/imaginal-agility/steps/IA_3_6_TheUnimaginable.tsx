@@ -138,8 +138,8 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'F1qGAW4OofQ'} // Fallback to known ID from migration
         title={videoData?.title || "The Unimaginable"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
 
       {/* Rung 5 Graphic and Purpose Side by Side */}

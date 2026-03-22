@@ -70,8 +70,8 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={youtubeId}
         title={videoData?.title || "The Ladder of Imagination"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
       
       {/* Content Card */}

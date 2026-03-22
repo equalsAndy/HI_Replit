@@ -97,6 +97,7 @@ export default function VisualizationStretchExercise() {
   // Capability stretch state
   const [capStretchLoading, setCapStretchLoading] = React.useState<string | null>(null);
   const [selectedCapability, setSelectedCapability] = React.useState<string | null>(null);
+  const [capStretchError, setCapStretchError] = React.useState<string | null>(null);
 
   // Other tag state
   const [otherTagText, setOtherTagText] = React.useState(state?.ia_4_3?.other_tag_text || '');
@@ -275,6 +276,7 @@ export default function VisualizationStretchExercise() {
     if (capStretchLoading || hasCapStretch) return;
     if (capStretches[capability]) return; // Already done
 
+    setCapStretchError(null);
     setCapStretchLoading(capability);
     try {
       const resp = await fetch('/api/ai/image/capability-stretch', {
@@ -313,6 +315,7 @@ export default function VisualizationStretchExercise() {
       setTimeout(() => saveNow(), 0);
     } catch (err: any) {
       console.error(`Capability stretch (${capability}) failed:`, err);
+      setCapStretchError(err?.message || 'Something went wrong generating the stretch. Try again.');
     } finally {
       setCapStretchLoading(null);
     }
@@ -813,16 +816,27 @@ export default function VisualizationStretchExercise() {
               </>
             ) : null}
 
+            {capStretchError && !hasCapStretch && (
+              <p className="text-sm text-red-600 mt-2">{capStretchError}</p>
+            )}
+
             {/* Rendered capability stretch cards */}
             {Object.entries(capStretches).map(([cap, data]) => (
               <div key={cap} className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                 <div className="flex gap-4 mb-3">
                   {data.photo_url && (
-                    <img
-                      src={data.photo_url}
-                      alt={data.title}
-                      className="w-24 h-24 object-cover rounded-lg border border-gray-300 flex-shrink-0"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setEnlargedImg({ src: data.photo_url, alt: data.title })}
+                      className="cursor-pointer flex-shrink-0"
+                      title="Click to enlarge"
+                    >
+                      <img
+                        src={data.photo_url}
+                        alt={data.title}
+                        className="w-24 h-24 object-cover rounded-lg border border-gray-300 hover:border-purple-400 transition-colors"
+                      />
+                    </button>
                   )}
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold text-gray-800 capitalize mb-1">

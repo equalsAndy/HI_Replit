@@ -56,8 +56,8 @@ const IA_4_1_Content: React.FC<IA_4_1_ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'MUbEbYEiimk'} // Fallback to known ID from migration
         title={videoData?.title || "Advanced Ladder Overview"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
 
       {/* Advanced Ladder Graphic */}

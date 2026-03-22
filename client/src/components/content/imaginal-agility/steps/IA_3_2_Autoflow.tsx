@@ -129,8 +129,8 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'Kjy3lBW06Gs'} // Fallback to known ID from migration
         title={videoData?.title || "Autoflow Practice"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
 
       {/* Rung 1 Graphic and Purpose Side by Side */}

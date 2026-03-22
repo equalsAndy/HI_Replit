@@ -6,6 +6,8 @@ import { useContinuity } from '@/hooks/useContinuity';
 import { GlobalPurposeBridgeModal } from './GlobalPurposeBridgeModal';
 import { Globe, Target } from 'lucide-react';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
+import { CapabilityType } from '@/lib/types';
 
 const TAG_OPTIONS = [
   { value: 'Bigger Than I Thought',           label: 'Bigger than I thought',           helper: 'My intention isn\'t small \u2014 it connects to something real.' },
@@ -43,6 +45,19 @@ export default function GlobalPurposeBridgeExercise() {
   const [higherPurpose, setHigherPurpose] = React.useState(ia.higher_purpose || '');
   const [selectedChallenge, setSelectedChallenge] = React.useState(ia.global_challenge || '');
   const [customChallenge, setCustomChallenge] = React.useState('');
+
+  // Sync local state when continuity data loads or updates
+  React.useEffect(() => {
+    if (ia.global_challenge && !selectedChallenge) {
+      setSelectedChallenge(ia.global_challenge);
+    }
+  }, [ia.global_challenge]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  React.useEffect(() => {
+    if (ia.higher_purpose && !higherPurpose) {
+      setHigherPurpose(ia.higher_purpose);
+    }
+  }, [ia.higher_purpose]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const globalChallenges = [
     'Climate Change and Environmental Degradation',
@@ -92,10 +107,7 @@ export default function GlobalPurposeBridgeExercise() {
   // Modal completion
   const handleModalComplete = (results: {
     reframedView: string;
-    question1: string;
-    question2: string;
-    observation: string;
-    aiReflection: string;
+    taskForceIdea: string;
     transcript: string[];
   }) => {
     setState((prev) => ({
@@ -105,10 +117,7 @@ export default function GlobalPurposeBridgeExercise() {
         higher_purpose: effectivePurpose,
         global_challenge: effectiveChallenge,
         reframed_view: results.reframedView,
-        question1: results.question1,
-        question2: results.question2,
-        observation: results.observation,
-        ai_reflection: results.aiReflection,
+        task_force_idea: results.taskForceIdea,
         transcript: results.transcript,
         last_updated: new Date().toISOString(),
       }
@@ -117,9 +126,11 @@ export default function GlobalPurposeBridgeExercise() {
     setModalOpen(false);
   };
 
-  // Completion gate: tag + 20+ words in "what changed" reflection
+  // Completion gate: tag + 20+ words in reflection + 1+ capabilities + 15+ words in imagine
   const reflectionWords = wordCount(ia.intention_reflection);
-  const isComplete = Boolean(ia.tag) && reflectionWords >= 20;
+  const selectedCaps: CapabilityType[] = ia.selected_capabilities ?? [];
+  const imagineWords = wordCount(ia.imagine_text);
+  const isComplete = Boolean(ia.tag) && reflectionWords >= 20 && selectedCaps.length >= 1 && imagineWords >= 15;
 
   return (
     <>
@@ -276,13 +287,14 @@ export default function GlobalPurposeBridgeExercise() {
 
       {/* ═══════════ POST-MODAL: Simplified 5-section layout ═══════════ */}
       {isModalDone && (
-        <>
+        <div style={{ overflowAnchor: 'none' }}>
           {/* ── 1. What you just did ── */}
           <div className="mb-6 p-4 border-l-[3px] border-purple-400 bg-purple-50/60 rounded-r-lg">
             <p className="text-sm text-gray-700 leading-relaxed">
-              You took your intention to global scale and used AI as a research partner to explore{' '}
-              <em>{(ia.global_challenge || effectiveChallenge || 'a global challenge').toLowerCase()}</em>.
-              The questions you asked and what drew you to them revealed which of your capabilities naturally showed up.
+              You zoomed out from your intention to{' '}
+              <em>{(ia.global_challenge || effectiveChallenge || 'a global challenge').toLowerCase()}</em>,
+              found a bridge between them, and then stepped in — imagining what you'd actually do at that scale.
+              That's the method: bridge, step in, act imaginatively, notice what you brought with you.
             </p>
           </div>
 
@@ -308,7 +320,31 @@ export default function GlobalPurposeBridgeExercise() {
             </div>
           </div>
 
-          {/* ── 3. Tags (quick tap) ── */}
+          {/* ── 3. Task force idea (editable) ── */}
+          {ia.task_force_idea && (
+            <div className="mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">What you'd try</h3>
+              <div className="bg-white border-[1.5px] border-purple-200 rounded-lg p-4">
+                <textarea
+                  className={`w-full border-0 bg-transparent text-[15px] text-gray-800 leading-relaxed resize-y focus:outline-none focus:ring-0 min-h-[60px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+                  rows={2}
+                  value={ia.task_force_idea ?? ''}
+                  onChange={(e) =>
+                    setState((prev) => ({
+                      ...prev,
+                      ia_4_4: { ...(prev.ia_4_4 || {}), task_force_idea: e.target.value },
+                    }))
+                  }
+                  onBlur={() => saveNow()}
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
+                />
+                <p className="text-xs text-gray-400 italic mt-1">✏️ Edit to make this yours</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── 4. Tags (quick tap) ── */}
           <div className="mb-6">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">What did this give you?</h3>
             <div className="space-y-2">
@@ -383,28 +419,76 @@ export default function GlobalPurposeBridgeExercise() {
             </div>
           </div>
 
-          {/* ── 5. AI reveal (appears after participant writes their reflection) ── */}
-          {ia.ai_reflection && reflectionWords >= 10 && (
-            <div
-              className="mb-6 bg-green-50/80 border border-green-200 rounded-lg p-4"
-              style={{ animation: 'fadeReveal 0.4s ease forwards' }}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-green-700">During the exercise, AI noticed</h3>
-              </div>
-              <p className="text-sm text-gray-700 leading-relaxed">{ia.ai_reflection}</p>
+          {/* ── 6. Capabilities in Action ── */}
+          <div className="mb-6">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Capabilities in action</h3>
+            <div className="bg-purple-50/40 border border-purple-100 rounded-lg p-4 mb-3">
+              <p className="text-sm text-gray-600 leading-relaxed">
+                This whole exercise was imagination at work — you stretched beyond your usual scale.
+                What <em>else</em> showed up? Which capabilities did you reach for when you stepped in?
+              </p>
             </div>
-          )}
+            <CapabilitySelector
+              mode="multi"
+              selected={selectedCaps}
+              exclude={['imagination'] as CapabilityType[]}
+              minSelections={1}
+              onSelect={(caps) => {
+                if (isStepLocked) return;
+                setState((prev) => ({
+                  ...prev,
+                  ia_4_4: { ...(prev.ia_4_4 || {}), selected_capabilities: caps as CapabilityType[] },
+                }));
+                setTimeout(() => saveNow(), 0);
+              }}
+              disabled={isStepLocked}
+              prompt="Pick 1 or more"
+            />
+            <div
+              className="mt-4 transition-all duration-200"
+              style={{
+                height: selectedCaps.length > 0 ? 'auto' : '0',
+                opacity: selectedCaps.length > 0 ? 1 : 0,
+                overflow: selectedCaps.length > 0 ? 'visible' : 'hidden',
+              }}
+            >
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                If I brought{' '}
+                <span className="text-purple-700 font-semibold">
+                  {selectedCaps.length > 0
+                    ? selectedCaps.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' and ')
+                    : '...'}
+                </span>{' '}
+                to my intention, I imagine...
+              </label>
+              <textarea
+                className={`w-full border-[1.5px] border-gray-200 rounded-lg p-4 text-sm leading-relaxed resize-y bg-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 min-h-[80px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+                rows={3}
+                placeholder="Complete the sentence..."
+                value={ia.imagine_text ?? ''}
+                onChange={(e) =>
+                  setState((prev) => ({
+                    ...prev,
+                    ia_4_4: { ...(prev.ia_4_4 || {}), imagine_text: e.target.value },
+                  }))
+                }
+                onBlur={() => saveNow()}
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
+                tabIndex={selectedCaps.length > 0 ? 0 : -1}
+              />
+              <div className="flex justify-between items-center mt-1.5">
+                <p className="text-xs text-gray-400">
+                  {imagineWords} word{imagineWords !== 1 ? 's' : ''} · aim for 15–40
+                </p>
+                {!isComplete && (
+                  <p className="text-xs font-medium text-purple-500">✦ Required to continue</p>
+                )}
+              </div>
+            </div>
+          </div>
 
-          {/* Inline keyframe for reveal animation */}
-          <style>{`
-            @keyframes fadeReveal {
-              from { opacity: 0; transform: translateY(8px); }
-              to { opacity: 1; transform: translateY(0); }
-            }
-          `}</style>
-        </>
+        </div>
       )}
 
       {/* Modal */}

@@ -313,8 +313,8 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : null} // No fallback for ia-3-3 (not in migration)
         title={videoData?.title || "Visualizing Your Potential"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
 
       {/* Rung 2 Graphic and Purpose Side by Side */}

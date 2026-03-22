@@ -111,8 +111,8 @@ const IA_5_3_MonthlySignal: React.FC<IA53ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'NUnJc82ptd4'}
         title={videoData?.title || "Monthly Capability Signal"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
 
       {/* Intro */}

@@ -52,8 +52,8 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={youtubeId}
         title={videoData?.title || "The i4C Prism Model"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
       
       {/* Content Card */}

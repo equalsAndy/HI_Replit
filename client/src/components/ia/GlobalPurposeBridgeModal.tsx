@@ -11,10 +11,7 @@ export interface GlobalPurposeBridgeModalProps {
   globalChallenge: string;
   onComplete: (results: {
     reframedView: string;
-    question1: string;
-    question2: string;
-    observation: string;
-    aiReflection: string;
+    taskForceIdea: string;
     transcript: string[];
   }) => void;
 }
@@ -29,7 +26,7 @@ export function GlobalPurposeBridgeModal({
   onComplete,
 }: GlobalPurposeBridgeModalProps) {
   // ── Phase ──
-  const [phase, setPhase] = React.useState<'reframe' | 'explore'>('reframe');
+  const [phase, setPhase] = React.useState<'reframe' | 'taskforce'>('reframe');
 
   // ── Display transcript (parent-managed, always visible) ──
   const [transcript, setTranscript] = React.useState<ChatMsg[]>([]);
@@ -37,12 +34,10 @@ export function GlobalPurposeBridgeModal({
   // ── Phase 1 output ──
   const [reframedView, setReframedView] = React.useState('');
 
-  // ── Phase 2: Explore — track participant's questions and observation ──
-  const [question1, setQuestion1] = React.useState('');
-  const [question2, setQuestion2] = React.useState('');
-  const [observation, setObservation] = React.useState('');
-  const [aiReflection, setAiReflection] = React.useState('');
-  const exploreUserCountRef = React.useRef(0); // counts user messages in explore phase
+  // ── Phase 2: Task Force ──
+  const [taskForceIdea, setTaskForceIdea] = React.useState('');
+  const [taskForceResponded, setTaskForceResponded] = React.useState(false);
+  const taskForceUserSentRef = React.useRef(false); // has user sent their idea?
 
   // ── InlineChat ──
   const chatRef = React.useRef<InlineChatHandle | null>(null);
@@ -54,8 +49,8 @@ export function GlobalPurposeBridgeModal({
     return `${PROMPTS.IA_4_4}\n\nCONTEXT:\nUser's Intention: ${higherPurpose}\nGlobal Challenge: ${globalChallenge}\n\nCURRENT_PHASE: reframe`;
   }, [higherPurpose, globalChallenge]);
 
-  const explorePrompt = React.useMemo(() => {
-    return `${PROMPTS.IA_4_4_EXPLORE}\n\nCONTEXT:\nUser's Intention: ${higherPurpose}\nGlobal Challenge: ${globalChallenge}\nTheir Bridge: ${reframedView}\n\nCURRENT_PHASE: explore`;
+  const taskForcePrompt = React.useMemo(() => {
+    return `${PROMPTS.IA_4_4_EXPLORE}\n\nCONTEXT:\nUser's Intention: ${higherPurpose}\nGlobal Challenge: ${globalChallenge}\nTheir Bridge: ${reframedView}\n\nCURRENT_PHASE: taskforce`;
   }, [higherPurpose, globalChallenge, reframedView]);
 
   // ── Reset on close ──
@@ -64,11 +59,9 @@ export function GlobalPurposeBridgeModal({
       setPhase('reframe');
       setTranscript([]);
       setReframedView('');
-      setQuestion1('');
-      setQuestion2('');
-      setObservation('');
-      setAiReflection('');
-      exploreUserCountRef.current = 0;
+      setTaskForceIdea('');
+      setTaskForceResponded(false);
+      taskForceUserSentRef.current = false;
       setChatKey(0);
     } else {
       setChatKey(prev => prev + 1);
@@ -101,19 +94,22 @@ export function GlobalPurposeBridgeModal({
       }
     }
 
-    if (phase === 'explore') {
-      // Handle [RETRY] or [FALLBACK] — roll back the counter
+    if (phase === 'taskforce') {
+      // Handle [RETRY] or [FALLBACK] — don't mark as responded
       if (msg.includes('[RETRY]') || msg.includes('[FALLBACK]')) {
-        const rollbackTo = exploreUserCountRef.current - 1;
-        exploreUserCountRef.current = Math.max(0, rollbackTo);
-        if (rollbackTo === 0) setQuestion1('');
-        else if (rollbackTo === 1) setQuestion2('');
-        return; // Don't process further
+        taskForceUserSentRef.current = false;
+        return;
       }
 
-      // After user's 3rd message (observation), the next AI response is the capability mirror
-      if (exploreUserCountRef.current >= 3) {
-        setAiReflection(msg.replace(/^\s*\[REFLECTION\]\s*/im, '').trim());
+      // Extract [IDEA] marker if present
+      const ideaMatch = msg.match(/\[IDEA\]\s*([\s\S]*?)\s*\[\/IDEA\]/i);
+      if (ideaMatch) {
+        setTaskForceIdea(ideaMatch[1].trim());
+      }
+
+      // If the user already sent their idea, this AI response means we're done
+      if (taskForceUserSentRef.current) {
+        setTaskForceResponded(true);
       }
     }
   }, [phase]);
@@ -121,31 +117,26 @@ export function GlobalPurposeBridgeModal({
   const onChatUserSend = React.useCallback((msg: string) => {
     setTranscript(prev => [...prev, { role: 'user', content: msg }]);
 
-    if (phase === 'explore') {
-      exploreUserCountRef.current += 1;
-      const count = exploreUserCountRef.current;
-
-      if (count === 1) {
-        setQuestion1(msg.trim());
-      } else if (count === 2) {
-        setQuestion2(msg.trim());
-      } else if (count === 3) {
-        setObservation(msg.trim());
+    if (phase === 'taskforce') {
+      taskForceUserSentRef.current = true;
+      // Also capture the raw idea in case AI doesn't produce [IDEA] marker
+      if (!taskForceIdea) {
+        setTaskForceIdea(msg.trim());
       }
     }
-  }, [phase]);
+  }, [phase, taskForceIdea]);
 
-  // ── Phase transition: reframe → explore ──
-  const handleTransitionToExplore = () => {
+  // ── Phase transition: reframe → taskforce ──
+  const handleTransitionToTaskForce = () => {
     if (reframedView.trim()) {
-      setPhase('explore');
-      exploreUserCountRef.current = 0;
+      setPhase('taskforce');
+      taskForceUserSentRef.current = false;
       // Inject transition into transcript
       setTranscript(prev => [...prev, {
         role: 'assistant',
-        content: `Good \u2014 that\u2019s your bridge.\n\nNow I want to be your research partner for a few minutes. I know things about ${globalChallenge.toLowerCase()} that you might not, and you can ask me anything.\n\nAsk two questions about this challenge at a global scale. Follow your curiosity \u2014 whatever you\u2019re genuinely wondering about.`
+        content: `Good \u2014 that\u2019s your bridge. Now step into it.\n\nYou\u2019ve got a seat on a task force working on ${globalChallenge.toLowerCase()}. What\u2019s one thing you\u2019d want to try, change, or build?`
       }]);
-      // Remount InlineChat with explore prompt
+      // Remount InlineChat with taskforce prompt
       setChatKey(prev => prev + 1);
     }
   };
@@ -154,20 +145,17 @@ export function GlobalPurposeBridgeModal({
   const handleComplete = () => {
     onComplete({
       reframedView: reframedView.trim(),
-      question1: question1.trim(),
-      question2: question2.trim(),
-      observation: observation.trim(),
-      aiReflection: aiReflection.trim(),
+      taskForceIdea: taskForceIdea.trim(),
       transcript: transcript.map(m => `${m.role}: ${m.content}`),
     });
     onOpenChange(false);
   };
 
   // ── Derive UI state ──
-  const isDone = phase === 'explore' && aiReflection.trim().length > 0;
+  const isDone = phase === 'taskforce' && taskForceResponded;
 
   // ── Active system prompt based on phase ──
-  const activeSystemPrompt = phase === 'reframe' ? reframePrompt : explorePrompt;
+  const activeSystemPrompt = phase === 'reframe' ? reframePrompt : taskForcePrompt;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal>
@@ -191,7 +179,7 @@ export function GlobalPurposeBridgeModal({
         <div className="flex flex-col bg-gray-50 p-4 pt-16 min-h-0">
           {/* Context banner */}
           <div className="rounded-md bg-purple-50/60 border border-purple-100 px-3 py-2 text-xs text-gray-700 shadow-sm mb-3 flex-shrink-0">
-            <div><strong>Intention:</strong> {higherPurpose.length > 120 ? `${higherPurpose.slice(0, 120)}...` : higherPurpose}</div>
+            <div title={higherPurpose}><strong>Intention:</strong> {higherPurpose.length > 120 ? `${higherPurpose.slice(0, 120)}...` : higherPurpose}</div>
             <div className="mt-1"><strong>Challenge:</strong> {globalChallenge}</div>
           </div>
 
@@ -202,7 +190,7 @@ export function GlobalPurposeBridgeModal({
               const displayContent = m.role === 'assistant'
                 ? m.content
                     .replace(/^\s*\[VIEW\]\s*.+$/gim, '')
-                    .replace(/^\s*\[REFLECTION\]\s*/gim, '')
+                    .replace(/\[IDEA\][\s\S]*?\[\/IDEA\]/gi, '')
                     .replace(/^\s*\[RETRY\]\s*/gim, '')
                     .replace(/^\s*\[FALLBACK\]\s*/gim, '')
                     .replace(/^\s*\[REDIRECT\]\s*/gim, '')
@@ -230,33 +218,29 @@ export function GlobalPurposeBridgeModal({
             })}
           </div>
 
-          {/* InlineChat — ALWAYS MOUNTED, prompt changes by phase */}
-          <InlineChat
-            key={chatKey}
-            ref={chatRef}
-            trainingId="ia-4-4"
-            systemPrompt={activeSystemPrompt}
-            seed={
-              phase === 'reframe'
-                ? `How does my intention connect to ${globalChallenge.toLowerCase()}?`
-                : undefined // No seed in explore — the transition message IS the prompt
-            }
-            onReply={onChatReply}
-            onUserSend={onChatUserSend}
-            hideHistory={true}
-            className="border-0 p-0 bg-transparent flex-shrink-0"
-            placeholder={
-              phase === 'reframe'
-                ? 'Tell AI how to adjust the angle...'
-                : exploreUserCountRef.current >= 3
-                  ? 'Waiting for AI...'
-                  : exploreUserCountRef.current >= 2
-                    ? 'Reflect on what drew you to those questions...'
-                    : exploreUserCountRef.current >= 1
-                      ? 'Ask your second question...'
-                      : 'Ask your first question about this challenge...'
-            }
-          />
+          {/* InlineChat — hidden once task force is done */}
+          {!isDone && (
+            <InlineChat
+              key={chatKey}
+              ref={chatRef}
+              trainingId="ia-4-4"
+              systemPrompt={activeSystemPrompt}
+              seed={
+                phase === 'reframe'
+                  ? `How does my intention connect to ${globalChallenge.toLowerCase()}?`
+                  : undefined // No seed in taskforce — the transition message IS the prompt
+              }
+              onReply={onChatReply}
+              onUserSend={onChatUserSend}
+              hideHistory={true}
+              className="border-0 p-0 bg-transparent flex-shrink-0"
+              placeholder={
+                phase === 'reframe'
+                  ? 'Tell AI how to adjust the angle...'
+                  : 'What would you try, change, or build?'
+              }
+            />
+          )}
         </div>
 
         {/* =========== RIGHT COLUMN: Accumulating artifacts =========== */}
@@ -271,72 +255,48 @@ export function GlobalPurposeBridgeModal({
               {reframedView.trim() || 'The AI will offer a bridge between your intention and this challenge. It will appear here.'}
             </div>
             {phase === 'reframe' && (
-              <Button onClick={handleTransitionToExplore} disabled={!reframedView.trim()} className="w-full mt-3">
-                This resonates &mdash; explore this challenge
+              <Button onClick={handleTransitionToTaskForce} disabled={!reframedView.trim()} className="w-full mt-3">
+                This resonates &mdash; step into this challenge
               </Button>
             )}
           </section>
 
-          {/* Section 2: Questions — appear as they're asked */}
-          {phase === 'explore' && (
+          {/* Section 2: Task Force Idea — appears after they propose */}
+          {phase === 'taskforce' && (
             <section className="mb-5">
-              <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">Your questions</h2>
-              <div className="space-y-2">
-                {question1 ? (
-                  <div className="p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
-                    <span className="text-xs font-medium text-purple-600 mr-1.5">Q1</span>
-                    <span className="text-gray-800">{question1}</span>
-                  </div>
-                ) : (
-                  <div className="p-2.5 border border-dashed border-gray-200 rounded-lg text-sm text-gray-400 italic">
-                    Your first question will appear here...
-                  </div>
-                )}
-                {question2 ? (
-                  <div className="p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
-                    <span className="text-xs font-medium text-purple-600 mr-1.5">Q2</span>
-                    <span className="text-gray-800">{question2}</span>
-                  </div>
-                ) : question1 ? (
-                  <div className="p-2.5 border border-dashed border-gray-200 rounded-lg text-sm text-gray-400 italic">
-                    Your second question will appear here...
-                  </div>
-                ) : null}
-              </div>
-            </section>
-          )}
-
-          {/* Section 3: Observation — appears after participant reflects */}
-          {phase === 'explore' && observation && (
-            <section className="mb-5">
-              <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">What you noticed</h2>
-              <div className="p-2.5 bg-purple-50/50 border border-purple-200 rounded-lg text-sm text-gray-800">
-                {observation}
-              </div>
-            </section>
-          )}
-
-          {/* Section 4: AI capability mirror — appears last */}
-          {phase === 'explore' && aiReflection && (
-            <section className="mb-5">
-              <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">What AI noticed</h2>
-              <div className="p-2.5 bg-green-50/60 border border-green-200 rounded-lg text-sm text-gray-700">
-                {aiReflection}
-              </div>
-            </section>
-          )}
-
-          {/* Done button */}
-          {phase === 'explore' && (
-            <div className="mt-auto pt-4">
-              {isDone && (
-                <Button
-                  onClick={handleComplete}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  Save & continue →
-                </Button>
+              <h2 className="text-sm font-semibold uppercase text-gray-500 mb-2">Your task force idea</h2>
+              {taskForceIdea ? (
+                <div className="p-3 bg-purple-50/50 border border-purple-200 rounded-lg text-sm text-gray-800">
+                  {taskForceIdea}
+                </div>
+              ) : (
+                <div className="p-3 border border-dashed border-gray-200 rounded-lg text-sm text-gray-400 italic">
+                  What would you try, change, or build? Your idea will appear here.
+                </div>
               )}
+            </section>
+          )}
+
+          {/* Method + Done */}
+          {phase === 'taskforce' && isDone && (
+            <div className="mt-auto pt-4 space-y-4">
+              <div className="bg-purple-50/70 border border-purple-200 rounded-lg p-4">
+                <h2 className="text-xs font-semibold uppercase text-purple-600 mb-2">The method you just practiced</h2>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  <strong>Bridge</strong> — find where your intention connects to something bigger.<br/>
+                  <strong>Step in</strong> — imagine what you’d actually do at that scale.<br/>
+                  <strong>Bring it back</strong> — notice what showed up and apply it to your own world.
+                </p>
+                <p className="text-xs text-purple-600 mt-3 font-medium">
+                  Next, you’ll reflect on what this stretch revealed and bring a capability back to your intention.
+                </p>
+              </div>
+              <Button
+                onClick={handleComplete}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                Save & continue →
+              </Button>
             </div>
           )}
         </div>

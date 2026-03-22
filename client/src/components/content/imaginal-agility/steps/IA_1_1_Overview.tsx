@@ -141,8 +141,8 @@ const IA_1_1_Overview: React.FC<IA11OverviewProps> = ({ onNext }) => {
         <VideoTranscriptGlossary
           youtubeId={youtubeId}
           title={videoData?.title || "Module 1 Overview"}
-          transcriptMd={null}
-          glossary={null}
+          transcriptMd={videoData?.transcriptMd}
+          glossary={videoData?.glossary}
         />
       </div>
 

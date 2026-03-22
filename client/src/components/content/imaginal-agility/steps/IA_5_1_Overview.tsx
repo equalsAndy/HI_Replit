@@ -44,8 +44,8 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
         title={videoData?.title || "Imaginal Agility Matrix"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={videoData?.transcriptMd}
+        glossary={videoData?.glossary}
       />
 
       {/* IAM Activation Content */}
