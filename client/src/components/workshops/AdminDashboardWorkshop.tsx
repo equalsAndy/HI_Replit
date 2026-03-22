@@ -10,9 +10,10 @@ const ExerciseTrainingDocsAdmin = React.lazy(() => import('@/components/admin/Ex
 const EnhancedVideoManagement = React.lazy(() =>
   import('@/components/admin/EnhancedVideoManagement').then(m => ({ default: m.EnhancedVideoManagement }))
 );
+const VideoTranscriptAdmin = React.lazy(() => import('@/components/admin/VideoTranscriptAdmin'));
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
-import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video } from 'lucide-react';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video, FileText } from 'lucide-react';
 import VersionInfo from '@/components/ui/VersionInfo';
 import { FeedbackTrigger } from '@/components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '@/utils/pageContext';
@@ -874,6 +875,7 @@ export default function AdminDashboardWorkshop() {
   const appLogout = useLogout();
   const [activeTab, setActiveTab] = React.useState('users');
   const [activeAITab, setActiveAITab] = React.useState('overview');
+  const [activeVideoTab, setActiveVideoTab] = React.useState('manage');
   const [contentAccess, setContentAccess] = React.useState<'student' | 'professional'>('professional');
   const [astLogoError, setAstLogoError] = React.useState(false);
   const [iaLogoError, setIaLogoError] = React.useState(false);
@@ -1259,7 +1261,34 @@ export default function AdminDashboardWorkshop() {
           <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div></div>}>
             {activeTab === 'users' && <UserManagement />}
             {activeTab === 'invites' && <InviteManagement />}
-            {activeTab === 'videos' && isAdmin && <EnhancedVideoManagement />}
+            {activeTab === 'videos' && isAdmin && (
+              <div>
+                <div style={styles.subTabsContainer}>
+                  <div style={styles.subTabsList}>
+                    {[
+                      { id: 'manage', label: 'Videos', icon: Video },
+                      { id: 'transcripts', label: 'Transcripts', icon: FileText },
+                    ].map((subTab) => (
+                      <button
+                        key={subTab.id}
+                        style={{
+                          ...styles.subTab,
+                          ...(activeVideoTab === subTab.id ? styles.activeSubTab : {})
+                        }}
+                        onClick={() => setActiveVideoTab(subTab.id)}
+                      >
+                        {subTab.icon && <subTab.icon size={16} style={{ marginRight: '8px' }} />}
+                        {subTab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={styles.subTabContent}>
+                  {activeVideoTab === 'manage' && <EnhancedVideoManagement />}
+                  {activeVideoTab === 'transcripts' && <VideoTranscriptAdmin />}
+                </div>
+              </div>
+            )}
             {activeTab === 'ai' && (
               <div>
                 <div style={styles.subTabsContainer}>

@@ -14,6 +14,8 @@ interface Video {
   sortOrder?: number;
   contentMode?: 'student' | 'professional' | 'both';
   requiredWatchPercentage?: number;
+  transcriptMd?: string;
+  glossary?: Array<{ term: string; definition: string }>;
 }
 
 // Hook to get current user's content access mode

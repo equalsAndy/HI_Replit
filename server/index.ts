@@ -51,6 +51,7 @@ import growthPlanRoutes from './routes/growth-plan-routes.ts';
 // import trainingUploadRoutes from './routes/training-upload-routes.ts';
 import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.ts';
 import exerciseTrainingDocsRoutes from './routes/exercise-training-docs-routes.ts';
+import videoTranscriptRoutes from './routes/video-transcript-routes.ts';
 import taliaStatusRoutes from './routes/talia-status-routes.ts';
 // ARCHIVED: RAG pipeline route (persona-document sync)
 // import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
@@ -494,6 +495,7 @@ async function initializeApp() {
       // requireAuth/requireAdmin middleware that would otherwise block X-Sync-Key requests.
       // Our router handles its own dual-auth (session OR X-Sync-Key).
 app.use('/api/admin/exercise-training-docs', exerciseTrainingDocsRoutes);
+app.use('/api/admin/video-transcripts', videoTranscriptRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);

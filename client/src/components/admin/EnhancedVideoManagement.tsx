@@ -1007,6 +1007,19 @@ export function EnhancedVideoManagement() {
                     <option value="professional">Professional Only</option>
                   </select>
                 </div>
+
+                <div style={styles.formGroupFull}>
+                  <label style={styles.label}>Transcript (Markdown)</label>
+                  <textarea
+                    style={{ ...styles.textarea, height: '200px', fontFamily: 'monospace', fontSize: '12px' }}
+                    placeholder="Paste video transcript in markdown format..."
+                    value={formData.transcriptMd}
+                    onChange={(e) => handleInputChange('transcriptMd', e.target.value)}
+                  />
+                  <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                    {formData.transcriptMd.length > 0 ? `${formData.transcriptMd.length} characters` : 'No transcript'}
+                  </div>
+                </div>
               </div>
 
               <div style={styles.modalActions}>
