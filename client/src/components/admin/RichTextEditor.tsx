@@ -3,7 +3,6 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import ImageResize from 'tiptap-extension-resize-image';
 import TextStyle from '@tiptap/extension-text-style';
-import FontFamily from '@tiptap/extension-font-family';
 import { Color } from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import Underline from '@tiptap/extension-underline';
@@ -514,7 +513,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
       StarterKit,
       TextStyle,
       FontSize,
-      FontFamily,
       Color,
       Highlight.configure({ multicolor: true }),
       Underline,
