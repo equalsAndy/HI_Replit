@@ -17,6 +17,7 @@ interface VideoSummary {
 
 const PROD_URL = 'https://app2.heliotropeimaginal.com';
 const DEV_URL = 'http://localhost:8080';
+const STORAGE_KEY = 'transcriptAdmin_filters';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,36 @@ const VideoTranscriptAdmin: React.FC = () => {
   // Saved badge
   const savedBadgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showSavedBadge, setShowSavedBadge] = useState(false);
+
+  // Filters (persisted to localStorage)
+  const loadFilters = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  };
+  const savedFilters = loadFilters();
+  const [filterWorkshop, setFilterWorkshop] = useState<string>(savedFilters.workshop || 'all');
+  const [filterTranscript, setFilterTranscript] = useState<string>(savedFilters.transcript || 'all');
+  const [searchTerm, setSearchTerm] = useState<string>(savedFilters.search || '');
+
+  // Persist filters to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      workshop: filterWorkshop,
+      transcript: filterTranscript,
+      search: searchTerm,
+    }));
+  }, [filterWorkshop, filterTranscript, searchTerm]);
+
+  const resetFilters = () => {
+    setFilterWorkshop('all');
+    setFilterTranscript('all');
+    setSearchTerm('');
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const hasActiveFilters = filterWorkshop !== 'all' || filterTranscript !== 'all' || searchTerm !== '';
 
   // Sync / Push
   const [syncing, setSyncing] = useState(false);
@@ -194,6 +225,21 @@ const VideoTranscriptAdmin: React.FC = () => {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
+  // Filter videos
+  const filteredVideos = videos.filter(video => {
+    const matchesWorkshop = filterWorkshop === 'all'
+      || (filterWorkshop === 'ia' && (video.workshopType === 'ia' || video.workshopType === 'imaginal-agility'))
+      || (filterWorkshop === 'allstarteams' && video.workshopType === 'allstarteams')
+      || video.workshopType === filterWorkshop;
+    const matchesTranscript = filterTranscript === 'all'
+      || (filterTranscript === 'has' && video.hasTranscript)
+      || (filterTranscript === 'missing' && !video.hasTranscript);
+    const matchesSearch = !searchTerm
+      || video.title.toLowerCase().includes(searchTerm.toLowerCase())
+      || (video.stepId && video.stepId.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesWorkshop && matchesTranscript && matchesSearch;
+  });
+
   const isDirty = editorContent !== savedContent;
 
   return (
@@ -273,14 +319,61 @@ const VideoTranscriptAdmin: React.FC = () => {
           </div>
         </div>
 
+        {/* Filters */}
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#fafafa' }}>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+            <select
+              value={filterWorkshop}
+              onChange={e => setFilterWorkshop(e.target.value)}
+              style={{ flex: 1, padding: '4px 6px', fontSize: '11px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}
+            >
+              <option value="all">All Workshops</option>
+              <option value="allstarteams">AST</option>
+              <option value="ia">IA</option>
+            </select>
+            <select
+              value={filterTranscript}
+              onChange={e => setFilterTranscript(e.target.value)}
+              style={{ flex: 1, padding: '4px 6px', fontSize: '11px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}
+            >
+              <option value="all">All Status</option>
+              <option value="has">Has Transcript</option>
+              <option value="missing">Missing</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <input
+              type="text"
+              placeholder="Search title or step..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{ flex: 1, padding: '4px 6px', fontSize: '11px', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            />
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                title="Reset filters"
+                style={{ padding: '4px 8px', fontSize: '11px', backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '4px' }}>
+            {filteredVideos.length} of {videos.length} videos
+          </div>
+        </div>
+
         {/* Video list */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {loadingVideos ? (
             <div style={{ padding: '16px', color: '#9ca3af', fontSize: '13px' }}>Loading...</div>
-          ) : videos.length === 0 ? (
-            <div style={{ padding: '16px', color: '#9ca3af', fontSize: '13px' }}>No videos found.</div>
+          ) : filteredVideos.length === 0 ? (
+            <div style={{ padding: '16px', color: '#9ca3af', fontSize: '13px' }}>
+              {videos.length === 0 ? 'No videos found.' : 'No videos match filters.'}
+            </div>
           ) : (
-            videos.map(video => {
+            filteredVideos.map(video => {
               const badge = workshopBadge(video.workshopType);
               return (
                 <button
