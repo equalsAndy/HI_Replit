@@ -314,6 +314,8 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : null} // No fallback for ia-3-3 (not in migration)
         title={videoData?.title || "Visualizing Your Potential"}
         transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
         glossary={videoData?.glossary}
       />
 

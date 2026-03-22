@@ -71,6 +71,8 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
         youtubeId={youtubeId}
         title={videoData?.title || "The Ladder of Imagination"}
         transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
         glossary={videoData?.glossary}
       />
       

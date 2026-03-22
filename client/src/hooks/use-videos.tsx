@@ -15,6 +15,8 @@ interface Video {
   contentMode?: 'student' | 'professional' | 'both';
   requiredWatchPercentage?: number;
   transcriptMd?: string;
+  transcriptHtml?: string;
+  videoEnabled?: boolean;
   glossary?: Array<{ term: string; definition: string }>;
 }
 

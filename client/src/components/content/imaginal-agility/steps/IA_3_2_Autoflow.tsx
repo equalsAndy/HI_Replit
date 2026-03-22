@@ -130,6 +130,8 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'Kjy3lBW06Gs'} // Fallback to known ID from migration
         title={videoData?.title || "Autoflow Practice"}
         transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
         glossary={videoData?.glossary}
       />
 

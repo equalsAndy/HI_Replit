@@ -17,6 +17,7 @@ interface Video {
   contentMode: string;
   requiredWatchPercentage: number;
   transcriptMd: string | null;
+  videoEnabled: boolean;
   glossary: any[];
   createdAt: string;
   updatedAt: string;
@@ -70,6 +71,7 @@ export function EnhancedVideoManagement() {
     contentMode: 'both',
     requiredWatchPercentage: 75,
     transcriptMd: '',
+    videoEnabled: true,
   });
 
   // Sorting functionality
@@ -172,6 +174,7 @@ export function EnhancedVideoManagement() {
         contentMode: video.content_mode || video.contentMode,
         requiredWatchPercentage: video.required_watch_percentage || video.requiredWatchPercentage,
         transcriptMd: video.transcript_md || video.transcriptMd,
+        videoEnabled: video.video_enabled ?? video.videoEnabled ?? true,
         createdAt: video.created_at || video.createdAt,
         updatedAt: video.updated_at || video.updatedAt
       }));
@@ -272,6 +275,7 @@ export function EnhancedVideoManagement() {
       contentMode: 'both',
       requiredWatchPercentage: 75,
       transcriptMd: '',
+      videoEnabled: true,
     });
   };
 
@@ -363,6 +367,7 @@ export function EnhancedVideoManagement() {
       contentMode: video.contentMode || 'both',
       requiredWatchPercentage: video.requiredWatchPercentage || 75,
       transcriptMd: video.transcriptMd || '',
+      videoEnabled: video.videoEnabled !== false,
     });
     setIsEditDialogOpen(true);
   };
@@ -993,6 +998,51 @@ export function EnhancedVideoManagement() {
                     />
                     Autoplay
                   </label>
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                  }}>
+                    <div
+                      onClick={() => handleInputChange('videoEnabled', !formData.videoEnabled)}
+                      style={{
+                        width: '44px',
+                        height: '24px',
+                        borderRadius: '12px',
+                        backgroundColor: formData.videoEnabled ? '#7c3aed' : '#d1d5db',
+                        position: 'relative',
+                        transition: 'background-color 0.2s',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        backgroundColor: 'white',
+                        position: 'absolute',
+                        top: '2px',
+                        left: formData.videoEnabled ? '22px' : '2px',
+                        transition: 'left 0.2s',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }} />
+                    </div>
+                    <span style={{ color: formData.videoEnabled ? '#111827' : '#9ca3af' }}>
+                      Video {formData.videoEnabled ? 'On' : 'Off'}
+                    </span>
+                  </label>
+                  {!formData.videoEnabled && (
+                    <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>
+                      Users will see "Video Coming Soon" and the transcript tab first
+                    </div>
+                  )}
                 </div>
 
                 <div style={styles.formGroup}>

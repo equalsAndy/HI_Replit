@@ -111,6 +111,8 @@ const IA_1_4_TheBiggerPicture: React.FC<IA14TheBiggerPictureProps> = ({ onNext }
           youtubeId={youtubeId}
           title={videoData?.title || "The Bigger Picture"}
           transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
           glossary={videoData?.glossary}
         />
       </div>

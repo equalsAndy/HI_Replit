@@ -46,6 +46,7 @@ router.get('/export', async (req, res) => {
         workshopType: videos.workshopType,
         title: videos.title,
         transcriptMd: videos.transcriptMd,
+        transcriptHtml: videos.transcriptHtml,
       })
       .from(videos)
       .where(ne(videos.transcriptMd, ''));
@@ -216,20 +217,25 @@ router.get('/', requireAuth, requireAdmin, async (req, res) => {
         workshopType: videos.workshopType,
         title: videos.title,
         transcriptMd: videos.transcriptMd,
+        transcriptHtml: videos.transcriptHtml,
         updatedAt: videos.updatedAt,
       })
       .from(videos)
       .orderBy(videos.workshopType, videos.stepId);
 
-    const result = allVideos.map(v => ({
-      id: v.id,
-      stepId: v.stepId,
-      workshopType: v.workshopType,
-      title: v.title,
-      hasTranscript: v.transcriptMd.length > 0,
-      transcriptLength: v.transcriptMd.length,
-      updatedAt: v.updatedAt,
-    }));
+    const result = allVideos.map(v => {
+      const hasHtml = v.transcriptHtml.length > 0;
+      const hasMd = v.transcriptMd.length > 0;
+      return {
+        id: v.id,
+        stepId: v.stepId,
+        workshopType: v.workshopType,
+        title: v.title,
+        hasTranscript: hasHtml || hasMd,
+        transcriptLength: hasHtml ? v.transcriptHtml.length : v.transcriptMd.length,
+        updatedAt: v.updatedAt,
+      };
+    });
 
     return res.json({ success: true, videos: result });
   } catch (error: any) {
@@ -274,11 +280,16 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
-    const { transcriptMd, stepId, workshopType } = req.body;
+    const { transcriptMd, transcriptHtml, stepId, workshopType } = req.body;
 
-    if (typeof transcriptMd !== 'string') {
-      return res.status(400).json({ success: false, error: 'transcriptMd is required' });
+    // Accept either transcriptHtml (rich text editor) or transcriptMd (legacy)
+    if (typeof transcriptMd !== 'string' && typeof transcriptHtml !== 'string') {
+      return res.status(400).json({ success: false, error: 'transcriptHtml or transcriptMd is required' });
     }
+
+    const updateFields: Record<string, any> = { updatedAt: new Date() };
+    if (typeof transcriptHtml === 'string') updateFields.transcriptHtml = transcriptHtml;
+    if (typeof transcriptMd === 'string') updateFields.transcriptMd = transcriptMd;
 
     let updated;
 
@@ -286,7 +297,7 @@ router.put('/:id', async (req, res) => {
     if (stepId && workshopType) {
       [updated] = await db
         .update(videos)
-        .set({ transcriptMd, updatedAt: new Date() })
+        .set(updateFields)
         .where(and(eq(videos.stepId, stepId), eq(videos.workshopType, workshopType)))
         .returning();
     } else {
@@ -297,7 +308,7 @@ router.put('/:id', async (req, res) => {
 
       [updated] = await db
         .update(videos)
-        .set({ transcriptMd, updatedAt: new Date() })
+        .set(updateFields)
         .where(eq(videos.id, id))
         .returning();
     }
@@ -306,7 +317,8 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Video not found' });
     }
 
-    console.log(`[video-transcripts] Updated video ${updated.id} (${updated.stepId}) — ${transcriptMd.length} chars`);
+    const contentLength = (transcriptHtml || transcriptMd || '').length;
+    console.log(`[video-transcripts] Updated video ${updated.id} (${updated.stepId}) — ${contentLength} chars`);
     return res.json({ success: true, video: updated });
   } catch (error: any) {
     console.error('[video-transcripts] Update error:', error);

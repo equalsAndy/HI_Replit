@@ -52,6 +52,7 @@ import growthPlanRoutes from './routes/growth-plan-routes.ts';
 import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.ts';
 import exerciseTrainingDocsRoutes from './routes/exercise-training-docs-routes.ts';
 import videoTranscriptRoutes from './routes/video-transcript-routes.ts';
+import transcriptImageUploadRoutes from './routes/transcript-image-upload.ts';
 import taliaStatusRoutes from './routes/talia-status-routes.ts';
 // ARCHIVED: RAG pipeline route (persona-document sync)
 // import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
@@ -496,6 +497,7 @@ async function initializeApp() {
       // Our router handles its own dual-auth (session OR X-Sync-Key).
 app.use('/api/admin/exercise-training-docs', exerciseTrainingDocsRoutes);
 app.use('/api/admin/video-transcripts', videoTranscriptRoutes);
+app.use('/api/admin/transcript-images', transcriptImageUploadRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
@@ -1005,6 +1007,10 @@ app.use('/api/admin/ai', assistantTestRoutes);
           });
         }
       });
+
+      // Serve uploaded transcript images
+      const uploadsPath = path.join(process.cwd(), 'uploads');
+      app.use('/uploads', express.static(uploadsPath));
 
       // Static file serving for both production and development
       if (process.env.NODE_ENV === 'production') {

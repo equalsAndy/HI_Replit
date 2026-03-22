@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import RichTextEditor from './RichTextEditor';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -96,8 +97,10 @@ const VideoTranscriptAdmin: React.FC = () => {
       const res = await fetch(`/api/admin/video-transcripts/${video.id}`, { credentials: 'include' });
       const data = await res.json();
       if (data.success && data.video) {
-        setEditorContent(data.video.transcriptMd || '');
-        setSavedContent(data.video.transcriptMd || '');
+        // Prefer HTML content; fall back to markdown for legacy data
+        const content = data.video.transcriptHtml || data.video.transcriptMd || '';
+        setEditorContent(content);
+        setSavedContent(content);
       }
     } finally {
       setLoadingDoc(false);
@@ -114,7 +117,7 @@ const VideoTranscriptAdmin: React.FC = () => {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcriptMd: editorContent }),
+        body: JSON.stringify({ transcriptHtml: editorContent }),
       });
       const data = await res.json();
       if (data.success) {
@@ -386,23 +389,12 @@ const VideoTranscriptAdmin: React.FC = () => {
               Workshop: <span style={{ fontFamily: 'monospace' }}>{selectedVideo?.workshopType}</span>
             </div>
 
-            {/* Textarea */}
-            <textarea
-              value={editorContent}
-              onChange={e => setEditorContent(e.target.value)}
-              placeholder="Paste video transcript in markdown format..."
-              style={{
-                flex: 1,
-                padding: '16px',
-                fontFamily: 'monospace',
-                fontSize: '12px',
-                lineHeight: '1.6',
-                border: 'none',
-                resize: 'none',
-                outline: 'none',
-                overflowY: 'auto',
-              }}
-              spellCheck={false}
+            {/* Rich Text Editor */}
+            <RichTextEditor
+              key={selectedId}
+              content={editorContent}
+              onChange={setEditorContent}
+              placeholder="Start typing or paste transcript content..."
             />
           </>
         )}

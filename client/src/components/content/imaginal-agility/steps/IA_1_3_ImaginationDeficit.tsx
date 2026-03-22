@@ -93,6 +93,8 @@ const IA_1_3_ImaginationDeficit: React.FC<IA13ImaginationDeficitProps> = ({ onNe
           youtubeId={youtubeId}
           title={videoData?.title || "The Imagination Deficit"}
           transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
           glossary={videoData?.glossary}
         />
       </div>

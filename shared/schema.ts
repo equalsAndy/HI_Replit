@@ -171,6 +171,8 @@ export const videos = pgTable('videos', {
   enforceWatchRequirement: boolean('enforce_watch_requirement').default(false).notNull(), // Whether to block step progression
   // Content fields for transcript and glossary
   transcriptMd: text('transcript_md').notNull().default(''),
+  transcriptHtml: text('transcript_html').notNull().default(''),
+  videoEnabled: boolean('video_enabled').default(true).notNull(),
   glossary: jsonb('glossary').notNull().default('[]'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

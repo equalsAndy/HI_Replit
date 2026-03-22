@@ -45,6 +45,8 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
         title={videoData?.title || "Imaginal Agility Matrix"}
         transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
         glossary={videoData?.glossary}
       />
 

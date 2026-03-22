@@ -78,6 +78,8 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
         youtubeId={introVideo?.url ? extractYouTubeId(introVideo.url) : undefined}
         title={introVideo?.title || "Introduction to Module 5"}
         transcriptMd={introVideo?.transcriptMd}
+        transcriptHtml={introVideo?.transcriptHtml}
+        videoEnabled={introVideo?.videoEnabled}
         glossary={introVideo?.glossary}
       />
 
@@ -91,6 +93,8 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
         youtubeId={matrixVideo?.url ? extractYouTubeId(matrixVideo.url) : undefined}
         title={matrixVideo?.title || "The Imaginal Agility Matrix"}
         transcriptMd={matrixVideo?.transcriptMd}
+        transcriptHtml={matrixVideo?.transcriptHtml}
+        videoEnabled={matrixVideo?.videoEnabled}
         glossary={matrixVideo?.glossary}
       />
 
