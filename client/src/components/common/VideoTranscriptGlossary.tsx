@@ -185,9 +185,12 @@ export default function VideoTranscriptGlossary({
   // Convert transcript markdown to HTML with enhanced blockquote formatting
   const formatTranscript = (transcript: string) => {
     if (!transcript) return '';
-    
+
+    // Strip timecodes like (00:21) or (1:05:30) from start of lines
+    const cleaned = transcript.replace(/^\s*\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/gm, '');
+
     // Convert blockquote-style lines (starting with >) to proper blockquotes
-    const formatted = transcript
+    const formatted = cleaned
       .split('\n')
       .map(line => {
         const trimmed = line.trim();

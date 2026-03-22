@@ -31,10 +31,16 @@ function formatDate(iso: string): string {
   });
 }
 
+// Strip timecodes like (00:21) or (1:05:30) from start of lines
+function stripTimecodes(text: string): string {
+  return text.replace(/^\s*\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/gm, '');
+}
+
 // Convert markdown transcript to HTML paragraphs for TipTap
 function mdToHtml(md: string): string {
   if (!md) return '';
-  return md
+  const cleaned = stripTimecodes(md);
+  return cleaned
     .split('\n')
     .map(line => {
       const trimmed = line.trim();
