@@ -330,23 +330,43 @@ export function EnhancedVideoManagement() {
   // Handle edit submit
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedVideo) return;
 
     const videoId = formData.editableId || extractYouTubeId(formData.url);
     let updatedUrl = formData.url;
-    
+
     // Ensure proper YouTube embed URL format
     if (videoId && videoId !== extractYouTubeId(formData.url)) {
       updatedUrl = `https://www.youtube.com/embed/${videoId}`;
     }
 
-    const dataToSubmit = {
+    // Detect if the video ID changed (video replaced)
+    const oldVideoId = selectedVideo.editableId || extractYouTubeId(selectedVideo.url);
+    const videoIdChanged = videoId !== oldVideoId;
+    const hasTranscript = (selectedVideo.transcriptMd || '').length > 0;
+
+    let clearTranscript = false;
+    if (videoIdChanged && hasTranscript) {
+      const choice = window.confirm(
+        `You changed the video ID from "${oldVideoId}" to "${videoId}".\n\n` +
+        `This video has a transcript that may no longer match.\n\n` +
+        `OK = Delete the transcript\nCancel = Keep the transcript`
+      );
+      clearTranscript = choice;
+    }
+
+    const dataToSubmit: any = {
       ...formData,
       url: updatedUrl,
       editableId: videoId,
       stepId: formData.stepId || null,
     };
+
+    if (clearTranscript) {
+      dataToSubmit.transcriptMd = '';
+      dataToSubmit.transcriptHtml = '';
+    }
 
     updateVideoMutation.mutate({ id: selectedVideo.id, data: dataToSubmit });
   };
@@ -374,7 +394,12 @@ export function EnhancedVideoManagement() {
 
   // Handle delete button click
   const handleDeleteClick = (id: number, title: string) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+    const video = videos.find(v => v.id === id);
+    const hasTranscript = video && (video.transcriptMd || '').length > 0;
+    const msg = hasTranscript
+      ? `Are you sure you want to delete "${title}"?\n\nThis video has a transcript that will also be permanently deleted.`
+      : `Are you sure you want to delete "${title}"?`;
+    if (window.confirm(msg)) {
       deleteVideoMutation.mutate(id);
     }
   };

@@ -795,6 +795,9 @@ class UserManagementService {
       if (data.enforceWatchRequirement !== undefined) updateData.enforceWatchRequirement = data.enforceWatchRequirement;
       if (data.enforce_watch_requirement !== undefined) updateData.enforceWatchRequirement = data.enforce_watch_requirement;
       if (data.transcriptMd !== undefined)             updateData.transcriptMd            = data.transcriptMd;
+      if (data.transcriptHtml !== undefined)           updateData.transcriptHtml          = data.transcriptHtml;
+      if (data.videoEnabled !== undefined)             updateData.videoEnabled            = data.videoEnabled;
+      if (data.contentMode !== undefined)              updateData.contentMode             = data.contentMode;
       if (data.glossary !== undefined)                updateData.glossary               = data.glossary;
       
       console.log(`Updating video ${id} with data:`, updateData);
