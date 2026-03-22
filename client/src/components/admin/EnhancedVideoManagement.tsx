@@ -827,7 +827,10 @@ export function EnhancedVideoManagement() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       <button
                         style={styles.actionButton}
-                        onClick={() => setPreviewUrl(video.url)}
+                        onClick={() => {
+                          const videoId = video.editableId || extractYouTubeId(video.url);
+                          setPreviewUrl(`https://www.youtube.com/embed/${videoId}`);
+                        }}
                         title="Preview video"
                       >
                         ▶️ Preview
