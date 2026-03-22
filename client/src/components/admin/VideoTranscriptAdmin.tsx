@@ -36,6 +36,16 @@ function stripTimecodes(text: string): string {
   return text.replace(/^\s*\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/gm, '');
 }
 
+// Strip blockquote/italic/quote markdown: > *"text"* → text
+function stripQuoteMarkup(line: string): string {
+  let s = line.trim();
+  if (s.startsWith('>')) s = s.slice(1).trim();
+  if (s.startsWith('*"') && s.endsWith('"*')) s = s.slice(2, -2);
+  else if (s.startsWith('*') && s.endsWith('*')) s = s.slice(1, -1);
+  if (s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1);
+  return s.trim();
+}
+
 // Convert markdown transcript to HTML paragraphs for TipTap
 function mdToHtml(md: string): string {
   if (!md) return '';
@@ -48,8 +58,7 @@ function mdToHtml(md: string): string {
       if (trimmed.startsWith('# ')) return `<h1>${trimmed.slice(2)}</h1>`;
       if (trimmed.startsWith('## ')) return `<h2>${trimmed.slice(3)}</h2>`;
       if (trimmed.startsWith('### ')) return `<h3>${trimmed.slice(4)}</h3>`;
-      if (trimmed.startsWith('> *"') && trimmed.endsWith('"*'))
-        return `<blockquote><p>${trimmed.slice(4, -2)}</p></blockquote>`;
+      if (trimmed.startsWith('>')) return `<p>${stripQuoteMarkup(trimmed)}</p>`;
       return `<p>${trimmed}</p>`;
     })
     .filter(Boolean)

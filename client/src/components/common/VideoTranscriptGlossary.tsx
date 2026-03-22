@@ -189,17 +189,23 @@ export default function VideoTranscriptGlossary({
     // Strip timecodes like (00:21) or (1:05:30) from start of lines
     const cleaned = transcript.replace(/^\s*\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/gm, '');
 
-    // Convert blockquote-style lines (starting with >) to proper blockquotes
+    // Strip blockquote/italic/quote markdown and convert to plain paragraphs
+    const stripQuoteMarkup = (s: string): string => {
+      let t = s.trim();
+      if (t.startsWith('>')) t = t.slice(1).trim();
+      if (t.startsWith('*"') && t.endsWith('"*')) t = t.slice(2, -2);
+      else if (t.startsWith('*') && t.endsWith('*')) t = t.slice(1, -1);
+      if (t.startsWith('"') && t.endsWith('"')) t = t.slice(1, -1);
+      return t.trim();
+    };
+
     const formatted = cleaned
       .split('\n')
       .map(line => {
         const trimmed = line.trim();
-        if (trimmed.startsWith('> *"') && trimmed.endsWith('"*')) {
-          // Extract the quoted text between > *" and "*
-          const text = trimmed.slice(4, -2); // Remove > *" and "*
-          return `<blockquote><p>${text}</p></blockquote>`;
+        if (trimmed.startsWith('>')) {
+          return `<p>${stripQuoteMarkup(trimmed)}</p>`;
         } else if (trimmed.startsWith('# ')) {
-          // Convert headers
           return `<h1>${trimmed.slice(2)}</h1>`;
         } else if (trimmed === '') {
           return '<br>';
