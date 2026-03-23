@@ -143,7 +143,7 @@ export function ProgressiveNavigationSidebar({
 
             {/* Section Steps */}
             <div className="p-2 space-y-1">
-              {section.steps.map((step: any) => {
+              {section.steps.filter((step: any) => !step.hidden).map((step: any) => {
                 const visualState = getStepVisualState(step.id);
                 const unlocked = isStepUnlocked(step.id);
 

@@ -30,19 +30,19 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     steps: [
       {
         id: 'ia-1-1',
-        title: 'Overview',
+        title: 'Welcome',
         type: 'video',
         contentKey: 'ia-1-1'
       },
       {
         id: 'ia-1-2',
-        title: 'What Is Imagination?',
+        title: 'Your Imagination: Always On',
         type: 'video',
         contentKey: 'ia-1-2'
       },
       {
         id: 'ia-1-3',
-        title: 'Imagination Deficit',
+        title: 'Why This Matters Now',
         type: 'video',
         contentKey: 'ia-1-3'
       },
@@ -50,7 +50,8 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
         id: 'ia-1-4',
         title: 'The Bigger Picture',
         type: 'video',
-        contentKey: 'ia-1-4'
+        contentKey: 'ia-1-4',
+        hidden: true
       }
     ]
   },
