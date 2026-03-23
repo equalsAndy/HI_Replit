@@ -22,6 +22,7 @@ if [ -f "public/version.json" ]; then
 fi
 BUILD_NUMBER=$((LAST_BUILD + 1))
 SHORT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 
 # Read current version from version.json
 if [ -f "version.json" ]; then
@@ -120,6 +121,8 @@ cat > client/public/version.json << EOF
 {
   "version": "$VERSION",
   "build": "$BUILD_NUMBER",
+  "gitHash": "$SHORT_SHA",
+  "gitBranch": "$GIT_BRANCH",
   "timestamp": "$TIMESTAMP",
   "environment": "$ENVIRONMENT"
 }
@@ -130,6 +133,8 @@ cat > public/version.json << EOF
 {
   "version": "$VERSION",
   "build": "$BUILD_NUMBER",
+  "gitHash": "$SHORT_SHA",
+  "gitBranch": "$GIT_BRANCH",
   "timestamp": "$TIMESTAMP",
   "environment": "$ENVIRONMENT"
 }
