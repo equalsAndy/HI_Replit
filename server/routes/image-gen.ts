@@ -193,7 +193,7 @@ router.post('/capability-stretch', express.json(), async (req, res) => {
     const { original_title, stretch_title, story, capability, transcript_summary, style } = req.body;
     const styleDirective = STYLE_PROMPTS[style] || STYLE_PROMPTS.photorealistic;
 
-    if (!original_title || !stretch_title || !story || !capability) {
+    if (!original_title || !stretch_title || !capability) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
@@ -218,7 +218,7 @@ router.post('/capability-stretch', express.json(), async (req, res) => {
 Their image pair:
 - Original: "${original_title}"
 - Stretch: "${stretch_title}"
-- Story: "${story}"
+${story ? `- Story: "${story}"` : ''}
 ${transcript_summary ? `- Conversation context: ${transcript_summary}` : ''}
 
 Produce THREE things:

@@ -17,6 +17,7 @@ interface Video {
   contentMode: string;
   requiredWatchPercentage: number;
   transcriptMd: string | null;
+  videoEnabled: boolean;
   glossary: any[];
   createdAt: string;
   updatedAt: string;
@@ -70,6 +71,7 @@ export function EnhancedVideoManagement() {
     contentMode: 'both',
     requiredWatchPercentage: 75,
     transcriptMd: '',
+    videoEnabled: true,
   });
 
   // Sorting functionality
@@ -172,6 +174,7 @@ export function EnhancedVideoManagement() {
         contentMode: video.content_mode || video.contentMode,
         requiredWatchPercentage: video.required_watch_percentage || video.requiredWatchPercentage,
         transcriptMd: video.transcript_md || video.transcriptMd,
+        videoEnabled: video.video_enabled ?? video.videoEnabled ?? true,
         createdAt: video.created_at || video.createdAt,
         updatedAt: video.updated_at || video.updatedAt
       }));
@@ -272,6 +275,7 @@ export function EnhancedVideoManagement() {
       contentMode: 'both',
       requiredWatchPercentage: 75,
       transcriptMd: '',
+      videoEnabled: true,
     });
   };
 
@@ -326,23 +330,43 @@ export function EnhancedVideoManagement() {
   // Handle edit submit
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedVideo) return;
 
     const videoId = formData.editableId || extractYouTubeId(formData.url);
     let updatedUrl = formData.url;
-    
+
     // Ensure proper YouTube embed URL format
     if (videoId && videoId !== extractYouTubeId(formData.url)) {
       updatedUrl = `https://www.youtube.com/embed/${videoId}`;
     }
 
-    const dataToSubmit = {
+    // Detect if the video ID changed (video replaced)
+    const oldVideoId = selectedVideo.editableId || extractYouTubeId(selectedVideo.url);
+    const videoIdChanged = videoId !== oldVideoId;
+    const hasTranscript = (selectedVideo.transcriptMd || '').length > 0;
+
+    let clearTranscript = false;
+    if (videoIdChanged && hasTranscript) {
+      const choice = window.confirm(
+        `You changed the video ID from "${oldVideoId}" to "${videoId}".\n\n` +
+        `This video has a transcript that may no longer match.\n\n` +
+        `OK = Delete the transcript\nCancel = Keep the transcript`
+      );
+      clearTranscript = choice;
+    }
+
+    const dataToSubmit: any = {
       ...formData,
       url: updatedUrl,
       editableId: videoId,
       stepId: formData.stepId || null,
     };
+
+    if (clearTranscript) {
+      dataToSubmit.transcriptMd = '';
+      dataToSubmit.transcriptHtml = '';
+    }
 
     updateVideoMutation.mutate({ id: selectedVideo.id, data: dataToSubmit });
   };
@@ -363,13 +387,19 @@ export function EnhancedVideoManagement() {
       contentMode: video.contentMode || 'both',
       requiredWatchPercentage: video.requiredWatchPercentage || 75,
       transcriptMd: video.transcriptMd || '',
+      videoEnabled: video.videoEnabled !== false,
     });
     setIsEditDialogOpen(true);
   };
 
   // Handle delete button click
   const handleDeleteClick = (id: number, title: string) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+    const video = videos.find(v => v.id === id);
+    const hasTranscript = video && (video.transcriptMd || '').length > 0;
+    const msg = hasTranscript
+      ? `Are you sure you want to delete "${title}"?\n\nThis video has a transcript that will also be permanently deleted.`
+      : `Are you sure you want to delete "${title}"?`;
+    if (window.confirm(msg)) {
       deleteVideoMutation.mutate(id);
     }
   };
@@ -822,7 +852,10 @@ export function EnhancedVideoManagement() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       <button
                         style={styles.actionButton}
-                        onClick={() => setPreviewUrl(video.url)}
+                        onClick={() => {
+                          const videoId = video.editableId || extractYouTubeId(video.url);
+                          setPreviewUrl(`https://www.youtube.com/embed/${videoId}`);
+                        }}
                         title="Preview video"
                       >
                         ▶️ Preview
@@ -996,6 +1029,51 @@ export function EnhancedVideoManagement() {
                 </div>
 
                 <div style={styles.formGroup}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                  }}>
+                    <div
+                      onClick={() => handleInputChange('videoEnabled', !formData.videoEnabled)}
+                      style={{
+                        width: '44px',
+                        height: '24px',
+                        borderRadius: '12px',
+                        backgroundColor: formData.videoEnabled ? '#7c3aed' : '#d1d5db',
+                        position: 'relative',
+                        transition: 'background-color 0.2s',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        backgroundColor: 'white',
+                        position: 'absolute',
+                        top: '2px',
+                        left: formData.videoEnabled ? '22px' : '2px',
+                        transition: 'left 0.2s',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }} />
+                    </div>
+                    <span style={{ color: formData.videoEnabled ? '#111827' : '#9ca3af' }}>
+                      Video {formData.videoEnabled ? 'On' : 'Off'}
+                    </span>
+                  </label>
+                  {!formData.videoEnabled && (
+                    <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>
+                      Users will see "Video Coming Soon" and the transcript tab first
+                    </div>
+                  )}
+                </div>
+
+                <div style={styles.formGroup}>
                   <label style={styles.label}>Content Mode</label>
                   <select
                     style={styles.select}
@@ -1006,6 +1084,19 @@ export function EnhancedVideoManagement() {
                     <option value="student">Student Only</option>
                     <option value="professional">Professional Only</option>
                   </select>
+                </div>
+
+                <div style={styles.formGroupFull}>
+                  <label style={styles.label}>Transcript (Markdown)</label>
+                  <textarea
+                    style={{ ...styles.textarea, height: '200px', fontFamily: 'monospace', fontSize: '12px' }}
+                    placeholder="Paste video transcript in markdown format..."
+                    value={formData.transcriptMd}
+                    onChange={(e) => handleInputChange('transcriptMd', e.target.value)}
+                  />
+                  <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                    {formData.transcriptMd.length > 0 ? `${formData.transcriptMd.length} characters` : 'No transcript'}
+                  </div>
                 </div>
               </div>
 

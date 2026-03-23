@@ -181,7 +181,7 @@ export default function Mod2RecapView({
           </div>
         </div>
 
-        <div className="text-center">
+        <div className="mod2-button-section">
           <Button
             onClick={handleNext}
             className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground h-10 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-lg px-8 py-3"
@@ -426,7 +426,7 @@ export default function Mod2RecapView({
           top: 0;
         }
 
-        .text-center {
+        .mod2-button-section {
           text-align: center;
           padding: 20px 40px 40px;
         }

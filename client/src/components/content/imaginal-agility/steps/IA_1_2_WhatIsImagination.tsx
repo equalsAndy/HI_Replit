@@ -16,7 +16,7 @@ const IA_1_2_WhatIsImagination: React.FC<IA12WhatIsImaginationProps> = ({ onNext
 
   // Get video data for ia-1-2 using the new plural hook
   const { data: videos, isLoading: videoLoading } = useVideosByStepId(
-    'imaginalagility',
+    'ia',
     'ia-1-2'
   );
 
@@ -222,12 +222,22 @@ const IA_1_2_WhatIsImagination: React.FC<IA12WhatIsImaginationProps> = ({ onNext
             </div>
 
             {/* Video Player */}
-            <VideoTranscriptGlossary
-              youtubeId={video.youtubeId}
-              title={video.heading}
-              transcriptMd={null}
-              glossary={null}
-            />
+            {(() => {
+              const matchedVideo = videos?.find(v => {
+                const id = v.url?.match(/(?:embed\/|watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/)?.[1] || v.editableId;
+                return id === video.youtubeId;
+              });
+              return (
+                <VideoTranscriptGlossary
+                  youtubeId={video.youtubeId}
+                  title={video.heading}
+                  transcriptMd={matchedVideo?.transcriptMd}
+                  transcriptHtml={matchedVideo?.transcriptHtml}
+                  videoEnabled={matchedVideo?.videoEnabled}
+                  glossary={matchedVideo?.glossary}
+                />
+              );
+            })()}
 
             {/* Key Takeaways - Below Video */}
             <div className="bg-purple-50 border-l-4 border-purple-500 p-6 mt-6">

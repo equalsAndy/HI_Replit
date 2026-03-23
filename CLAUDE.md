@@ -14,7 +14,7 @@ Dual-workshop platform hosting **AST (AllStarTeams)** and **IA (Imaginal Agility
 ├── server/routes/            # API endpoints (see server/routes/)
 ├── shared/                   # Shared TypeScript types & schemas
 ├── docs/                     # Project documentation
-├── JiraTickets/             # Jira ticket templates
+├── issues/                  # Git issues (markdown files)
 ├── tempClaudecomms/         # SSH command files
 └── Claude Code Prompts/     # Specialized instructions
 ```
@@ -36,17 +36,15 @@ npm test                      # Run tests
 
 | Environment | Database | URL | Purpose | Commands |
 |-------------|----------|-----|---------|----------|
-| Development | AWS RDS (Dev) | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
-| Production | AWS RDS (Prod) | app2.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
-| ~~Staging~~ | ~~Not in use~~ | ~~app.heliotropeimaginal.com~~ | ~~Deprecated~~ | ~~Not in use~~ |
+| Development | AWS Lightsail PostgreSQL (Dev) | localhost:8080 | Feature development | `npm run dev:hmr` (preferred) or `npm run dev` (server-only) |
+| Production | AWS Lightsail PostgreSQL (Prod) | app2.heliotropeimaginal.com | Live application | See `DEPLOYMENT-QUICK-REFERENCE.md` |
 
-**Deployment Flow**: Local development → Production release
-**Database Strategy**: Both environments use AWS RDS PostgreSQL (separate dev/prod databases)
+**Deployment Flow**: Local development → Production release (no staging environment)
+**Database Strategy**: Both environments use separate AWS Lightsail PostgreSQL databases
 **Version Flow**: DEV builds → PRODUCTION semantic release
 **Testing Rule**: Test thoroughly in development before production deployment
 
-**Note**: Staging environment (app.heliotropeimaginal.com) is deprecated and not currently in use. Production is at app2.heliotropeimaginal.com.
-**Database Note**: Both development and production use AWS RDS databases. NO local PostgreSQL needed.
+**Database Note**: Both development and production use AWS Lightsail PostgreSQL databases. NO local PostgreSQL needed.
 
 ## 🚨 Workshop Separation
 
@@ -219,7 +217,7 @@ npm run bundle:analyze         # Check bundle size
 npm run build                 # Build with analysis
 ```
 
-**Optimization**: 72% reduction possible via code splitting (see `/JiraTickets/KAN-147-implementation-report.md`)  
+**Optimization**: Bundle optimization completed — main bundle reduced from 665 KB to ~195 KB via code splitting (React.lazy for IA steps, admin components, vendor chunk splitting)  
 **Tracking**: See `docs/performance-tracking/README.md`
 
 ## 🔍 Troubleshooting
@@ -261,12 +259,10 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 - **AWS Guide**: `docs/deployment/aws-lightsail-deployment-guide.md`
 - **Version Management**: `./version-manager.sh` for semantic versioning
 - **Environment Access**: See deployment docs for SSH and environment access
-- **VM SSH Key**: `keys/ubuntu-staging-key.pem` for hi-staging-vm (34.220.143.127)
-
-**Critical Rules**:
+- **Critical Rules**:
 - Use port 8080 (NOT 5000)
 - Health check path: `/health` (NOT `/api/health`)
-- Always test staging before production
+- Always test in development before production
 - Use git commands with `-m` flag
 
 ## 🤖 Claude Code Integration
@@ -275,7 +271,7 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 - ✅ Local development, builds, code analysis
 - ✅ Git operations (with `-m` flags), documentation updates
 - ✅ Command preparation in `/tempClaudecomms/`
-- ✅ Jira ticket creation in `/JiraTickets/`
+- ✅ Git issue creation in `/issues/`
 - ❌ No SSH access, remote execution, or live debugging
 
 **Command Handoff Process:**
@@ -288,13 +284,14 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 
 ## 📊 Project Management
 
-**Jira Projects**: SA (strategic), KAN (development), AWB (assets), CR (research)  
-**Ticket Process**: Claude creates tickets in `/JiraTickets/` folder, user manually creates in Jira  
-**Confluence**: SAHI space (technical docs), HI space (general info)
+**Issue Tracking**: Git issues stored as markdown files in `/issues/` directory  
+**Naming Convention**: Descriptive kebab-case (e.g., `typescript-server-cleanup.md`, `ia-4-3-responsive-layout-fix.md`)  
+**Format**: Markdown files with clear title, summary, labels, and acceptance criteria  
+**Legacy**: Old Jira items exist in `/JiraTickets/` folder (historical reference only — not actively used)
 
 ## 🔐 Security & Standards
 
-**Environment Protection**: Development (open) → Staging (protected) → Production (restricted)
+**Environment Protection**: Development (open) → Production (restricted)
 **Data Security**: Workshop-specific data, no cross-workshop sharing, secure API key management
 **Code Documentation**: Use TypeScript JSDoc for complex functions
 **API Documentation**: See `docs/API-ROUTES.md` for endpoint documentation
@@ -355,4 +352,4 @@ aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_CLIENT_ID" --with-decry
 
 ---
 
-**Last Updated**: January 2025 | **Project Version**: v2.5.1 | **Claude Code Compatible**: ✅
+**Last Updated**: March 2026 | **Claude Code Compatible**: ✅

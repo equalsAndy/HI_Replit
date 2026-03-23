@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { FileText, X, Info } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import {
   Tooltip,
@@ -31,6 +32,8 @@ interface IA32StepData {
 const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const { shouldShowDemoButtons } = useTestUser();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-3-2');
 
   // Get video data for ia-3-2 using the existing video hook
   const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
@@ -126,8 +129,10 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'Kjy3lBW06Gs'} // Fallback to known ID from migration
         title={videoData?.title || "Autoflow Practice"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
+        glossary={videoData?.glossary}
       />
 
       {/* Rung 1 Graphic and Purpose Side by Side */}
@@ -213,13 +218,16 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                 placeholder="Enter 1-5 words describing what you noticed..."
                 value={momentText}
                 onChange={(e) => setMomentText(e.target.value)}
-                className="min-h-[80px]"
+                className={`min-h-[80px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 maxLength={100}
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
               />
               {momentText.trim() && (
                 <Button
                   onClick={() => setCurrentStep(4)}
                   className="bg-purple-600 hover:bg-purple-700"
+                  disabled={isStepLocked}
                 >
                   Continue to Tag
                 </Button>
@@ -244,7 +252,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                 </TooltipProvider>
               </div>
               <div className="space-y-4">
-                <RadioGroup value={selectedTag} onValueChange={setSelectedTag}>
+                <RadioGroup value={selectedTag} onValueChange={setSelectedTag} disabled={isStepLocked}>
                   <div className="flex flex-wrap gap-3">
                     {tags.map((tag) => (
                       <div key={tag} className="flex items-center space-x-2">
@@ -264,6 +272,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                       <Button
                         onClick={saveMoment}
                         className="bg-green-600 hover:bg-green-700"
+                        disabled={isStepLocked}
                       >
                         Save
                       </Button>
@@ -271,6 +280,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                         onClick={tryAnotherMoment}
                         variant="outline"
                         className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                        disabled={isStepLocked}
                       >
                         Start Over
                       </Button>
@@ -301,8 +311,9 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                       </div>
                       <button
                         onClick={() => deleteMoment(index)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+                        className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700 ${isStepLocked ? 'hidden' : ''}`}
                         title="Delete this moment"
+                        disabled={isStepLocked}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -354,11 +365,12 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
         </div>
         <div className="flex items-center gap-3">
           {shouldShowDemoButtons && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={fillWithDemoData}
               className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+              disabled={isStepLocked}
             >
               <FileText className="w-4 h-4 mr-2" />
               Add Demo Data

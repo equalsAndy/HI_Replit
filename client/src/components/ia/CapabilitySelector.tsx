@@ -11,6 +11,7 @@ interface CapabilitySelectorProps {
   className?: string;
   minSelections?: number;
   exclude?: CapabilityType[];
+  disabled?: boolean;
 }
 
 const CAPABILITY_ICONS: Record<CapabilityType, React.ReactNode> = {
@@ -31,6 +32,7 @@ export function CapabilitySelector({
   className,
   minSelections,
   exclude = [],
+  disabled = false,
 }: CapabilitySelectorProps) {
   // Track selection order for dual mode (oldest first)
   const [selectionOrder, setSelectionOrder] = useState<CapabilityType[]>([]);
@@ -48,6 +50,7 @@ export function CapabilitySelector({
   };
 
   const handleClick = (cap: CapabilityType) => {
+    if (disabled) return;
     if (mode === 'single') {
       onSelect(isSelected(cap) ? (null as unknown as CapabilityType) : cap);
     } else if (mode === 'multi') {
@@ -99,9 +102,12 @@ export function CapabilitySelector({
               key={cap}
               type="button"
               onClick={() => handleClick(cap)}
+              disabled={disabled}
               className={cn(
                 'flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-xs font-medium transition-all duration-150',
-                selected_
+                disabled
+                  ? 'opacity-60 cursor-not-allowed bg-gray-50 border-gray-300 text-gray-400'
+                  : selected_
                   ? 'scale-105 border-purple-600 bg-purple-600 text-white shadow-md'
                   : 'border-gray-300 bg-white text-gray-500 hover:border-purple-400 hover:text-purple-600',
               )}

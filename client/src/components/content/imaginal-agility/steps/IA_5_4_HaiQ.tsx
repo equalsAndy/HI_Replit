@@ -166,8 +166,10 @@ const IA_5_4_HaiQ: React.FC<IA54ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : undefined}
         title={videoData?.title || "Learn More About HaiQ"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
+        glossary={videoData?.glossary}
       />
 
       {/* Introduction */}

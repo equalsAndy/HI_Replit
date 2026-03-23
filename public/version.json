@@ -1,6 +1,8 @@
 {
-  "version": "2.9.1",
-  "build": "3430",
-  "timestamp": "2026-03-17T18:18:14.000Z",
+  "version": "2.11.1",
+  "build": "83",
+  "gitHash": "978a887e",
+  "gitBranch": "feature/video-transcript-rich-text",
+  "timestamp": "2026-03-23T01:15:52.000Z",
   "environment": "development"
 }

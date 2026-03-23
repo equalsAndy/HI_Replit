@@ -48,7 +48,7 @@ router.post('/chat/plain', express.json(), async (req, res) => {
     }
 
     // Inject training doc into system message if one exists for this exercise
-    const trainingDoc = getTrainingDoc(training_id);
+    const trainingDoc = await getTrainingDoc(training_id);
     if (trainingDoc) {
       const systemIdx = normalized.findIndex(m => m.role === 'system');
       if (systemIdx >= 0) {

@@ -77,8 +77,10 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={introVideo?.url ? extractYouTubeId(introVideo.url) : undefined}
         title={introVideo?.title || "Introduction to Module 5"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={introVideo?.transcriptMd}
+        transcriptHtml={introVideo?.transcriptHtml}
+        videoEnabled={introVideo?.videoEnabled}
+        glossary={introVideo?.glossary}
       />
 
       <h2 className="text-2xl font-semibold text-purple-700 mt-8 mb-2">
@@ -90,8 +92,10 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={matrixVideo?.url ? extractYouTubeId(matrixVideo.url) : undefined}
         title={matrixVideo?.title || "The Imaginal Agility Matrix"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={matrixVideo?.transcriptMd}
+        transcriptHtml={matrixVideo?.transcriptHtml}
+        videoEnabled={matrixVideo?.videoEnabled}
+        glossary={matrixVideo?.glossary}
       />
 
       {/* ── Capability Matrix ──────────────────────────────────────────────────── */}

@@ -2,36 +2,41 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Bot, 
-  Activity, 
+import {
+  Bot,
   CheckCircle,
   XCircle,
   RefreshCw,
-  ExternalLink
+  Key,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
-interface ConnectionStatus {
-  openai: boolean;
-  reflection_talia: boolean;
-  report_talia: boolean;
-  response_time: number;
-  aiProvider?: {
-    global: 'openai' | 'claude';
-    ia: 'openai' | 'claude';
-    coaching: 'openai' | 'claude';
-    reports: 'openai' | 'claude';
+interface AIStatus {
+  aiProvider: {
+    global: string;
+    ia: string;
+    coaching: string;
+    reports: string;
   };
+  keys: {
+    claude: boolean;
+    openai: boolean;
+    openaiIA: boolean;
+  };
+  providerUsage: {
+    claude: string;
+    openai: string;
+    openaiIA: string;
+  };
+  timestamp: string;
 }
 
 export default function AIManagement() {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  // Fetch OpenAI connection status
-  const { data: status, isLoading, refetch } = useQuery<ConnectionStatus>({
+  const { data: status, isLoading, refetch } = useQuery<AIStatus>({
     queryKey: ['/api/talia-status/all'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: false, // No auto-polling — manual refresh only
   });
 
   const handleRefresh = async () => {
@@ -44,11 +49,35 @@ export default function AIManagement() {
       <div className="p-6">
         <div className="flex items-center justify-center py-12">
           <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-          <span>Checking AI connections...</span>
+          <span>Checking AI status...</span>
         </div>
       </div>
     );
   }
+
+  const keyEntries = [
+    {
+      label: 'Claude API Key',
+      envVar: 'CLAUDE_API_KEY',
+      available: status?.keys?.claude ?? false,
+      usage: status?.providerUsage?.claude ?? 'IA exercises',
+      color: 'amber',
+    },
+    {
+      label: 'OpenAI API Key',
+      envVar: 'OPENAI_API_KEY',
+      available: status?.keys?.openai ?? false,
+      usage: status?.providerUsage?.openai ?? 'AST reports',
+      color: 'blue',
+    },
+    {
+      label: 'OpenAI IA Key',
+      envVar: 'OPENAI_KEY_IA',
+      available: status?.keys?.openaiIA ?? false,
+      usage: status?.providerUsage?.openaiIA ?? 'DALL-E image generation',
+      color: 'purple',
+    },
+  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -57,10 +86,10 @@ export default function AIManagement() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Bot className="h-6 w-6" />
-            OpenAI Overview
+            AI Provider Status
           </h1>
           <p className="text-gray-600 mt-1">
-            Monitor OpenAI connectivity and AI system status
+            API key availability and provider configuration
           </p>
         </div>
         <Button
@@ -69,172 +98,72 @@ export default function AIManagement() {
           className="flex items-center gap-2"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh Status
+          Refresh
         </Button>
       </div>
 
-      {/* Connection Status */}
+      {/* API Key Status */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">OpenAI API</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {status?.openai ? (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="font-medium text-green-600">Connected</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5 text-red-600" />
-                      <span className="font-medium text-red-600">Disconnected</span>
-                    </>
-                  )}
-                </div>
+        {keyEntries.map((entry) => (
+          <Card key={entry.envVar}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-medium text-gray-600">{entry.label}</p>
+                <Key className={`h-5 w-5 ${entry.available ? 'text-green-600' : 'text-gray-300'}`} />
               </div>
-              <Activity className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Reflection Assistant</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {status?.reflection_talia ? (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="font-medium text-green-600">Active</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5 text-red-600" />
-                      <span className="font-medium text-red-600">Inactive</span>
-                    </>
-                  )}
-                </div>
+              <div className="flex items-center gap-2 mb-2">
+                {entry.available ? (
+                  <>
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <span className="font-medium text-green-600">Configured</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-5 w-5 text-red-500" />
+                    <span className="font-medium text-red-500">Not Set</span>
+                  </>
+                )}
               </div>
-              <Bot className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Report Generator</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {status?.report_talia ? (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="font-medium text-green-600">Active</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5 text-red-600" />
-                      <span className="font-medium text-red-600">Inactive</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              <Bot className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-xs text-gray-500 mt-1">{entry.usage}</p>
+              <p className="text-xs text-gray-400 font-mono mt-1">{entry.envVar}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* System Information */}
+      {/* Provider Configuration */}
       <Card>
         <CardHeader>
-          <CardTitle>System Information</CardTitle>
+          <CardTitle className="text-lg">Provider Configuration</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Response Time</span>
-              <Badge variant={status?.response_time && status.response_time < 2000 ? "default" : "destructive"}>
-                {status?.response_time ? `${status.response_time}ms` : 'Unknown'}
-              </Badge>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Last Checked</span>
-              <span className="text-sm text-gray-600">
-                {lastRefresh.toLocaleTimeString()}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-sm font-medium">AI Providers</span>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Global</span>
-                  <Badge variant={status?.aiProvider?.global === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.global === 'claude' ? 'bg-amber-600' : ''}>
-                    {status?.aiProvider?.global === 'claude' ? 'Claude' : 'OpenAI'}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {status?.aiProvider &&
+              Object.entries(status.aiProvider).map(([feature, provider]) => (
+                <div key={feature} className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                    {feature}
+                  </span>
+                  <Badge
+                    variant={provider === 'claude' ? 'default' : 'outline'}
+                    className={provider === 'claude' ? 'bg-amber-600 hover:bg-amber-700' : ''}
+                  >
+                    {provider === 'claude' ? 'Claude' : 'OpenAI'}
                   </Badge>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">IA</span>
-                  <Badge variant={status?.aiProvider?.ia === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.ia === 'claude' ? 'bg-amber-600' : ''}>
-                    {status?.aiProvider?.ia === 'claude' ? 'Claude' : 'OpenAI'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Coaching</span>
-                  <Badge variant={status?.aiProvider?.coaching === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.coaching === 'claude' ? 'bg-amber-600' : ''}>
-                    {status?.aiProvider?.coaching === 'claude' ? 'Claude' : 'OpenAI'}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Reports</span>
-                  <Badge variant={status?.aiProvider?.reports === 'claude' ? 'default' : 'outline'} className={status?.aiProvider?.reports === 'claude' ? 'bg-amber-600' : ''}>
-                    {status?.aiProvider?.reports === 'claude' ? 'Claude' : 'OpenAI'}
-                  </Badge>
-                </div>
-              </div>
-            </div>
+              ))}
           </div>
+          <p className="text-xs text-gray-400 mt-4">
+            Providers are configured via AI_PROVIDER and AI_PROVIDER_* environment variables in root .env
+          </p>
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 justify-start"
-              onClick={() => window.open('/api/talia-status/all', '_blank')}
-            >
-              <div className="text-left">
-                <div className="font-medium">View Detailed Status</div>
-                <div className="text-sm text-gray-600">Open full status endpoint</div>
-              </div>
-              <ExternalLink className="h-4 w-4 ml-auto" />
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 justify-start"
-              onClick={handleRefresh}
-            >
-              <div className="text-left">
-                <div className="font-medium">Force Refresh</div>
-                <div className="text-sm text-gray-600">Update all connection status</div>
-              </div>
-              <RefreshCw className="h-4 w-4 ml-auto" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Last checked */}
+      <div className="text-xs text-gray-400 text-right">
+        Last checked: {lastRefresh.toLocaleTimeString()}
+        {status?.timestamp && ` | Server: ${new Date(status.timestamp).toLocaleTimeString()}`}
+      </div>
     </div>
   );
 }

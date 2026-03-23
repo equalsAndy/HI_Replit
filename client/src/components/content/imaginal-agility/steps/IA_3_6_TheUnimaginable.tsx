@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useVideoByStepId } from '@/hooks/use-videos';
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
@@ -29,6 +30,8 @@ interface IA36StepData {
 
 const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-3-6');
 
   // Get video data to check autoplay setting
   const { data: videoData } = useVideoByStepId('ia', 'ia-3-6');
@@ -135,8 +138,10 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'F1qGAW4OofQ'} // Fallback to known ID from migration
         title={videoData?.title || "The Unimaginable"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
+        glossary={videoData?.glossary}
       />
 
       {/* Rung 5 Graphic and Purpose Side by Side */}
@@ -195,11 +200,13 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           <RadioGroup
             value={data.selectedMystery}
             onValueChange={(value) => {
+              if (isStepLocked) return;
               updateData({ selectedMystery: value, selectedQuestion: '' });
               setIsCustom(false);
               setCustomText('');
             }}
-            className="space-y-6"
+            disabled={isStepLocked}
+            className={`space-y-6 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <p className="text-sm font-medium text-gray-700 text-center">
               Choose one mystery from any category below:
@@ -267,6 +274,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
               <RadioGroup
                 value={isCustom ? '__custom__' : data.selectedQuestion}
                 onValueChange={(val) => {
+                  if (isStepLocked) return;
                   if (val === '__custom__') {
                     setIsCustom(true);
                     updateData({ selectedQuestion: customText });
@@ -275,7 +283,8 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
                     updateData({ selectedQuestion: val });
                   }
                 }}
-                className="space-y-3"
+                disabled={isStepLocked}
+                className={`space-y-3 ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 {mysteryQuestions[data.selectedMystery].map((q) => (
                   <div key={q} className="flex items-start space-x-2">
@@ -292,14 +301,17 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
                     </Label>
                     <input
                       type="text"
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                      className={`w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                       placeholder="Write your own question..."
                       value={customText}
+                      disabled={isStepLocked}
+                      readOnly={isStepLocked}
                       onChange={(e) => {
                         setCustomText(e.target.value);
                         if (isCustom) updateData({ selectedQuestion: e.target.value });
                       }}
                       onFocus={() => {
+                        if (isStepLocked) return;
                         setIsCustom(true);
                         updateData({ selectedQuestion: customText });
                       }}
@@ -341,7 +353,9 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
                 placeholder="Write freely — images, metaphors, a story, a scenario. Don't worry about coherence — follow the thread of wonder."
                 value={data.visionText}
                 onChange={(e) => updateData({ visionText: e.target.value })}
-                className="min-h-[150px]"
+                disabled={isStepLocked}
+                readOnly={isStepLocked}
+                className={`min-h-[150px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
               />
             </div>
           </CardContent>
@@ -365,7 +379,9 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
               placeholder="Share your reflections here..."
               value={data.reflectionText}
               onChange={(e) => updateData({ reflectionText: e.target.value })}
-              className="min-h-[100px]"
+              disabled={isStepLocked}
+              readOnly={isStepLocked}
+              className={`min-h-[100px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
             />
           </CardContent>
         </Card>
@@ -410,9 +426,10 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
         <CapabilitySelector
           mode="single"
           selected={data.capability_activation || null}
-          onSelect={(val) => updateData({ capability_activation: val as CapabilityType })}
+          onSelect={(val) => { if (!isStepLocked) updateData({ capability_activation: val as CapabilityType }); }}
           prompt="Which capability felt most alive as you sat with this mystery?"
-          className="mb-8"
+          className={`mb-8 ${isStepLocked ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
+          disabled={isStepLocked}
         />
       )}
 
@@ -423,6 +440,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
               variant="outline"
               size="sm"
               onClick={fillWithDemoData}
+              disabled={isStepLocked}
               className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
             >
               <FileText className="w-4 h-4 mr-2" />
@@ -434,6 +452,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
               <Button
                 variant="outline"
                 className="border-purple-300 text-purple-700"
+                disabled={isStepLocked}
                 onClick={() => {
                   if (!window.confirm('This will erase your current leap and reflection. Are you sure you want to start over with a new mystery?')) return;
                   updateData({ selectedMystery: '', selectedQuestion: '', visionText: '', reflectionText: '' });
@@ -449,7 +468,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
         <Button
           onClick={() => onNext && onNext('ia-3-7')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-          disabled={saving || !data.visionText.trim() || !data.reflectionText.trim()}
+          disabled={isStepLocked || saving || !data.visionText.trim() || !data.reflectionText.trim()}
         >
           {saving ? 'Saving...' : 'Continue →'}
         </Button>

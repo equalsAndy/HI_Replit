@@ -892,8 +892,8 @@ export default function StepByStepReflection({
                       {getCurrentReflectionText().length} characters (minimum 10)
                     </div>
                     {isCurrentReflectionValid() && !workshopLocked && (
-                      <div className="text-base text-green-600">
-                        ✓ Complete
+                      <div className="text-sm text-green-600">
+                        ✓ Minimum reached
                       </div>
                     )}
                   </div>

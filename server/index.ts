@@ -35,8 +35,9 @@ import coachingRoutes from './routes/coaching-routes.ts';
 import featureFlagRoutes from './routes/feature-flag-routes.ts';
 import jiraRoutes from './routes/jira-routes.ts';
 import feedbackRoutes from './routes/feedback-routes.ts';
-import trainingDocumentsRoutes from './routes/training-documents-routes.ts';
-import trainingRoutes from './routes/training-routes.ts';
+// ARCHIVED: RAG pipeline routes (not used by exercise training docs)
+// import trainingDocumentsRoutes from './routes/training-documents-routes.ts';
+// import trainingRoutes from './routes/training-routes.ts';
 import aiManagementRoutes from './routes/ai-management-routes.ts';
 // import personaManagementRoutes from './routes/persona-management-routes.ts'; // Temporarily disabled - causes startup hang
 import betaTesterRoutes from './routes/beta-tester-routes.ts';
@@ -44,13 +45,20 @@ import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.ts';
 import beyondASTRoutes from './routes/beyond-ast-routes.ts';
 import metaliaRoutes from './routes/metalia-routes.ts';
 import growthPlanRoutes from './routes/growth-plan-routes.ts';
-import adminChatRoutes from './routes/admin-chat-routes.ts';
-import trainingUploadRoutes from './routes/training-upload-routes.ts';
+// ARCHIVED: RAG pipeline route (AdminChat backend)
+// import adminChatRoutes from './routes/admin-chat-routes.ts';
+// ARCHIVED: RAG pipeline route (training doc upload to vector stores)
+// import trainingUploadRoutes from './routes/training-upload-routes.ts';
 import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.ts';
+import exerciseTrainingDocsRoutes from './routes/exercise-training-docs-routes.ts';
+import videoTranscriptRoutes from './routes/video-transcript-routes.ts';
+import transcriptImageUploadRoutes from './routes/transcript-image-upload.ts';
 import taliaStatusRoutes from './routes/talia-status-routes.ts';
-import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
+// ARCHIVED: RAG pipeline route (persona-document sync)
+// import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
 import assistantTestRoutes from './routes/assistant-test-routes.ts';
-import adminAIResourcesRoutes from './routes/admin-ai-resources.ts';
+// REMOVED: Vector store admin panel (feature abandoned)
+// import adminAIResourcesRoutes from './routes/admin-ai-resources.ts';
 import iaStepRoutes from './routes/ia-step-routes.ts';
 import aiRoutes from './routes/ai.ts';
 import moduleReflectionRoutes from './routes/module-reflection-routes.ts';
@@ -236,23 +244,27 @@ app.get('/health', async (req, res) => {
 app.get('/api/system/info', async (req, res) => {
   try {
     // Get version info from file
-    let versionInfo = {
+    let versionInfo: Record<string, string> = {
       version: 'unknown',
-      build: 'unknown',
+      build: '',
+      gitHash: 'unknown',
+      gitBranch: 'unknown',
       environment: 'unknown',
       timestamp: 'unknown'
     };
-    
+
     try {
       // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
+      const versionPath = process.env.NODE_ENV === 'production'
         ? path.join(__dirname, './public/version.json')
         : path.join(__dirname, '../public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
-        build: versionData.build || 'unknown',
+        build: versionData.build || '',
+        gitHash: versionData.gitHash || 'unknown',
+        gitBranch: versionData.gitBranch || 'unknown',
         environment: versionData.environment || 'unknown',
         timestamp: versionData.timestamp || 'unknown'
       };
@@ -287,6 +299,8 @@ app.get('/api/system/info', async (req, res) => {
     res.status(200).json({
       version: versionInfo.version,
       build: versionInfo.build,
+      gitHash: versionInfo.gitHash,
+      gitBranch: versionInfo.gitBranch,
       environment: actualEnvironment,
       timestamp: versionInfo.timestamp,
       databaseType,
@@ -328,6 +342,14 @@ async function initializeApp() {
         console.log('⚠️ Continuing without database...');
       }
       
+      // Seed exercise training docs from files if the table is empty
+      try {
+        const { seedTrainingDocsIfEmpty } = await import('./config/training-doc-loader.js');
+        await seedTrainingDocsIfEmpty();
+      } catch (err) {
+        console.warn('⚠️ Training doc seed failed (non-fatal):', err);
+      }
+
       // Load persona configurations from database
       console.log('🤖 Skipping persona configurations (temporarily disabled due to startup hang)');
       // try {
@@ -470,6 +492,12 @@ async function initializeApp() {
       app.use('/api', router);
       app.use('/api/reports/holistic', holisticReportRoutes);
       app.use('/api/reports/holistic', holisticReportDebugRoutes);
+      // Mount exercise-training-docs BEFORE adminUploadRoutes — that router has global
+      // requireAuth/requireAdmin middleware that would otherwise block X-Sync-Key requests.
+      // Our router handles its own dual-auth (session OR X-Sync-Key).
+app.use('/api/admin/exercise-training-docs', exerciseTrainingDocsRoutes);
+app.use('/api/admin/video-transcripts', videoTranscriptRoutes);
+app.use('/api/admin/transcript-images', transcriptImageUploadRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
@@ -477,15 +505,20 @@ async function initializeApp() {
       app.use('/api', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
       app.use('/api/feedback', feedbackRoutes);
-      app.use('/api/training-docs', trainingDocumentsRoutes);
-      app.use('/api/training', trainingRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/training-docs', trainingDocumentsRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/training', trainingRoutes);
       app.use('/api/admin/ai', aiManagementRoutes);
       // app.use('/api/admin/ai', personaManagementRoutes); // Temporarily disabled - causes startup hang
-      app.use('/api/admin/chat', adminChatRoutes);
-app.use('/api/admin/ai', trainingUploadRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/admin/chat', adminChatRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/admin/ai', trainingUploadRoutes);
 app.use('/api/admin/ai/exercise-instructions', iaExerciseInstructionsRoutes);
 app.use('/api/admin/ai', assistantTestRoutes);
-      app.use('/api/admin/ai', adminAIResourcesRoutes);
+      // REMOVED: Vector store admin panel (feature abandoned)
+      // app.use('/api/admin/ai', adminAIResourcesRoutes);
       app.use('/api/admin/ai', aiComparisonRoutes);
       app.use('/api', iaStepRoutes);
       app.use('/api/ia', iaContinuityRoutes);
@@ -494,7 +527,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/ai', moduleReflectionRoutes);
       app.use('/api/ai/image', imageGenRouter);
       app.use('/api/talia-status', taliaStatusRoutes);
-      app.use('/api/admin/ai', personaDocumentSyncRoutes);
+      // ARCHIVED: RAG pipeline route, not used by exercise training docs
+      // app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
       app.use('/api/beta-tester', betaTesterNotesRoutes);
       app.use('/api/beyond-ast', beyondASTRoutes);
@@ -973,6 +1007,10 @@ app.use('/api/admin/ai', assistantTestRoutes);
           });
         }
       });
+
+      // Serve uploaded transcript images
+      const uploadsPath = path.join(process.cwd(), 'uploads');
+      app.use('/uploads', express.static(uploadsPath));
 
       // Static file serving for both production and development
       if (process.env.NODE_ENV === 'production') {

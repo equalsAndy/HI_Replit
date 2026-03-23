@@ -39,8 +39,10 @@ const IA_6_1_TeamLadder: React.FC<IA61ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'ryvW4KppCu0'}
         title={videoData?.title || "Team Ladder"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
+        glossary={videoData?.glossary}
       />
 
       {/* Key Takeaways Section */}

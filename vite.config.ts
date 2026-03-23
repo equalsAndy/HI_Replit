@@ -61,6 +61,9 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules/hls.js')) return 'hls';
           if (id.includes('node_modules/@ffmpeg/')) return 'ffmpeg';
+          if (id.includes('node_modules/framer-motion')) return 'vendor-motion';
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-charts';
+          if (id.includes('node_modules/@radix-ui/')) return 'vendor-radix';
         },
       },
     },

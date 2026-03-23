@@ -13,6 +13,7 @@ import { imaginalAgilityNavigationSections } from '@/components/navigation/navig
 import { CapabilitySelector } from '@/components/ia/CapabilitySelector';
 import { CapabilityType } from '@/lib/types';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 interface IA33ContentProps {
   onNext?: (stepId: string) => void;
@@ -64,6 +65,8 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMountedRef = useRef(true);
   const { shouldShowDemoButtons } = useTestUser();
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-3-3');
 
   // Get video data for ia-3-3 using the existing video hook
   const { data: videoData, isLoading: videoLoading } = useVideoByStepId(
@@ -310,8 +313,10 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : null} // No fallback for ia-3-3 (not in migration)
         title={videoData?.title || "Visualizing Your Potential"}
-        transcriptMd={null} // No transcript data available yet
-        glossary={null} // No glossary data available yet
+        transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
+        glossary={videoData?.glossary}
       />
 
       {/* Rung 2 Graphic and Purpose Side by Side */}
@@ -389,11 +394,12 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    className="w-full h-14 text-sm text-gray-600 cursor-pointer
+                    disabled={isStepLocked}
+                    className={`w-full h-14 text-sm text-gray-600 cursor-pointer
                               file:mr-4 file:h-14 file:py-0 file:px-6 file:border-0 file:border-r file:border-gray-200
-                              file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 
+                              file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700
                               hover:file:bg-purple-100 file:cursor-pointer file:flex file:items-center
-                              border-0 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset"
+                              border-0 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                     onChange={handleImageUpload}
                   />
                 </div>
@@ -435,12 +441,14 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  className="flex-1 px-4 py-3"
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
+                  className={`flex-1 px-4 py-3 ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 />
                 <Button
                   type="button"
                   onClick={handleSearchClick}
-                  disabled={!searchQuery.trim() || searchLoading}
+                  disabled={isStepLocked || !searchQuery.trim() || searchLoading}
                   className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   {searchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
@@ -472,11 +480,12 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                     <div key={img.id} className="space-y-2">
                       <button
                         type="button"
+                        disabled={isStepLocked}
                         className={`w-full border-2 rounded-lg p-1 focus:outline-none transition-all ${
-                          selectedImage === img.urls.regular 
-                            ? 'border-purple-600 ring-2 ring-purple-200' 
+                          selectedImage === img.urls.regular
+                            ? 'border-purple-600 ring-2 ring-purple-200'
                             : 'border-gray-200 hover:border-purple-300'
-                        }`}
+                        } ${isStepLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                         onClick={() => handleSelectImage(img.urls.regular, img.description || img.alt_description || '')}
                         title={img.alt_description || img.description}
                       >
@@ -520,12 +529,15 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                   value={imageTitle}
                   onChange={(e) => safeUpdateData({ imageTitle: e.target.value })}
                   placeholder="Enter one word..."
-                  className="w-full max-w-md"
+                  disabled={isStepLocked}
+                  readOnly={isStepLocked}
+                  className={`w-full max-w-md ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 />
               </div>
               <Button
                 onClick={chooseDifferentImage}
                 variant="outline"
+                disabled={isStepLocked}
                 className="border-purple-300 text-purple-700 hover:bg-purple-50"
               >
                 ● Choose Different Image
@@ -542,10 +554,12 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
           What does this image capture about you? What's the quality it represents — and what would change if you used it more?
         </Label>
         <Textarea
-          className="w-full min-h-[120px]"
+          className={`w-full min-h-[120px] ${isStepLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
           value={reflection}
           onChange={(e) => safeUpdateData({ reflection: e.target.value })}
           placeholder="This image represents..."
+          disabled={isStepLocked}
+          readOnly={isStepLocked}
         />
       </div>
 
@@ -554,19 +568,20 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <CapabilitySelector
           mode="single"
           selected={data.capability_activation || null}
-          onSelect={(val) => safeUpdateData({ capability_activation: val as CapabilityType })}
+          onSelect={isStepLocked ? () => {} : (val) => safeUpdateData({ capability_activation: val as CapabilityType })}
           prompt="Looking at what you just created — which capability felt most present?"
-          className="mb-8"
+          className={`mb-8 ${isStepLocked ? 'opacity-60 pointer-events-none' : ''}`}
         />
       )}
 
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-center gap-4 mt-8">
         {shouldShowDemoButtons && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={fillWithDemoData}
+            disabled={isStepLocked}
             className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
           >
             <FileText className="w-4 h-4 mr-2" />
@@ -577,7 +592,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <Button
           onClick={handleContinue}
           className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
-          disabled={saving || !previewImage || !reflection || !imageTitle || !data.capability_activation}
+          disabled={isStepLocked || saving || !previewImage || !reflection || !imageTitle || !data.capability_activation}
         >
           {saving ? 'Saving...' : `Continue to ${getStepTitle('ia-3-4')}`}
         </Button>

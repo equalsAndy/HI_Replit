@@ -10,7 +10,9 @@ type Props = {
   youtubeId: string | null;
   title?: string | null;
   transcriptMd?: string | null;
+  transcriptHtml?: string | null;
   glossary?: GlossaryItem[] | null;
+  videoEnabled?: boolean;
   // Video progress tracking props
   stepId?: string;
   onProgress?: (percentage: number) => void;
@@ -44,7 +46,9 @@ export default function VideoTranscriptGlossary({
   youtubeId,
   title,
   transcriptMd,
+  transcriptHtml,
   glossary,
+  videoEnabled = true,
   stepId,
   onProgress,
   enforceWatchRequirement = false,
@@ -66,11 +70,13 @@ export default function VideoTranscriptGlossary({
   };
 
   // Determine which tabs should be shown
-  const showTranscriptTab = hasRealTranscript(transcriptMd);
-  const showGlossaryTab = hasRealGlossary(glossary);
-  const showTabs = showTranscriptTab || showGlossaryTab;
+  const showTranscriptTab = hasRealTranscript(transcriptHtml) || hasRealTranscript(transcriptMd);
+  const showGlossaryTab = false; // Glossary tab hidden for now
+  const showTabs = showTranscriptTab;
 
-  const [tab, setTab] = useState<'watch'|'read'|'glossary'>('watch');
+  // Default to transcript tab when video is disabled
+  const defaultTab = (!videoEnabled && showTranscriptTab) ? 'read' : 'watch';
+  const [tab, setTab] = useState<'watch'|'read'|'glossary'>(defaultTab);
   const [modalOpen, setModalOpen] = useState(false);
   const [videoProgress, setVideoProgress] = useState<VideoProgress | null>(null);
   const inlineRef = useRef<HTMLIFrameElement>(null);
@@ -179,18 +185,12 @@ export default function VideoTranscriptGlossary({
   // Convert transcript markdown to HTML with enhanced blockquote formatting
   const formatTranscript = (transcript: string) => {
     if (!transcript) return '';
-    
-    // Convert blockquote-style lines (starting with >) to proper blockquotes
+
     const formatted = transcript
       .split('\n')
       .map(line => {
         const trimmed = line.trim();
-        if (trimmed.startsWith('> *"') && trimmed.endsWith('"*')) {
-          // Extract the quoted text between > *" and "*
-          const text = trimmed.slice(4, -2); // Remove > *" and "*
-          return `<blockquote><p>${text}</p></blockquote>`;
-        } else if (trimmed.startsWith('# ')) {
-          // Convert headers
+        if (trimmed.startsWith('# ')) {
           return `<h1>${trimmed.slice(2)}</h1>`;
         } else if (trimmed === '') {
           return '<br>';
@@ -208,9 +208,9 @@ export default function VideoTranscriptGlossary({
       {/* Tabs - only show if there's transcript or glossary content */}
       {showTabs && (
         <div className="vtg-tabs-32" role="tablist" aria-label="Lesson content">
-          {(['watch', ...(showTranscriptTab ? ['read'] : []), ...(showGlossaryTab ? ['glossary'] : [])] as const).map(k => {
+          {(['watch', ...(showTranscriptTab ? ['read'] : [])] as const).map(k => {
             const key = k as 'watch' | 'read' | 'glossary';
-            const label = key === 'read' ? 'Transcript' : key.charAt(0).toUpperCase() + key.slice(1);
+            const label = key === 'watch' ? 'Watch' : 'Read';
             const isActive = tab === key;
             const style = ({ ['--vtg-strip' as any]: stripFor(key) } as React.CSSProperties);
             return (
@@ -242,6 +242,18 @@ export default function VideoTranscriptGlossary({
         className={showTabs ? "vtg-tabpanel" : ""}
       >
         {(() => {
+          if (!videoEnabled) {
+            return (
+              <div className="rounded-md border border-purple-200 bg-purple-50 p-8 text-center">
+                <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎬</div>
+                <h3 className="text-lg font-semibold text-purple-900 mb-2">Video Coming Soon</h3>
+                <p className="text-sm text-purple-700">
+                  The video for this lesson is being prepared.
+                  {showTranscriptTab && ' In the meantime, check out the transcript tab for the full content.'}
+                </p>
+              </div>
+            );
+          }
           if (!inlineSrc) {
             return (
               <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
@@ -328,7 +340,7 @@ export default function VideoTranscriptGlossary({
           hidden={tab !== 'read'}
           className="vtg-tabpanel"
         >
-          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: formatTranscript(transcriptMd!) }} />
+          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: transcriptHtml || formatTranscript(transcriptMd!) }} />
         </div>
       )}
 

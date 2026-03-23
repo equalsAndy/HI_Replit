@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from '../ImaginalAgilityRadarChart';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 interface IA_2_2_ContentProps {
   onNext?: (stepId: string) => void;
@@ -11,6 +12,9 @@ interface IA_2_2_ContentProps {
 
 
 function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const isStepLocked = isWorkshopLocked('ia', 'ia-2-3');
+
   // Check if assessment is completed
   const { data: assessmentData } = useQuery({
     queryKey: ['/api/workshop-data/ia-assessment'],
@@ -164,8 +168,9 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
                 </p>
               </div>
               <div className="flex justify-center">
-                <Button 
+                <Button
                   onClick={() => onNext?.('ia-3-1')}
+                  disabled={isStepLocked}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
                 >
                   Continue to Module 3
@@ -270,8 +275,9 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
         </p>
         
         <div className="flex justify-center">
-          <Button 
+          <Button
             onClick={handleStartAssessment}
+            disabled={isStepLocked}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg"
             size="lg"
           >

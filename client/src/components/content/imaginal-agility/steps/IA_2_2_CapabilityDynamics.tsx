@@ -276,6 +276,9 @@ function getComboKey(caps: CapabilityKey[]): string {
 
 const IA_2_2_CapabilityDynamics: React.FC<IA22DynamicsProps> = ({ onNext }) => {
   const { state, set } = useContinuity();
+
+  // Restore visitedCards from persisted state (cards stay checked & closed on return)
+  const savedVisited = state?.ia_2_2_visitedCards;
   const [openCards, setOpenCards] = useState<Set<CapabilityKey>>(new Set());
   const [visitedCards, setVisitedCards] = useState<Set<CapabilityKey>>(new Set());
   const [pulseFired, setPulseFired] = useState(false);
@@ -283,11 +286,25 @@ const IA_2_2_CapabilityDynamics: React.FC<IA22DynamicsProps> = ({ onNext }) => {
   const [selectedComboCaps, setSelectedComboCaps] = useState<CapabilityKey[]>([]);
   const [expandedSignals, setExpandedSignals] = useState<Set<number>>(new Set());
   const section2Ref = useRef<HTMLDivElement>(null);
+  const restoredRef = useRef(false);
+
+  // Hydrate visitedCards from continuity state once loaded
+  useEffect(() => {
+    if (savedVisited && savedVisited.length > 0 && !restoredRef.current) {
+      restoredRef.current = true;
+      setVisitedCards(new Set(savedVisited as CapabilityKey[]));
+    }
+  }, [savedVisited]);
 
   const allExplored = visitedCards.size === 5;
 
   const toggleCard = (key: CapabilityKey) => {
-    setVisitedCards(prev => new Set(prev).add(key)); // always mark visited on open
+    setVisitedCards(prev => {
+      const next = new Set(prev).add(key);
+      // Persist to continuity state
+      set((s: any) => ({ ...s, ia_2_2_visitedCards: Array.from(next) }));
+      return next;
+    });
     setOpenCards(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);

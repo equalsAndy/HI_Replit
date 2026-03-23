@@ -4,7 +4,10 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X, CheckCircle, ArrowRight, Download } from 'lucide-react';
 import AllStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
+import ImaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
 import { User } from '@/hooks/use-current-user';
+
+type AppType = 'allstarteams' | 'imaginal-agility';
 
 interface BetaTesterWelcomeModalProps {
   isOpen: boolean;
@@ -12,6 +15,7 @@ interface BetaTesterWelcomeModalProps {
   onStartWorkshop: () => void;
   onDontShowAgain: (dontShow: boolean) => void;
   user?: User;
+  appType?: AppType;
 }
 
 // Helper function to analyze user's workshop progress
@@ -42,8 +46,8 @@ function getWorkshopProgress(user?: User) {
   if (isCompleted) {
     progressText = "You've completed the workshop! You can review your answers and download reports.";
   } else if (isReturning && currentStep) {
-    // Map step IDs to friendly names
-    const stepNames: Record<string, string> = {
+    // Map step IDs to friendly names based on workshop type
+    const astStepNames: Record<string, string> = {
       '1-1': 'Getting Started',
       '1-2': 'Star Card Creation',
       '2-1': 'Strengths Exploration',
@@ -51,6 +55,15 @@ function getWorkshopProgress(user?: User) {
       '3-1': 'Team Integration',
       '3-2': 'Final Reflection',
     };
+    const iaStepNames: Record<string, string> = {
+      'ia-1-1': 'Overview',
+      'ia-2-1': 'I4C Prism',
+      'ia-2-2': 'Capability Dynamics',
+      'ia-2-3': 'Self Assessment',
+      'ia-3-1': 'Ladder Overview',
+      'ia-4-1': 'Advanced Ladder',
+    };
+    const stepNames = currentStep?.startsWith('ia-') ? iaStepNames : astStepNames;
     const stepName = stepNames[currentStep] || `Step ${currentStep}`;
     progressText = `You're currently on: ${stepName}`;
   } else if (isReturning) {
@@ -72,9 +85,15 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
   onStartWorkshop,
   onDontShowAgain,
   user,
+  appType = 'allstarteams',
 }) => {
   const [showAtStartup, setShowAtStartup] = useState(true);
   const progress = getWorkshopProgress(user);
+  const isIA = appType === 'imaginal-agility';
+  const workshopName = isIA ? 'Imaginal Agility' : 'AllStarTeams';
+  const logo = isIA ? ImaginalAgilityLogo : AllStarTeamsLogo;
+  const gradientClass = isIA ? 'from-purple-600 to-purple-800' : 'from-blue-600 to-blue-800';
+  const accentColor = isIA ? 'purple' : 'blue';
 
   const handleClose = () => {
     if (!showAtStartup) {
@@ -92,7 +111,7 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-br from-blue-600 to-blue-800">
+      <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-br ${gradientClass}`}>
         {/* Close button */}
         <button
           onClick={handleClose}
@@ -106,17 +125,17 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
           <div className="text-center mb-10">
             <div className="flex justify-center mb-6">
               <div className="bg-white rounded-2xl p-4 shadow-2xl">
-                <img 
-                  src={AllStarTeamsLogo} 
-                  alt="AllStarTeams" 
+                <img
+                  src={logo}
+                  alt={workshopName}
                   className="h-16 w-auto"
                 />
               </div>
             </div>
             <h1 className="text-white text-4xl md:text-5xl font-bold mb-3 drop-shadow-lg">
-              {progress.isReturning ? 'Welcome Back to AllStarTeams Beta' : 'Welcome to AllStarTeams Beta'}
+              {progress.isReturning ? `Welcome Back to ${workshopName} Beta` : `Welcome to ${workshopName} Beta`}
             </h1>
-            <p className="text-blue-100 text-xl font-light">
+            <p className={`${isIA ? 'text-purple-100' : 'text-blue-100'} text-xl font-light`}>
               {progress.isReturning ? 'Ready to continue your beta testing journey?' : 'Thanks for helping us test'}
             </p>
           </div>
@@ -133,7 +152,7 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                     Workshop Complete!
                   </h2>
                   <p className="text-slate-600 text-lg mb-4 leading-relaxed">
-                    Congratulations! You've completed the AllStarTeams beta workshop. {progress.progressText}
+                    Congratulations! You've completed the {workshopName} beta workshop. {progress.progressText}
                   </p>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                     <h3 className="text-green-800 font-semibold mb-2">What you can do now:</h3>
@@ -149,15 +168,15 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                 // Returning User Content  
                 <>
                   <h2 className="text-slate-800 text-3xl font-semibold mb-4 flex items-center gap-3">
-                    <ArrowRight className="text-blue-600 h-8 w-8" />
+                    <ArrowRight className={`${isIA ? 'text-purple-600' : 'text-blue-600'} h-8 w-8`} />
                     Continue Your Journey
                   </h2>
                   <p className="text-slate-600 text-lg mb-4 leading-relaxed">
                     Welcome back! {progress.progressText}
                   </p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <h3 className="text-blue-800 font-semibold mb-2">Your Progress:</h3>
-                    <p className="text-blue-700 text-sm">
+                  <div className={`${isIA ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4 mb-4`}>
+                    <h3 className={`${isIA ? 'text-purple-800' : 'text-blue-800'} font-semibold mb-2`}>Your Progress:</h3>
+                    <p className={`${isIA ? 'text-purple-700' : 'text-blue-700'} text-sm`}>
                       You've completed {progress.completedStepsCount} steps. Continue testing the workshop experience and remember to use the feedback button for any issues or suggestions.
                     </p>
                   </div>
@@ -170,8 +189,10 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                     Thank You!
                   </h2>
                   <p className="text-slate-600 text-lg mb-4 leading-relaxed">
-                    AllStarTeams is a workshop that helps people discover their strengths, find their flow, and build better teams.
-                    You're testing the <strong>individual self-directed experience</strong> - complete the workshop through the Final Reflection.
+                    {isIA
+                      ? 'Imaginal Agility is a workshop that helps people develop creative capabilities, expand their imagination, and unlock new perspectives.'
+                      : 'AllStarTeams is a workshop that helps people discover their strengths, find their flow, and build better teams.'}
+                    {' '}You're testing the <strong>individual self-directed experience</strong> - complete the workshop through the Final Reflection.
                   </p>
                 </>
               )}
@@ -186,8 +207,8 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {/* Step 1 */}
-                <div className="relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-blue-500 hover:shadow-lg transition-all duration-300 group">
-                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                <div className={`relative bg-white border-2 border-slate-200 rounded-2xl p-6 ${isIA ? 'hover:border-purple-500' : 'hover:border-blue-500'} hover:shadow-lg transition-all duration-300 group`}>
+                  <div className={`absolute -top-3 -right-3 w-10 h-10 ${isIA ? 'bg-purple-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg`}>
                     1
                   </div>
                   <h3 className="text-slate-800 text-lg font-semibold mb-3">
@@ -199,8 +220,8 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                 </div>
 
                 {/* Step 2 */}
-                <div className="relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-blue-500 hover:shadow-lg transition-all duration-300 group">
-                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                <div className={`relative bg-white border-2 border-slate-200 rounded-2xl p-6 ${isIA ? 'hover:border-purple-500' : 'hover:border-blue-500'} hover:shadow-lg transition-all duration-300 group`}>
+                  <div className={`absolute -top-3 -right-3 w-10 h-10 ${isIA ? 'bg-purple-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg`}>
                     2
                   </div>
                   <h3 className="text-slate-800 text-lg font-semibold mb-3">
@@ -212,8 +233,8 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                 </div>
 
                 {/* Step 3 */}
-                <div className="relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-blue-500 hover:shadow-lg transition-all duration-300 group">
-                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                <div className={`relative bg-white border-2 border-slate-200 rounded-2xl p-6 ${isIA ? 'hover:border-purple-500' : 'hover:border-blue-500'} hover:shadow-lg transition-all duration-300 group`}>
+                  <div className={`absolute -top-3 -right-3 w-10 h-10 ${isIA ? 'bg-purple-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg`}>
                     3
                   </div>
                   <h3 className="text-slate-800 text-lg font-semibold mb-3">
@@ -228,22 +249,22 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                       </div>
                     </div>
                     <p className="text-slate-600 text-sm leading-relaxed flex-1">
-                      If you would like to take notes on your experience, click this in the lower right of your screen. 
+                      If you would like to take notes on your experience, click this in the lower right of your screen.
                       Tell us about bugs, confusing parts, or ideas for improvement as you go through the workshop.
                     </p>
                   </div>
                 </div>
 
                 {/* Step 4 */}
-                <div className="relative bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-blue-500 hover:shadow-lg transition-all duration-300 group">
-                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                <div className={`relative bg-white border-2 border-slate-200 rounded-2xl p-6 ${isIA ? 'hover:border-purple-500' : 'hover:border-blue-500'} hover:shadow-lg transition-all duration-300 group`}>
+                  <div className={`absolute -top-3 -right-3 w-10 h-10 ${isIA ? 'bg-purple-600' : 'bg-blue-600'} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg`}>
                     4
                   </div>
                   <h3 className="text-slate-800 text-lg font-semibold mb-3">
                     Complete the Feedback Review
                   </h3>
                   <p className="text-slate-600 text-sm leading-relaxed">
-                    After your Final Reflection, review your notes and submit your feedback. 
+                    After your Final Reflection, review your notes and submit your feedback.
                     Then download your report and explore the additional features available.
                   </p>
                 </div>
@@ -255,7 +276,7 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
             <div className="text-center mb-6">
               <Button
                 onClick={handleStartWorkshop}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                className={`bg-gradient-to-r ${isIA ? 'from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800' : 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'} text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
                 size="lg"
               >
                 {progress.isCompleted ? (
@@ -288,9 +309,9 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-6 text-blue-100">
+          <div className={`text-center mt-6 ${isIA ? 'text-purple-100' : 'text-blue-100'}`}>
             <p className="mb-2">Thank you for helping us build something amazing! 🌟</p>
-            <p className="text-sm opacity-80">Heliotrope Imaginal • AllStarTeams Beta Program</p>
+            <p className="text-sm opacity-80">Heliotrope Imaginal • {workshopName} Beta Program</p>
           </div>
         </div>
       </DialogContent>

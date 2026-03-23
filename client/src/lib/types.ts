@@ -38,6 +38,7 @@ export interface PulseData {
 
 export type IAState = {
   ia_2_1_pulse?: PulseData;
+  ia_2_2_visitedCards?: string[];
   ia_4_2: {
     original_thought: string;
     ai_reframe: string;

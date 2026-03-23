@@ -182,8 +182,10 @@ const IA_5_2_CapabilityCommitment: React.FC<IA52ContentProps> = ({ onNext }) => 
       <VideoTranscriptGlossary
         youtubeId={videoData?.url ? extractYouTubeId(videoData.url) : 'NUnJc82ptd4'}
         title={videoData?.title || "Capability Commitment"}
-        transcriptMd={null}
-        glossary={null}
+        transcriptMd={videoData?.transcriptMd}
+          transcriptHtml={videoData?.transcriptHtml}
+          videoEnabled={videoData?.videoEnabled}
+        glossary={videoData?.glossary}
       />
 
       {/* Introduction */}

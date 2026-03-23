@@ -33,6 +33,8 @@ export interface InlineChatHandle {
   setInput: (val: string) => void;
   reset: () => void;
   focus: () => void;
+  /** Programmatically send a message as if the user typed and submitted it. */
+  sendMessage: (text: string) => void;
 }
 
 export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
@@ -58,6 +60,9 @@ export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
   const [aiMeta, setAiMeta] = React.useState<{ provider: string; model: string } | null>(null);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
+  // Ref for programmatic sends queued before render
+  const pendingSendRef = React.useRef<string | null>(null);
+
   React.useImperativeHandle(ref, () => ({
     setInput: (val: string) => setInput(val),
     focus: () => inputRef.current?.focus(),
@@ -67,7 +72,20 @@ export const InlineChat = React.forwardRef<InlineChatHandle, InlineChatProps>(({
       setInput('');
       setError(null);
     },
+    sendMessage: (text: string) => {
+      // Queue the text; a useEffect will pick it up and call send()
+      setInput(text);
+      pendingSendRef.current = text;
+    },
   }));
+
+  // Fire send() when a programmatic sendMessage is queued
+  React.useEffect(() => {
+    if (pendingSendRef.current && input === pendingSendRef.current && !isLoading) {
+      pendingSendRef.current = null;
+      send();
+    }
+  }, [input, isLoading]);
 
   // initialize with system + optional seed
   React.useEffect(() => {
