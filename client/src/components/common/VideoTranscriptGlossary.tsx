@@ -186,26 +186,11 @@ export default function VideoTranscriptGlossary({
   const formatTranscript = (transcript: string) => {
     if (!transcript) return '';
 
-    // Strip timecodes like (00:21) or (1:05:30) from start of lines
-    const cleaned = transcript.replace(/^\s*\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/gm, '');
-
-    // Strip blockquote/italic/quote markdown and convert to plain paragraphs
-    const stripQuoteMarkup = (s: string): string => {
-      let t = s.trim();
-      if (t.startsWith('>')) t = t.slice(1).trim();
-      if (t.startsWith('*"') && t.endsWith('"*')) t = t.slice(2, -2);
-      else if (t.startsWith('*') && t.endsWith('*')) t = t.slice(1, -1);
-      if (t.startsWith('"') && t.endsWith('"')) t = t.slice(1, -1);
-      return t.trim();
-    };
-
-    const formatted = cleaned
+    const formatted = transcript
       .split('\n')
       .map(line => {
         const trimmed = line.trim();
-        if (trimmed.startsWith('>')) {
-          return `<p>${stripQuoteMarkup(trimmed)}</p>`;
-        } else if (trimmed.startsWith('# ')) {
+        if (trimmed.startsWith('# ')) {
           return `<h1>${trimmed.slice(2)}</h1>`;
         } else if (trimmed === '') {
           return '<br>';
@@ -355,7 +340,7 @@ export default function VideoTranscriptGlossary({
           hidden={tab !== 'read'}
           className="vtg-tabpanel"
         >
-          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: (transcriptHtml || formatTranscript(transcriptMd!)).replace(/\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/g, '') }} />
+          <div className="vtg-transcript" dangerouslySetInnerHTML={{ __html: transcriptHtml || formatTranscript(transcriptMd!) }} />
         </div>
       )}
 

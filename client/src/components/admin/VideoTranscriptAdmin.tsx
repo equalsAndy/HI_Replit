@@ -31,26 +31,10 @@ function formatDate(iso: string): string {
   });
 }
 
-// Strip timecodes like (00:21) or (1:05:30) from start of lines
-function stripTimecodes(text: string): string {
-  return text.replace(/^\s*\(\d{1,2}:\d{2}(?::\d{2})?\)\s*/gm, '');
-}
-
-// Strip blockquote/italic/quote markdown: > *"text"* → text
-function stripQuoteMarkup(line: string): string {
-  let s = line.trim();
-  if (s.startsWith('>')) s = s.slice(1).trim();
-  if (s.startsWith('*"') && s.endsWith('"*')) s = s.slice(2, -2);
-  else if (s.startsWith('*') && s.endsWith('*')) s = s.slice(1, -1);
-  if (s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1);
-  return s.trim();
-}
-
 // Convert markdown transcript to HTML paragraphs for TipTap
 function mdToHtml(md: string): string {
   if (!md) return '';
-  const cleaned = stripTimecodes(md);
-  return cleaned
+  return md
     .split('\n')
     .map(line => {
       const trimmed = line.trim();
@@ -58,7 +42,6 @@ function mdToHtml(md: string): string {
       if (trimmed.startsWith('# ')) return `<h1>${trimmed.slice(2)}</h1>`;
       if (trimmed.startsWith('## ')) return `<h2>${trimmed.slice(3)}</h2>`;
       if (trimmed.startsWith('### ')) return `<h3>${trimmed.slice(4)}</h3>`;
-      if (trimmed.startsWith('>')) return `<p>${stripQuoteMarkup(trimmed)}</p>`;
       return `<p>${trimmed}</p>`;
     })
     .filter(Boolean)
@@ -175,8 +158,7 @@ const VideoTranscriptAdmin: React.FC = () => {
       const data = await res.json();
       if (data.success && data.video) {
         // Prefer HTML content; convert markdown to HTML for TipTap if no HTML exists
-        const raw = data.video.transcriptHtml || mdToHtml(data.video.transcriptMd) || '';
-        const content = stripTimecodes(raw);
+        const content = data.video.transcriptHtml || mdToHtml(data.video.transcriptMd) || '';
         setEditorContent(content);
         setSavedContent(content);
       }
