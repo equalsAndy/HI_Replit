@@ -25,7 +25,7 @@ const pool = new Pool({
 router.post('/generate/:userId', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
@@ -64,7 +64,7 @@ router.post('/generate/:userId', requireAuth, async (req, res) => {
     }
 
     // Initiate generation
-    const result = await astSectionalReportService.initiateReportGeneration(userId, reportType, {
+    const result = await astSectionalReportService.initiateReportGeneration(userId, reportType as 'ast_personal' | 'ast_professional', {
       regenerate,
       specificSections,
       qualityThreshold
@@ -124,7 +124,7 @@ if (process.env.NODE_ENV === 'development') {
         });
       }
 
-      const result = await astSectionalReportService.initiateReportGeneration(userId, reportType, {
+      const result = await astSectionalReportService.initiateReportGeneration(userId, reportType as 'ast_personal' | 'ast_professional', {
         regenerate,
         specificSections,
         qualityThreshold
@@ -169,7 +169,7 @@ if (process.env.NODE_ENV === 'development') {
 router.get('/progress/:userId/:reportType', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId, reportType } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
@@ -191,7 +191,7 @@ router.get('/progress/:userId/:reportType', requireAuth, async (req, res) => {
       });
     }
 
-    const progress = await astSectionalReportService.getReportProgress(userId, reportType);
+    const progress = await astSectionalReportService.getReportProgress(userId, reportType as 'ast_personal' | 'ast_professional');
 
     res.json({
       success: true,
@@ -215,7 +215,7 @@ router.get('/progress/:userId/:reportType', requireAuth, async (req, res) => {
 router.get('/sections/:userId/:reportType', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId, reportType } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
     const { sectionId } = req.query;
 
     // SECURITY: Validate authenticated user matches the userId in URL
@@ -311,7 +311,7 @@ router.get('/sections/:userId/:reportType', requireAuth, async (req, res) => {
 router.put('/sections/:userId/:reportType/:sectionId', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId, reportType, sectionId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
     const { sectionContent, sectionTitle } = req.body;
 
     // SECURITY: Validate authenticated user matches the userId in URL
@@ -405,7 +405,7 @@ router.put('/sections/:userId/:reportType/:sectionId', requireAuth, async (req, 
 router.post('/sections/:userId/:reportType/:sectionId/regenerate', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId, reportType, sectionId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
@@ -436,7 +436,7 @@ router.post('/sections/:userId/:reportType/:sectionId/regenerate', requireAuth, 
     }
 
     // Regenerate section
-    const result = await astSectionalReportService.regenerateSection(userId, reportType, sectionIdNum);
+    const result = await astSectionalReportService.regenerateSection(userId, reportType as 'ast_personal' | 'ast_professional', sectionIdNum);
 
     if (result.success) {
       res.json({
@@ -471,7 +471,7 @@ router.post('/sections/:userId/:reportType/:sectionId/regenerate', requireAuth, 
 router.get('/final/:userId/:reportType', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId, reportType } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
     const { format = 'html' } = req.query;
 
     // SECURITY: Validate authenticated user matches the userId in URL
@@ -504,7 +504,7 @@ router.get('/final/:userId/:reportType', requireAuth, async (req, res) => {
     // Get assembled report with enhanced HTML support
     const result = await astSectionalReportService.getAssembledReport(
       userId,
-      reportType,
+      reportType as 'ast_personal' | 'ast_professional',
       format as 'html' | 'json' | 'text'
     );
 
@@ -552,7 +552,7 @@ router.get('/final/:userId/:reportType', requireAuth, async (req, res) => {
 router.get('/status/:userId', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
@@ -579,7 +579,7 @@ router.get('/status/:userId', requireAuth, async (req, res) => {
       ORDER BY updated_at DESC
     `, [userId]);
 
-    const traditionalReportsMap = {};
+    const traditionalReportsMap: Record<string, any> = {};
     traditionalReports.rows.forEach(row => {
       traditionalReportsMap[row.report_type] = {
         status: row.generation_status,
@@ -621,7 +621,7 @@ router.get('/status/:userId', requireAuth, async (req, res) => {
 router.delete('/:userId/:reportType', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId, reportType } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
@@ -707,7 +707,7 @@ router.post('/cleanup-stalled', requireAuth, async (req, res) => {
 router.post('/cancel/:userId/:reportType', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId, reportType } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
