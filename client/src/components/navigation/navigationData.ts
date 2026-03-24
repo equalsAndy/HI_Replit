@@ -311,5 +311,82 @@ export const allStarTeamsNavigationSections = [
   }
 ];
 
+// Product Mindset navigation - 5-module structure
+export const productMindsetNavigationSections: IANavigationSection[] = [
+  {
+    id: '1',
+    title: 'THE PRODUCT MINDSET',
+    moduleNumber: 1,
+    expanded: true,
+    steps: [
+      { id: 'pm-1-1', title: 'Welcome', type: 'video', contentKey: 'pm-1-1' },
+      { id: 'pm-1-2', title: 'About You', type: 'interactive', contentKey: 'pm-1-2' },
+      { id: 'pm-1-3', title: 'Everything is a Product', type: 'video', contentKey: 'pm-1-3' },
+      { id: 'pm-1-4', title: 'The Missing Training', type: 'video', contentKey: 'pm-1-4' },
+      { id: 'pm-1-5', title: 'Why Now', type: 'video', contentKey: 'pm-1-5' },
+      { id: 'pm-1-6', title: 'Your Product Mindset Profile', type: 'assessment', contentKey: 'pm-1-6' },
+      { id: 'pm-1-7', title: 'Strengths & Flow', type: 'video', contentKey: 'pm-1-7' },
+      { id: 'pm-1-8', title: 'Human Capabilities', type: 'video', contentKey: 'pm-1-8' },
+    ]
+  },
+  {
+    id: '2',
+    title: 'THE PRODUCT ROLE',
+    moduleNumber: 2,
+    expanded: false,
+    steps: [
+      { id: 'pm-2-1', title: 'How Product People Think', type: 'video', contentKey: 'pm-2-1' },
+      { id: 'pm-2-2', title: 'The Role Decomposed', type: 'interactive', contentKey: 'pm-2-2' },
+      { id: 'pm-2-3', title: 'Everyone is a Product Manager', type: 'video', contentKey: 'pm-2-3' },
+      { id: 'pm-2-4', title: 'Navigating Stakeholders', type: 'interactive', contentKey: 'pm-2-4' },
+      { id: 'pm-2-5', title: 'Your Product Team with AI', type: 'video', contentKey: 'pm-2-5' },
+      { id: 'pm-2-6', title: 'The Agreeable Assistant Trap', type: 'interactive', contentKey: 'pm-2-6' },
+    ]
+  },
+  {
+    id: '3',
+    title: 'THE TRANSLATION PROBLEM',
+    moduleNumber: 3,
+    expanded: false,
+    steps: [
+      { id: 'pm-3-1', title: 'The Questions Product People Ask', type: 'video', contentKey: 'pm-3-1' },
+      { id: 'pm-3-2', title: 'What is a Value Proposition?', type: 'video', contentKey: 'pm-3-2' },
+      { id: 'pm-3-3', title: 'Internal vs External Customers', type: 'video', contentKey: 'pm-3-3' },
+      { id: 'pm-3-4', title: 'The Delight vs Friction Gap', type: 'interactive', contentKey: 'pm-3-4' },
+      { id: 'pm-3-5', title: 'Metrics Beyond Revenue', type: 'interactive', contentKey: 'pm-3-5' },
+      { id: 'pm-3-6', title: 'The Design Squiggle', type: 'video', contentKey: 'pm-3-6' },
+      { id: 'pm-3-7', title: 'Squiggle Variations', type: 'interactive', contentKey: 'pm-3-7' },
+    ]
+  },
+  {
+    id: '4',
+    title: 'PRACTICE',
+    moduleNumber: 4,
+    expanded: false,
+    steps: [
+      { id: 'pm-4-1', title: 'Know Your User', type: 'interactive', contentKey: 'pm-4-1' },
+      { id: 'pm-4-2', title: 'Frame the Real Problem', type: 'interactive', contentKey: 'pm-4-2' },
+      { id: 'pm-4-3', title: 'Translate a Concept', type: 'interactive', contentKey: 'pm-4-3' },
+      { id: 'pm-4-4', title: 'Prioritize with Constraints', type: 'interactive', contentKey: 'pm-4-4' },
+      { id: 'pm-4-5', title: 'Test Your Thinking', type: 'interactive', contentKey: 'pm-4-5' },
+    ]
+  },
+  {
+    id: '5',
+    title: 'YOUR TOOLKIT',
+    moduleNumber: 5,
+    expanded: false,
+    steps: [
+      { id: 'pm-5-1', title: 'How AI Uses Context', type: 'video', contentKey: 'pm-5-1' },
+      { id: 'pm-5-2', title: 'Writing System Prompts', type: 'interactive', contentKey: 'pm-5-2' },
+      { id: 'pm-5-3', title: 'Individual vs Team Setup', type: 'video', contentKey: 'pm-5-3' },
+      { id: 'pm-5-4', title: 'Configure AI to Challenge You', type: 'interactive', contentKey: 'pm-5-4' },
+      { id: 'pm-5-5', title: 'Meet the PM Coach', type: 'interactive', contentKey: 'pm-5-5' },
+      { id: 'pm-5-6', title: 'What Changed', type: 'assessment', contentKey: 'pm-5-6' },
+      { id: 'pm-5-7', title: 'Your Action Plan', type: 'interactive', contentKey: 'pm-5-7' },
+    ]
+  }
+];
+
 // Default export for backward compatibility
 export const navigationSections = allStarTeamsNavigationSections;

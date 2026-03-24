@@ -15,7 +15,7 @@ interface NavigationSection {
 }
 
 interface UnifiedNavigationSidebarProps {
-  workshop: 'ast' | 'ia';
+  workshop: 'ast' | 'ia' | 'pm';
   sections: NavigationSection[];
   onStepClick?: (stepId: string) => void;
 }

@@ -53,6 +53,19 @@ const WORKSHOP_CONFIGS = {
     activitySteps: ['ia-2-2', 'ia-5-1'], // I4C assessment, completion activities
     startStep: 'ia-1-1',
     workshopCompletionStep: 'ia-4-7'
+  },
+  pm: {
+    progressiveSteps: [
+      'pm-1-1', 'pm-1-2', 'pm-1-3', 'pm-1-4', 'pm-1-5', 'pm-1-6', 'pm-1-7', 'pm-1-8',
+      'pm-2-1', 'pm-2-2', 'pm-2-3', 'pm-2-4', 'pm-2-5', 'pm-2-6',
+      'pm-3-1', 'pm-3-2', 'pm-3-3', 'pm-3-4', 'pm-3-5', 'pm-3-6', 'pm-3-7',
+      'pm-4-1', 'pm-4-2', 'pm-4-3', 'pm-4-4', 'pm-4-5',
+      'pm-5-1', 'pm-5-2', 'pm-5-3', 'pm-5-4', 'pm-5-5', 'pm-5-6', 'pm-5-7'
+    ],
+    unlockAllSteps: [],
+    activitySteps: [],
+    startStep: 'pm-1-1',
+    workshopCompletionStep: 'pm-5-7'
   }
 };
 

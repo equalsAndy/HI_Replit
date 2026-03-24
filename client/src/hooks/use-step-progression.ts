@@ -24,7 +24,7 @@ interface DataValidationResult {
 }
 
 export function useStepProgression(appType: 'ast' | 'ia' | 'pm' = 'ast') {
-  const [currentStepId, setCurrentStepId] = useState<string>(appType === 'ia' ? 'ia-1-1' : '1-1');
+  const [currentStepId, setCurrentStepId] = useState<string>(appType === 'ia' ? 'ia-1-1' : appType === 'pm' ? 'pm-1-1' : '1-1');
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   // Step dependency rules for AST
