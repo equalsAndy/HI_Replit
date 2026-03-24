@@ -345,7 +345,7 @@ router.post('/notes', async (req, res) => {
       return res.status(400).json({ error: 'Page title is required' });
     }
 
-    if (!['ast', 'ia'].includes(noteData.workshopType)) {
+    if (!['ast', 'ia', 'pm'].includes(noteData.workshopType)) {
       return res.status(400).json({ error: 'Invalid workshop type' });
     }
 

@@ -23,7 +23,7 @@ interface DataValidationResult {
   missingData?: string[];
 }
 
-export function useStepProgression(appType: 'ast' | 'ia' = 'ast') {
+export function useStepProgression(appType: 'ast' | 'ia' | 'pm' = 'ast') {
   const [currentStepId, setCurrentStepId] = useState<string>(appType === 'ia' ? 'ia-1-1' : '1-1');
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 

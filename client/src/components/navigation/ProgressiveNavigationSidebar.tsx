@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface ProgressiveNavigationSidebarProps {
-  appType?: 'ast' | 'ia';
+  appType?: 'ast' | 'ia' | 'pm';
   customSections?: any[];
   onStepClick?: (sectionId: string, stepId: string) => void;
 }

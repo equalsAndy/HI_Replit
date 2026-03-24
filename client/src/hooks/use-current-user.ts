@@ -18,9 +18,11 @@ export interface User {
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;
   iaAccess: boolean;
+  pmAccess: boolean;
   navigationProgress?: string; // JSON string with workshop progress
   astWorkshopCompleted?: boolean;
   iaWorkshopCompleted?: boolean;
+  pmWorkshopCompleted?: boolean;
   canTrainTalia?: boolean; // Talia training access control
 }
 

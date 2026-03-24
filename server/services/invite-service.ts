@@ -20,6 +20,7 @@ class InviteService {
     isBetaTester?: boolean;
     astAccess?: boolean;
     iaAccess?: boolean;
+    pmAccess?: boolean;
     showDemoDataButtons?: boolean;
   }) {
     try {
@@ -47,7 +48,7 @@ class InviteService {
 
       // Insert the invite into the database with cohort and organization assignment
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, job_title, organization, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, show_demo_data_buttons)
+        INSERT INTO invites (invite_code, email, role, name, job_title, organization, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, pm_access, show_demo_data_buttons)
         VALUES (
           ${inviteCode},
           ${data.email.toLowerCase()},
@@ -62,6 +63,7 @@ class InviteService {
           ${data.isBetaTester || false},
           ${data.astAccess ?? true},
           ${data.iaAccess ?? true},
+          ${data.pmAccess ?? false},
           ${data.showDemoDataButtons ?? false}
         )
         RETURNING *
@@ -116,6 +118,7 @@ class InviteService {
     isBetaTester?: boolean;
     astAccess?: boolean;
     iaAccess?: boolean;
+    pmAccess?: boolean;
     showDemoDataButtons?: boolean;
   }) {
     try {
@@ -127,7 +130,7 @@ class InviteService {
           error: 'Invalid email format'
         };
       }
-      
+
       // Generate a unique invite code (remove hyphens to fit 12-char limit)
       const inviteCode = generateInviteCode().replace(/-/g, '');
       
@@ -138,7 +141,7 @@ class InviteService {
       
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, show_demo_data_buttons)
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, pm_access, show_demo_data_buttons)
         VALUES (
           ${inviteCode},
           ${data.email.toLowerCase()},
@@ -151,6 +154,7 @@ class InviteService {
           ${data.isBetaTester || false},
           ${data.astAccess ?? true},
           ${data.iaAccess ?? true},
+          ${data.pmAccess ?? false},
           ${data.showDemoDataButtons ?? false}
         )
         RETURNING *
@@ -476,6 +480,7 @@ class InviteService {
   async updateInvite(inviteId: number, updates: {
     astAccess?: boolean;
     iaAccess?: boolean;
+    pmAccess?: boolean;
     showDemoDataButtons?: boolean;
     name?: string;
     role?: 'admin' | 'facilitator' | 'participant' | 'student';
@@ -510,6 +515,7 @@ class InviteService {
 
       if (updates.astAccess !== undefined) updateData.astAccess = updates.astAccess;
       if (updates.iaAccess !== undefined) updateData.iaAccess = updates.iaAccess;
+      if (updates.pmAccess !== undefined) updateData.pmAccess = updates.pmAccess;
       if (updates.showDemoDataButtons !== undefined) updateData.showDemoDataButtons = updates.showDemoDataButtons;
       if (updates.name !== undefined) updateData.name = updates.name || null;
       if (updates.role !== undefined) updateData.role = updates.role;

@@ -282,6 +282,21 @@ const App: React.FC = () => {
                       </ProtectedRoute>
                     </Route>
 
+                    {/* Product Mindset workshop route - placeholder until content is built */}
+                    {/*
+                    <Route path="/product-mindset">
+                      <ProtectedRoute>
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-teal-600"></div>
+                          </div>
+                        }>
+                          <ProductMindsetPage />
+                        </Suspense>
+                      </ProtectedRoute>
+                    </Route>
+                    */}
+
                     {/* Admin routes with lazy loading */}
                     <Route path="/admin">
                       <ProtectedRoute requireAdmin={true}>

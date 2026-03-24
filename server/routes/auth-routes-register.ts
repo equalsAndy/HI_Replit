@@ -127,6 +127,7 @@ router.post('/register', async (req, res) => {
     // Create the user with invite creator tracking, workshop access, and demo permissions
     const inviteAstAccess = (inviteResult.invite as any)?.astAccess ?? (inviteResult.invite as any)?.ast_access;
     const inviteIaAccess = (inviteResult.invite as any)?.iaAccess ?? (inviteResult.invite as any)?.ia_access;
+    const invitePmAccess = (inviteResult.invite as any)?.pmAccess ?? (inviteResult.invite as any)?.pm_access;
     const inviteShowDemo = (inviteResult.invite as any)?.showDemoDataButtons ?? (inviteResult.invite as any)?.show_demo_data_buttons;
 
     const createResult = await userManagementService.createUser({
@@ -142,6 +143,7 @@ router.post('/register', async (req, res) => {
       isBetaTester: inviteResult.invite.isBetaTester || inviteResult.invite.is_beta_tester || false,
       astAccess: inviteAstAccess !== undefined ? !!inviteAstAccess : true,
       iaAccess: inviteIaAccess !== undefined ? !!inviteIaAccess : true,
+      pmAccess: invitePmAccess !== undefined ? !!invitePmAccess : false,
       showDemoDataButtons: inviteShowDemo !== undefined ? !!inviteShowDemo : false
     });
     

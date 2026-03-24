@@ -3,13 +3,16 @@ import { useState, useEffect } from 'react';
 interface WorkshopStatus {
   astWorkshopCompleted: boolean;
   iaWorkshopCompleted: boolean;
+  pmWorkshopCompleted: boolean;
   astCompletedAt?: string;
   iaCompletedAt?: string;
+  pmCompletedAt?: string;
 }
 
 let globalCompletionState: WorkshopStatus = {
   astWorkshopCompleted: false,
-  iaWorkshopCompleted: false
+  iaWorkshopCompleted: false,
+  pmWorkshopCompleted: false
 };
 
 const completionListeners: (() => void)[] = [];
@@ -30,6 +33,11 @@ const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
     return parseInt(stepId.split('-')[1]) as 1 | 2 | 3 | 4 | 5;
   }
 
+  // PM Workshop step mapping (pm-X-Y format)
+  if (stepId.match(/^pm-[1-9]-[1-9]$/)) {
+    return parseInt(stepId.split('-')[1]) as 1 | 2 | 3 | 4 | 5;
+  }
+
   return null;
 };
 
@@ -39,9 +47,9 @@ const getStepModule = (stepId: string): 1 | 2 | 3 | 4 | 5 | null => {
  * @param isWorkshopCompleted Whether the workshop is completed
  * @returns true if the module should be locked for editing
  */
-const isModuleLocked = (module: number, isWorkshopCompleted: boolean, workshopType: 'ast' | 'ia' = 'ast'): boolean => {
-  if (workshopType === 'ia') {
-    // IA: Modules 1-4 lock after completion, Module 5+ stays open
+const isModuleLocked = (module: number, isWorkshopCompleted: boolean, workshopType: 'ast' | 'ia' | 'pm' = 'ast'): boolean => {
+  if (workshopType === 'ia' || workshopType === 'pm') {
+    // IA and PM: Modules 1-4 lock after completion, Module 5+ stays open
     if (module >= 1 && module <= 4) {
       return isWorkshopCompleted;
     }
@@ -78,8 +86,10 @@ export function useWorkshopStatus() {
           globalCompletionState = {
             astWorkshopCompleted: data.astWorkshopCompleted || false,
             iaWorkshopCompleted: data.iaWorkshopCompleted || false,
+            pmWorkshopCompleted: data.pmWorkshopCompleted || false,
             astCompletedAt: data.astCompletedAt,
-            iaCompletedAt: data.iaCompletedAt
+            iaCompletedAt: data.iaCompletedAt,
+            pmCompletedAt: data.pmCompletedAt
           };
           setStatus({ ...globalCompletionState });
           completionListeners.forEach(listener => listener());
@@ -100,7 +110,7 @@ export function useWorkshopStatus() {
     };
   }, []);
 
-  const completeWorkshop = async (appType: 'ast' | 'ia') => {
+  const completeWorkshop = async (appType: 'ast' | 'ia' | 'pm') => {
     try {
       console.log(`🎯 Completing ${appType.toUpperCase()} workshop...`);
       setLoading(true);
@@ -116,8 +126,8 @@ export function useWorkshopStatus() {
         const data = await response.json();
         console.log('✅ Workshop completed successfully:', data);
         
-        const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
-        const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+        const completionField = appType === 'ast' ? 'astWorkshopCompleted' : appType === 'ia' ? 'iaWorkshopCompleted' : 'pmWorkshopCompleted';
+        const timestampField = appType === 'ast' ? 'astCompletedAt' : appType === 'ia' ? 'iaCompletedAt' : 'pmCompletedAt';
         
         globalCompletionState = {
           ...globalCompletionState,
@@ -147,8 +157,13 @@ export function useWorkshopStatus() {
     }
   };
 
-  const isWorkshopLocked = (appType: 'ast' | 'ia', stepId?: string) => {
-    const isWorkshopCompleted = appType === 'ast' ? status.astWorkshopCompleted : status.iaWorkshopCompleted;
+  const isWorkshopLocked = (appType: 'ast' | 'ia' | 'pm', stepId?: string) => {
+    const completionMap: Record<string, boolean> = {
+      ast: status.astWorkshopCompleted,
+      ia: status.iaWorkshopCompleted,
+      pm: status.pmWorkshopCompleted,
+    };
+    const isWorkshopCompleted = completionMap[appType] || false;
 
     // If no stepId provided, use legacy behavior (entire workshop locked after completion)
     if (!stepId) {
@@ -171,8 +186,13 @@ export function useWorkshopStatus() {
    * Before completion, modules 4-5 are locked (AST only).
    * This is separate from isWorkshopLocked which controls editing.
    */
-  const isModuleAccessible = (appType: 'ast' | 'ia', module: number) => {
-    const isWorkshopCompleted = appType === 'ast' ? status.astWorkshopCompleted : status.iaWorkshopCompleted;
+  const isModuleAccessible = (appType: 'ast' | 'ia' | 'pm', module: number) => {
+    const completionMap: Record<string, boolean> = {
+      ast: status.astWorkshopCompleted,
+      ia: status.iaWorkshopCompleted,
+      pm: status.pmWorkshopCompleted,
+    };
+    const isWorkshopCompleted = completionMap[appType] || false;
 
     if (isWorkshopCompleted) {
       // After completion: all modules are navigable (1-3 in read-only mode)
@@ -190,8 +210,10 @@ export function useWorkshopStatus() {
   return {
     astCompleted: status.astWorkshopCompleted,
     iaCompleted: status.iaWorkshopCompleted,
+    pmCompleted: status.pmWorkshopCompleted,
     astCompletedAt: status.astCompletedAt,
     iaCompletedAt: status.iaCompletedAt,
+    pmCompletedAt: status.pmCompletedAt,
     loading,
     error,
     completeWorkshop,

@@ -212,6 +212,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       contentAccess: z.enum(['student', 'professional', 'both']).optional(),
       astAccess: z.boolean().optional(),
       iaAccess: z.boolean().optional(),
+      pmAccess: z.boolean().optional(),
       isTestUser: z.boolean().optional(),
       isDemoAccount: z.boolean().optional(),
       isBetaTester: z.boolean().optional(),

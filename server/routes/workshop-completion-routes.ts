@@ -94,10 +94,10 @@ router.get('/navigation-progress/:appType', async (req: Request, res: Response) 
     if (progress.length === 0) {
       const defaultProgress = {
         completedSteps: [],
-        currentStepId: appType === 'ia' ? 'ia-1-1' : '1-1',
+        currentStepId: appType === 'ia' ? 'ia-1-1' : appType === 'pm' ? 'pm-1-1' : '1-1',
         appType,
         lastVisitedAt: new Date().toISOString(),
-        unlockedSteps: appType === 'ia' ? ['ia-1-1'] : ['1-1'],
+        unlockedSteps: appType === 'ia' ? ['ia-1-1'] : appType === 'pm' ? ['pm-1-1'] : ['1-1'],
         videoProgress: {}
       };
       return res.status(200).json({ success: true, data: defaultProgress });
@@ -191,8 +191,10 @@ router.get('/completion-status', authenticateUser, async (req: Request, res: Res
     const user = await db.select({
       astWorkshopCompleted: users.astWorkshopCompleted,
       iaWorkshopCompleted: users.iaWorkshopCompleted,
+      pmWorkshopCompleted: users.pmWorkshopCompleted,
       astCompletedAt: users.astCompletedAt,
-      iaCompletedAt: users.iaCompletedAt
+      iaCompletedAt: users.iaCompletedAt,
+      pmCompletedAt: users.pmCompletedAt
     }).from(users).where(eq(users.id, userId)).limit(1);
 
     if (!user[0]) {
@@ -214,8 +216,8 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
     const { appType } = req.body;
     const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
 
-    if (!appType || !['ast', 'ia'].includes(appType)) {
-      return res.status(400).json({ error: 'Invalid app type. Must be "ast" or "ia"' });
+    if (!appType || !['ast', 'ia', 'pm'].includes(appType)) {
+      return res.status(400).json({ error: 'Invalid app type. Must be "ast", "ia", or "pm"' });
     }
 
     const navigationData = await db
@@ -242,7 +244,9 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
     // Note: Step 2-3 was removed from the workshop - no longer required
     const requiredSteps = appType === 'ast'
       ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-4', '3-1', '3-2', '3-3', '3-4']
-      : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-3-7', 'ia-4-1', 'ia-4-7'];
+      : appType === 'ia'
+      ? ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-3-7', 'ia-4-1', 'ia-4-7']
+      : []; // PM: will be defined when workshop content is built
 
     const allCompleted = requiredSteps.every(step => completedSteps.includes(step));
 
@@ -262,12 +266,12 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
+    const completionField = appType === 'ast' ? 'astWorkshopCompleted' : appType === 'ia' ? 'iaWorkshopCompleted' : 'pmWorkshopCompleted';
     if (user[0][completionField as keyof typeof user[0]]) {
       return res.status(400).json({ error: 'Workshop already completed' });
     }
 
-    const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+    const timestampField = appType === 'ast' ? 'astCompletedAt' : appType === 'ia' ? 'iaCompletedAt' : 'pmCompletedAt';
     const completedAt = new Date();
 
     await db.update(users)

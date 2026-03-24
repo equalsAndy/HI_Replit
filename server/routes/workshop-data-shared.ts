@@ -136,7 +136,7 @@ export const checkWorkshopLocked = async (req: Request, res: Response, next: Nex
     const userId = (req.session as any).userId;
     const appType = req.body.workshopType || req.body.appType || req.params.appType || 'ast';
 
-    if (!['ast', 'ia'].includes(appType)) {
+    if (!['ast', 'ia', 'pm'].includes(appType)) {
       return next();
     }
 

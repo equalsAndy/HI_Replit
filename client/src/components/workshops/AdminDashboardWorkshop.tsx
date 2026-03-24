@@ -152,6 +152,7 @@ const InviteManagement: React.FC = () => {
     isBetaTester: false,
     astAccess: true,
     iaAccess: true,
+    pmAccess: false,
     showDemoDataButtons: false,
   });
   const [isSendingInvite, setIsSendingInvite] = React.useState(false);
@@ -216,7 +217,7 @@ const InviteManagement: React.FC = () => {
           title: 'Success', 
           description: `Invite created for ${newInvite.email}` 
         });
-        setNewInvite({ email: '', role: 'participant', name: '', jobTitle: '', organization: '', isTestUser: false, isBetaTester: false, astAccess: true, iaAccess: true, showDemoDataButtons: false });
+        setNewInvite({ email: '', role: 'participant', name: '', jobTitle: '', organization: '', isTestUser: false, isBetaTester: false, astAccess: true, iaAccess: true, pmAccess: false, showDemoDataButtons: false });
         fetchInvites();
       } else {
         toast({ 
@@ -245,6 +246,7 @@ const InviteManagement: React.FC = () => {
       isBetaTester: invite.isBetaTester ?? invite.is_beta_tester ?? false,
       astAccess: invite.astAccess ?? invite.ast_access ?? true,
       iaAccess: invite.iaAccess ?? invite.ia_access ?? true,
+      pmAccess: invite.pmAccess ?? invite.pm_access ?? false,
       showDemoDataButtons: invite.showDemoDataButtons ?? invite.show_demo_data_buttons ?? false,
     });
     setActiveTab('create'); // keep form visible
@@ -660,6 +662,23 @@ const InviteManagement: React.FC = () => {
                     <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
                         type="checkbox"
+                        checked={editingInvite ? editValues?.pmAccess ?? false : newInvite.pmAccess}
+                        onChange={(e) => editingInvite
+                          ? setEditValues({ ...editValues, pmAccess: e.target.checked })
+                          : setNewInvite({ ...newInvite, pmAccess: e.target.checked })}
+                        disabled={isSendingInvite}
+                        style={{ margin: 0 }}
+                      />
+                      Product Mindset Access
+                    </label>
+                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                      Allow this invite to access Product Mindset workshop content
+                    </small>
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
                         checked={editingInvite ? editValues?.showDemoDataButtons ?? false : newInvite.showDemoDataButtons}
                         onChange={(e) => editingInvite
                           ? setEditValues({ ...editValues, showDemoDataButtons: e.target.checked })
@@ -803,6 +822,9 @@ const InviteManagement: React.FC = () => {
                             </span>
                             <span style={{ ...styles.badge, backgroundColor: (invite.iaAccess ?? invite.ia_access ?? true) ? '#e0f2fe' : '#f3f4f6', color: (invite.iaAccess ?? invite.ia_access ?? true) ? '#1d4ed8' : '#6b7280' }}>
                               IA {invite.iaAccess ?? invite.ia_access ?? true ? 'On' : 'Off'}
+                            </span>
+                            <span style={{ ...styles.badge, backgroundColor: (invite.pmAccess ?? invite.pm_access ?? false) ? '#ccfbf1' : '#f3f4f6', color: (invite.pmAccess ?? invite.pm_access ?? false) ? '#115e59' : '#6b7280' }}>
+                              PM {invite.pmAccess ?? invite.pm_access ?? false ? 'On' : 'Off'}
                             </span>
                           </div>
                         </td>

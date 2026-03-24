@@ -76,7 +76,7 @@ router.post('/submit', requireAuth, async (req, res) => {
     const validPageContexts = ['current', 'other', 'general'];
     const validFeedbackTypes = ['bug', 'feature', 'content', 'general'];
     const validPriorities = ['low', 'medium', 'high', 'blocker'];
-    const validWorkshopTypes = ['ast', 'ia'];
+    const validWorkshopTypes = ['ast', 'ia', 'pm'];
 
     if (!validPageContexts.includes(pageContext)) {
       return res.status(400).json({ error: 'Invalid pageContext' });

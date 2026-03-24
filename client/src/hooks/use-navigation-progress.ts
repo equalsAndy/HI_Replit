@@ -26,7 +26,7 @@ interface NavigationProgress {
   completedSteps: string[];        // Only progressive steps (1-1 through 3-4)
   visitedSteps: string[];          // Resource steps that user has viewed (4-1, 4-2, etc.)
   currentStepId: string;
-  appType: 'ast' | 'ia';
+  appType: 'ast' | 'ia' | 'pm';
   lastVisitedAt: string;
   unlockedSteps: string[];
   videoProgress: { [stepId: string]: { farthest: number; current: number } };
@@ -563,7 +563,7 @@ export interface NavigationSection {
   steps: NavigationStep[];
 }
 
-export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
+export function useNavigationProgress(appType: 'ast' | 'ia' | 'pm' = 'ast') {
   const queryClient = useQueryClient();
   const debouncedSync = useRef<NodeJS.Timeout>();
 

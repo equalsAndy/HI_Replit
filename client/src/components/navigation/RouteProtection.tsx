@@ -5,7 +5,7 @@ import { RequiresCompletionMessage } from '../content/RequiresCompletionMessage'
 interface RouteProtectionProps {
   stepId: string;
   children: React.ReactNode;
-  appType?: 'ast' | 'ia';
+  appType?: 'ast' | 'ia' | 'pm';
   redirectToContent?: (contentKey: string) => void;
 }
 

@@ -4,7 +4,7 @@ import { CollapsibleSection } from './CollapsibleSection';
 import { navigationSections, imaginalAgilityNavigationSections } from './navigationData';
 
 interface NavigationSidebarProps {
-  appType?: 'ast' | 'ia';
+  appType?: 'ast' | 'ia' | 'pm';
   customSections?: any[];
 }
 
