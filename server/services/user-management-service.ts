@@ -37,6 +37,7 @@ class UserManagementService {
     isBetaTester?: boolean;
     astAccess?: boolean;
     iaAccess?: boolean;
+    pmAccess?: boolean;
     showDemoDataButtons?: boolean;
     contentAccess?: 'student' | 'professional' | 'both';
   }) {
@@ -47,7 +48,7 @@ class UserManagementService {
 
       // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, show_demo_data_buttons, invited_by, created_at, updated_at)
+        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, invited_by, created_at, updated_at)
         VALUES (
           ${data.username},
           ${hashedPassword},
@@ -61,6 +62,7 @@ class UserManagementService {
           ${data.contentAccess || 'professional'},
           ${data.astAccess ?? true},
           ${data.iaAccess ?? true},
+          ${data.pmAccess ?? false},
           ${data.showDemoDataButtons ?? false},
           ${data.invitedBy || null},
           NOW(),
@@ -268,6 +270,7 @@ class UserManagementService {
     contentAccess?: 'student' | 'professional' | 'both';
     astAccess?: boolean;
     iaAccess?: boolean;
+    pmAccess?: boolean;
     password?: string | null;
     auth0Sub?: string | null;
   }) {
@@ -299,6 +302,7 @@ class UserManagementService {
       if (data.contentAccess !== undefined) updateData.contentAccess = data.contentAccess;
       if (data.astAccess !== undefined) updateData.astAccess = data.astAccess;
       if (data.iaAccess !== undefined) updateData.iaAccess = data.iaAccess;
+      if (data.pmAccess !== undefined) updateData.pmAccess = data.pmAccess;
       
       let temporaryPassword = null;
       
@@ -595,6 +599,7 @@ class UserManagementService {
           contentAccess: user.contentAccess,
           astAccess: user.astAccess,
           iaAccess: user.iaAccess,
+          pmAccess: user.pmAccess,
           invitedBy: user.invitedBy,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
