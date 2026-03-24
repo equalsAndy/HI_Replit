@@ -78,19 +78,19 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
         name: decoded.name || (email ? email.split('@')[0] : 'user'),
         username: email || decoded.sub, // Prefer email, fallback to sub
         password: `auth0-generated-${Math.random().toString(36)}`, // Random password for Auth0 users
-        role: userRole, // Use determined role
+        role: userRole as any, // Use determined role
         auth0Sub: decoded.sub,
         lastLoginAt: new Date(),
         organization: '',
         jobTitle: ''
-      });
+      } as any);
 
-      if (!createResult.success) {
+      if (!createResult.success || !createResult.user) {
         return res.status(500).json({ error: 'Failed to create user account' });
       }
 
       user = createResult.user;
-      console.log('Created new user from Auth0:', user.id);
+      console.log('Created new user from Auth0:', user!.id);
     } else {
       // Check if existing user needs role update (for admin promotion)
       let needsRoleUpdate = false;
@@ -136,10 +136,15 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       console.log('Found existing user:', user.id, needsRoleUpdate ? `(promoted to ${newRole})` : '');
     }
 
+    // Ensure user is defined before creating session
+    if (!user) {
+      return res.status(500).json({ error: 'Failed to resolve user account' });
+    }
+
     // Create session with enhanced user data
-    req.session.userId = user.id;
-    req.session.userRole = user.role; // Add userRole for middleware compatibility
-    req.session.user = {
+    (req.session as any).userId = user.id;
+    (req.session as any).userRole = user.role; // Add userRole for middleware compatibility
+    (req.session as any).user = {
       id: user.id,
       name: user.name,
       email: user.email,
@@ -160,7 +165,7 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
     };
 
     const redirectRoute = PostLoginRouter.getEnvironmentAwareRoute(
-      userConfig, 
+      userConfig,
       process.env.ENVIRONMENT || 'development'
     );
 
@@ -172,15 +177,15 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
         console.error('Session save error:', err);
         return res.status(500).json({ error: 'Session creation failed' });
       }
-      
-      console.log('✅ Session saved successfully for user:', user.id);
+
+      console.log('✅ Session saved successfully for user:', user!.id);
       res.json({
         success: true,
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role
+          id: user!.id,
+          name: user!.name,
+          email: user!.email,
+          role: user!.role
         },
         redirectTo: redirectRoute
       });

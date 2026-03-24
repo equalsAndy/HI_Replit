@@ -29,7 +29,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
   console.log('Auth check - Session:', sessionUserId, 'Cookie:', cookieUserId);
   
   // Log session data safely (sanitized to avoid base64 profile pictures)
-  const sessionCopy = { ...req.session };
+  const sessionCopy = { ...req.session } as any;
   if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
     sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
   }
@@ -134,7 +134,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
     }
 
     // If token is valid, save decoded info to request for use in other routes
-    req.user = decoded;
+    req.user = decoded as Express.User;
     next();
   });
 };

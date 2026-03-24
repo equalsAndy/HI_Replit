@@ -123,8 +123,8 @@ router.post('/brainstorm', isAdmin, async (req, res) => {
     const { stepId = 'ia-4-2', goals = '', constraints = '', currentDraft = '' } = req.body || {};
     const client = getOpenAIClient();
     const messages = [
-      { role: 'system', content: 'You help an admin craft concise, effective guidance for an assistant that supports a specific IA exercise. Return a short instruction (bulleted if useful), 120-200 words.' },
-      { role: 'user', content: `Exercise: ${stepId}\nGoals: ${goals}\nConstraints/Do&Don\'ts: ${constraints}\nCurrent draft (optional): ${currentDraft}` }
+      { role: 'system' as const, content: 'You help an admin craft concise, effective guidance for an assistant that supports a specific IA exercise. Return a short instruction (bulleted if useful), 120-200 words.' },
+      { role: 'user' as const, content: `Exercise: ${stepId}\nGoals: ${goals}\nConstraints/Do&Don\'ts: ${constraints}\nCurrent draft (optional): ${currentDraft}` }
     ];
     const resp = await client.chat.completions.create({ model: 'gpt-4o-mini', messages, temperature: 0.5, max_tokens: 350 });
     const text = resp.choices?.[0]?.message?.content || '';

@@ -140,7 +140,7 @@ router.post('/register', async (req, res) => {
       jobTitle: data.jobTitle,
       profilePicture: data.profilePicture,
       invitedBy: inviteResult.invite.createdBy,
-      isBetaTester: inviteResult.invite.isBetaTester || inviteResult.invite.is_beta_tester || false,
+      isBetaTester: inviteResult.invite.isBetaTester || (inviteResult.invite as any).is_beta_tester || false,
       astAccess: inviteAstAccess !== undefined ? !!inviteAstAccess : true,
       iaAccess: inviteIaAccess !== undefined ? !!inviteIaAccess : true,
       pmAccess: invitePmAccess !== undefined ? !!invitePmAccess : false,

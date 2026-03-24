@@ -193,7 +193,7 @@ Be specific and actionable. Focus on what makes conversations more effective.`;
         personaType: 'coaching', // Use coaching persona for analysis
         userName: 'System',
         contextData: { analysisMode: true },
-        userId: 'system',
+        userId: 0, // system user
         sessionId: `analysis-${Date.now()}`,
         maxTokens: 1000
       });
@@ -279,7 +279,7 @@ Be specific and actionable. Focus on what makes conversations more effective.`;
       
       // Reinitialize vector service to pick up changes
       try {
-        const { javascriptVectorService } = await import('./javascript-vector-service.js');
+        const { javascriptVectorService } = await import('./javascript-vector-service.js' as any);
         await javascriptVectorService.initialize();
         console.log('🔄 Vector service reinitialized with updated learning');
       } catch (vectorError) {

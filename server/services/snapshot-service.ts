@@ -366,6 +366,7 @@ export class SnapshotService {
       for (const step of snapshotData.workshopStepData) {
         await db.insert(schema.workshopStepData).values({
           userId,
+          workshopType: (step as any).workshopType || 'ast',
           stepId: step.stepId,
           data: step.data as any,
         });

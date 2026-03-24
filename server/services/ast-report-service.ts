@@ -81,7 +81,7 @@ class ASTReportService {
       const flowCategory = this.categorizeFlowScore(userData.flowScore);
 
       // Step 2: Download user's StarCard from UI system and save to filesystem
-      let starCardData = null;
+      let starCardData: { filePath: string; photoData: string } | undefined = undefined;
       try {
         const { starCardGeneratorService } = await import('./starcard-generator-service.js');
         const starCardImageBase64 = await starCardGeneratorService.downloadStarCardFromUI(userData.userId, {

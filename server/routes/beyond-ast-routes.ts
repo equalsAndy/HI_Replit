@@ -23,7 +23,7 @@ const pool = new Pool({
 router.get('/interests/:userId', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
@@ -70,7 +70,7 @@ router.get('/interests/:userId', requireAuth, async (req, res) => {
 router.post('/interests/:userId', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {
@@ -157,7 +157,7 @@ router.post('/interests/:userId', requireAuth, async (req, res) => {
 router.get('/emails/:userId', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {

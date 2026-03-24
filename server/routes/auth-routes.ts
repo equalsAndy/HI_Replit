@@ -415,7 +415,7 @@ router.post('/change-password', requireAuth, async (req, res) => {
     const user = userResult.user;
 
     // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, (user as any)?.password);
     if (!isCurrentPasswordValid) {
       return res.status(400).json({
         success: false,

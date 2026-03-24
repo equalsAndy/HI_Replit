@@ -249,7 +249,7 @@ Generate the complete report now using your vector database knowledge and this u
       
       const signatureKey = `${dominantStrength}_${secondStrength}`;
       const reversedKey = `${secondStrength}_${dominantStrength}`;
-      const signatureName = signatureMap[signatureKey] || signatureMap[reversedKey] || `${dominantStrength.charAt(0).toUpperCase() + dominantStrength.slice(1)} Excellence`;
+      const signatureName = signatureMap[signatureKey] || signatureMap[reversedKey] || `${String(dominantStrength).charAt(0).toUpperCase() + String(dominantStrength).slice(1)} Excellence`;
 
       // Flow level interpretation
       const flowScore = userContext.flowData?.flowScore || 0;

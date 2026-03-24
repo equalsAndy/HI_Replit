@@ -35,7 +35,7 @@ class SimilaritySearchService {
       maxResults: options.maxResults,
       documentTypes: options.documentTypes,
       minRelevanceScore: 0.1 // Convert similarity threshold to relevance score
-    });
+    }) as any;
   }
 
   /**

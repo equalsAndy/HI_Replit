@@ -38,7 +38,7 @@ export class EscalationService {
       question: `Need clarification: ${question}`,
       userMessage,
       contextData,
-      attemptedResponse: null
+      attemptedResponse: undefined
     });
   }
 
@@ -57,7 +57,7 @@ export class EscalationService {
       escalationType: 'instruction_improvement',
       priority,
       question: `Instruction improvement needed: ${improvementDescription}`,
-      userMessage: exampleContext || null,
+      userMessage: exampleContext || undefined,
       contextData: { improvementType: 'instruction_gap' }
     });
   }

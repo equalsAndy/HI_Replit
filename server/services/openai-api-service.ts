@@ -198,6 +198,7 @@ class OpenAIAssistantManager {
     for (const [assistantKey, config] of this.assistantConfigs) {
       try {
         // Get vector store info for this assistant
+        // @ts-expect-error SDK version may not include vectorStores typings
         const vectorStore = await this.client.beta.vectorStores.retrieve(config.vectorStoreId);
         
         const summary: AssistantSummary = {
@@ -288,7 +289,7 @@ class OpenAIAssistantManager {
    */
   private async runModelTest(messages: OpenAIMessage[], model: string, projectType: string) {
     const startTime = Date.now();
-    const client = this.getClientForProject(projectType);
+    const client = this.client; // Use main client (getClientForProject removed)
     const modelConfig = getModelConfig(model);
     
     try {
@@ -451,10 +452,11 @@ async function initializeOpenAIAssistants(): Promise<void> {
     console.log(`✅ OpenAI connection successful. Available models: ${models.data.length}`);
     
     // Check existing vector stores
+    // @ts-expect-error SDK version may not include vectorStores typings
     const vectorStores = await client.beta.vectorStores.list();
     console.log(`📚 Found ${vectorStores.data.length} existing vector stores`);
-    
-    vectorStores.data.forEach(vs => {
+
+    vectorStores.data.forEach((vs: any) => {
       console.log(`  - ${vs.name || 'Unnamed'} (${vs.file_counts?.completed || 0} files)`);
     });
     
@@ -495,8 +497,7 @@ async function enhancedOpenAICall(
     userId,
     featureName,
     sessionId,
-    model,
-    projectType
+    model
   );
 }
 
@@ -578,8 +579,8 @@ async function callOpenAIAPI(
         const costEstimate = aiUsageLogger.calculateOpenAICost(tokensUsed, model);
         
         // Log project-specific usage
-        console.log(`📊 ${projectType} project - ${model}: ${tokensUsed} tokens, $${costEstimate.toFixed(6)}`);
-        
+        console.log(`📊 ${featureName} - ${model}: ${tokensUsed} tokens, $${costEstimate.toFixed(6)}`);
+
         await aiUsageLogger.logUsage({
           userId,
           featureName,
@@ -590,7 +591,6 @@ async function callOpenAIAPI(
           sessionId,
           provider: 'openai',
           model,
-          projectType
         });
       }
       
@@ -923,7 +923,7 @@ export async function generateOpenAIReport(args: {
       throw new Error("No assistant response found in thread");
     }
 
-    const response = last?.content?.[0]?.text?.value ?? "";
+    const response = (last?.content?.[0] as any)?.text?.value ?? "";
     
     // DETAILED RESPONSE LOGGING
     console.log("🔍 [REPORT DEBUG] ========== OPENAI RESPONSE ANALYSIS ==========");
@@ -1140,7 +1140,7 @@ export async function generateOpenAICoachingResponse(requestData: CoachingReques
           const report = await createAstReportFromExport(
             userData,
             assistantConfig.id,
-            reportType
+            reportType as "personal" | "sharable"
           );
 
           return report;
@@ -1346,11 +1346,11 @@ export function getOpenAIAPIStatus() {
     hasApiKey: !!process.env.OPENAI_API_KEY,
     defaultModel: 'gpt-4o-mini',
     isAvailable: isOpenAIAPIAvailable(),
-    projects: projectManager.getAllProjects().map(p => ({
+    projects: assistantManager.getAllAssistants().map((p: any) => ({
       name: p.name,
       purpose: p.purpose,
-      defaultModel: p.defaultModel,
-      configured: !!p.apiKey
+      defaultModel: p.model,
+      configured: true
     }))
   };
 }

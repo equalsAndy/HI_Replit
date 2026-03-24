@@ -159,8 +159,8 @@ export class BetaTesterNotesService {
         [noteContent, noteId, userId]
       );
       
-      return result.rowCount > 0;
-      
+      return (result.rowCount ?? 0) > 0;
+
     } catch (error) {
       console.error('❌ Error updating beta tester note:', error);
       throw new Error('Failed to update beta tester note');
@@ -204,14 +204,14 @@ export class BetaTesterNotesService {
         params
       );
       
-      return result.rowCount > 0;
-      
+      return (result.rowCount ?? 0) > 0;
+
     } catch (error) {
       console.error('❌ Error updating beta tester note:', error);
       throw new Error('Failed to update beta tester note');
     }
   }
-  
+
   /**
    * Submit all user notes
    */
@@ -233,7 +233,7 @@ export class BetaTesterNotesService {
       const result = await pool.query(query, params);
       
       console.log(`✅ Submitted ${result.rowCount} notes for user ${userId}`);
-      return result.rowCount;
+      return result.rowCount ?? 0;
       
     } catch (error) {
       console.error('❌ Error submitting notes:', error);

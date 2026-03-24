@@ -157,7 +157,7 @@ class UserManagementService {
       console.log('🔍 User object keys:', user ? Object.keys(user) : 'None');
       
       // Verify the password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await bcrypt.compare(password, user.password as string);
       
       if (!isPasswordValid) {
         return {
@@ -1130,7 +1130,7 @@ class UserManagementService {
           FROM report_sections
           WHERE user_id = ${userId}
         `);
-        deletedSections = countResult[0]?.count || 0;
+        deletedSections = (countResult[0]?.count as number) || 0;
         const payloadCount = countResult[0]?.payload_count || 0;
 
         if (deletedSections > 0) {
@@ -1147,7 +1147,7 @@ class UserManagementService {
       try {
         // First count how many exist
         const countReports = await db.execute(sql`SELECT COUNT(*) as count FROM holistic_reports WHERE user_id = ${userId}`);
-        deletedReports = countReports[0]?.count || 0;
+        deletedReports = (countReports[0]?.count as number) || 0;
 
         if (deletedReports > 0) {
           await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
@@ -1308,7 +1308,7 @@ class UserManagementService {
         try {
           const { deleteAuth0User } = await import('../src/auth0/management.js');
           console.log(`Deleting Auth0 user: ${auth0Sub}`);
-          const auth0Response = await deleteAuth0User(auth0Sub);
+          const auth0Response = await deleteAuth0User(auth0Sub as string);
 
           if (!auth0Response.ok) {
             const errorText = await auth0Response.text();

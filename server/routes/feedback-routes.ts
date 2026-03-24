@@ -100,11 +100,11 @@ router.post('/submit', requireAuth, async (req, res) => {
 
     // Create feedback record
     const newFeedback = await db.insert(feedback).values({
-      userId: req.user.id,
+      userId: req.user!.id,
       workshopType: pageData.workshop,
       pageContext,
-      targetPage: pageContext === 'current' ? pageData.title : 
-                  pageContext === 'other' ? targetPage : 
+      targetPage: pageContext === 'current' ? pageData.title :
+                  pageContext === 'other' ? targetPage :
                   null,
       feedbackType,
       priority: priority || 'low',
@@ -119,7 +119,7 @@ router.post('/submit', requireAuth, async (req, res) => {
 
     console.log('Feedback submitted:', {
       id: newFeedback[0].id,
-      userId: req.user.id,
+      userId: req.user!.id,
       workshopType: pageData.workshop,
       feedbackType,
       priority: priority || 'low'

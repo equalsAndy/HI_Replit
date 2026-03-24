@@ -401,7 +401,7 @@ async function initializeApp() {
         '/trpc',
         trpcExpress.createExpressMiddleware({
           router: appRouter,
-          createContext: ({ req }) => ({ db, userId: req.session?.userId }),
+          createContext: ({ req }) => ({ db, userId: (req.session as any)?.userId }),
         })
       );
 

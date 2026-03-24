@@ -123,12 +123,12 @@ async function verifyBetaTesterAccess(req: express.Request, res: express.Respons
  */
 router.get('/my-notes', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -146,7 +146,7 @@ router.get('/my-notes', async (req, res) => {
  */
 router.put('/:noteId', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     const noteId = parseInt(req.params.noteId);
     const { content } = req.body;
 
@@ -155,7 +155,7 @@ router.put('/:noteId', async (req, res) => {
     }
 
     // Verify user is a beta tester or admin
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -181,7 +181,7 @@ router.put('/:noteId', async (req, res) => {
  */
 router.delete('/:noteId', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     const noteId = parseInt(req.params.noteId);
 
     if (!userId) {
@@ -189,7 +189,7 @@ router.delete('/:noteId', async (req, res) => {
     }
 
     // Verify user is a beta tester or admin
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -211,7 +211,7 @@ router.delete('/:noteId', async (req, res) => {
  */
 router.put('/notes/:noteId', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     const noteId = parseInt(req.params.noteId);
     const { content } = req.body;
     const noteContent = content;
@@ -221,7 +221,7 @@ router.put('/notes/:noteId', async (req, res) => {
     }
 
     // Verify user is a beta tester or admin
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -247,7 +247,7 @@ router.put('/notes/:noteId', async (req, res) => {
  */
 router.delete('/notes/:noteId', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     const noteId = parseInt(req.params.noteId);
 
     if (!userId) {
@@ -255,7 +255,7 @@ router.delete('/notes/:noteId', async (req, res) => {
     }
 
     // Verify user is a beta tester or admin
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -277,13 +277,13 @@ router.delete('/notes/:noteId', async (req, res) => {
  */
 router.post('/feedback', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // Verify user is a beta tester or admin
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -368,14 +368,14 @@ router.post('/notes', async (req, res) => {
  */
 router.get('/notes', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // Verify user is a beta tester or admin (admins are also beta testers)
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
-      console.log('❌ Beta tester access denied for user:', req.session?.userId, { isBetaTester: req.session?.user?.isBetaTester, role: req.session?.user?.role });
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
+      console.log('❌ Beta tester access denied for user:', (req.session as any)?.userId, { isBetaTester: (req.session as any)?.user?.isBetaTester, role: (req.session as any)?.user?.role });
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -419,7 +419,7 @@ router.get('/notes/summary', async (req, res) => {
     const summary = await BetaTesterNotesService.getUserNotesSummary(userId, workshopType);
     
     // Check workshop completion status from user session data
-    const user = req.session?.user;
+    const user = (req.session as any)?.user;
     const astCompleted = user?.astWorkshopCompleted || false;
     const iaCompleted = user?.iaWorkshopCompleted || false;
     
@@ -458,14 +458,14 @@ router.get('/notes/summary', async (req, res) => {
  */
 router.put('/notes/:noteId', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // Verify user is a beta tester or admin (admins are also beta testers)
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
-      console.log('❌ Beta tester access denied for user:', req.session?.userId, { isBetaTester: req.session?.user?.isBetaTester, role: req.session?.user?.role });
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
+      console.log('❌ Beta tester access denied for user:', (req.session as any)?.userId, { isBetaTester: (req.session as any)?.user?.isBetaTester, role: (req.session as any)?.user?.role });
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -513,14 +513,14 @@ router.put('/notes/:noteId', async (req, res) => {
  */
 router.delete('/notes/:noteId', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // Verify user is a beta tester or admin (admins are also beta testers)
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
-      console.log('❌ Beta tester access denied for user:', req.session?.userId, { isBetaTester: req.session?.user?.isBetaTester, role: req.session?.user?.role });
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
+      console.log('❌ Beta tester access denied for user:', (req.session as any)?.userId, { isBetaTester: (req.session as any)?.user?.isBetaTester, role: (req.session as any)?.user?.role });
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -551,14 +551,14 @@ router.delete('/notes/:noteId', async (req, res) => {
  */
 router.post('/notes/submit', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // Verify user is a beta tester or admin (admins are also beta testers)
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
-      console.log('❌ Beta tester access denied for user:', req.session?.userId, { isBetaTester: req.session?.user?.isBetaTester, role: req.session?.user?.role });
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
+      console.log('❌ Beta tester access denied for user:', (req.session as any)?.userId, { isBetaTester: (req.session as any)?.user?.isBetaTester, role: (req.session as any)?.user?.role });
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -583,13 +583,13 @@ router.post('/notes/submit', async (req, res) => {
  */
 router.get('/feedback-status', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     // Verify user is a beta tester or admin
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
+    if (!(req.session as any)?.user?.isBetaTester && (req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Beta tester access required' });
     }
 
@@ -614,7 +614,7 @@ router.get('/feedback-status', async (req, res) => {
 router.get('/admin/notes', async (req, res) => {
   try {
     // Check if user is admin
-    if (req.session?.user?.role !== 'admin') {
+    if ((req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
@@ -646,13 +646,13 @@ router.get('/admin/notes', async (req, res) => {
     console.log('📊 Beta notes query result:', {
       type: typeof notes,
       isArray: Array.isArray(notes),
-      hasRows: !!notes.rows,
-      rowsLength: notes.rows?.length,
+      hasRows: !!(notes as any).rows,
+      rowsLength: (notes as any).rows?.length,
       directLength: Array.isArray(notes) ? notes.length : 'not array',
       keys: Object.keys(notes || {})
     });
 
-    const notesArray = notes.rows || (Array.isArray(notes) ? notes : []);
+    const notesArray = (notes as any).rows || (Array.isArray(notes) ? notes : []);
     
     // Ensure proper field mapping for frontend compatibility
     const mappedNotes = notesArray.map((note: any) => ({
@@ -691,7 +691,7 @@ router.get('/admin/notes', async (req, res) => {
 router.get('/admin/surveys', async (req, res) => {
   try {
     // Check if user is admin
-    if (req.session?.user?.role !== 'admin') {
+    if ((req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
@@ -726,13 +726,13 @@ router.get('/admin/surveys', async (req, res) => {
     console.log('📊 Beta surveys query result:', {
       type: typeof surveys,
       isArray: Array.isArray(surveys),
-      hasRows: !!surveys.rows,
-      rowsLength: surveys.rows?.length,
+      hasRows: !!(surveys as any).rows,
+      rowsLength: (surveys as any).rows?.length,
       directLength: Array.isArray(surveys) ? surveys.length : 'not array',
       keys: Object.keys(surveys || {})
     });
 
-    const surveysArray = surveys.rows || (Array.isArray(surveys) ? surveys : []);
+    const surveysArray = (surveys as any).rows || (Array.isArray(surveys) ? surveys : []);
 
     res.json({
       success: true,
@@ -751,7 +751,7 @@ router.get('/admin/surveys', async (req, res) => {
  */
 router.get('/admin/surveys/export/csv', async (req, res) => {
   try {
-    if (req.session?.user?.role !== 'admin') {
+    if ((req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
@@ -833,7 +833,7 @@ function quoteCsv(value: unknown) {
 router.delete('/admin/surveys/bulk/delete', async (req, res) => {
   try {
     // Check admin
-    if (req.session?.user?.role !== 'admin') {
+    if ((req.session as any)?.user?.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 

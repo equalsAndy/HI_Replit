@@ -146,7 +146,7 @@ export const checkWorkshopLocked = async (req: Request, res: Response, next: Nex
     }
 
     const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
-    const isWorkshopCompleted = user[0][completionField as keyof typeof user[0]] as boolean;
+    const isWorkshopCompleted = (user[0] as any)[completionField] as boolean;
     const stepId = req.body.stepId || req.params.stepId || req.body.data?.stepId;
 
     if (stepId) {
@@ -163,7 +163,7 @@ export const checkWorkshopLocked = async (req: Request, res: Response, next: Nex
           stepId,
           module,
           isWorkshopCompleted,
-          completedAt: user[0][appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt' as keyof typeof user[0]]
+          completedAt: (user[0] as any)[appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']
         });
       }
     }

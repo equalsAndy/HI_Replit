@@ -267,7 +267,7 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
     }
 
     const completionField = appType === 'ast' ? 'astWorkshopCompleted' : appType === 'ia' ? 'iaWorkshopCompleted' : 'pmWorkshopCompleted';
-    if (user[0][completionField as keyof typeof user[0]]) {
+    if ((user[0] as any)[completionField]) {
       return res.status(400).json({ error: 'Workshop already completed' });
     }
 

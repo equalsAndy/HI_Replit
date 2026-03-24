@@ -81,7 +81,7 @@ router.get('/:reportType/debug-status', async (req, res) => {
  */
 router.get('/:reportType/status', requireAuth, async (req, res) => {
   const { reportType } = req.params;
-  const userId = req.session?.userId;
+  const userId = (req.session as any)?.userId;
 
   if (!userId) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -132,7 +132,7 @@ router.get('/:reportType/status', requireAuth, async (req, res) => {
  */
 router.get('/:reportType/view', requireAuth, async (req, res) => {
   const { reportType } = req.params;
-  const userId = req.session?.userId;
+  const userId = (req.session as any)?.userId;
 
   if (!userId) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -184,7 +184,7 @@ router.get('/:reportType/view', requireAuth, async (req, res) => {
  */
 router.get('/:reportType/download', requireAuth, async (req, res) => {
   const { reportType } = req.params;
-  const userId = req.session?.userId;
+  const userId = (req.session as any)?.userId;
 
   if (!userId) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -243,7 +243,7 @@ router.get('/:reportType/download', requireAuth, async (req, res) => {
  */
 router.get('/:reportType/html', requireAuth, async (req, res) => {
   const { reportType } = req.params;
-  const userId = req.session?.userId;
+  const userId = (req.session as any)?.userId;
 
   if (!userId) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -291,7 +291,7 @@ router.get('/:reportType/html', requireAuth, async (req, res) => {
  */
 router.delete('/admin/reset', requireAuth, async (req, res) => {
   // Check if user is admin
-  if (req.session?.userRole !== 'admin') {
+  if ((req.session as any)?.userRole !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
@@ -318,7 +318,7 @@ router.delete('/admin/reset', requireAuth, async (req, res) => {
  */
 router.get('/admin/list', requireAuth, async (req, res) => {
   // Check if user is admin
-  if (req.session?.userRole !== 'admin') {
+  if ((req.session as any)?.userRole !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
@@ -997,7 +997,7 @@ function getStrengthDescription(strengthName: string): string {
     feeling: "Your empathetic leadership edge. You ensure everyone feels heard, mediate conflicts gracefully, and bring diverse perspectives together. This is what transforms good teams into great ones.",
     planning: "Your organizational excellence. You create realistic timelines, anticipate dependencies, and build systems that actually work in the real world. This is strategic thinking in action."
   };
-  return descriptions[strengthName] || "Your unique strength that contributes to your overall effectiveness and team collaboration.";
+  return (descriptions as Record<string, string>)[strengthName] || "Your unique strength that contributes to your overall effectiveness and team collaboration.";
 }
 
 /**

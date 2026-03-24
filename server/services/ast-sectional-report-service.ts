@@ -54,6 +54,7 @@ interface ReportProgress {
   estimatedCompletionTime?: number;
   startedAt?: Date;
   completedAt?: Date;
+  provider?: string;
 }
 
 interface GenerationOptions {
@@ -251,7 +252,7 @@ class ASTSectionalReportService {
       }
 
       // Create or update holistic_reports entry
-      const reportId = await this.createOrUpdateReport(userId, reportType, options.regenerate);
+      const reportId = await this.createOrUpdateReport(userId, reportType, options.regenerate ?? false);
 
       // Clear existing sections if regenerating
       if (options.regenerate) {
@@ -427,7 +428,7 @@ class ASTSectionalReportService {
       // Process RML immediately after generation
       const processedContent = rmlProcessor.processContent(rawContent, {
         sectionId: sectionId,
-        userId: userId,
+        userId: parseInt(userId, 10),
         attributes: payload.flow?.attributes,
         futureSelfImages: payload.future_self?.images
       });
@@ -607,13 +608,13 @@ class ASTSectionalReportService {
       let futureSelfImages: any[] | undefined;
       try {
         const userData = await astReportService.getUserASTData(userId);
-        if (userData && userData.attributes && Array.isArray(userData.attributes)) {
-          userAttributes = userData.attributes;
-          console.log(`✅ Retrieved ${userAttributes.length} flow attributes for user ${userId}`);
+        if (userData && (userData as any).attributes && Array.isArray((userData as any).attributes)) {
+          userAttributes = (userData as any).attributes;
+          console.log(`✅ Retrieved ${userAttributes!.length} flow attributes for user ${userId}`);
         }
-        if (userData && userData.futureSelfImages && Array.isArray(userData.futureSelfImages)) {
-          futureSelfImages = userData.futureSelfImages;
-          console.log(`✅ Retrieved ${futureSelfImages.length} future self images for user ${userId}`);
+        if (userData && (userData as any).futureSelfImages && Array.isArray((userData as any).futureSelfImages)) {
+          futureSelfImages = (userData as any).futureSelfImages;
+          console.log(`✅ Retrieved ${futureSelfImages!.length} future self images for user ${userId}`);
         }
       } catch (error) {
         console.warn(`⚠️ Could not retrieve user data for auto-injection:`, error);
@@ -634,7 +635,7 @@ class ASTSectionalReportService {
         const contentToProcess = row.raw_content || row.section_content;
         const processedContent = rmlProcessor.processContent(contentToProcess, {
           sectionId: row.section_id,
-          userId: userId,
+          userId: parseInt(userId, 10),
           attributes: userAttributes,
           futureSelfImages: futureSelfImages
         });
@@ -975,8 +976,8 @@ class ASTSectionalReportService {
       if (isOpenAI500Error) {
         // Provide a friendly, specific error message for OpenAI service issues
         const friendlyError = new Error("It looks like our AI Report Writer is taking a virtual break, check back again in a few minutes.");
-        friendlyError.isTemporary = true;
-        friendlyError.originalError = error.message;
+        (friendlyError as any).isTemporary = true;
+        (friendlyError as any).originalError = error.message;
         throw friendlyError;
       }
 
@@ -1157,8 +1158,8 @@ class ASTSectionalReportService {
       if (isOpenAI500Error) {
         // Provide a friendly, specific error message for OpenAI service issues
         const friendlyError = new Error("It looks like our AI Report Writer is taking a virtual break, check back again in a few minutes.");
-        friendlyError.isTemporary = true;
-        friendlyError.originalError = error.message;
+        (friendlyError as any).isTemporary = true;
+        (friendlyError as any).originalError = error.message;
         throw friendlyError;
       }
 

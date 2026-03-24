@@ -456,7 +456,7 @@ class InviteService {
         return { success: true, deletedCount: 0 };
       }
       const result = await db.execute(sql`
-        DELETE FROM invites WHERE id = ANY(${sql.array(ids, 'int4')})
+        DELETE FROM invites WHERE id = ANY(${(sql as any).array(ids, 'int4')})
         RETURNING id
       `);
       const rows = (result as any).rows || (Array.isArray(result) ? result : []);

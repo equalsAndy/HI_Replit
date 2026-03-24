@@ -66,7 +66,7 @@ export class PDFReportService implements PDFGenerationService {
       }
       
       // Prepare template data
-      const templateData: ReportTemplateData = {
+      const templateData: ReportTemplateData & { pieChartImageBase64?: string; professionalProfile?: string } = {
         ...reportData,
         starCardImageBase64,
         pieChartImageBase64,
@@ -123,7 +123,7 @@ export class PDFReportService implements PDFGenerationService {
       });
 
       console.log('✅ PDF generated successfully, size:', pdfBuffer.length, 'bytes');
-      return pdfBuffer;
+      return Buffer.from(pdfBuffer);
 
     } catch (error) {
       console.error('❌ PDF generation failed:', error);
@@ -302,11 +302,11 @@ export class PDFReportService implements PDFGenerationService {
     </div>
 
     <!-- AI-Generated Professional Report -->
-    ${data.professionalProfile ? `
+    ${(data as any).professionalProfile ? `
     <div class="section">
         <h2 class="section-title">${isPersonalReport ? 'Personal Development Insights' : 'Professional Development Analysis'}</h2>
         <div class="ai-generated-content">
-            ${this.formatAIContent(data.professionalProfile)}
+            ${this.formatAIContent((data as any).professionalProfile)}
         </div>
     </div>
     ` : ''}
@@ -432,27 +432,27 @@ export class PDFReportService implements PDFGenerationService {
         <div class="reflection-item">
             <h3>Personal Challenges</h3>
             <ul>
-                ${reflections.challenges.map(challenge => `<li>${challenge}</li>`).join('')}
+                ${reflections.challenges.map((challenge: any) => `<li>${challenge}</li>`).join('')}
             </ul>
         </div>
         
         <div class="reflection-item">
             <h3>Well-Being Factors</h3>
             <ul>
-                ${reflections.wellBeingFactors.map(factor => `<li>${factor}</li>`).join('')}
+                ${reflections.wellBeingFactors.map((factor: any) => `<li>${factor}</li>`).join('')}
             </ul>
         </div>
         
         <div class="reflection-item">
             <h3>Personal Growth Areas</h3>
             <ul>
-                ${reflections.personalGrowthAreas.map(area => `<li>${area}</li>`).join('')}
+                ${reflections.personalGrowthAreas.map((area: any) => `<li>${area}</li>`).join('')}
             </ul>
         </div>
         
         <div class="reflection-quotes">
             <h3>Your Reflection Insights</h3>
-            ${reflections.reflectionQuotes.map(quote => `
+            ${reflections.reflectionQuotes.map((quote: any) => `
                 <blockquote>"${quote}"</blockquote>
             `).join('')}
         </div>
