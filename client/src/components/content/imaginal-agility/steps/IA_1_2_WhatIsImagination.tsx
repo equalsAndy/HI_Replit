@@ -210,7 +210,7 @@ const IA_1_2_WhatIsImagination: React.FC<IA12WhatIsImaginationProps> = ({ onNext
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 italic mt-4">
-                    The Companion Guide covers each layer in depth.
+                    <a href="/assets/Imagination_QuickStart_Guide.pdf" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-800 underline">The Companion Guide</a> covers each layer in depth.
                   </p>
                 </div>
               </DialogContent>

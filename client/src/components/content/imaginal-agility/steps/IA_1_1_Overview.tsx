@@ -117,16 +117,7 @@ const IA_1_1_Overview: React.FC<IA11OverviewProps> = ({ onNext }) => {
             It's designed for busy people. Each step is short, and the course is built around practice — not just information.
           </p>
 
-          <div className="mt-8 pt-6 border-t border-gray-100">
-            <a
-              href="/assets/Imagination_QuickStart_Guide.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-purple-600 hover:text-purple-800 underline"
-            >
-              Imagination Quick Start Guide (PDF)
-            </a>
-          </div>
+
         </div>
       </div>
 
