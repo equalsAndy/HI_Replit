@@ -125,70 +125,58 @@ interface CombinationResult {
 }
 
 const COMBINATIONS: Record<string, CombinationResult> = {
-  'courage,imagination': {
-    title: 'Bold Vision',
-    description: 'You can picture something ambitious and step toward it. The imagination provides the destination; the courage provides the first step.',
-    example: 'Proposing a radical product direction in a room full of skeptics — because you can see where it leads.',
-  },
-  'caring,curiosity': {
-    title: 'Deep Listening',
-    description: 'You genuinely want to understand, and you care about what you hear. This is how trust gets built in one conversation.',
-    example: 'Asking your quiet team member what they really think about the new strategy — and staying with the answer.',
-  },
-  'courage,creativity': {
-    title: 'Ideas That Ship',
-    description: 'Novel thinking meets willingness to put it out there imperfect. Most ideas die in notebooks. These ones escape.',
-    example: 'Sharing a rough prototype with a client instead of waiting for polish — because the feedback is worth more than the finish.',
-  },
-  'caring,imagination': {
-    title: 'Empathy With Vision',
-    description: 'You feel what others feel and can picture a way forward. This is what makes someone a leader people follow by choice.',
-    example: 'Sensing your team is burned out and imagining a different way to structure the sprint — before anyone asks.',
-  },
-  'caring,courage': {
-    title: 'Honest Kindness',
-    description: "You care enough to say the hard thing. Not cruelty dressed as honesty — genuine concern that risks discomfort to serve growth.",
-    example: "Telling a colleague their presentation needs rework — with specifics and an offer to help — instead of nodding politely.",
-  },
-  'curiosity,imagination': {
+  // ── Pick 1 (Imagination + one) ──────────────────────────────────
+  'curiosity': {
     title: 'Possibility Space',
     description: "Curiosity asks 'what if?' and imagination builds it. Together they generate options no one else has considered.",
     example: "Walking into a stuck meeting and asking 'What would this look like if we had no budget constraints?' — then sketching it.",
   },
-  'curiosity,courage': {
-    title: 'Fearless Inquiry',
-    description: 'The willingness to ask questions that make people uncomfortable — including yourself. This is how blind spots get named.',
-    example: "Asking your CEO 'What are we avoiding talking about?' in the all-hands. Or asking yourself the same question at 2am.",
+  'caring': {
+    title: 'Empathy With Vision',
+    description: 'You feel what others feel and can picture a way forward. This is what makes someone a leader people follow by choice.',
+    example: 'Sensing your team is burned out and imagining a different way to structure the sprint — before anyone asks.',
   },
-  'caring,creativity': {
-    title: 'Purposeful Innovation',
-    description: "Creative solutions anchored in what actually matters to people. Not novelty for its own sake — invention with heart.",
-    example: "Designing a new onboarding flow not because the old one was boring, but because new hires felt lost and alone.",
+  'creativity': {
+    title: 'Creative Vision',
+    description: "Imagination generates the raw possibility; creativity shapes it into something you can share. This is how ideas get born — not from thin air, but from imagination giving creativity something to sculpt.",
+    example: "Picturing a completely different way your team could work — and then designing the prototype that makes others see it too.",
   },
-  'courage,curiosity,imagination': {
-    title: "Explorer's Courage",
-    description: "You venture into unknown territory with open eyes and open mind. You can imagine what might be out there, you want to understand it, and you're willing to go.",
-    example: "Taking on a project in a domain you know nothing about — because the questions excite you more than the risk scares you.",
+  'courage': {
+    title: 'Bold Vision',
+    description: "You can see what doesn't exist yet AND you'll stake something on it. The imagination provides the destination; the courage provides the first step.",
+    example: 'Proposing a radical product direction in a room full of skeptics — because you can see where it leads.',
   },
-  'caring,curiosity,courage': {
-    title: 'Transformative Conversation',
-    description: "The combination behind every conversation that actually changes something. You care, you're genuinely curious, and you're willing to go where the truth leads.",
-    example: "A performance review that both people walk away from feeling seen, challenged, and motivated — because you brought all three.",
+
+  // ── Pick 2 (Imagination + two) ──────────────────────────────────
+  'caring,curiosity': {
+    title: 'Compassionate Inquiry',
+    description: "You can picture what someone might be going through, you genuinely want to understand it, and you care about what you find. This is the combination that makes someone safe to be honest with.",
+    example: "Noticing a colleague has been quiet in meetings, imagining what might be behind it, and asking a question that lets them tell you — without pressure.",
   },
-  'caring,creativity,courage': {
-    title: 'Compassionate Disruption',
-    description: "You see a better way, you care about the people affected, and you have the nerve to make it happen. Change that serves people instead of ignoring them.",
-    example: "Restructuring a dysfunctional team process — with transparency about why, genuine concern for the transition, and a creative new approach.",
-  },
-  'creativity,curiosity,imagination': {
+  'creativity,curiosity': {
     title: 'Visionary Exploration',
     description: "Ideas flow from everywhere. You're asking questions, imagining answers, and connecting dots across domains. This is where breakthrough thinking lives.",
-    example: "A research rabbit hole that leads you to combine concepts from neuroscience and architecture into a new workspace design.",
+    example: 'A research rabbit hole that leads you to combine concepts from neuroscience and architecture into a new workspace design.',
   },
-  'caring,courage,creativity,curiosity,imagination': {
-    title: 'Judgment',
-    description: "All five capabilities working together. This is what produces human judgment — the ability to navigate complexity with awareness, integrity, and vision. AI can analyze. This is what it cannot do.",
-    example: "Every meaningful decision you've ever been proud of probably had all five present in some measure.",
+  'courage,curiosity': {
+    title: "Explorer's Courage",
+    description: "You venture into unknown territory with open eyes and open mind. You can imagine what might be out there, you want to understand it, and you're willing to go.",
+    example: 'Taking on a project in a domain you know nothing about — because the questions excite you more than the risk scares you.',
+  },
+  'caring,creativity': {
+    title: 'Healing Design',
+    description: "You can feel what's broken, imagine what wholeness would look like, and create something that moves people toward it. This is where design thinking meets genuine compassion.",
+    example: "Redesigning a return-to-work process not just for efficiency, but because you imagined what it feels like to come back after a loss — and built something that acknowledges that.",
+  },
+  'caring,courage': {
+    title: 'Protective Vision',
+    description: "You can picture the future impact on people you care about — and you're willing to fight for that vision before the harm arrives. This is the combination behind every meaningful stand taken on behalf of others.",
+    example: "Pushing back on a timeline you know will burn out your team — not because you have proof yet, but because you can see where this road leads and you care enough to say it now.",
+  },
+  'courage,creativity': {
+    title: 'Breakthrough',
+    description: "You can envision something that doesn't exist, invent a way to make it real, and put it into the world before it's safe. This is the combination behind every innovation that actually shipped.",
+    example: "Building a demo of a product direction no one asked for — because you could see it, you knew how to prototype it, and you had the nerve to show it before it was perfect.",
   },
 };
 
@@ -256,11 +244,13 @@ const SIGNAL_CARDS: SignalCard[] = [
   },
 ];
 
+const SELECTABLE_CAPS: CapabilityKey[] = ['curiosity', 'caring', 'creativity', 'courage'];
+
 const SUGGESTION_COMBOS: { label: string; keys: CapabilityKey[] }[] = [
-  { label: 'Imagination + Courage', keys: ['imagination', 'courage'] },
-  { label: 'Curiosity + Caring + Courage', keys: ['curiosity', 'caring', 'courage'] },
-  { label: 'Creativity + Caring', keys: ['creativity', 'caring'] },
-  { label: 'All five', keys: ['caring', 'courage', 'creativity', 'curiosity', 'imagination'] },
+  { label: 'Courage alone', keys: ['courage'] },
+  { label: 'Curiosity + Caring', keys: ['curiosity', 'caring'] },
+  { label: 'Creativity + Courage', keys: ['creativity', 'courage'] },
+  { label: 'Caring + Creativity', keys: ['caring', 'creativity'] },
 ];
 
 const LANGUAGE_SWITCHES = [
@@ -333,7 +323,10 @@ const IA_2_2_CapabilityDynamics: React.FC<IA22DynamicsProps> = ({ onNext }) => {
       if (prev.includes(key)) {
         return prev.filter(k => k !== key);
       }
-      if (prev.length >= 5) return prev;
+      if (prev.length >= 2) {
+        // Drop oldest, add new
+        return [...prev.slice(1), key];
+      }
       return [...prev, key];
     });
   };
@@ -342,7 +335,7 @@ const IA_2_2_CapabilityDynamics: React.FC<IA22DynamicsProps> = ({ onNext }) => {
     setSelectedComboCaps(keys);
   };
 
-  const comboResult: CombinationResult | null = selectedComboCaps.length >= 2
+  const comboResult: CombinationResult | null = selectedComboCaps.length >= 1
     ? COMBINATIONS[getComboKey(selectedComboCaps)] || {
         title: 'Explore this combination',
         description: 'Every combination produces something unique. In the exercises ahead, you\'ll discover what your specific combinations create.',
@@ -370,7 +363,16 @@ const IA_2_2_CapabilityDynamics: React.FC<IA22DynamicsProps> = ({ onNext }) => {
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 mb-8">
         <p className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Section 1</p>
         <h2 className="text-2xl font-bold text-purple-700 mb-2">Five Capabilities, Five Dimensions of You</h2>
-        <p className="text-gray-500 mb-8">Each capability is richer than its name suggests. Tap each one to discover what it actually looks like in practice — you'll recognize yourself.</p>
+        <p className="text-gray-500 mb-4">Each capability is richer than its name suggests. Tap each one to discover what it actually looks like in practice — you'll recognize yourself.</p>
+
+        {!allExplored && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-3 mb-6 flex items-center gap-3">
+            <span className="text-purple-500 font-bold text-lg">☝</span>
+            <p className="text-purple-700 text-sm font-medium">
+              Open all 5 capabilities below to continue — <span className="font-bold">{5 - visitedCards.size} remaining</span>
+            </p>
+          </div>
+        )}
 
         <div className="space-y-3">
           {CAPABILITY_ORDER.map(key => {
@@ -403,12 +405,13 @@ const IA_2_2_CapabilityDynamics: React.FC<IA22DynamicsProps> = ({ onNext }) => {
                     <span className="font-bold text-base" style={{ color: def.color }}>{def.label}</span>
                     <p className="text-sm text-gray-500 mt-0.5 leading-snug">{content.oneLiner}</p>
                   </div>
-                  <div className="flex-shrink-0 w-8 flex items-center justify-center">
+                  <div className="flex-shrink-0 flex items-center gap-1.5">
+                    {isVisited && (
+                      <span className="text-xl font-bold leading-none" style={{ color: def.color }}>✓</span>
+                    )}
                     {isOpen
                       ? <ChevronUp size={18} className="text-gray-400" />
-                      : isVisited
-                        ? <span className="text-xl font-bold leading-none" style={{ color: def.color }}>✓</span>
-                        : <ChevronDown size={18} className="text-gray-400" />
+                      : <ChevronDown size={18} className="text-gray-400" />
                     }
                   </div>
                 </button>
@@ -460,182 +463,176 @@ const IA_2_2_CapabilityDynamics: React.FC<IA22DynamicsProps> = ({ onNext }) => {
         )}
       </div>
 
-      {/* ── Section 2: Combination Explorer ── */}
-      <div ref={section2Ref} className="relative mb-8">
-        <div className={`bg-white rounded-xl shadow-lg p-8 border border-gray-200 ${!pulseComplete ? 'select-none' : ''}`}>
-          <p className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Section 2</p>
-          <h2 className="text-2xl font-bold text-purple-700 mb-2">What Happens When They Combine</h2>
-          <p className="text-gray-500 mb-2">Capabilities don't just work in pairs — they stack. The more you bring to a moment, the more dimensions your response has.</p>
-          <p className="text-gray-500 text-sm mb-6">Click any two or three capabilities to see what they produce together. Notice that the same capability creates different outcomes depending on its partners.</p>
+      {/* ── Section 2: Combination Explorer (hidden until pulse complete) ── */}
+      {pulseComplete && (
+        <div ref={section2Ref} className="mb-8">
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+            <p className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Section 2</p>
+            <h2 className="text-2xl font-bold text-purple-700 mb-2">What Happens When They Combine</h2>
+            <p className="text-gray-500 mb-2">Imagination is always on — it's the space where all the other capabilities operate.</p>
+            <p className="text-gray-500 text-sm mb-6">Select one or two capabilities below to see what imagination produces when you direct it through them.</p>
 
-          <p className="text-center text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Select 2–3 capabilities</p>
+            {/* Imagination-always-on selector area */}
+            <div className="rounded-xl border-2 border-purple-200 bg-purple-50/30 p-6 mb-6">
+              {/* Imagination badge */}
+              <div className="flex justify-center mb-4">
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 border border-purple-300 text-purple-700 text-sm font-semibold">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CAPABILITY_DEFS.imagination.color }} />
+                  Imagination is always here
+                </span>
+              </div>
 
-          {/* Capability chips */}
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {CAPABILITY_ORDER.map(key => {
-              const def = CAPABILITY_DEFS[key];
-              const selected = selectedComboCaps.includes(key);
-              return (
-                <button
-                  key={key}
-                  onClick={() => toggleComboChip(key)}
-                  disabled={!pulseComplete}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full border-2 font-medium text-sm transition-all"
-                  style={{
-                    borderColor: selected ? def.color : '#e5e7eb',
-                    backgroundColor: selected ? def.lightBg : '#fff',
-                    color: selected ? def.color : '#6b7280',
-                  }}
-                >
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: def.color }} />
-                  {def.label}
-                </button>
-              );
-            })}
-          </div>
+              <p className="text-center text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Select 1–2 capabilities</p>
 
-          {/* Result area */}
-          {comboResult && (
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-bold text-purple-700 mb-2">{comboResult.title}</h3>
-              <p className="text-gray-700 leading-relaxed mb-3">{comboResult.description}</p>
-              {comboResult.example && (
-                <p className="text-sm text-gray-500 italic">Example: {comboResult.example}</p>
-              )}
+              {/* Capability chips (no imagination) */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {SELECTABLE_CAPS.map(key => {
+                  const def = CAPABILITY_DEFS[key];
+                  const selected = selectedComboCaps.includes(key);
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => toggleComboChip(key)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border-2 font-medium text-sm transition-all"
+                      style={{
+                        borderColor: selected ? def.color : '#e5e7eb',
+                        backgroundColor: selected ? def.lightBg : '#fff',
+                        color: selected ? def.color : '#6b7280',
+                      }}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: def.color }} />
+                      {def.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          )}
 
-          {/* Suggestion pills */}
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 text-center">A few combinations to try</p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {SUGGESTION_COMBOS.map(s => (
-                <button
-                  key={s.label}
-                  onClick={() => pulseComplete && applySuggestion(s.keys)}
-                  disabled={!pulseComplete}
-                  className="text-xs px-3 py-1.5 rounded-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors disabled:opacity-40"
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+            {/* Result area */}
+            {comboResult ? (
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-bold text-purple-700 mb-2">{comboResult.title}</h3>
+                <p className="text-gray-700 leading-relaxed mb-3">{comboResult.description}</p>
+                {comboResult.example && (
+                  <p className="text-sm text-gray-500 italic">Example: {comboResult.example}</p>
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6 text-center">
+                <p className="text-gray-400 text-sm">Select a capability above to see what imagination does with it.</p>
+              </div>
+            )}
 
-        {/* Lock overlay */}
-        {!pulseComplete && (
-          <div className="absolute inset-0 rounded-xl z-10 flex items-center justify-center"
-            style={{ backdropFilter: 'blur(3px)', backgroundColor: 'rgba(255,255,255,0.6)' }}>
-            <div className="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200 max-w-xs mx-4">
-              <Lock size={28} className="mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-500 font-medium text-sm">Complete the Capability Pulse above to unlock</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Section 3: Out of Balance ── */}
-      <div className="relative mb-8">
-        <div className={`bg-white rounded-xl shadow-lg p-8 border border-gray-200 ${!pulseComplete ? 'select-none' : ''}`}>
-          <p className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Section 3</p>
-          <h2 className="text-2xl font-bold text-purple-700 mb-2">When Capabilities Are Out of Balance</h2>
-          <p className="text-gray-500 mb-2">These aren't character flaws. They're signals — recognizable patterns that tell you what needs to shift. See if any feel familiar.</p>
-          <p className="text-gray-500 text-sm mb-6">When a capability is running strong without enough support from others, it produces a pattern you'll probably recognize. Tap any card to see what's happening and what would restore balance.</p>
-
-          <div className="space-y-3">
-            {SIGNAL_CARDS.map((card, i) => {
-              const isOpen = expandedSignals.has(i);
-              return (
-                <div key={i} className="rounded-xl border border-gray-200 overflow-hidden">
+            {/* Suggestion pills */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 text-center">A few combinations to try</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {SUGGESTION_COMBOS.map(s => (
                   <button
-                    className="w-full flex items-center gap-3 px-5 py-4 text-left"
-                    onClick={() => pulseComplete && toggleSignal(i)}
-                    disabled={!pulseComplete}
+                    key={s.label}
+                    onClick={() => applySuggestion(s.keys)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors"
                   >
-                    <span className="text-2xl flex-shrink-0">{card.emoji}</span>
-                    <span className="flex-1 font-medium text-gray-800 text-sm leading-snug">{card.headline}</span>
-                    <span className="flex-shrink-0 text-gray-400">
-                      {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </span>
+                    {s.label}
                   </button>
-
-                  {isOpen && (
-                    <div className="px-5 pb-5 space-y-4">
-                      <p className="text-gray-700 text-sm leading-relaxed">{card.story}</p>
-
-                      {/* Balance pills */}
-                      <div className="flex flex-wrap gap-2">
-                        <span
-                          className="text-xs font-semibold px-3 py-1 rounded-full text-white"
-                          style={{ backgroundColor: card.overactiveColor }}
-                        >
-                          {card.overactive}
-                        </span>
-                        {card.needed.map((label, j) => (
-                          <span
-                            key={j}
-                            className="text-xs font-semibold px-3 py-1 rounded-full text-white"
-                            style={{ backgroundColor: card.neededColors[j] }}
-                          >
-                            {label}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Remedy</p>
-                        <p className="text-gray-700 text-sm leading-relaxed">{card.remedy}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Punchline box */}
-          <div className="mt-8 rounded-xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}>
-            <p className="font-bold text-lg mb-2">Every signal points to a capability you already have.</p>
-            <p className="text-purple-100 text-sm leading-relaxed">The remedy is never "be better" or "try harder." It's noticing which capability is dormant and switching it on. You'll practice this throughout the workshop — and you'll start recognizing these signals in real time.</p>
-          </div>
-
-          {/* Language switches */}
-          <div className="mt-8 bg-gray-50 rounded-xl border border-gray-200 p-6">
-            <h3 className="text-base font-bold text-gray-800 mb-2">One More Pattern to Notice</h3>
-            <p className="text-sm text-gray-500 mb-5">The words around you activate or suppress capabilities before you consciously decide. Once you hear these switches, you'll catch them everywhere.</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="text-left pb-2 text-red-500 font-semibold text-xs uppercase tracking-wider w-1/2">Suppresses</th>
-                    <th className="text-left pb-2 text-green-600 font-semibold text-xs uppercase tracking-wider w-1/2 pl-4">Activates</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {LANGUAGE_SWITCHES.map((row, i) => (
-                    <tr key={i}>
-                      <td className="py-3 text-gray-500 italic">{row.suppresses}</td>
-                      <td className="py-3 text-gray-800 pl-4">{row.activates}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Lock overlay */}
-        {!pulseComplete && (
-          <div className="absolute inset-0 rounded-xl z-10 flex items-center justify-center"
-            style={{ backdropFilter: 'blur(3px)', backgroundColor: 'rgba(255,255,255,0.6)' }}>
-            <div className="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200 max-w-xs mx-4">
-              <Lock size={28} className="mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-500 font-medium text-sm">Complete the Capability Pulse above to unlock</p>
+      {/* ── Section 3: Out of Balance (hidden until pulse complete) ── */}
+      {pulseComplete && (
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+            <p className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-2">Section 3</p>
+            <h2 className="text-2xl font-bold text-purple-700 mb-2">When Capabilities Are Out of Balance</h2>
+            <p className="text-gray-500 mb-2">These aren't character flaws. They're signals — recognizable patterns that tell you what needs to shift. See if any feel familiar.</p>
+            <p className="text-gray-500 text-sm mb-6">When a capability is running strong without enough support from others, it produces a pattern you'll probably recognize. Tap any card to see what's happening and what would restore balance.</p>
+
+            <div className="space-y-3">
+              {SIGNAL_CARDS.map((card, i) => {
+                const isOpen = expandedSignals.has(i);
+                return (
+                  <div key={i} className="rounded-xl border border-gray-200 overflow-hidden">
+                    <button
+                      className="w-full flex items-center gap-3 px-5 py-4 text-left"
+                      onClick={() => toggleSignal(i)}
+                    >
+                      <span className="text-2xl flex-shrink-0">{card.emoji}</span>
+                      <span className="flex-1 font-medium text-gray-800 text-sm leading-snug">{card.headline}</span>
+                      <span className="flex-shrink-0 text-gray-400">
+                        {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </span>
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-5 pb-5 space-y-4">
+                        <p className="text-gray-700 text-sm leading-relaxed">{card.story}</p>
+
+                        {/* Balance pills */}
+                        <div className="flex flex-wrap gap-2">
+                          <span
+                            className="text-xs font-semibold px-3 py-1 rounded-full text-white"
+                            style={{ backgroundColor: card.overactiveColor }}
+                          >
+                            {card.overactive}
+                          </span>
+                          {card.needed.map((label, j) => (
+                            <span
+                              key={j}
+                              className="text-xs font-semibold px-3 py-1 rounded-full text-white"
+                              style={{ backgroundColor: card.neededColors[j] }}
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Remedy</p>
+                          <p className="text-gray-700 text-sm leading-relaxed">{card.remedy}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Punchline box */}
+            <div className="mt-8 rounded-xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}>
+              <p className="font-bold text-lg mb-2">Every signal points to a capability you already have.</p>
+              <p className="text-purple-100 text-sm leading-relaxed">The remedy is never "be better" or "try harder." It's noticing which capability is dormant and switching it on. You'll practice this throughout the workshop — and you'll start recognizing these signals in real time.</p>
+            </div>
+
+            {/* Language switches */}
+            <div className="mt-8 bg-gray-50 rounded-xl border border-gray-200 p-6">
+              <h3 className="text-base font-bold text-gray-800 mb-2">One More Pattern to Notice</h3>
+              <p className="text-sm text-gray-500 mb-5">The words around you activate or suppress capabilities before you consciously decide. Once you hear these switches, you'll catch them everywhere.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr>
+                      <th className="text-left pb-2 text-red-500 font-semibold text-xs uppercase tracking-wider w-1/2">Suppresses</th>
+                      <th className="text-left pb-2 text-green-600 font-semibold text-xs uppercase tracking-wider w-1/2 pl-4">Activates</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {LANGUAGE_SWITCHES.map((row, i) => (
+                      <tr key={i}>
+                        <td className="py-3 text-gray-500 italic">{row.suppresses}</td>
+                        <td className="py-3 text-gray-800 pl-4">{row.activates}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Continue button */}
       <div className="flex justify-end mt-4">
