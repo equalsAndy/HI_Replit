@@ -79,15 +79,15 @@ export const WORKSHOP_CONFIGS: Record<string, WorkshopConfig> = {
     accessField: 'pmAccess',
     completionField: 'pmWorkshopCompleted',
     completionTimestampField: 'pmCompletedAt',
-    tagline: 'Think Like a Product Leader',
-    description: 'Build the mental models and decision frameworks used by the best product thinkers. Learn to see opportunities, prioritize ruthlessly, and ship what matters.',
+    tagline: 'Think Like a Product Person',
+    description: 'Learn why product thinking is a universal competency — for every function, every team, and every initiative. Discover why frameworks need translation, practice with AI, and build your ongoing toolkit.',
     features: [
-      'Product thinking frameworks',
-      'Prioritization exercises',
-      'Strategic decision-making',
+      'Product thinking for any role or function',
+      'AI-powered practice exercises',
+      'Your personal PM Coach',
     ],
     defaultFirstStep: 'pm-1-1',
-    enabled: false, // Not yet built -- set to true when content is ready
+    enabled: true,
   },
 };
 

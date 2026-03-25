@@ -13,6 +13,7 @@ import AuthCallback from '@/pages/AuthCallback';
 const AllStarTeamsPage = React.lazy(() => import('@/pages/allstarteams'));
 const ImaginalAgilityPage = React.lazy(() => import('@/pages/imaginal-agility'));
 const ImaginalAgilityWorkshopNew = React.lazy(() => import('@/pages/ImaginalAgilityWorkshopNew'));
+const ProductMindsetPage = React.lazy(() => import('@/pages/product-mindset'));
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 import WorkshopSelectionPage from '@/pages/WorkshopSelectionPage';
 
@@ -282,8 +283,7 @@ const App: React.FC = () => {
                       </ProtectedRoute>
                     </Route>
 
-                    {/* Product Mindset workshop route - placeholder until content is built */}
-                    {/*
+                    {/* Product Mindset workshop route */}
                     <Route path="/product-mindset">
                       <ProtectedRoute>
                         <Suspense fallback={
@@ -295,7 +295,6 @@ const App: React.FC = () => {
                         </Suspense>
                       </ProtectedRoute>
                     </Route>
-                    */}
 
                     {/* Admin routes with lazy loading */}
                     <Route path="/admin">

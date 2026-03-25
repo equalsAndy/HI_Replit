@@ -4,7 +4,7 @@ import imaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
 import heliotropeLogo from '@/assets/HI_Logo_horizontal.png';
 
 interface LogoProps {
-  type: 'allstarteams' | 'imaginal-agility' | 'heliotrope';
+  type: 'allstarteams' | 'imaginal-agility' | 'product-mindset' | 'heliotrope';
   className?: string;
   size?: 'sm' | 'md' | 'lg';
 }
@@ -24,6 +24,10 @@ export default function Logo({ type, className = '', size = 'md' }: LogoProps) {
     'imaginal-agility': {
       src: imaginalAgilityLogo,
       alt: 'Imaginal Agility'
+    },
+    'product-mindset': {
+      src: heliotropeLogo,
+      alt: 'Product Mindset'
     },
     'heliotrope': {
       src: heliotropeLogo,

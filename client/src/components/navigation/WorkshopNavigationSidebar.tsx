@@ -49,6 +49,7 @@ interface UserHomeNavigationProps {
   flowAttributesData?: FlowAttributesResponse | null;
   currentContent?: string;
   isImaginalAgility?: boolean;
+  isProductMindset?: boolean;
   navigation?: any; // Navigation hook instance from parent - made optional
 }
 
@@ -63,6 +64,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   flowAttributesData,
   currentContent,
   isImaginalAgility = false,
+  isProductMindset = false,
   navigation: navigationProp
 }) => {
   // State to track if we're on mobile or not
@@ -80,32 +82,36 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const navigation = navigationProp;
   const { progress: navigationProgress } = navigation; // Extract for backward compatibility
   
-  // Use section expansion state from navigation progress for IA with manual override capability
+  // PM and IA both use collapsible sections; AST does not
+  const usesCollapsibleSections = isImaginalAgility || isProductMindset;
+
+  // Use section expansion state from navigation progress for IA/PM with manual override capability
   const [manualExpansion, setManualExpansion] = useState<Record<string, boolean>>({});
-  
-  const baseExpandedSections = isImaginalAgility 
-    ? (navigationProgress?.sectionExpansion || {
-        '1': true, '2': true, '3': true, '4': false, '5': false, '6': false, '7': false
-      })
+
+  const baseExpandedSections = usesCollapsibleSections
+    ? (navigationProgress?.sectionExpansion || (isProductMindset
+        ? { '1': true, '2': false, '3': false, '4': false, '5': false }
+        : { '1': true, '2': true, '3': true, '4': false, '5': false, '6': false, '7': false }
+      ))
     : {};
-    
+
   // Combine automatic expansion with manual overrides
-  const expandedSections = isImaginalAgility ? {
+  const expandedSections = usesCollapsibleSections ? {
     ...baseExpandedSections,
     ...manualExpansion  // Manual overrides take precedence
   } : {};
-    
+
   // Debug logging for section expansion
   React.useEffect(() => {
-    if (isImaginalAgility && navigationProgress?.sectionExpansion) {
+    if (usesCollapsibleSections && navigationProgress?.sectionExpansion) {
       console.log(`📖 KAN-112 Section Expansion State:`, navigationProgress.sectionExpansion);
       console.log(`📖 Manual Overrides:`, manualExpansion);
       console.log(`📖 Final Expanded Sections:`, expandedSections);
     }
-  }, [isImaginalAgility, navigationProgress?.sectionExpansion, manualExpansion]);
+  }, [usesCollapsibleSections, navigationProgress?.sectionExpansion, manualExpansion]);
 
   const toggleSection = (sectionId: string) => {
-    if (isImaginalAgility) {
+    if (usesCollapsibleSections) {
       // KAN-112: Allow manual override of automatic expansion state
       setManualExpansion(prev => ({
         ...prev,
@@ -359,7 +365,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           {/* Logo section */}
           <div className="flex items-center mb-2">
             <Logo 
-              type={isImaginalAgility ? "imaginal-agility" : "allstarteams"} 
+              type={isProductMindset ? "product-mindset" : isImaginalAgility ? "imaginal-agility" : "allstarteams"}
               size="md"
               className="mx-auto"
             />
@@ -385,12 +391,12 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           <nav className="space-y-6">
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
-                {/* Section Header - Accordion for IA, regular for AST */}
-                {(isImaginalAgility || section.title) && (
+                {/* Section Header - Accordion for IA/PM, regular for AST */}
+                {(usesCollapsibleSections || section.title) && (
                   <div className="flex items-start space-x-2">
                     {drawerOpen && (
                       <>
-                        {isImaginalAgility ? (
+                        {usesCollapsibleSections ? (
                           // Accordion header for IA
                           <button
                             onClick={() => toggleSection(section.id)}
@@ -428,13 +434,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 )}
 
                 {/* Steps List */}
-                {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] === true) : true) && (
+                {drawerOpen && (usesCollapsibleSections ? (expandedSections[section.id] === true) : true) && (
                   <div className="relative">
                     {/* Module/Week Label spanning entire section - centered in 50px gap */}
                     {(section.moduleNumber || section.weekNumber) && (
                       // For AST: hide badges for modules 4 and 5 (post-workshop resources)
                       // For IA: show badges for all modules
-                      isImaginalAgility || (section.moduleNumber !== 4 && section.moduleNumber !== 5)
+                      usesCollapsibleSections || (section.moduleNumber !== 4 && section.moduleNumber !== 5)
                     ) && (
                       <div
                         className="absolute left-0 top-0 bottom-0 flex items-center justify-center w-10 z-10"
@@ -504,7 +510,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   "rounded-md p-2 flex items-center text-sm transition",
                                   // FIXED: Use visual state for highlight instead of isCurrent
                                   visualState.showRoundedHighlight
-                                    ? (isImaginalAgility
+                                    ? (isProductMindset
+                                        ? "bg-teal-100 text-teal-700 border-l-2 border-teal-600 font-medium"
+                                        : isImaginalAgility
                                         ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium"
                                         : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium")
                                     : "",

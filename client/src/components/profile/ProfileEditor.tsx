@@ -661,29 +661,54 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
                   </Button>
                 )}
 
-                {/* Workshop Switch Button - only for users with both workshop access */}
-                {user?.astAccess && user?.iaAccess && onToggleWorkshop && currentApp && (
-                  <div className="border-t pt-4">
-                    <Button
-                      onClick={() => {
-                        onToggleWorkshop();
-                        setIsOpen(false);
-                      }}
-                      variant="outline"
-                      className="w-full flex items-center gap-3 justify-start"
-                    >
-                      <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
-                      <span className="flex items-center gap-2">
-                        <span>Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}</span>
-                        <img
-                          src={currentApp === 'allstarteams' ? '/assets/imaginal_agility_logo_sq.png' : '/assets/all-star-teams-logo-square.png'}
-                          alt={currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
-                          className="h-6 w-auto"
-                        />
-                      </span>
-                    </Button>
-                  </div>
-                )}
+                {/* Workshop Switch Button - for users with access to 2+ workshops */}
+                {(() => {
+                  const workshopCount = [user?.astAccess, user?.iaAccess, user?.pmAccess].filter(Boolean).length;
+                  if (workshopCount < 2 || !onToggleWorkshop || !currentApp) return null;
+
+                  // For 3+ workshops, show generic "Switch Workshop" that goes to selection page
+                  if (workshopCount > 2) {
+                    return (
+                      <div className="border-t pt-4">
+                        <Button
+                          onClick={() => {
+                            onToggleWorkshop();
+                            setIsOpen(false);
+                          }}
+                          variant="outline"
+                          className="w-full flex items-center gap-3 justify-start"
+                        >
+                          <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
+                          <span>Switch Workshop</span>
+                        </Button>
+                      </div>
+                    );
+                  }
+
+                  // For exactly 2 workshops, show binary toggle with logo
+                  return (
+                    <div className="border-t pt-4">
+                      <Button
+                        onClick={() => {
+                          onToggleWorkshop();
+                          setIsOpen(false);
+                        }}
+                        variant="outline"
+                        className="w-full flex items-center gap-3 justify-start"
+                      >
+                        <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
+                        <span className="flex items-center gap-2">
+                          <span>Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}</span>
+                          <img
+                            src={currentApp === 'allstarteams' ? '/assets/imaginal_agility_logo_sq.png' : '/assets/all-star-teams-logo-square.png'}
+                            alt={currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
+                            className="h-6 w-auto"
+                          />
+                        </span>
+                      </Button>
+                    </div>
+                  );
+                })()}
               </>
             )}
 

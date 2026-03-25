@@ -1,8 +1,8 @@
 {
   "version": "2.11.1",
-  "build": "12",
-  "gitHash": "27073295",
-  "gitBranch": "development",
-  "timestamp": "2026-03-24T14:36:12.000Z",
+  "build": "18",
+  "gitHash": "8fcb4daa",
+  "gitBranch": "feature/product-mindset",
+  "timestamp": "2026-03-25T21:19:26.000Z",
   "environment": "development"
 }

@@ -257,15 +257,15 @@ export function NavBar() {
   // App logout to clear session and cache
   const handleLogout = () => appLogout.mutate();
 
-  // Function to toggle between applications
+  // Function to toggle between applications (supports 3+ workshops)
   const toggleApplication = () => {
-    // Toggle to the other application
-    const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
-
-    if (newApp === 'allstarteams') {
-      navigate('/allstarteams');
+    const accessCount = [user?.astAccess, user?.iaAccess, user?.pmAccess].filter(Boolean).length;
+    if (accessCount > 2) {
+      navigate('/workshop-selection');
     } else {
-      navigate('/imaginal-agility');
+      // Binary toggle between the two workshops the user has
+      const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
+      navigate(newApp === 'allstarteams' ? '/allstarteams' : '/imaginal-agility');
     }
   };
 
