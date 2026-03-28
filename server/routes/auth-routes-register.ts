@@ -5,6 +5,7 @@ import { inviteService } from '../services/invite-service.js';
 import { z } from 'zod';
 import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code.js';
 import { UserRole } from '../../shared/schema.js';
+import { provisionUserVault } from '../services/vault-client.js';
 
 const router = express.Router();
 
@@ -152,16 +153,29 @@ router.post('/register', async (req, res) => {
     }
     
     // Provision Auth0 user if Management API is configured
+    let auth0Sub: string | undefined;
     try {
       if (process.env.AUTH0_TENANT_DOMAIN || process.env.TENANT_DOMAIN) {
         const created = await createAuth0DbUser({ email: data.email, password: data.password, name: data.name });
         if (created?.user_id && createResult.user?.id) {
+          auth0Sub = created.user_id;
           await userManagementService.updateUser(createResult.user.id, { auth0Sub: created.user_id });
         }
       }
     } catch (auth0Err) {
       console.warn('⚠️ Auth0 provisioning failed (continuing with app user):', auth0Err instanceof Error ? auth0Err.message : String(auth0Err));
       // Continue; app user is already created. Optionally attach error details to response.
+    }
+
+    // Provision Solid Pod vault (silently skips if not configured)
+    if (createResult.user?.id) {
+      const sub = auth0Sub || `app|${createResult.user.id}`;
+      provisionUserVault(sub, createResult.user.id, data.name)
+        .then(result => {
+          if (result?.skipped) return;
+          console.log('🔐 Vault provisioned for new user:', result?.status || 'sent');
+        })
+        .catch(err => console.error('🔐 Vault provisioning failed (non-blocking):', err.message));
     }
 
     // Mark the invite as used

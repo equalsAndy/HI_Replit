@@ -13,6 +13,7 @@ import { rmlProcessor } from './rml-processor.js';
 import { astPayloadBuilderService } from './ast-payload-builder-service.js';
 import { getProvider, getProviderName } from './ai-provider.js';
 import { getFullReportSystemPrompt } from '../config/ast-report-content-loader.js';
+import { syncHolisticReport } from './solid-pod/index.js';
 
 // Database connection
 const pool = new Pool({
@@ -370,6 +371,12 @@ class ASTSectionalReportService {
         await this.assembleFinalReport(userId, reportType, generationTimeSeconds, assistantId);
         await this.updateReportStatus(userId, reportType, 'completed');
         console.log(`✅ Report generation completed for user ${userId} in ${generationTimeSeconds}s`);
+
+        // Fire-and-forget: sync completed report to Solid Pod
+        const holisticType = this.mapToHolisticReportType(reportType);
+        syncHolisticReport(parseInt(userId), holisticType)
+          .then(r => { if (r.ok) console.log(`🔐 Holistic report (${holisticType}) synced to pod for user ${userId}`); })
+          .catch(err => console.error(`🔐 Holistic report pod sync failed for user ${userId}:`, err));
       } else if (progress.sectionsFailed > 0) {
         // Check if ALL sections failed (complete failure)
         if (progress.sectionsFailed === progress.totalSections && progress.sectionsCompleted === 0) {

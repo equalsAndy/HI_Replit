@@ -293,21 +293,16 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
       }
 
       // Fire-and-forget: sync all user data to Solid Pod via gateway
-      const auth0Token = (req.session as any).auth0Token;
-      if (auth0Token) {
-        syncAll(userId, auth0Token)
-          .then(result => {
-            if (result.written.length > 0) {
-              console.log(`[solid-pod] Synced ${result.written.length} resources for user ${userId}`);
-            }
-            if (result.errors.length > 0) {
-              console.warn(`[solid-pod] ${result.errors.length} sync errors for user ${userId}:`, result.errors);
-            }
-          })
-          .catch(err => console.error(`[solid-pod] syncAll failed for user ${userId}:`, err));
-      } else {
-        console.log(`[solid-pod] No auth0Token in session for user ${userId}, skipping pod sync`);
-      }
+      syncAll(userId)
+        .then(result => {
+          if (result.written.length > 0) {
+            console.log(`[solid-pod] Synced ${result.written.length} resources for user ${userId}`);
+          }
+          if (result.errors.length > 0) {
+            console.warn(`[solid-pod] ${result.errors.length} sync errors for user ${userId}:`, result.errors);
+          }
+        })
+        .catch(err => console.error(`[solid-pod] syncAll failed for user ${userId}:`, err));
     }
 
     res.json({

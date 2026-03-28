@@ -26,15 +26,7 @@ vaultRouter.post('/sync/:userId', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
-    // Get Auth0 token from session or Authorization header
-    const auth0Token = (req.session as any).auth0Token
-      || req.headers.authorization?.replace('Bearer ', '');
-
-    if (!auth0Token) {
-      return res.status(401).json({ error: 'Auth0 token required for pod sync' });
-    }
-
-    const result = await syncAll(userId, auth0Token);
+    const result = await syncAll(userId);
     res.json({
       success: result.errors.length === 0,
       userId,
@@ -70,8 +62,10 @@ vaultRouter.get('/status/:userId', async (req: Request, res: Response) => {
     }
 
     res.json({
-      hasVault: true,
+      hasVault: account.provisioningStatus === 'active',
       userId,
+      provisioningStatus: account.provisioningStatus,
+      lastError: account.lastError,
       podUsername: account.podUsername,
       masterPodUrl: account.masterPodUrl,
       subPodUrl: account.subPodUrl,

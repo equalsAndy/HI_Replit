@@ -2,15 +2,17 @@
  * SelfActual Gateway Client
  *
  * HTTP client for the SelfActual gateway API. The gateway handles all Solid Pod
- * authentication internally — HI_Replit just sends Auth0 JWTs and JSON payloads.
+ * authentication internally — HI_Replit authenticates with a static service token.
  *
  * Required env vars:
- *   GATEWAY_BASE_URL — e.g. http://localhost:3002 (local) or production URL
+ *   GATEWAY_BASE_URL          — e.g. https://api.selfactual.ai
+ *   GATEWAY_SERVICE_TOKEN     — shared secret (same value set on gateway server)
  *
- * Auth: Auth0 Bearer token passed per-request (sourced from user session)
+ * Auth: Static Bearer token + X-SA-App header (no per-user Auth0 JWTs needed)
  */
 
 const GATEWAY_BASE_URL = process.env.GATEWAY_BASE_URL || 'http://localhost:3002';
+const GATEWAY_SERVICE_TOKEN = process.env.GATEWAY_SERVICE_TOKEN || '';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,14 +28,18 @@ export interface GatewayResult<T = unknown> {
 async function gatewayRequest<T = unknown>(
   method: string,
   path: string,
-  auth0Token: string,
+  userIdentifier?: string,
   body?: unknown
 ): Promise<GatewayResult<T>> {
   const url = `${GATEWAY_BASE_URL}${path}`;
   const headers: Record<string, string> = {
-    'Authorization': `Bearer ${auth0Token}`,
+    'Authorization': `Bearer ${GATEWAY_SERVICE_TOKEN}`,
+    'X-SA-App': 'hi_replit',
     'Accept': 'application/json',
   };
+  if (userIdentifier) {
+    headers['X-SA-User'] = userIdentifier;
+  }
   if (body) {
     headers['Content-Type'] = 'application/json';
   }
@@ -62,46 +68,46 @@ async function gatewayRequest<T = unknown>(
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /** Read the full aggregated profile from a user's pod */
-export async function getFullProfile(username: string, token: string) {
-  return gatewayRequest('GET', `/api/pods/${username}/full`, token);
+export async function getFullProfile(username: string, userIdentifier?: string) {
+  return gatewayRequest('GET', `/api/pods/${username}/full`, userIdentifier);
 }
 
 /** Read Star Card from pod */
-export async function getStarCard(username: string, token: string) {
-  return gatewayRequest('GET', `/api/pods/${username}/starcard`, token);
+export async function getStarCard(username: string, userIdentifier?: string) {
+  return gatewayRequest('GET', `/api/pods/${username}/starcard`, userIdentifier);
 }
 
 /** Read flow attributes from pod */
-export async function getFlowAttributes(username: string, token: string) {
-  return gatewayRequest('GET', `/api/pods/${username}/flow-attributes`, token);
+export async function getFlowAttributes(username: string, userIdentifier?: string) {
+  return gatewayRequest('GET', `/api/pods/${username}/flow-attributes`, userIdentifier);
 }
 
 /** Read profile from pod */
-export async function getProfile(username: string, token: string) {
-  return gatewayRequest('GET', `/api/pods/${username}/profile`, token);
+export async function getProfile(username: string, userIdentifier?: string) {
+  return gatewayRequest('GET', `/api/pods/${username}/profile`, userIdentifier);
 }
 
 /** Read all reflections from pod */
-export async function getReflections(username: string, token: string) {
-  return gatewayRequest('GET', `/api/pods/${username}/reflections`, token);
+export async function getReflections(username: string, userIdentifier?: string) {
+  return gatewayRequest('GET', `/api/pods/${username}/reflections`, userIdentifier);
 }
 
 /** Write an external assessment to the pod */
 export async function writeExternalAssessment(
   username: string,
-  token: string,
-  payload: { type: string; data: unknown }
+  payload: { type: string; data: unknown },
+  userIdentifier?: string
 ) {
-  return gatewayRequest('POST', `/api/pods/${username}/external-assessments`, token, payload);
+  return gatewayRequest('POST', `/api/pods/${username}/external-assessments`, userIdentifier, payload);
 }
 
 /** Write a session log to the pod */
 export async function writeSession(
   username: string,
-  token: string,
-  payload: { sessionSummary: string; [key: string]: unknown }
+  payload: { sessionSummary: string; [key: string]: unknown },
+  userIdentifier?: string
 ) {
-  return gatewayRequest('POST', `/api/pods/${username}/sessions`, token, payload);
+  return gatewayRequest('POST', `/api/pods/${username}/sessions`, userIdentifier, payload);
 }
 
 /** Health check (no auth required) */
@@ -117,7 +123,7 @@ export async function healthCheck(): Promise<GatewayResult> {
   }
 }
 
-/** Check if gateway URL is configured */
+/** Check if gateway URL and service token are configured */
 export function isGatewayConfigured(): boolean {
-  return !!GATEWAY_BASE_URL;
+  return !!(GATEWAY_BASE_URL && GATEWAY_SERVICE_TOKEN);
 }

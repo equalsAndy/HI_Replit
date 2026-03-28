@@ -7,10 +7,10 @@
  *   npx tsx server/services/solid-pod/smoke-test.ts [userId]
  *
  * Prerequisites:
- *   - GATEWAY_BASE_URL set in .env (e.g. http://localhost:3002)
+ *   - GATEWAY_BASE_URL set in .env
+ *   - GATEWAY_SERVICE_TOKEN set in .env
  *   - FEATURE_SOLID_POD_SYNC=true in .env
- *   - User must have a vault_accounts entry
- *   - A valid Auth0 token (set AUTH0_TEST_TOKEN env var, or pass as 2nd arg)
+ *   - User must have a vault_accounts entry with provisioning_status='active'
  */
 
 import 'dotenv/config';
@@ -53,18 +53,10 @@ async function main() {
   console.log('Step 0: Prerequisites\n');
 
   if (!isGatewayConfigured()) {
-    console.log('  ❌ GATEWAY_BASE_URL must be set');
+    console.log('  ❌ GATEWAY_BASE_URL and GATEWAY_SERVICE_TOKEN must be set');
     process.exit(1);
   }
-  pass('Gateway URL configured');
-
-  const auth0Token = process.argv[3] || process.env.AUTH0_TEST_TOKEN || '';
-  if (!auth0Token) {
-    console.log('  ❌ Auth0 token required. Set AUTH0_TEST_TOKEN env var or pass as 2nd argument.');
-    console.log('     Usage: npx tsx server/services/solid-pod/smoke-test.ts [userId] [auth0Token]');
-    process.exit(1);
-  }
-  pass('Auth0 token provided');
+  pass('Gateway URL and service token configured');
 
   // Step 1: Gateway health check
   console.log('\nStep 1: Gateway health check\n');
@@ -95,8 +87,8 @@ async function main() {
   }
 
   const userId = account.userId;
-  const username = account.podUsername || account.masterPodUrl.match(/\/([^/]+)\/master\/?$/)?.[1];
-  pass(`Using user ${userId} (pod: ${username})`);
+  const username = account.podUsername || account.masterPodUrl?.match(/\/([^/]+)\/master\/?$/)?.[1];
+  pass(`Using user ${userId} (pod: ${username}, status: ${account.provisioningStatus})`);
 
   const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   const user = userRows[0];
@@ -106,7 +98,7 @@ async function main() {
 
   // Step 3: Run syncAll via gateway
   console.log('\nStep 3: Run syncAll()\n');
-  const result = await syncAll(userId, auth0Token);
+  const result = await syncAll(userId);
   info(`Written: ${result.written.length} resources`);
   for (const w of result.written) {
     info(`  → ${w}`);
@@ -128,7 +120,7 @@ async function main() {
 
   // Step 4: Read back via gateway
   console.log('\nStep 4: Verify data in pod via gateway\n');
-  const fullProfile = await getFullProfile(username, auth0Token);
+  const fullProfile = await getFullProfile(username);
   if (fullProfile.ok) {
     pass(`Full profile retrieved (HTTP ${fullProfile.status})`);
     info(`Data: ${JSON.stringify(fullProfile.data).substring(0, 200)}...`);

@@ -2,15 +2,15 @@
  * Pod Sync Service
  *
  * Orchestrates syncing AST assessment and reflection data to Solid Pods
- * via the SelfActual gateway API. The gateway handles Solid auth internally —
- * this service just sends Auth0 JWTs and JSON payloads.
+ * via the SelfActual gateway API. Authenticates with a service token —
+ * no per-user Auth0 JWTs needed.
  *
  * Non-blocking: all sync operations are fire-and-forget after the API response.
  * Safe by default: skips if feature flag off, gateway unreachable, or user has no vault account.
  */
 
 import { db } from '../../db.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import {
   vaultAccounts,
   users,
@@ -48,12 +48,15 @@ async function getVaultAccount(userId: number) {
     .where(eq(vaultAccounts.userId, userId))
     .limit(1);
 
-  return rows[0] || null;
+  const account = rows[0] || null;
+  if (account && account.provisioningStatus !== 'active') {
+    return null;
+  }
+  return account;
 }
 
 /** Extract username from pod URL path */
 function extractUsername(masterPodUrl: string): string {
-  // e.g. "https://vaults.selfactual.ai/johndoe/master/" → "johndoe"
   const match = masterPodUrl.match(/\/([^/]+)\/master\/?$/);
   return match?.[1] || '';
 }
@@ -61,13 +64,13 @@ function extractUsername(masterPodUrl: string): string {
 /** Write an assessment to the gateway and log the result */
 async function writeToGateway(
   username: string,
-  token: string,
   type: string,
   data: unknown,
-  label: string
+  label: string,
+  userIdentifier?: string
 ): Promise<boolean> {
   try {
-    const result = await writeExternalAssessment(username, token, { type, data });
+    const result = await writeExternalAssessment(username, { type, data }, userIdentifier);
     if (result.ok) {
       log(`✓ ${label} → gateway`);
     } else {
@@ -92,27 +95,77 @@ async function touchSyncTimestamp(userId: number) {
   }
 }
 
-// ── Reflection ID Mapping ──────────────────────────────────────────────────
-const REFLECTION_ID_TO_DIMENSION: Record<string, string> = {
-  'strength-1': 'thinking',
-  'strength-2': 'acting',
-  'strength-3': 'feeling',
-  'strength-4': 'planning',
-};
+/** Sync a user_assessments row by type — parses JSON and writes to gateway */
+async function syncAssessment(
+  username: string,
+  assessmentByType: Map<string, { results: string; createdAt: Date }>,
+  assessmentType: string,
+  gatewayType: string,
+  label: string,
+  userIdentifier: string,
+  written: string[],
+  errors: string[],
+  now: string
+) {
+  const row = assessmentByType.get(assessmentType);
+  if (!row) return;
+  try {
+    const data = JSON.parse(row.results);
+    const ok = await writeToGateway(username, gatewayType, {
+      ...data,
+      createdAt: row.createdAt?.toISOString() || now,
+    }, label, userIdentifier);
+    if (ok) written.push(label);
+    else errors.push(label);
+  } catch (err) {
+    logError(`syncAll ${label} parse failed:`, err);
+    errors.push(label);
+  }
+}
+
+/** Sync a reflection set — groups all reflection IDs into a single object */
+async function syncReflectionSet(
+  username: string,
+  userId: number,
+  setId: string,
+  gatewayType: string,
+  label: string,
+  userIdentifier: string,
+  written: string[],
+  errors: string[],
+  now: string
+) {
+  const rows = await db.select().from(reflectionResponses).where(
+    and(
+      eq(reflectionResponses.userId, userId),
+      eq(reflectionResponses.reflectionSetId, setId)
+    )
+  );
+  if (rows.length === 0) return;
+
+  const reflections: Record<string, string> = {};
+  for (const row of rows) {
+    if (row.response) {
+      reflections[row.reflectionId] = row.response;
+    }
+  }
+
+  const ok = await writeToGateway(username, gatewayType, {
+    reflections,
+    createdAt: rows[0]?.createdAt?.toISOString() || now,
+  }, label, userIdentifier);
+  if (ok) written.push(label);
+  else errors.push(label);
+}
 
 // ── Public API ─────────────────────────────────────────────────────────────
 
 /**
- * Full sync of all user data to pods via the gateway.
- * Queries the DB for all relevant data and POSTs each as an external assessment.
- *
- * @param userId - DB user ID
- * @param auth0Token - Auth0 JWT for gateway authentication
- * @returns Summary of what was written
+ * Full sync of all AST user data to pods via the gateway.
+ * Uses service-token auth — no per-user Auth0 JWT required.
  */
 export async function syncAll(
-  userId: number,
-  auth0Token: string
+  userId: number
 ): Promise<{ written: string[]; errors: string[] }> {
   const written: string[] = [];
   const errors: string[] = [];
@@ -124,22 +177,18 @@ export async function syncAll(
       return { written: [], errors: ['No vault account or pod sync not enabled'] };
     }
 
-    const username = extractUsername(account.masterPodUrl);
+    const username = extractUsername(account.masterPodUrl || '');
     if (!username) {
       return { written: [], errors: ['Could not extract username from masterPodUrl'] };
     }
 
-    // ── Query all user data ─────────────────────────────────────────────
-    const [userRows, starCardRows, flowAttrRows, reflectionRows, finalReflRows, assessmentRows] = await Promise.all([
+    const userIdentifier = account.auth0Sub || `user:${userId}`;
+
+    // ── Query core tables ───────────────────────────────────────────────
+    const [userRows, starCardRows, flowAttrRows, finalReflRows, assessmentRows] = await Promise.all([
       db.select().from(users).where(eq(users.id, userId)).limit(1),
       db.select().from(starCards).where(eq(starCards.userId, userId)).limit(1),
       db.select().from(flowAttributes).where(eq(flowAttributes.userId, userId)).limit(1),
-      db.select().from(reflectionResponses).where(
-        and(
-          eq(reflectionResponses.userId, userId),
-          eq(reflectionResponses.reflectionSetId, 'strength-reflections')
-        )
-      ),
       db.select().from(finalReflections).where(eq(finalReflections.userId, userId)).limit(1),
       db.select().from(userAssessments).where(eq(userAssessments.userId, userId)),
     ]);
@@ -149,7 +198,6 @@ export async function syncAll(
     const flowAttr = flowAttrRows[0];
     const finalRefl = finalReflRows[0];
 
-    // Build a lookup for user_assessments by assessmentType
     const assessmentByType = new Map<string, { results: string; createdAt: Date }>();
     for (const row of assessmentRows) {
       assessmentByType.set(row.assessmentType, { results: row.results, createdAt: row.createdAt });
@@ -157,141 +205,66 @@ export async function syncAll(
 
     // ── 1. Profile ──────────────────────────────────────────────────────
     if (user) {
-      const ok = await writeToGateway(username, auth0Token, 'profile', {
+      const ok = await writeToGateway(username, 'profile', {
         name: user.name,
         email: user.email,
         jobTitle: user.jobTitle ?? null,
         organization: user.organization ?? null,
-      }, 'profile');
+      }, 'profile', userIdentifier);
       if (ok) written.push('profile');
       else errors.push('profile');
     }
 
-    // ── 2. Star Card ────────────────────────────────────────────────────
+    // ── 2. Star Card (from star_cards table) ────────────────────────────
     if (starCard) {
-      const ok = await writeToGateway(username, auth0Token, 'starCard', {
+      const ok = await writeToGateway(username, 'starCard', {
         thinking: starCard.thinking,
         acting: starCard.acting,
         feeling: starCard.feeling,
         planning: starCard.planning,
         createdAt: starCard.createdAt?.toISOString() || now,
-      }, 'starCard');
+      }, 'starCard', userIdentifier);
       if (ok) written.push('starCard');
       else errors.push('starCard');
     }
 
-    // ── 3. Flow Attributes ──────────────────────────────────────────────
+    // ── 3. Flow Attributes (from flow_attributes table) ─────────────────
     if (flowAttr) {
       const attrs = flowAttr.attributes as Array<{ name: string; score: number }>;
-      const ok = await writeToGateway(username, auth0Token, 'flowAttributes', {
+      const ok = await writeToGateway(username, 'flowAttributes', {
         attributes: Array.isArray(attrs) ? attrs : [],
         createdAt: flowAttr.createdAt?.toISOString() || now,
-      }, 'flowAttributes');
+      }, 'flowAttributes', userIdentifier);
       if (ok) written.push('flowAttributes');
       else errors.push('flowAttributes');
     }
 
-    // ── 4. Strength Reflections ─────────────────────────────────────────
-    if (reflectionRows.length > 0) {
-      const reflections: Record<string, string> = {};
-      for (const row of reflectionRows) {
-        const dimension = REFLECTION_ID_TO_DIMENSION[row.reflectionId];
-        if (dimension && row.response) {
-          reflections[dimension] = row.response;
-        }
-      }
-
-      const ok = await writeToGateway(username, auth0Token, 'strengthReflections', {
-        reflections,
-        starCard: starCard ? {
-          thinking: starCard.thinking,
-          acting: starCard.acting,
-          feeling: starCard.feeling,
-          planning: starCard.planning,
-        } : null,
-        createdAt: reflectionRows[0]?.createdAt?.toISOString() || now,
-      }, 'strengthReflections');
-      if (ok) written.push('strengthReflections');
-      else errors.push('strengthReflections');
-    }
-
-    // ── 5. Final Insight ────────────────────────────────────────────────
+    // ── 4. Final Insight (from final_reflections table) ─────────────────
     if (finalRefl) {
-      const ok = await writeToGateway(username, auth0Token, 'finalInsight', {
+      const ok = await writeToGateway(username, 'finalInsight', {
         insight: finalRefl.insight,
         createdAt: finalRefl.createdAt?.toISOString() || now,
-      }, 'finalInsight');
+      }, 'finalInsight', userIdentifier);
       if (ok) written.push('finalInsight');
       else errors.push('finalInsight');
     }
 
-    // ── 6. Future Self Reflection (from user_assessments) ───────────────
-    const futureSelfRow = assessmentByType.get('futureSelfReflection');
-    if (futureSelfRow) {
-      try {
-        const data = JSON.parse(futureSelfRow.results);
-        const ok = await writeToGateway(username, auth0Token, 'futureSelfReflection', {
-          ...data,
-          createdAt: futureSelfRow.createdAt?.toISOString() || now,
-        }, 'futureSelf');
-        if (ok) written.push('futureSelf');
-        else errors.push('futureSelf');
-      } catch (err) {
-        logError('syncAll futureSelf parse failed:', err);
-        errors.push('futureSelf');
-      }
-    }
+    // ── 5–10. Assessments from user_assessments ─────────────────────────
+    await syncAssessment(username, assessmentByType, 'futureSelfReflection', 'futureSelfReflection', 'futureSelf', userIdentifier, written, errors, now);
+    await syncAssessment(username, assessmentByType, 'cantrilLadder', 'cantrilLadder', 'cantrilLadder', userIdentifier, written, errors, now);
+    await syncAssessment(username, assessmentByType, 'cantrilLadderReflection', 'cantrilLadderReflection', 'cantrilLadderReflection', userIdentifier, written, errors, now);
+    await syncAssessment(username, assessmentByType, 'roundingOutReflection', 'roundingOutReflection', 'roundingOut', userIdentifier, written, errors, now);
+    await syncAssessment(username, assessmentByType, 'flowAssessment', 'flowAssessment', 'flowAssessment', userIdentifier, written, errors, now);
+    await syncAssessment(username, assessmentByType, 'stepByStepReflection', 'stepByStepReflection', 'stepByStepReflection', userIdentifier, written, errors, now);
+    await syncAssessment(username, assessmentByType, 'finalReflection', 'finalReflection', 'finalReflection', userIdentifier, written, errors, now);
 
-    // ── 7. Cantril Ladder (from user_assessments) ───────────────────────
-    const cantrilRow = assessmentByType.get('cantrilLadder');
-    if (cantrilRow) {
-      try {
-        const data = JSON.parse(cantrilRow.results);
-        const ok = await writeToGateway(username, auth0Token, 'cantrilLadder', {
-          ...data,
-          createdAt: cantrilRow.createdAt?.toISOString() || now,
-        }, 'cantrilLadder');
-        if (ok) written.push('cantrilLadder');
-        else errors.push('cantrilLadder');
-      } catch (err) {
-        logError('syncAll cantrilLadder parse failed:', err);
-        errors.push('cantrilLadder');
-      }
-    }
-
-    // ── 8. Cantril Ladder Reflection (from user_assessments) ────────────
-    const cantrilReflRow = assessmentByType.get('cantrilLadderReflection');
-    if (cantrilReflRow) {
-      try {
-        const data = JSON.parse(cantrilReflRow.results);
-        const ok = await writeToGateway(username, auth0Token, 'cantrilLadderReflection', {
-          ...data,
-          createdAt: cantrilReflRow.createdAt?.toISOString() || now,
-        }, 'cantrilLadderReflection');
-        if (ok) written.push('cantrilLadderReflection');
-        else errors.push('cantrilLadderReflection');
-      } catch (err) {
-        logError('syncAll cantrilLadderReflection parse failed:', err);
-        errors.push('cantrilLadderReflection');
-      }
-    }
-
-    // ── 9. Rounding Out Reflection (from user_assessments) ──────────────
-    const roundingOutRow = assessmentByType.get('roundingOutReflection');
-    if (roundingOutRow) {
-      try {
-        const data = JSON.parse(roundingOutRow.results);
-        const ok = await writeToGateway(username, auth0Token, 'roundingOutReflection', {
-          ...data,
-          createdAt: roundingOutRow.createdAt?.toISOString() || now,
-        }, 'roundingOut');
-        if (ok) written.push('roundingOut');
-        else errors.push('roundingOut');
-      } catch (err) {
-        logError('syncAll roundingOut parse failed:', err);
-        errors.push('roundingOut');
-      }
-    }
+    // ── 11–16. Reflection sets from reflection_responses ────────────────
+    await syncReflectionSet(username, userId, 'strength-reflections', 'strengthReflections', 'strengthReflections', userIdentifier, written, errors, now);
+    await syncReflectionSet(username, userId, 'flow-patterns', 'flowPatterns', 'flowPatterns', userIdentifier, written, errors, now);
+    await syncReflectionSet(username, userId, 'future-self', 'futureSelfVision', 'futureSelfVision', userIdentifier, written, errors, now);
+    await syncReflectionSet(username, userId, 'cantril-ladder', 'cantrilLadderReflections', 'cantrilLadderReflections', userIdentifier, written, errors, now);
+    await syncReflectionSet(username, userId, 'wellbeing', 'wellbeingReflections', 'wellbeingReflections', userIdentifier, written, errors, now);
+    await syncReflectionSet(username, userId, 'strengths', 'strengthsReflections', 'strengthsReflections', userIdentifier, written, errors, now);
 
     await touchSyncTimestamp(userId);
     log(`syncAll complete for user ${userId}: ${written.length} written, ${errors.length} errors`);
@@ -301,4 +274,57 @@ export async function syncAll(
   }
 
   return { written, errors };
+}
+
+/**
+ * Sync a completed holistic report to the user's pod.
+ * Called after report generation completes — NOT part of syncAll.
+ */
+export async function syncHolisticReport(
+  userId: number,
+  reportType: string
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const account = await getVaultAccount(userId);
+    if (!account) {
+      return { ok: false, error: 'No vault account or pod sync not enabled' };
+    }
+
+    const username = extractUsername(account.masterPodUrl || '');
+    if (!username) {
+      return { ok: false, error: 'Could not extract username from masterPodUrl' };
+    }
+
+    const userIdentifier = account.auth0Sub || `user:${userId}`;
+
+    // Query the completed report via Drizzle raw SQL
+    const rows = await db.execute(sql`
+      SELECT html_content, report_data, generated_at
+      FROM holistic_reports
+      WHERE user_id = ${userId} AND report_type = ${reportType} AND generation_status = 'completed'
+      ORDER BY generated_at DESC LIMIT 1
+    `) as any[];
+
+    if (!rows || rows.length === 0) {
+      return { ok: false, error: `No completed ${reportType} report found` };
+    }
+
+    const report = rows[0];
+    const reportData = typeof report.report_data === 'string'
+      ? JSON.parse(report.report_data)
+      : report.report_data;
+
+    const ok = await writeToGateway(username, 'holisticReport', {
+      reportType,
+      htmlContent: report.html_content || null,
+      reportData,
+      generatedAt: report.generated_at?.toISOString() || new Date().toISOString(),
+    }, `holisticReport:${reportType}`, userIdentifier);
+
+    return { ok };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logError(`syncHolisticReport failed for user ${userId}:`, msg);
+    return { ok: false, error: msg };
+  }
 }

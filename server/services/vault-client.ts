@@ -4,6 +4,10 @@
  * Thin HTTP client for the SelfActual provisioning service.
  * SAFE BY DEFAULT: If VAULT_PROVISIONING_TOKEN is not set, all calls silently skip.
  * This means production (which doesn't have this env var) is never affected.
+ *
+ * DB-first strategy: A vault_accounts record is created BEFORE calling the
+ * provisioning API (status='provisioning'), then updated to 'active' or 'failed'.
+ * This ensures partial failures are always trackable.
  */
 
 import { db } from '../db.js';
@@ -23,6 +27,7 @@ interface ProvisionResponse {
   masterPodUrl?: string;
   subPodUrl?: string;
   username?: string;
+  error?: string;
 }
 
 export async function provisionUserVault(
@@ -31,52 +36,100 @@ export async function provisionUserVault(
   displayName: string
 ): Promise<ProvisionResponse | null> {
   if (!isEnabled()) {
-    // Silently skip — no token means provisioning is not configured for this environment
     return { status: 'skipped', skipped: true };
   }
 
-  const response = await fetch(`${PROVISIONING_URL}/provision`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${PROVISIONING_TOKEN}`,
-    },
-    body: JSON.stringify({ auth0Sub, userId: String(userId), displayName }),
-  });
-  const result = await response.json() as ProvisionResponse;
+  // Step 1: Create or update DB record BEFORE calling the provisioning API
+  try {
+    const existing = await db
+      .select()
+      .from(vaultAccounts)
+      .where(eq(vaultAccounts.userId, userId))
+      .limit(1);
 
-  // If provisioning succeeded and returned pod URLs, save to vault_accounts
+    if (existing.length > 0) {
+      // If already active, don't re-provision
+      if (existing[0].provisioningStatus === 'active') {
+        console.log(`[vault-client] User ${userId} already has an active vault, skipping`);
+        return { status: 'already_active', skipped: true };
+      }
+      // Reset for retry (e.g. previously failed)
+      await db
+        .update(vaultAccounts)
+        .set({
+          auth0Sub,
+          provisioningStatus: 'provisioning',
+          lastError: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(vaultAccounts.userId, userId));
+    } else {
+      await db.insert(vaultAccounts).values({
+        userId,
+        auth0Sub,
+        provisioningStatus: 'provisioning',
+      });
+    }
+  } catch (dbErr) {
+    console.error('[vault-client] Failed to create tracking record:', dbErr);
+    // Continue with provisioning anyway — better to attempt than abort
+  }
+
+  // Step 2: Call the provisioning API
+  let result: ProvisionResponse;
+  try {
+    const response = await fetch(`${PROVISIONING_URL}/provision`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${PROVISIONING_TOKEN}`,
+      },
+      body: JSON.stringify({ auth0Sub, userId: String(userId), displayName }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      const errorMsg = `HTTP ${response.status}: ${errorBody}`;
+      console.error(`[vault-client] Provisioning API error for user ${userId}:`, errorMsg);
+
+      // Step 3a: Mark as failed
+      await markFailed(userId, errorMsg);
+      return { status: 'failed', error: errorMsg };
+    }
+
+    result = await response.json() as ProvisionResponse;
+  } catch (fetchErr) {
+    const errorMsg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+    console.error(`[vault-client] Provisioning API unreachable for user ${userId}:`, errorMsg);
+    await markFailed(userId, errorMsg);
+    return { status: 'failed', error: errorMsg };
+  }
+
+  // Step 3b: Mark as active with pod URLs
   if (result && result.masterPodUrl && result.subPodUrl) {
     try {
       const username = result.username || extractUsername(result.masterPodUrl);
-      const existing = await db
-        .select()
-        .from(vaultAccounts)
-        .where(eq(vaultAccounts.userId, userId))
-        .limit(1);
-
-      if (existing.length > 0) {
-        await db
-          .update(vaultAccounts)
-          .set({
-            podUsername: username,
-            masterPodUrl: result.masterPodUrl,
-            subPodUrl: result.subPodUrl,
-            updatedAt: new Date(),
-          })
-          .where(eq(vaultAccounts.userId, userId));
-      } else {
-        await db.insert(vaultAccounts).values({
-          userId,
+      await db
+        .update(vaultAccounts)
+        .set({
           podUsername: username,
           masterPodUrl: result.masterPodUrl,
           subPodUrl: result.subPodUrl,
-        });
-      }
-      console.log(`[vault-client] Saved vault_accounts for user ${userId} (${username})`);
+          provisioningStatus: 'active',
+          lastError: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(vaultAccounts.userId, userId));
+      console.log(`[vault-client] Vault active for user ${userId} (${username})`);
     } catch (err) {
-      console.error('[vault-client] Failed to save vault_accounts:', err);
+      console.error('[vault-client] Failed to update vault_accounts to active:', err);
     }
+  } else {
+    // API returned 200 but no pod URLs — treat as failed
+    const errorMsg = `Provisioning returned OK but missing pod URLs: ${JSON.stringify(result)}`;
+    console.error(`[vault-client] ${errorMsg}`);
+    await markFailed(userId, errorMsg);
+    result.status = 'failed';
   }
 
   return result;
@@ -96,6 +149,22 @@ export async function getVaultStatus(
 
   if (!response.ok) return null;
   return response.json();
+}
+
+/** Update vault_accounts record to failed status */
+async function markFailed(userId: number, error: string) {
+  try {
+    await db
+      .update(vaultAccounts)
+      .set({
+        provisioningStatus: 'failed',
+        lastError: error,
+        updatedAt: new Date(),
+      })
+      .where(eq(vaultAccounts.userId, userId));
+  } catch (dbErr) {
+    console.error('[vault-client] Failed to mark vault as failed:', dbErr);
+  }
 }
 
 /** Extract username from master pod URL */
