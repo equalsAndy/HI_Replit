@@ -2,20 +2,22 @@
  * Vault Sync Routes
  *
  * Admin-only endpoints for manually triggering pod sync operations
- * and checking vault account status.
+ * and checking vault account status. Requires Auth0 token in the
+ * Authorization header for gateway authentication.
  */
 
 import { Router, Request, Response } from 'express';
 import { db } from '../db.js';
 import { eq } from 'drizzle-orm';
 import { vaultAccounts } from '../../shared/schema.js';
-import { syncAll, syncProfile } from '../services/solid-pod/index.js';
+import { syncAll } from '../services/solid-pod/index.js';
 
 const vaultRouter = Router();
 
 /**
  * POST /api/vault/sync/:userId
  * Trigger a full sync of all user data to their Solid Pod.
+ * Requires Auth0 token (from session or Authorization header).
  */
 vaultRouter.post('/sync/:userId', async (req: Request, res: Response) => {
   try {
@@ -24,7 +26,15 @@ vaultRouter.post('/sync/:userId', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid userId' });
     }
 
-    const result = await syncAll(userId);
+    // Get Auth0 token from session or Authorization header
+    const auth0Token = (req.session as any).auth0Token
+      || req.headers.authorization?.replace('Bearer ', '');
+
+    if (!auth0Token) {
+      return res.status(401).json({ error: 'Auth0 token required for pod sync' });
+    }
+
+    const result = await syncAll(userId, auth0Token);
     res.json({
       success: result.errors.length === 0,
       userId,
@@ -33,25 +43,6 @@ vaultRouter.post('/sync/:userId', async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error('[vault-routes] sync failed:', err);
-    res.status(500).json({ error: 'Sync failed', message: String(err) });
-  }
-});
-
-/**
- * POST /api/vault/sync-profile/:userId
- * Sync only the user profile to their Solid Pod.
- */
-vaultRouter.post('/sync-profile/:userId', async (req: Request, res: Response) => {
-  try {
-    const userId = parseInt(req.params.userId);
-    if (isNaN(userId)) {
-      return res.status(400).json({ error: 'Invalid userId' });
-    }
-
-    await syncProfile(userId);
-    res.json({ success: true, userId });
-  } catch (err) {
-    console.error('[vault-routes] sync-profile failed:', err);
     res.status(500).json({ error: 'Sync failed', message: String(err) });
   }
 });

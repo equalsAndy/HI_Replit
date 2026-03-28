@@ -171,6 +171,7 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
     // Create session with enhanced user data
     (req.session as any).userId = user.id;
     (req.session as any).userRole = user.role; // Add userRole for middleware compatibility
+    (req.session as any).auth0Token = idToken; // Preserve for gateway API calls (Solid Pod sync)
     (req.session as any).user = {
       id: user.id,
       name: user.name,
