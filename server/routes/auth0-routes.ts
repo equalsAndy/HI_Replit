@@ -151,7 +151,7 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
             if (result?.skipped) return;
             if (!result || result.status === 'not_found') {
               // User exists but has no vault — provision retroactively
-              provisionUserVault(decoded.sub, user.id, user.name || email?.split('@')[0] || 'user')
+              provisionUserVault(decoded.sub, user!.id, user!.name || email?.split('@')[0] || 'user')
                 .then(r => {
                   if (r?.skipped) return;
                   console.log('🔐 Retroactive vault provisioning:', r?.status || 'sent');
