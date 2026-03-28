@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { Gauge, ChevronRight, X, GripVertical, Zap, Check, Lock, ChevronDown, ChevronUp } from 'lucide-react';
-import VideoTranscriptGlossary from '@/components/common/VideoTranscriptGlossary';
-import { trpc } from "@/utils/trpc";
+import VideoPlayer from '@/components/content/VideoPlayer';
 import FlowAssessmentModal from '@/components/flow/FlowAssessmentModal';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -316,18 +315,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch video from database using tRPC
-  const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
-    workshop: 'allstarteams',
-    stepId: '2-2',
-  });
-
-  // Fetch flow attributes intro video
-  const { data: flowIntroVideoData, isLoading: flowIntroVideoLoading, error: flowIntroVideoError } = trpc.lesson.byStep.useQuery({
-    workshop: 'allstarteams',
-    stepId: '2-2-flow-intro',
-  });
-
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
@@ -712,30 +699,17 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Flow Patterns</h1>
 
-        {/* Flow Patterns Video with Transcript and Glossary */}
+        {/* Flow Patterns Video */}
         <div className="mb-8">
-          {videoLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Loading video...</span>
-            </div>
-          ) : error ? (
-            <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
-              Error loading video. Using fallback.
-            </div>
-          ) : videoData ? (
-            <VideoTranscriptGlossary
-              youtubeId={videoData.youtubeId}
-              title={videoData.title}
-              transcriptMd={videoData.transcriptMd}
-              glossary={videoData.glossary ?? []}
-            />
-          ) : (
-            <VideoTranscriptGlossary
-              youtubeId="KGv31SFLKC0"
-              title="Flow Patterns"
-            />
-          )}
+          <VideoPlayer
+            workshopType="allstarteams"
+            stepId="2-2"
+            fallbackUrl="https://youtu.be/KGv31SFLKC0"
+            title="Flow Patterns"
+            aspectRatio="16:9"
+            autoplay={true}
+            onProgress={handleVideoProgress}
+          />
         </div>
 
         {/* Understanding Flow Header */}
@@ -1007,28 +981,14 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
       {/* Flow State Introduction Video */}
       <div className="mb-8">
-        {flowIntroVideoLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading video...</span>
-          </div>
-        ) : flowIntroVideoError ? (
-          <div className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900">
-            Error loading video. Using fallback.
-          </div>
-        ) : flowIntroVideoData ? (
-          <VideoTranscriptGlossary
-            youtubeId={flowIntroVideoData.youtubeId}
-            title={flowIntroVideoData.title}
-            transcriptMd={flowIntroVideoData.transcriptMd}
-            glossary={flowIntroVideoData.glossary ?? []}
-          />
-        ) : (
-          <VideoTranscriptGlossary
-            youtubeId="jGVtiaQJ1a4"
-            title="Flow State Introduction"
-          />
-        )}
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId="2-2-flow-intro"
+          fallbackUrl="https://youtu.be/jGVtiaQJ1a4"
+          title="Flow State Introduction"
+          aspectRatio="16:9"
+          autoplay={true}
+        />
       </div>
 
       {/* Step 1 Instructions */}

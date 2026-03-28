@@ -232,10 +232,13 @@ export default function FlowReflections({
         console.log('🎯 FlowReflections: Marking step 2-2 as completed');
         await markStepCompleted?.('2-2');
 
-        // Set content to module-2-recap (step 2-4) after step completion
+        // Capture star card BEFORE navigating away (onComplete needs the DOM element)
+        console.log('🎯 FlowReflections: Running onComplete (star card capture) before navigation');
+        await onComplete?.();
+
+        // Set content to module-2-recap (step 2-4) after capture completes
         console.log('🎯 FlowReflections: Setting current content to module-2-recap');
         setCurrentContent?.('module-2-recap');
-        onComplete?.();
 
         // Auto-scroll to top after navigation
         setTimeout(() => {
