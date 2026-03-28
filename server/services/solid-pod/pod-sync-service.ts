@@ -15,6 +15,7 @@ import {
   flowAttributes,
   reflectionResponses,
   finalReflections,
+  userAssessments,
 } from '../../../shared/schema.js';
 import { isFeatureEnabled } from '../../utils/feature-flags.js';
 import { putResource, isPodWriteConfigured } from './pod-write-client.js';
@@ -391,7 +392,7 @@ export async function syncAll(userId: number): Promise<{ written: string[]; erro
     }
 
     // ── Query all user data ─────────────────────────────────────────────
-    const [userRows, starCardRows, flowAttrRows, reflectionRows, finalReflRows] = await Promise.all([
+    const [userRows, starCardRows, flowAttrRows, reflectionRows, finalReflRows, assessmentRows] = await Promise.all([
       db.select().from(users).where(eq(users.id, userId)).limit(1),
       db.select().from(starCards).where(eq(starCards.userId, userId)).limit(1),
       db.select().from(flowAttributes).where(eq(flowAttributes.userId, userId)).limit(1),
@@ -402,12 +403,19 @@ export async function syncAll(userId: number): Promise<{ written: string[]; erro
         )
       ),
       db.select().from(finalReflections).where(eq(finalReflections.userId, userId)).limit(1),
+      db.select().from(userAssessments).where(eq(userAssessments.userId, userId)),
     ]);
 
     const user = userRows[0];
     const starCard = starCardRows[0];
     const flowAttr = flowAttrRows[0];
     const finalRefl = finalReflRows[0];
+
+    // Build a lookup for user_assessments by assessmentType
+    const assessmentByType = new Map<string, { results: string; createdAt: Date }>();
+    for (const row of assessmentRows) {
+      assessmentByType.set(row.assessmentType, { results: row.results, createdAt: row.createdAt });
+    }
 
     // ── 1. Profile ──────────────────────────────────────────────────────
     if (user) {
@@ -550,7 +558,75 @@ export async function syncAll(userId: number): Promise<{ written: string[]; erro
       }
     }
 
-    // ── 6. Provenance Log (master only) ─────────────────────────────────
+    // ── 6. Future Self Reflection (master only, from user_assessments) ─
+    const futureSelfRow = assessmentByType.get('futureSelfReflection');
+    if (futureSelfRow) {
+      try {
+        const data = JSON.parse(futureSelfRow.results) as FutureSelfReflectionData;
+        const createdAt = futureSelfRow.createdAt?.toISOString() || now;
+
+        const turtle = serializeFutureSelf(data, createdAt);
+        const ok = await writeToPod(`/${username}/master/reflections/future-self`, turtle, 'futureSelf');
+        if (ok) { written.push('futureSelf'); provenanceEntries.push(`/${username}/master/reflections/future-self`); }
+        else errors.push('futureSelf');
+      } catch (err) {
+        logError('syncAll futureSelf failed:', err);
+        errors.push('futureSelf');
+      }
+    }
+
+    // ── 7. Cantril Ladder (master only, from user_assessments) ──────────
+    const cantrilRow = assessmentByType.get('cantrilLadder');
+    if (cantrilRow) {
+      try {
+        const data = JSON.parse(cantrilRow.results) as CantrilLadderData;
+        const createdAt = cantrilRow.createdAt?.toISOString() || now;
+
+        const turtle = serializeCantrilLadder(data, username, createdAt);
+        const ok = await writeToPod(`/${username}/master/wellbeing/cantril-ladder`, turtle, 'cantrilLadder');
+        if (ok) { written.push('cantrilLadder'); provenanceEntries.push(`/${username}/master/wellbeing/cantril-ladder`); }
+        else errors.push('cantrilLadder');
+      } catch (err) {
+        logError('syncAll cantrilLadder failed:', err);
+        errors.push('cantrilLadder');
+      }
+    }
+
+    // ── 8. Cantril Ladder Reflection (master only, from user_assessments)
+    const cantrilReflRow = assessmentByType.get('cantrilLadderReflection');
+    if (cantrilReflRow) {
+      try {
+        const data = JSON.parse(cantrilReflRow.results) as CantrilLadderReflectionData;
+        const createdAt = cantrilReflRow.createdAt?.toISOString() || now;
+
+        const turtle = serializeCantrilLadderReflection(data, username, createdAt);
+        const ok = await writeToPod(`/${username}/master/wellbeing/cantril-ladder-reflection`, turtle, 'cantrilLadderReflection');
+        if (ok) { written.push('cantrilLadderReflection'); provenanceEntries.push(`/${username}/master/wellbeing/cantril-ladder-reflection`); }
+        else errors.push('cantrilLadderReflection');
+      } catch (err) {
+        logError('syncAll cantrilLadderReflection failed:', err);
+        errors.push('cantrilLadderReflection');
+      }
+    }
+
+    // ── 9. Rounding Out Reflection (master only, from user_assessments) ─
+    const roundingOutRow = assessmentByType.get('roundingOutReflection');
+    if (roundingOutRow) {
+      try {
+        const data = JSON.parse(roundingOutRow.results) as RoundingOutReflectionData;
+        const createdAt = roundingOutRow.createdAt?.toISOString() || now;
+
+        const turtle = serializeRoundingOut(data, createdAt);
+        const ok = await writeToPod(`/${username}/master/reflections/rounding-out`, turtle, 'roundingOut');
+        if (ok) { written.push('roundingOut'); provenanceEntries.push(`/${username}/master/reflections/rounding-out`); }
+        else errors.push('roundingOut');
+      } catch (err) {
+        logError('syncAll roundingOut failed:', err);
+        errors.push('roundingOut');
+      }
+    }
+
+    // ── 10. Provenance Log (master only) ─────────────────────────────────
     if (provenanceEntries.length > 0) {
       try {
         const entries = provenanceEntries.map(resourcePath =>
