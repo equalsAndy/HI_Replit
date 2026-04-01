@@ -62,10 +62,10 @@ debug-*.js
 *.bak
 *.tmp
 *.old
-*" 2".*
-*" 2"
-*" 3".*
-*" 3"
+*\ 2.*
+*\ 2
+*\ 3.*
+*\ 3
 *.copy
 *.copy-only
 *.dev-copy
