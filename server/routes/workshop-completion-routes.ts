@@ -5,6 +5,7 @@ import * as schema from '../../shared/schema.js';
 import { users } from '../../shared/schema.js';
 import { getFeatureStatus } from '../middleware/feature-flags.js';
 import { authenticateUser, generateAndStoreStarCard } from './workshop-data-shared.js';
+import { syncAll, syncStarCardVisual } from '../services/solid-pod/index.js';
 
 const router = Router();
 
@@ -169,6 +170,31 @@ router.post('/navigation-progress', async (req: Request, res: Response) => {
       await db.insert(schema.navigationProgress).values(progressData);
     }
 
+    // Trigger pod sync when AST workshop step 3-4 is newly completed
+    if (detectedAppType === 'ast' && completedSteps?.includes('3-4')) {
+      const previousSteps = existingProgress[0]?.completedSteps;
+      const wasPreviouslyCompleted = previousSteps
+        ? JSON.parse(previousSteps).includes('3-4')
+        : false;
+
+      if (!wasPreviouslyCompleted) {
+        console.log(`[solid-pod] AST step 3-4 completed for user ${userId}, triggering pod sync`);
+        syncAll(userId)
+          .then(result => {
+            if (result.written.length > 0) {
+              console.log(`[solid-pod] Synced ${result.written.length} resources for user ${userId}`);
+            }
+            if (result.errors.length > 0) {
+              console.warn(`[solid-pod] ${result.errors.length} sync errors for user ${userId}:`, result.errors);
+            }
+            // Sync StarCard visual after data sync completes
+            return syncStarCardVisual(userId);
+          })
+          .then(r => { if (r?.ok) console.log(`[solid-pod] StarCard visual synced for user ${userId}`); })
+          .catch(err => console.error(`[solid-pod] syncAll/syncStarCardVisual failed for user ${userId}:`, err));
+      }
+    }
+
     return res.status(200).json({ success: true, message: 'Navigation progress saved' });
   } catch (error) {
     console.error('Error saving navigation progress:', error);
@@ -290,6 +316,21 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
         console.error(`⚠️ Failed to generate StarCard for user ${userId}:`, starCardError);
         // Don't fail the workshop completion, just log the error
       }
+
+      // Fire-and-forget: sync all user data to Solid Pod via gateway
+      syncAll(userId)
+        .then(result => {
+          if (result.written.length > 0) {
+            console.log(`[solid-pod] Synced ${result.written.length} resources for user ${userId}`);
+          }
+          if (result.errors.length > 0) {
+            console.warn(`[solid-pod] ${result.errors.length} sync errors for user ${userId}:`, result.errors);
+          }
+          // Sync StarCard visual after data sync completes
+          return syncStarCardVisual(userId);
+        })
+        .then(r => { if (r?.ok) console.log(`[solid-pod] StarCard visual synced for user ${userId}`); })
+        .catch(err => console.error(`[solid-pod] syncAll/syncStarCardVisual failed for user ${userId}:`, err));
     }
 
     res.json({

@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { userManagementService } from '../services/user-management-service.ts';
 import { PostLoginRouter, type UserRouteConfig } from '../utils/post-login-router.ts';
+import { provisionIfNeeded } from '../services/vault-client.js';
 
 const router = express.Router();
 
@@ -91,6 +92,14 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
 
       user = createResult.user;
       console.log('Created new user from Auth0:', user!.id);
+
+      // Provision Solid Pod vault — checks for existing vault before provisioning
+      provisionIfNeeded(decoded.sub, user!.id, decoded.name || email?.split('@')[0] || 'user')
+        .then(result => {
+          if (result?.skipped) return;
+          console.log('🔐 Vault provisioning initiated:', result?.status || 'sent');
+        })
+        .catch(err => console.error('🔐 Vault provisioning failed (non-blocking):', err.message));
     } else {
       // Check if existing user needs role update (for admin promotion)
       let needsRoleUpdate = false;
@@ -134,6 +143,16 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       }
       await userManagementService.updateUser(user.id, updateData);
       console.log('Found existing user:', user.id, needsRoleUpdate ? `(promoted to ${newRole})` : '');
+
+      // Retroactive vault provisioning — checks for existing vault before provisioning
+      if (decoded.sub) {
+        provisionIfNeeded(decoded.sub, user!.id, user!.name || email?.split('@')[0] || 'user')
+          .then(r => {
+            if (r?.skipped) return;
+            console.log('🔐 Retroactive vault provisioning:', r?.status || 'sent');
+          })
+          .catch(err => console.error('🔐 Retroactive provisioning failed (non-blocking):', err.message));
+      }
     }
 
     // Ensure user is defined before creating session
@@ -144,6 +163,7 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
     // Create session with enhanced user data
     (req.session as any).userId = user.id;
     (req.session as any).userRole = user.role; // Add userRole for middleware compatibility
+    (req.session as any).auth0Token = idToken; // Preserve for gateway API calls (Solid Pod sync)
     (req.session as any).user = {
       id: user.id,
       name: user.name,
