@@ -12,21 +12,23 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Initialize vector database (call once on startup)
-router.post('/vector/init', async (req, res) => {
+// Initialize vector database (call once on startup) - Temporarily disabled
+router.post('/vector/init', async (_req, res) => {
   try {
-    const success = await vectorDB.initializeCollections();
+    // const success = await vectorDB.initializeCollections();
+    const success = false;
     res.json({ success, message: success ? 'Vector DB initialized' : 'Failed to initialize' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to initialize vector database' });
   }
 });
 
-// Test vector database connection
-router.get('/vector/status', async (req, res) => {
+// Test vector database connection - Temporarily disabled
+router.get('/vector/status', async (_req, res) => {
   try {
-    const connected = await vectorDB.testConnection();
-    res.json({ 
+    // const connected = await vectorDB.testConnection();
+    const connected = false;
+    res.json({
       status: connected ? 'connected' : 'disconnected',
       timestamp: new Date().toISOString()
     });
@@ -80,7 +82,7 @@ router.get('/status', async (req, res) => {
 router.post('/chat', async (req, res) => {
   try {
     const { message, context, persona } = req.body;
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     
     console.log('🤖 Coaching chat request:', { 
       message, 
@@ -106,7 +108,7 @@ router.post('/chat', async (req, res) => {
       userId: conversationEntry.userId,
       persona: conversationEntry.persona,
       type: conversationEntry.type,
-      messageLength: conversationEntry.message?.length || 0,
+      messageLength: conversationEntry.userMessage?.length || 0,
       hasContext: !!conversationEntry.context
     });
 
@@ -129,7 +131,7 @@ router.post('/chat', async (req, res) => {
       const { generateOpenAICoachingResponse } = await import('../services/openai-api-service.js');
       
       // Handle different context structures based on persona
-      let claudeContext;
+      let claudeContext: any;
       let personaType;
       let targetUserId = userId;
       let userName = 'there';
@@ -587,7 +589,7 @@ router.post('/chat', async (req, res) => {
             console.warn('⚠️ Learning capture failed:', learningError.message);
           });
           
-        } catch (learningServiceError) {
+        } catch (learningServiceError: any) {
           console.warn('⚠️ Learning service unavailable:', learningServiceError.message);
         }
       }
@@ -599,7 +601,7 @@ router.post('/chat', async (req, res) => {
         source: 'claude_api'
       });
       
-    } catch (claudeError) {
+    } catch (claudeError: any) {
       console.warn('⚠️ Claude API unavailable, using fallback responses:', claudeError.message);
       
       // Fallback to simple context-aware responses
@@ -673,21 +675,22 @@ router.post('/chat', async (req, res) => {
       });
     }
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error in coaching chat:', error);
-    
+
     const errorResponse = "I'm sorry, I'm having trouble responding right now. Please try again in a moment.";
-    
+
     // METAlia conversation logging for system errors
+    const { message: errMessage, persona: errPersona, context: errContext } = req.body || {};
     conversationLoggingService.logConversation({
-      personaType: persona || 'unknown',
-      userId: req.session?.userId,
+      personaType: errPersona || 'unknown',
+      userId: (req.session as any)?.userId,
       sessionId: req.sessionID,
-      userMessage: message || 'Unknown message',
+      userMessage: errMessage || 'Unknown message',
       taliaResponse: errorResponse,
-      contextData: context || {},
+      contextData: errContext || {},
       requestData: {
-        originalPersona: persona,
+        originalPersona: errPersona,
         requestTimestamp: new Date().toISOString(),
         userAgent: req.headers['user-agent'],
         clientIp: req.ip
@@ -696,16 +699,15 @@ router.post('/chat', async (req, res) => {
         confidence: 0.0,
         source: 'system_error',
         tokensUsed: 0,
-        error: error.message
       },
       conversationOutcome: 'error'
     }).catch(loggingError => {
       console.warn('⚠️ Failed to log system error conversation to METAlia:', loggingError);
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       response: errorResponse,
-      error: 'Failed to process coaching request' 
+      error: 'Failed to process coaching request'
     });
   }
 });
@@ -714,7 +716,7 @@ router.post('/chat', async (req, res) => {
 router.post('/conversation-end', async (req, res) => {
   try {
     const { messages, context } = req.body;
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     
     console.log('🧠 Processing conversation end for user learning:', { 
       userId, 
@@ -788,7 +790,7 @@ router.get('/flow-attributes', async (req, res) => {
 // Get user's Cantril Ladder rating for Talia to use in step 4-2 coaching
 router.get('/cantril-ladder/:userId?', async (req, res) => {
   try {
-    const userId = req.params.userId || req.session?.userId;
+    const userId = req.params.userId || (req.session as any)?.userId;
     
     if (!userId) {
       return res.status(400).json({ 
@@ -835,7 +837,7 @@ router.get('/cantril-ladder/:userId?', async (req, res) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting Cantril Ladder rating:', error);
     
     // Return a fallback response that won't break Talia
@@ -852,7 +854,7 @@ router.get('/cantril-ladder/:userId?', async (req, res) => {
 // Store vision images for step 4-3 exercise
 router.post('/vision-images', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     const { images, reflection } = req.body;
     
     if (!userId) {
@@ -886,7 +888,7 @@ router.post('/vision-images', async (req, res) => {
       const { url, source, description, originalFilename } = imageData;
       
       // Store image in photo service database
-      const storedImage = await photoStorageService.storeVisionImage({
+      const storedImage = await (photoStorageService as any).storeVisionImage({
         userId: userId.toString(),
         imageUrl: url,
         source: source || 'unknown', // 'upload' or 'unsplash'
@@ -938,7 +940,7 @@ router.post('/vision-images', async (req, res) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error storing vision images:', error);
     res.status(500).json({
       success: false,
@@ -951,7 +953,7 @@ router.post('/vision-images', async (req, res) => {
 // Get user's vision images for step 4-3
 router.get('/vision-images/:userId?', async (req, res) => {
   try {
-    const userId = req.params.userId || req.session?.userId;
+    const userId = req.params.userId || (req.session as any)?.userId;
     
     if (!userId) {
       return res.status(400).json({ 
@@ -964,7 +966,7 @@ router.get('/vision-images/:userId?', async (req, res) => {
     const { photoStorageService } = await import('../services/photo-storage-service.js');
     
     // Get user's vision images
-    const visionImages = await photoStorageService.getUserVisionImages(userId.toString());
+    const visionImages = await (photoStorageService as any).getUserVisionImages(userId.toString());
     
     // Get associated reflection
     const { Pool } = await import('pg');
@@ -992,7 +994,7 @@ router.get('/vision-images/:userId?', async (req, res) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting vision images:', error);
     res.json({
       success: false,
@@ -1008,7 +1010,7 @@ router.get('/vision-images/:userId?', async (req, res) => {
 router.get('/user-patterns/:userId?', async (req, res) => {
   try {
     const { userId } = req.params;
-    const requestingUserId = req.session?.userId;
+    const requestingUserId = (req.session as any)?.userId;
     
     // Import user learning service
     const { userLearningService } = await import('../services/user-learning-service.js');

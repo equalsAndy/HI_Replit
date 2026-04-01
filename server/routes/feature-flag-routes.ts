@@ -92,7 +92,7 @@ router.get('/admin/reports/health-check', requireAuth, requireAdmin, async (req,
       console.log('🔍 Health check: Testing report generation...');
       
       // Get user data first
-      const userResult = await db.execute(
+      const userResult = await (db as any).execute(
         'SELECT id, name, email, ast_workshop_completed FROM users WHERE id = ?',
         [testUserId]
       );
@@ -101,7 +101,7 @@ router.get('/admin/reports/health-check', requireAuth, requireAdmin, async (req,
         throw new Error('Test user not found');
       }
 
-      const user = userResult[0];
+      const user = userResult[0] as any;
       console.log(`🔍 Health check: User found - ID: ${user.id}, completed: ${user.ast_workshop_completed}`);
 
       if (!user.ast_workshop_completed) {
@@ -115,7 +115,7 @@ router.get('/admin/reports/health-check', requireAuth, requireAdmin, async (req,
       }
 
       // Get assessment data
-      const assessmentResult = await db.execute(
+      const assessmentResult = await (db as any).execute(
         'SELECT assessment_type, results FROM user_assessments WHERE user_id = ? AND results IS NOT NULL',
         [testUserId]
       );
@@ -138,11 +138,11 @@ router.get('/admin/reports/health-check', requireAuth, requireAdmin, async (req,
       const testResponse = await generateOpenAICoachingResponse({
         userMessage: 'Quick health check - respond with exactly "HEALTH_CHECK_OK" if you can process data',
         personaType: 'star_report',
-        userName: user.name || 'Test User',
+        userName: (user.name as string) || 'Test User',
         contextData: {
           reportContext: 'health_check',
           userData: { assessments: assessmentResult, user },
-          selectedUserName: user.name
+          selectedUserName: user.name as string
         },
         userId: testUserId,
         sessionId: 'health-check',
@@ -193,7 +193,7 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
     console.log('🧪 Starting comprehensive report generation test...');
 
     // Get user data
-    const userResult = await db.execute(
+    const userResult = await (db as any).execute(
       'SELECT id, name, email, ast_workshop_completed FROM users WHERE id = ?',
       [testUserId]
     );
@@ -202,15 +202,15 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
       return res.status(404).json({ error: 'Test user not found' });
     }
 
-    const user = userResult[0];
+    const user = userResult[0] as any;
 
     // Get assessment data
-    const assessmentResult = await db.execute(
+    const assessmentResult = await (db as any).execute(
       'SELECT assessment_type, results FROM user_assessments WHERE user_id = ? AND results IS NOT NULL',
       [testUserId]
     );
 
-    const stepDataResult = await db.execute(
+    const stepDataResult = await (db as any).execute(
       'SELECT step_id, step_data FROM user_step_data WHERE user_id = ? AND step_data IS NOT NULL',
       [testUserId]
     );
@@ -223,15 +223,15 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
     const testReport = await generateOpenAICoachingResponse({
       userMessage: 'Generate a Personal Development Report for this user based on their complete workshop data.',
       personaType: 'star_report',
-      userName: user.name || 'Test User',
+      userName: (user.name as string) || 'Test User',
       contextData: {
         reportContext: 'holistic_generation',
-        userData: { 
-          assessments: assessmentResult, 
+        userData: {
+          assessments: assessmentResult,
           stepData: stepDataResult,
-          user 
+          user
         },
-        selectedUserName: user.name,
+        selectedUserName: user.name as string,
         selectedUserId: testUserId
       },
       userId: testUserId,

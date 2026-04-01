@@ -27,6 +27,8 @@ export interface RMLVisualDeclaration {
   image_url?: string;     // External image URL (for Unsplash, etc.)
   attribution?: string;   // Image attribution (photographer name, etc.)
   source_url?: string;    // Source URL for attribution link
+  attributes?: any[];     // Flow attributes data
+  caption?: string;       // Image caption text
 }
 
 export class RMLParser {

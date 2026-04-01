@@ -9,7 +9,7 @@ const router = Router();
 // Get growth plan by quarter and year
 router.get('/', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
 // Create or update growth plan
 router.post('/', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
@@ -132,7 +132,7 @@ router.post('/', async (req, res) => {
 // Get all growth plans for user (for history/comparison)
 router.get('/all', async (req, res) => {
   try {
-    const userId = req.session?.userId;
+    const userId = (req.session as any)?.userId;
     if (!userId) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }

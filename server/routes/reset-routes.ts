@@ -39,7 +39,7 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
     }
     
     // Check authentication from multiple sources (session, cookies)
-    let currentUserId = req.session?.userId;
+    let currentUserId = (req.session as any)?.userId;
     if (!currentUserId && req.cookies?.userId) {
       currentUserId = parseInt(req.cookies.userId);
     }

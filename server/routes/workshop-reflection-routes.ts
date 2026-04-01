@@ -488,8 +488,8 @@ router.get('/step/:workshopType/:stepId', authenticateUser, async (req: Request,
     const { workshopType, stepId } = req.params;
     const userId = (req.session as any).userId;
 
-    if (!['ast', 'ia'].includes(workshopType)) {
-      return res.status(400).json({ success: false, error: 'Invalid workshop type. Must be "ast" or "ia"' });
+    if (!['ast', 'ia', 'pm'].includes(workshopType)) {
+      return res.status(400).json({ success: false, error: 'Invalid workshop type. Must be "ast", "ia", or "pm"' });
     }
 
     if (!stepId || typeof stepId !== 'string') {
@@ -521,8 +521,8 @@ router.post('/step', authenticateUser, checkWorkshopLocked, async (req: Request,
 
     console.log('🔍 POST /step - Request details:', { workshopType, stepId, userId, hasData: !!data, dataKeys: data ? Object.keys(data) : [], sessionExists: !!(req.session), userIdType: typeof userId });
 
-    if (!['ast', 'ia'].includes(workshopType)) {
-      return res.status(400).json({ success: false, error: 'Invalid workshop type. Must be "ast" or "ia"' });
+    if (!['ast', 'ia', 'pm'].includes(workshopType)) {
+      return res.status(400).json({ success: false, error: 'Invalid workshop type. Must be "ast", "ia", or "pm"' });
     }
 
     if (!stepId || typeof stepId !== 'string') {
@@ -567,8 +567,8 @@ router.get('/steps/:workshopType', authenticateUser, async (req: Request, res: R
     const { workshopType } = req.params;
     const userId = (req.session as any).userId;
 
-    if (!['ast', 'ia'].includes(workshopType)) {
-      return res.status(400).json({ success: false, error: 'Invalid workshop type. Must be "ast" or "ia"' });
+    if (!['ast', 'ia', 'pm'].includes(workshopType)) {
+      return res.status(400).json({ success: false, error: 'Invalid workshop type. Must be "ast", "ia", or "pm"' });
     }
 
     const results = await db

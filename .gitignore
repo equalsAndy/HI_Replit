@@ -247,3 +247,6 @@ OpenAI files/
 # Archived IA step files
 *.archive
 archived-sections-6-7-8/
+
+# Separate course planning docs (not part of HI_Replit)
+Product Mindset Course Claude Folder/

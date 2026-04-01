@@ -1,8 +1,9 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useLocation } from 'wouter';
+import { WORKSHOP_CONFIGS } from '../../../shared/workshop-config';
 
-type ApplicationType = 'allstarteams' | 'imaginal-agility';
+type ApplicationType = 'allstarteams' | 'imaginal-agility' | 'product-mindset';
 
 type ApplicationContextType = {
   currentApp: ApplicationType;
@@ -11,17 +12,11 @@ type ApplicationContextType = {
   setCurrentApp: (app: ApplicationType) => void;
 };
 
-// Application-specific configuration
-const appConfig = {
-  'allstarteams': {
-    name: 'AllStarTeams',
-    primaryColor: 'indigo',
-  },
-  'imaginal-agility': {
-    name: 'Imaginal Agility',
-    primaryColor: 'purple',
-  }
-};
+// Application-specific configuration derived from workshop registry
+const appConfig: Record<string, { name: string; primaryColor: string }> = {};
+for (const [, config] of Object.entries(WORKSHOP_CONFIGS)) {
+  appConfig[config.urlSlug] = { name: config.name, primaryColor: config.primaryColor };
+}
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
 
@@ -53,15 +48,20 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       setCurrentApp('allstarteams');
       sessionStorage.setItem('selectedApp', 'ast');
       appUpdated = true;
+    } else if (appParam === 'product-mindset' || appParam === 'pm') {
+      console.log('Setting app to product-mindset');
+      setCurrentApp('product-mindset');
+      sessionStorage.setItem('selectedApp', 'product-mindset');
+      appUpdated = true;
     }
     
     // If no app in URL, check sessionStorage
     if (!appUpdated) {
       const savedApp = sessionStorage.getItem('selectedApp');
       console.log('No app param, checking sessionStorage:', savedApp);
-      if (savedApp === 'imaginal-agility' || savedApp === 'allstarteams' || savedApp === 'ast') {
-        // Handle 'ast' shorthand for allstarteams
-        const appType = savedApp === 'ast' ? 'allstarteams' : savedApp as ApplicationType;
+      if (savedApp === 'imaginal-agility' || savedApp === 'allstarteams' || savedApp === 'ast' || savedApp === 'product-mindset' || savedApp === 'pm') {
+        // Handle shorthand aliases
+        const appType = savedApp === 'ast' ? 'allstarteams' : savedApp === 'pm' ? 'product-mindset' : savedApp as ApplicationType;
         setCurrentApp(appType);
       }
       // If nothing valid in sessionStorage, keep default 'allstarteams'

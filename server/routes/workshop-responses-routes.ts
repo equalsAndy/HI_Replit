@@ -18,7 +18,7 @@ const router = express.Router();
 router.get('/:userId', requireAuth, async (req, res) => {
   try {
     const { userId: urlUserId } = req.params;
-    const sessionUserId = req.session?.userId;
+    const sessionUserId = (req.session as any)?.userId;
 
     // SECURITY: Validate authenticated user matches the userId in URL
     if (!sessionUserId || sessionUserId.toString() !== urlUserId) {

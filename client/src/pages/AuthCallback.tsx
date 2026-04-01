@@ -120,18 +120,23 @@ export default function AuthCallback() {
           // Test users (not beta testers) go to dashboard with testing controls
           dest = '/dashboard';
           console.log('[AuthCallback] Test user detected, routing to /dashboard');
-        } else if (user?.astAccess && user?.iaAccess) {
-          // Users with access to BOTH workshops go to selection page (including beta testers)
-          dest = '/workshop-selection';
-          console.log('[AuthCallback] Dual workshop access detected, routing to /workshop-selection');
-        } else if (user?.astAccess) {
-          dest = '/allstarteams';
-          console.log('[AuthCallback] AST access detected, routing to /allstarteams');
-        } else if (user?.iaAccess) {
-          dest = '/imaginal-agility';
-          console.log('[AuthCallback] IA access detected, routing to /imaginal-agility');
         } else {
-          console.log('[AuthCallback] No specific access detected, defaulting to landing page');
+          // Determine workshop routing based on access
+          const workshopAccess = [
+            { access: user?.astAccess, path: '/allstarteams', label: 'AST' },
+            { access: user?.iaAccess, path: '/imaginal-agility', label: 'IA' },
+            { access: user?.pmAccess, path: '/product-mindset', label: 'PM' },
+          ].filter(w => w.access);
+
+          if (workshopAccess.length > 1) {
+            dest = '/workshop-selection';
+            console.log('[AuthCallback] Multiple workshop access detected, routing to /workshop-selection');
+          } else if (workshopAccess.length === 1) {
+            dest = workshopAccess[0].path;
+            console.log(`[AuthCallback] ${workshopAccess[0].label} access detected, routing to ${dest}`);
+          } else {
+            console.log('[AuthCallback] No specific access detected, defaulting to landing page');
+          }
         }
 
         console.log('[AuthCallback] Final destination:', dest);

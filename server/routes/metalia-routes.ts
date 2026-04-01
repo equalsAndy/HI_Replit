@@ -119,7 +119,7 @@ router.post('/escalations/:escalationId/resolve', async (req, res) => {
   try {
     const { escalationId } = req.params;
     const { adminResponse, resolutionNotes, instructionUpdates } = req.body;
-    const resolvedBy = req.session?.userId || 1; // Default to admin user 1
+    const resolvedBy = (req.session as any)?.userId || 1; // Default to admin user 1
 
     if (!adminResponse) {
       return res.status(400).json({

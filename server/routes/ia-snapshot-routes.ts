@@ -119,7 +119,7 @@ router.get('/activation-snapshot', requireAuth, async (req, res) => {
     if (Array.isArray(dPulse?.ranking) && dPulse.ranking.length === 5) {
       pulseRanking = dPulse.ranking
         .map((r: any) => normalise(r.key ?? r))
-        .filter((k): k is CapabilityKey => k !== null);
+        .filter((k: any): k is CapabilityKey => k !== null);
     }
 
     // ── Solo activations (Module 3) ─────────────────────────────────────────

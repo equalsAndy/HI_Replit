@@ -14,8 +14,8 @@ interface Video {
   sortOrder?: number;
 }
 
-export function useVideoByStep(stepId: string, workshop: 'ast' | 'ia' = 'ast') {
-  const workshopType = workshop === 'ast' ? 'allstarteams' : 'imaginalagility';
+export function useVideoByStep(stepId: string, workshop: 'ast' | 'ia' | 'pm' = 'ast') {
+  const workshopType = workshop === 'ast' ? 'allstarteams' : workshop === 'ia' ? 'imaginalagility' : 'productmindset';
   
   return useQuery<Video | undefined>({
     queryKey: ['/api/workshop-data/videos', workshopType, stepId],

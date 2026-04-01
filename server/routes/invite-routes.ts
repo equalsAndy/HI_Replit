@@ -11,7 +11,7 @@ const router = express.Router();
  */
 router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const { email, role, name, jobTitle, organization, expiresAt, cohortId, organizationId, isBetaTester, astAccess, iaAccess, showDemoDataButtons } = req.body;
+    const { email, role, name, jobTitle, organization, expiresAt, cohortId, organizationId, isBetaTester, astAccess, iaAccess, pmAccess, showDemoDataButtons } = req.body;
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
 
@@ -54,6 +54,7 @@ router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       expiresAt: expiresAt ? new Date(expiresAt) : undefined,
       astAccess: astAccess !== undefined ? !!astAccess : true,
       iaAccess: iaAccess !== undefined ? !!iaAccess : true,
+      pmAccess: pmAccess !== undefined ? !!pmAccess : false,
       showDemoDataButtons: showDemoDataButtons !== undefined ? !!showDemoDataButtons : false
     });
     
@@ -90,7 +91,7 @@ router.put('/:id', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid invite ID' });
     }
 
-    const { role, name, isBetaTester, astAccess, iaAccess, showDemoDataButtons } = req.body;
+    const { role, name, isBetaTester, astAccess, iaAccess, pmAccess, showDemoDataButtons } = req.body;
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
 
@@ -121,6 +122,7 @@ router.put('/:id', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       isBetaTester,
       astAccess,
       iaAccess,
+      pmAccess,
       showDemoDataButtons
     });
 
@@ -260,6 +262,7 @@ router.patch('/:id', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
     const {
       astAccess,
       iaAccess,
+      pmAccess,
       showDemoDataButtons,
       name,
       role,
@@ -283,6 +286,7 @@ router.patch('/:id', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
     const updates: any = {};
     if (astAccess !== undefined) updates.astAccess = !!astAccess;
     if (iaAccess !== undefined) updates.iaAccess = !!iaAccess;
+    if (pmAccess !== undefined) updates.pmAccess = !!pmAccess;
     if (showDemoDataButtons !== undefined) updates.showDemoDataButtons = !!showDemoDataButtons;
     if (name !== undefined) updates.name = name;
     if (role !== undefined) updates.role = role;

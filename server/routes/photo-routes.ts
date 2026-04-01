@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 
 // Simple auth middleware
 const requireAuth = (req: Request, res: Response, next: any) => {
-  if (!req.session?.userId) {
+  if (!(req.session as any)?.userId) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   next();
@@ -285,7 +285,7 @@ photoRouter.delete('/:id', async (req: Request, res: Response) => {
 photoRouter.post('/starcard', requireAuth, async (req: Request, res: Response) => {
   try {
     // Allow admin to save for other users
-    const requestingUserId = req.session?.userId;
+    const requestingUserId = (req.session as any)?.userId;
     const { imageData, filename, userId: targetUserId } = req.body;
 
     // Use target user ID if provided (admin mode), otherwise use requesting user

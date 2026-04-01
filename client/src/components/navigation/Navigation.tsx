@@ -20,7 +20,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { currentApp } = useApplication();
   
   // Convert currentApp to app type for navigation hook
-  const appType: 'ast' | 'ia' = currentApp === 'imaginal-agility' ? 'ia' : 'ast';
+  const appType: 'ast' | 'ia' | 'pm' = currentApp === 'imaginal-agility' ? 'ia' : currentApp === 'product-mindset' ? 'pm' : 'ast';
   
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress(appType);
   const [showMobileNav, setShowMobileNav] = useState(false);

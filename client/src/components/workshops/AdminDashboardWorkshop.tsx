@@ -13,7 +13,7 @@ const EnhancedVideoManagement = React.lazy(() =>
 const VideoTranscriptAdmin = React.lazy(() => import('@/components/admin/VideoTranscriptAdmin'));
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
-import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video, FileText } from 'lucide-react';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video, FileText, Database } from 'lucide-react';
 import VersionInfo from '@/components/ui/VersionInfo';
 import { FeedbackTrigger } from '@/components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '@/utils/pageContext';
@@ -108,6 +108,177 @@ const ReportAssistantLauncher: React.FC = () => {
 
 
 
+// Vault / Pod Sync Panel
+const VaultSyncPanel: React.FC = () => {
+  const [isSyncing, setIsSyncing] = React.useState(false);
+  const [syncResult, setSyncResult] = React.useState<any>(null);
+  const [singleUserId, setSingleUserId] = React.useState('');
+  const [isSyncingSingle, setIsSyncingSingle] = React.useState(false);
+  const [singleResult, setSingleResult] = React.useState<any>(null);
+
+  const handleSyncAll = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch('/api/vault/sync-all', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      setSyncResult(data);
+    } catch (err) {
+      setSyncResult({ success: false, message: String(err) });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncSingle = async () => {
+    if (!singleUserId) return;
+    setIsSyncingSingle(true);
+    setSingleResult(null);
+    try {
+      const res = await fetch(`/api/vault/sync/${singleUserId}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      setSingleResult(data);
+    } catch (err) {
+      setSingleResult({ success: false, message: String(err) });
+    } finally {
+      setIsSyncingSingle(false);
+    }
+  };
+
+  const styles = {
+    container: { padding: '20px' },
+    header: { marginBottom: '24px' },
+    title: { fontSize: '24px', fontWeight: 'bold' as const, marginBottom: '8px' },
+    subtitle: { color: '#6b7280', fontSize: '14px' },
+    section: {
+      padding: '24px',
+      border: '1px solid #e5e7eb',
+      borderRadius: '8px',
+      marginBottom: '20px',
+      backgroundColor: '#f8fafc',
+    },
+    sectionTitle: { fontSize: '16px', fontWeight: '600' as const, marginBottom: '12px' },
+    button: {
+      padding: '10px 20px',
+      backgroundColor: '#3b82f6',
+      color: 'white',
+      border: 'none',
+      borderRadius: '6px',
+      fontSize: '14px',
+      fontWeight: '600' as const,
+      cursor: 'pointer',
+      display: 'inline-flex' as const,
+      alignItems: 'center' as const,
+      gap: '8px',
+    },
+    disabledButton: {
+      opacity: 0.6,
+      cursor: 'not-allowed' as const,
+    },
+    input: {
+      padding: '8px 12px',
+      border: '1px solid #d1d5db',
+      borderRadius: '6px',
+      fontSize: '14px',
+      width: '120px',
+      marginRight: '8px',
+    },
+    resultBox: {
+      marginTop: '16px',
+      padding: '16px',
+      borderRadius: '6px',
+      fontSize: '13px',
+      fontFamily: 'monospace',
+      whiteSpace: 'pre-wrap' as const,
+      maxHeight: '300px',
+      overflowY: 'auto' as const,
+    },
+    successBox: { backgroundColor: '#ecfdf5', border: '1px solid #6ee7b7' },
+    errorBox: { backgroundColor: '#fef2f2', border: '1px solid #fca5a5' },
+    row: { display: 'flex' as const, alignItems: 'center' as const, gap: '8px' },
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <h2 style={styles.title}>Solid Pod Sync</h2>
+        <p style={styles.subtitle}>
+          Push AST assessment data to SelfActual Solid Pods via the gateway API.
+          Pod sync also fires automatically when a user completes AST step 3-4.
+        </p>
+      </div>
+
+      <div style={styles.section}>
+        <h3 style={styles.sectionTitle}>Sync All Users</h3>
+        <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '12px' }}>
+          Syncs star card, flow attributes, reflections, and reports for every user with an active vault account.
+        </p>
+        <button
+          style={{ ...styles.button, ...(isSyncing ? styles.disabledButton : {}) }}
+          onClick={handleSyncAll}
+          disabled={isSyncing}
+        >
+          <Database size={16} />
+          {isSyncing ? 'Syncing...' : 'Sync All Pods'}
+        </button>
+        {syncResult && (
+          <div style={{
+            ...styles.resultBox,
+            ...(syncResult.success ? styles.successBox : styles.errorBox),
+          }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>{syncResult.message}</div>
+            {syncResult.results?.map((r: any, i: number) => (
+              <div key={i} style={{ marginBottom: '6px' }}>
+                User {r.userId} ({r.podUsername}): {r.written.length} written
+                {r.errors.length > 0 && `, ${r.errors.length} errors: ${r.errors.join(', ')}`}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={styles.section}>
+        <h3 style={styles.sectionTitle}>Sync Single User</h3>
+        <div style={styles.row}>
+          <input
+            type="number"
+            placeholder="User ID"
+            value={singleUserId}
+            onChange={(e) => setSingleUserId(e.target.value)}
+            style={styles.input}
+          />
+          <button
+            style={{ ...styles.button, ...(isSyncingSingle || !singleUserId ? styles.disabledButton : {}) }}
+            onClick={handleSyncSingle}
+            disabled={isSyncingSingle || !singleUserId}
+          >
+            {isSyncingSingle ? 'Syncing...' : 'Sync User'}
+          </button>
+        </div>
+        {singleResult && (
+          <div style={{
+            ...styles.resultBox,
+            ...(singleResult.success ? styles.successBox : styles.errorBox),
+          }}>
+            {singleResult.success
+              ? `Written: ${singleResult.written?.join(', ') || 'none'}`
+              : `Errors: ${singleResult.errors?.join(', ') || singleResult.error || singleResult.message}`
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Cohort Management Component (Disabled)
 const CohortManagement: React.FC = () => {
   const styles = {
@@ -152,6 +323,7 @@ const InviteManagement: React.FC = () => {
     isBetaTester: false,
     astAccess: true,
     iaAccess: true,
+    pmAccess: false,
     showDemoDataButtons: false,
   });
   const [isSendingInvite, setIsSendingInvite] = React.useState(false);
@@ -216,7 +388,7 @@ const InviteManagement: React.FC = () => {
           title: 'Success', 
           description: `Invite created for ${newInvite.email}` 
         });
-        setNewInvite({ email: '', role: 'participant', name: '', jobTitle: '', organization: '', isTestUser: false, isBetaTester: false, astAccess: true, iaAccess: true, showDemoDataButtons: false });
+        setNewInvite({ email: '', role: 'participant', name: '', jobTitle: '', organization: '', isTestUser: false, isBetaTester: false, astAccess: true, iaAccess: true, pmAccess: false, showDemoDataButtons: false });
         fetchInvites();
       } else {
         toast({ 
@@ -245,6 +417,7 @@ const InviteManagement: React.FC = () => {
       isBetaTester: invite.isBetaTester ?? invite.is_beta_tester ?? false,
       astAccess: invite.astAccess ?? invite.ast_access ?? true,
       iaAccess: invite.iaAccess ?? invite.ia_access ?? true,
+      pmAccess: invite.pmAccess ?? invite.pm_access ?? false,
       showDemoDataButtons: invite.showDemoDataButtons ?? invite.show_demo_data_buttons ?? false,
     });
     setActiveTab('create'); // keep form visible
@@ -660,6 +833,23 @@ const InviteManagement: React.FC = () => {
                     <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
                         type="checkbox"
+                        checked={editingInvite ? editValues?.pmAccess ?? false : newInvite.pmAccess}
+                        onChange={(e) => editingInvite
+                          ? setEditValues({ ...editValues, pmAccess: e.target.checked })
+                          : setNewInvite({ ...newInvite, pmAccess: e.target.checked })}
+                        disabled={isSendingInvite}
+                        style={{ margin: 0 }}
+                      />
+                      Product Mindset Access
+                    </label>
+                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                      Allow this invite to access Product Mindset workshop content
+                    </small>
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
                         checked={editingInvite ? editValues?.showDemoDataButtons ?? false : newInvite.showDemoDataButtons}
                         onChange={(e) => editingInvite
                           ? setEditValues({ ...editValues, showDemoDataButtons: e.target.checked })
@@ -803,6 +993,9 @@ const InviteManagement: React.FC = () => {
                             </span>
                             <span style={{ ...styles.badge, backgroundColor: (invite.iaAccess ?? invite.ia_access ?? true) ? '#e0f2fe' : '#f3f4f6', color: (invite.iaAccess ?? invite.ia_access ?? true) ? '#1d4ed8' : '#6b7280' }}>
                               IA {invite.iaAccess ?? invite.ia_access ?? true ? 'On' : 'Off'}
+                            </span>
+                            <span style={{ ...styles.badge, backgroundColor: (invite.pmAccess ?? invite.pm_access ?? false) ? '#ccfbf1' : '#f3f4f6', color: (invite.pmAccess ?? invite.pm_access ?? false) ? '#115e59' : '#6b7280' }}>
+                              PM {invite.pmAccess ?? invite.pm_access ?? false ? 'On' : 'Off'}
                             </span>
                           </div>
                         </td>
@@ -1245,6 +1438,7 @@ export default function AdminDashboardWorkshop() {
             { id: 'invites', label: 'Invites', icon: Mail },
             { id: 'videos', label: 'Videos', icon: Video, adminOnly: true },
             { id: 'ai', label: 'AI', icon: Bot },
+            { id: 'pods', label: 'Pods', icon: Database, adminOnly: true },
             { id: 'feedback', label: 'Feedback', icon: null }
           ].map((tab) => (
             <button
@@ -1333,6 +1527,7 @@ export default function AdminDashboardWorkshop() {
                 </div>
               </div>
             )}
+            {activeTab === 'pods' && isAdmin && <VaultSyncPanel />}
             {activeTab === 'feedback' && <FeedbackManagement />}
           </Suspense>
         </div>

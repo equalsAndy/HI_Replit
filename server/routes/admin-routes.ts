@@ -212,6 +212,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       contentAccess: z.enum(['student', 'professional', 'both']).optional(),
       astAccess: z.boolean().optional(),
       iaAccess: z.boolean().optional(),
+      pmAccess: z.boolean().optional(),
       isTestUser: z.boolean().optional(),
       isDemoAccount: z.boolean().optional(),
       isBetaTester: z.boolean().optional(),
@@ -992,7 +993,7 @@ router.post('/demo-accounts/restore/ast', requireAuth, async (req: Request, res:
 
     // Verify user is a demo account
     const user = await userManagementService.getUserById(userId);
-    if (!user?.isDemoAccount) {
+    if (!(user as any)?.isDemoAccount) {
       return res.status(403).json({
         success: false,
         error: 'Only demo accounts can reset their workshop data'

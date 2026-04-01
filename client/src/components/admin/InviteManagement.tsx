@@ -82,6 +82,8 @@ interface Invite {
   astAccess?: boolean;
   ia_access?: boolean;
   iaAccess?: boolean;
+  pm_access?: boolean;
+  pmAccess?: boolean;
   show_demo_data_buttons?: boolean;
   showDemoDataButtons?: boolean;
   [key: string]: any; // Allow additional properties for flexibility
@@ -690,6 +692,7 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Test User</TableHead>
                       <TableHead>AST</TableHead>
                       <TableHead>IA</TableHead>
+                      <TableHead>PM</TableHead>
                       <TableHead>Demo</TableHead>
                       <TableHead>Organization</TableHead>
                       <TableHead>Cohort</TableHead>
@@ -768,6 +771,15 @@ export const InviteManagement: React.FC = () => {
                         <TableCell className="text-center">
                           {invite.ia_access || invite.iaAccess ? (
                             <Badge variant="outline" className="bg-purple-50 text-purple-800 border-purple-200">
+                              ✓
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">✗</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {invite.pm_access || invite.pmAccess ? (
+                            <Badge variant="outline" className="bg-teal-50 text-teal-800 border-teal-200">
                               ✓
                             </Badge>
                           ) : (

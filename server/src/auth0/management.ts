@@ -26,7 +26,7 @@ export async function getMgmtToken(): Promise<string> {
     })
   });
   if (!r.ok) throw new Error(`mgmt token failed: ${r.status}`);
-  const j = await r.json();
+  const j = await r.json() as { access_token: string; expires_in: number };
   cachedToken = { access_token: j.access_token, expires_at: now + (j.expires_in || 3600) };
   return cachedToken.access_token;
 }
@@ -37,7 +37,24 @@ export async function deleteAuth0User(userId: string): Promise<Response> {
   return fetch(`https://${TENANT}/api/v2/users/${encodeURIComponent(userId)}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` }
-  });
+  }) as any;
+}
+
+/** Look up an Auth0 user by email. Returns the first match or null. */
+export async function getAuth0UserByEmail(email: string): Promise<{ user_id: string; email: string } | null> {
+  if (!TENANT || !CLIENT_ID || !CLIENT_SECRET) return null;
+  try {
+    const token = await getMgmtToken();
+    const r = await fetch(
+      `https://${TENANT}/api/v2/users-by-email?email=${encodeURIComponent(email)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!r.ok) return null;
+    const users = await r.json() as Array<{ user_id: string; email: string }>;
+    return users.length > 0 ? users[0] : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Create a database user in Auth0 via Management API */

@@ -174,8 +174,9 @@ function generateComprehensiveReportHTML(data: any): string {
   const stepByStep = data.assessments?.stepByStepReflection || {};
   const roundingOut = data.assessments?.roundingOutReflection || {};
   // futureSelfReflection fields deprecated; intentionally omitted
+  const futureSelf = {};
   const finalReflection = data.assessments?.finalReflection || {};
-  
+
   const userName = data.user?.name || 'Participant';
   const userTitle = data.user?.jobTitle || '';
   const userOrg = data.user?.organization || '';

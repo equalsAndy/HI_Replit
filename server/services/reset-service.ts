@@ -116,8 +116,8 @@ export class ResetService {
               // Delete PDF file if it exists
               if (report.pdf_file_path) {
                 try {
-                  await fs.access(report.pdf_file_path);
-                  await fs.unlink(report.pdf_file_path);
+                  await fs.access(report.pdf_file_path as string);
+                  await fs.unlink(report.pdf_file_path as string);
                   console.log(`  ✓ Deleted PDF file: ${report.pdf_file_path}`);
                 } catch (err) {
                   // File doesn't exist or can't be accessed - that's fine
@@ -128,8 +128,8 @@ export class ResetService {
               // Delete star card image file if it exists (and it's specific to this report)
               if (report.star_card_image_path) {
                 try {
-                  await fs.access(report.star_card_image_path);
-                  await fs.unlink(report.star_card_image_path);
+                  await fs.access(report.star_card_image_path as string);
+                  await fs.unlink(report.star_card_image_path as string);
                   console.log(`  ✓ Deleted star card image: ${report.star_card_image_path}`);
                 } catch (err) {
                   // File doesn't exist or can't be accessed - that's fine

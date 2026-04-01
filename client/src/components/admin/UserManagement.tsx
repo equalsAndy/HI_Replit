@@ -54,6 +54,7 @@ interface User {
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;
   iaAccess: boolean;
+  pmAccess: boolean;
   progress?: number;
   hasAssessment?: boolean;
   hasStarCard?: boolean;
@@ -98,6 +99,7 @@ const editUserSchema = z.object({
   contentAccess: z.enum(['student', 'professional', 'both']),
   astAccess: z.boolean(),
   iaAccess: z.boolean(),
+  pmAccess: z.boolean(),
   isTestUser: z.boolean(),
   isDemoAccount: z.boolean().default(false),
   isBetaTester: z.boolean().default(false),
@@ -324,6 +326,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       contentAccess: 'professional',
       astAccess: true,
       iaAccess: true,
+      pmAccess: false,
       isTestUser: false,
       isDemoAccount: false,
       isBetaTester: false,
@@ -347,6 +350,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
         editForm.setValue('contentAccess', 'both');
         editForm.setValue('astAccess', true);
         editForm.setValue('iaAccess', true);
+        editForm.setValue('pmAccess', true);
       } else if (watchedRole === 'facilitator') {
         if (currentValues.contentAccess !== 'student' && 
             currentValues.contentAccess !== 'professional' && 
@@ -877,6 +881,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       contentAccess: user.contentAccess || 'professional',
       astAccess: user.astAccess !== undefined ? user.astAccess : true,
       iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
+      pmAccess: user.pmAccess !== undefined ? user.pmAccess : false,
       isTestUser: user.isTestUser || false,
       isDemoAccount: user.isDemoAccount || false,
       isBetaTester: user.isBetaTester || false,
@@ -2175,6 +2180,28 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 <FormLabel className="text-sm">Imaginal Agility Workshop</FormLabel>
                                 <FormDescription className="text-xs">
                                   Access to individual development and agility training workshop
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  disabled={watchedRole === 'admin'} // Admins always have access
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={editForm.control}
+                          name="pmAccess"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-sm">Product Mindset Workshop</FormLabel>
+                                <FormDescription className="text-xs">
+                                  Access to product thinking and strategic decision-making workshop
                                 </FormDescription>
                               </div>
                               <FormControl>

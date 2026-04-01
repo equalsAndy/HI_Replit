@@ -56,7 +56,7 @@ const WORKSHOP_CONFIGS = {
   }
 };
 
-export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' = 'ast') {
+export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' | 'pm' = 'ast') {
   const config = WORKSHOP_CONFIGS[workshop];
   const allSteps = [...config.progressiveSteps, ...config.unlockAllSteps];
   

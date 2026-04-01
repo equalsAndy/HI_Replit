@@ -68,6 +68,7 @@ export const cohorts = pgTable('cohorts', {
   organizationId: uuid('organization_id').references(() => organizations.id, { onDelete: 'set null' }),
   astAccess: boolean('ast_access').default(false).notNull(),
   iaAccess: boolean('ia_access').default(false).notNull(),
+  pmAccess: boolean('pm_access').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -111,6 +112,9 @@ export const users: any = pgTable('users', {
   iaWorkshopCompleted: boolean('ia_workshop_completed').default(false).notNull(),
   astCompletedAt: timestamp('ast_completed_at'),
   iaCompletedAt: timestamp('ia_completed_at'),
+  pmAccess: boolean('pm_access').default(false).notNull(), // Product Mindset workshop access
+  pmWorkshopCompleted: boolean('pm_workshop_completed').default(false).notNull(),
+  pmCompletedAt: timestamp('pm_completed_at'),
   // Facilitator console fields
   assignedFacilitatorId: integer('assigned_facilitator_id'),
   cohortId: integer('cohort_id'),
@@ -138,6 +142,8 @@ export const insertUserSchema = createInsertSchema(users).extend({
   iaAccess: z.boolean().default(true),
   astWorkshopCompleted: z.boolean().default(false),
   iaWorkshopCompleted: z.boolean().default(false),
+  pmAccess: z.boolean().default(false),
+  pmWorkshopCompleted: z.boolean().default(false),
   canTrainTalia: z.boolean().default(false)
 });
 
@@ -235,6 +241,7 @@ export const invites = pgTable('invites', {
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   astAccess: boolean('ast_access').default(true).notNull(),
   iaAccess: boolean('ia_access').default(true).notNull(),
+  pmAccess: boolean('pm_access').default(false).notNull(),
   showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(),
 });
 
@@ -409,7 +416,7 @@ export type InsertUserDiscernmentProgress = z.infer<typeof insertUserDiscernment
 export const navigationProgress = pgTable('navigation_progress', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull(),
-  appType: varchar('app_type', { length: 10 }).notNull(), // 'ast' or 'ia'
+  appType: varchar('app_type', { length: 10 }).notNull(), // 'ast', 'ia', or 'pm'
   completedSteps: text('completed_steps').notNull(), // JSON array of step IDs
   currentStepId: varchar('current_step_id', { length: 20 }).notNull(),
   unlockedSteps: text('unlocked_steps').notNull(), // JSON array of step IDs
@@ -423,7 +430,7 @@ export const navigationProgress = pgTable('navigation_progress', {
 export const workshopStepData = pgTable('workshop_step_data', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  workshopType: varchar('workshop_type', { length: 10 }).notNull(), // 'ast' or 'ia'
+  workshopType: varchar('workshop_type', { length: 10 }).notNull(), // 'ast', 'ia', or 'pm'
   stepId: varchar('step_id', { length: 20 }).notNull(), // e.g., 'ia-3-4', '2-1'
   data: jsonb('data').notNull(), // Flexible JSON storage for any step data
   version: integer('version').default(1).notNull(), // For future versioning support
@@ -675,7 +682,7 @@ export type InsertCoachingPrompt = z.infer<typeof insertCoachingPromptSchema>;
 export const feedback = pgTable('feedback', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }), // Allow anonymous feedback
-  workshopType: varchar('workshop_type', { length: 20 }).notNull(), // 'ast' or 'ia'
+  workshopType: varchar('workshop_type', { length: 20 }).notNull(), // 'ast', 'ia', or 'pm'
   pageContext: varchar('page_context', { length: 20 }).notNull(), // 'current', 'other', 'general'
   targetPage: varchar('target_page', { length: 100 }), // Specific page name or null for general
   feedbackType: varchar('feedback_type', { length: 20 }).notNull(), // 'bug', 'feature', 'content', 'general'
@@ -698,7 +705,7 @@ export const feedback = pgTable('feedback', {
 
 // Create insert schema for feedback
 export const insertFeedbackSchema = createInsertSchema(feedback).extend({
-  workshopType: z.enum(['ast', 'ia']),
+  workshopType: z.enum(['ast', 'ia', 'pm']),
   pageContext: z.enum(['current', 'other', 'general']),
   feedbackType: z.enum(['bug', 'feature', 'content', 'general']),
   priority: z.enum(['low', 'medium', 'high', 'blocker']).default('low'),
@@ -720,3 +727,28 @@ export const exerciseTrainingDocs = pgTable('exercise_training_docs', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   updatedBy: integer('updated_by').references(() => users.id),
 });
+
+// Vault accounts table — maps AST users to SelfActual Solid Pod URLs
+export const vaultAccounts = pgTable('vault_accounts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  auth0Sub: varchar('auth0_sub', { length: 255 }),
+  podUsername: varchar('pod_username', { length: 255 }),
+  masterPodUrl: varchar('master_pod_url', { length: 500 }),
+  subPodUrl: varchar('sub_pod_url', { length: 500 }),
+  provisioningStatus: varchar('provisioning_status', { length: 50 }).notNull().default('pending'),
+  lastError: text('last_error'),
+  lastSyncedAt: timestamp('last_synced_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdUnique: unique().on(table.userId),
+  userIdIdx: index('idx_vault_accounts_user_id').on(table.userId),
+}));
+
+// Create insert schema for vault accounts
+export const insertVaultAccountSchema = createInsertSchema(vaultAccounts);
+
+// Type definitions for vault accounts
+export type VaultAccount = typeof vaultAccounts.$inferSelect;
+export type InsertVaultAccount = z.infer<typeof insertVaultAccountSchema>;

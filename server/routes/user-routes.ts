@@ -32,7 +32,7 @@ const upload = multer({
 router.get('/me', async (req, res) => {
   try {
     // Log session data safely (sanitized to avoid base64 profile pictures)
-    const sessionCopy = { ...req.session };
+    const sessionCopy = { ...req.session } as any;
     if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
       sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
     }
@@ -40,9 +40,9 @@ router.get('/me', async (req, res) => {
     console.log('Me request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie
-    let userId = req.session?.userId;
+    let userId = (req.session as any)?.userId;
 
-    console.log('Session userId:', req.session?.userId);
+    console.log('Session userId:', (req.session as any)?.userId);
     console.log('Cookie userId:', req.cookies?.userId);
 
     // Only use cookie as fallback if no session exists
@@ -112,7 +112,7 @@ router.get('/me', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     // Log session data safely (sanitized to avoid base64 profile pictures)
-    const sessionCopy = { ...req.session };
+    const sessionCopy = { ...req.session } as any;
     if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
       sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
     }
@@ -120,9 +120,9 @@ router.get('/profile', async (req, res) => {
     console.log('Profile request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie
-    let userId = req.session?.userId;
+    let userId = (req.session as any)?.userId;
 
-    console.log('Session userId:', req.session?.userId);
+    console.log('Session userId:', (req.session as any)?.userId);
     console.log('Cookie userId:', req.cookies?.userId);
 
     // Only use cookie as fallback if no session exists
@@ -383,7 +383,7 @@ router.post('/assessments', requireAuth, async (req, res) => {
  */
 router.get('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -417,7 +417,7 @@ router.get('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.post('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -606,7 +606,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error(`Error updating navigation progress for user ${req.session?.userId}:`, error);
+    console.error(`Error updating navigation progress for user ${(req.session as any)?.userId}:`, error);
     res.status(500).json({
       success: false,
       error: 'Failed to update navigation progress. Please try again later.'
@@ -619,7 +619,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -675,7 +675,7 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error(`Error updating navigation progress for user ${req.session?.userId}:`, error);
+    console.error(`Error updating navigation progress for user ${(req.session as any)?.userId}:`, error);
     res.status(500).json({
       success: false,
       error: 'Failed to update navigation progress. Please try again later.'
@@ -688,7 +688,7 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -725,7 +725,7 @@ router.put('/progress', requireAuth, async (req, res) => {
 router.post('/upload-photo', upload.single('photo'), async (req, res) => {
   try {
     // Check session or cookie authentication
-    let userId = req.session?.userId;
+    let userId = (req.session as any)?.userId;
 
     if (!userId && req.cookies?.userId) {
       userId = parseInt(req.cookies.userId);
@@ -1124,7 +1124,7 @@ router.post('/reset-data', requireAuth, async (req, res) => {
  */
 router.post('/content-access', requireAuth, async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -1165,7 +1165,7 @@ router.post('/content-access', requireAuth, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error(`Error updating content access for user ${req.session?.userId}:`, error);
+    console.error(`Error updating content access for user ${(req.session as any)?.userId}:`, error);
     res.status(500).json({
       success: false,
       error: 'Failed to update interface preference. Please try again later.'

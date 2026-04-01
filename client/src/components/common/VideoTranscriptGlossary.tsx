@@ -249,7 +249,7 @@ export default function VideoTranscriptGlossary({
                 <h3 className="text-lg font-semibold text-purple-900 mb-2">Video Coming Soon</h3>
                 <p className="text-sm text-purple-700">
                   The video for this lesson is being prepared.
-                  {showTranscriptTab && ' In the meantime, check out the transcript tab for the full content.'}
+                  {showTranscriptTab && ' In the meantime, switch to the Read tab for the full content.'}
                 </p>
               </div>
             );

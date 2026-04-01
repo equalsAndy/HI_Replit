@@ -151,7 +151,7 @@ router.put('/config/:featureName', requireAdmin, async (req, res) => {
       });
     }
 
-    console.log(`✅ AI configuration updated for ${featureName} by admin ${req.session?.userId}`);
+    console.log(`✅ AI configuration updated for ${featureName} by admin ${(req.session as any)?.userId}`);
 
     res.json({
       success: true,
@@ -290,7 +290,7 @@ router.get('/usage/logs', requireAdmin, async (req, res) => {
  */
 router.post('/emergency-disable', requireAdmin, async (req, res) => {
   try {
-    const adminUserId = req.session?.userId;
+    const adminUserId = (req.session as any)?.userId;
     
     // Disable all AI features
     await pool.query(
@@ -448,7 +448,7 @@ router.get('/training-docs/:id', requireAdmin, async (req, res) => {
  */
 router.delete('/training-docs/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const adminUserId = req.session?.userId;
+  const adminUserId = (req.session as any)?.userId;
 
   try {
     // Start transaction
@@ -535,7 +535,7 @@ router.get('/personas', requireAdmin, async (req, res) => {
 router.post('/beta-testers/:userId', requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { grant } = req.body; // true to grant, false to revoke
-  const adminUserId = req.session?.userId;
+  const adminUserId = (req.session as any)?.userId;
 
   try {
     if (grant) {
@@ -725,8 +725,8 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
       const { photoStorageService } = await import('../services/photo-storage-service.js');
       const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
       
-      if (starCardImage && starCardImage.imageData) {
-        starCardImageBase64 = starCardImage.imageData;
+      if (starCardImage && (starCardImage as any).imageData) {
+        starCardImageBase64 = (starCardImage as any).imageData;
         console.log('✅ Found StarCard image for report integration');
       } else {
         console.log('⚠️ No StarCard image found for this user');
@@ -761,12 +761,12 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
     
     console.log('🔍 DEBUG: Admin route - Assessment result rows:', assessmentResult.rows.map(r => ({ type: r.assessment_type, hasResults: !!r.results })));
     console.log('🔍 DEBUG: Admin route - User context data structure:', {
-      userName: userContextData.userName || 'N/A',
+      userName: (userContextData as any).userName || 'N/A',
       hasStrengths: !!userContextData.strengths,
       hasReflections: !!userContextData.reflections,
       hasFlowData: !!userContextData.flowData,
-      assessmentCount: Array.isArray(userContextData.assessments) ? userContextData.assessments.length : 0,
-      stepDataCount: Array.isArray(userContextData.stepData) ? userContextData.stepData.length : 0
+      assessmentCount: Array.isArray((userContextData as any).assessments) ? (userContextData as any).assessments.length : 0,
+      stepDataCount: Array.isArray((userContextData as any).stepData) ? (userContextData as any).stepData.length : 0
     });
     
     // Get optimal training prompt using pgvector search
@@ -997,6 +997,7 @@ router.put('/training-docs/:id', requireAdmin, async (req, res) => {
 
     // Reinitialize vector service to pick up changes
     try {
+      // @ts-expect-error Module was removed — this import fails gracefully via try/catch
       const { javascriptVectorService } = await import('../services/javascript-vector-service.js');
       await javascriptVectorService.initialize();
       console.log('🔄 Vector service reinitialized with updated document');
@@ -1043,15 +1044,11 @@ router.post('/fix-talia-prompts', requireAdmin, async (req, res) => {
     
     res.json({
       success: true,
-      message: 'Talia prompt documents fixed successfully',
-      documentsCreated: createdDocIds.length,
-      documentsEnabled: promptDocIds.length,
-      enabledDocuments: updatedEnabledDocs,
-      promptDocuments: allPromptDocs.rows.map(doc => ({
-        id: doc.id,
-        title: doc.title,
-        enabled: updatedEnabledDocs.includes(doc.id.toString())
-      }))
+      message: 'Talia prompt documents are now managed via persona interface',
+      documentsCreated: 0,
+      documentsEnabled: 0,
+      enabledDocuments: [],
+      promptDocuments: []
     });
     
   } catch (error) {
@@ -1144,7 +1141,7 @@ router.get('/persona-documents', requireAdmin, async (req, res) => {
     const documentsWithPersonaInfo = result.rows.map(doc => ({
       ...doc,
       assignedToPersonas: Object.entries(personaDocuments)
-        .filter(([_, docIds]) => docIds.includes(doc.id))
+        .filter(([_, docIds]) => (docIds as string[]).includes(doc.id))
         .map(([personaId]) => personaId),
       isProcessed: doc.chunk_count > 0,
       lastUpdated: doc.updated_at,
@@ -1246,7 +1243,7 @@ router.put('/training-data/:personaId', requireAdmin, async (req, res) => {
     const trainingFilePath = path.join(process.cwd(), 'storage', 'talia-training.json');
     
     // Load full training file
-    let fullTrainingData = {};
+    let fullTrainingData: Record<string, any> = {};
     try {
       const existingData = await fs.readFile(trainingFilePath, 'utf-8');
       fullTrainingData = JSON.parse(existingData);
@@ -1316,7 +1313,7 @@ router.post('/training-data/:personaId/toggle', requireAdmin, async (req, res) =
     const trainingFilePath = path.join(process.cwd(), 'storage', 'talia-training.json');
     
     // Load full training file
-    let fullTrainingData = {};
+    let fullTrainingData: Record<string, any> = {};
     try {
       const existingData = await fs.readFile(trainingFilePath, 'utf-8');
       fullTrainingData = JSON.parse(existingData);

@@ -455,7 +455,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
                     <ul className="pl-7 space-y-1 relative">
 
-                    {section.steps.map((step, stepIndex) => {
+                    {section.steps.filter((step: any) => !step.hidden).map((step, stepIndex) => {
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface ProgressiveNavigationSidebarProps {
-  appType?: 'ast' | 'ia';
+  appType?: 'ast' | 'ia' | 'pm';
   customSections?: any[];
   onStepClick?: (sectionId: string, stepId: string) => void;
 }
@@ -143,7 +143,7 @@ export function ProgressiveNavigationSidebar({
 
             {/* Section Steps */}
             <div className="p-2 space-y-1">
-              {section.steps.map((step: any) => {
+              {section.steps.filter((step: any) => !step.hidden).map((step: any) => {
                 const visualState = getStepVisualState(step.id);
                 const unlocked = isStepUnlocked(step.id);
 

@@ -5,7 +5,7 @@ import { useNavigationProgress } from './use-navigation-progress';
  * Integration hook that bridges the old navigation system with the new progression system
  * This allows for gradual migration while maintaining backward compatibility
  */
-export function useProgressiveNavigation(appType: 'ast' | 'ia' = 'ast') {
+export function useProgressiveNavigation(appType: 'ast' | 'ia' | 'pm' = 'ast') {
   // New progression system
   const progressiveSystem = useStepProgression(appType);
   

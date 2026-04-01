@@ -1,5 +1,5 @@
 import { db } from '../db.ts';
-import { users } from '../../shared/schema.ts';
+import { users, vaultAccounts } from '../../shared/schema.ts';
 import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { convertUserToPhotoReference, processProfilePicture, sanitizeUserForNetwork } from '../utils/user-photo-utils.ts';
@@ -37,6 +37,7 @@ class UserManagementService {
     isBetaTester?: boolean;
     astAccess?: boolean;
     iaAccess?: boolean;
+    pmAccess?: boolean;
     showDemoDataButtons?: boolean;
     contentAccess?: 'student' | 'professional' | 'both';
   }) {
@@ -47,7 +48,7 @@ class UserManagementService {
 
       // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, show_demo_data_buttons, invited_by, created_at, updated_at)
+        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, invited_by, created_at, updated_at)
         VALUES (
           ${data.username},
           ${hashedPassword},
@@ -61,6 +62,7 @@ class UserManagementService {
           ${data.contentAccess || 'professional'},
           ${data.astAccess ?? true},
           ${data.iaAccess ?? true},
+          ${data.pmAccess ?? false},
           ${data.showDemoDataButtons ?? false},
           ${data.invitedBy || null},
           NOW(),
@@ -155,7 +157,7 @@ class UserManagementService {
       console.log('🔍 User object keys:', user ? Object.keys(user) : 'None');
       
       // Verify the password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await bcrypt.compare(password, user.password as string);
       
       if (!isPasswordValid) {
         return {
@@ -268,6 +270,7 @@ class UserManagementService {
     contentAccess?: 'student' | 'professional' | 'both';
     astAccess?: boolean;
     iaAccess?: boolean;
+    pmAccess?: boolean;
     password?: string | null;
     auth0Sub?: string | null;
   }) {
@@ -299,6 +302,7 @@ class UserManagementService {
       if (data.contentAccess !== undefined) updateData.contentAccess = data.contentAccess;
       if (data.astAccess !== undefined) updateData.astAccess = data.astAccess;
       if (data.iaAccess !== undefined) updateData.iaAccess = data.iaAccess;
+      if (data.pmAccess !== undefined) updateData.pmAccess = data.pmAccess;
       
       let temporaryPassword = null;
       
@@ -595,6 +599,7 @@ class UserManagementService {
           contentAccess: user.contentAccess,
           astAccess: user.astAccess,
           iaAccess: user.iaAccess,
+          pmAccess: user.pmAccess,
           invitedBy: user.invitedBy,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
@@ -1125,7 +1130,7 @@ class UserManagementService {
           FROM report_sections
           WHERE user_id = ${userId}
         `);
-        deletedSections = countResult[0]?.count || 0;
+        deletedSections = (countResult[0]?.count as number) || 0;
         const payloadCount = countResult[0]?.payload_count || 0;
 
         if (deletedSections > 0) {
@@ -1142,7 +1147,7 @@ class UserManagementService {
       try {
         // First count how many exist
         const countReports = await db.execute(sql`SELECT COUNT(*) as count FROM holistic_reports WHERE user_id = ${userId}`);
-        deletedReports = countReports[0]?.count || 0;
+        deletedReports = (countReports[0]?.count as number) || 0;
 
         if (deletedReports > 0) {
           await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
@@ -1291,6 +1296,22 @@ class UserManagementService {
       const { eq } = await import('drizzle-orm');
       const { sql } = await import('drizzle-orm');
 
+      // Block deletion if user has a SelfActual vault — vault records must survive
+      const vaultRecord = await db
+        .select()
+        .from(vaultAccounts)
+        .where(eq(vaultAccounts.userId, userId))
+        .limit(1);
+
+      if (vaultRecord.length > 0) {
+        const podUrl = vaultRecord[0].masterPodUrl || 'unknown';
+        console.error(`Cannot delete user ${userId}: active SelfActual vault exists (pod: ${podUrl})`);
+        return {
+          success: false,
+          error: `Cannot delete user ${userId}: active SelfActual vault exists (pod: ${podUrl}). Vault must be deprovisioned first.`
+        };
+      }
+
       // Get user's Auth0 ID before deletion
       const userResult = await db.execute(sql`SELECT auth0_sub FROM users WHERE id = ${userId}`);
       const auth0Sub = userResult[0]?.auth0_sub;
@@ -1298,26 +1319,11 @@ class UserManagementService {
       // First delete all related data
       await this.deleteUserData(userId);
 
-      // Delete from Auth0 if user has Auth0 ID
+      // Auth0 identity is NOT deleted here. AST and SelfActual share an Auth0 tenant.
+      // Auth0 user lifecycle is managed by SelfActual. Deleting the Auth0 identity from
+      // AST would revoke the user's access to their SelfActual vault.
       if (auth0Sub) {
-        try {
-          const { deleteAuth0User } = await import('../src/auth0/management.js');
-          console.log(`Deleting Auth0 user: ${auth0Sub}`);
-          const auth0Response = await deleteAuth0User(auth0Sub);
-
-          if (!auth0Response.ok) {
-            const errorText = await auth0Response.text();
-            console.warn(`Auth0 deletion failed for ${auth0Sub}: ${errorText}`);
-            // Continue with local deletion even if Auth0 deletion fails
-          } else {
-            console.log(`Successfully deleted Auth0 user: ${auth0Sub}`);
-          }
-        } catch (auth0Error) {
-          console.warn(`Auth0 deletion error for ${auth0Sub}:`, auth0Error);
-          // Continue with local deletion even if Auth0 deletion fails
-        }
-      } else {
-        console.log(`No Auth0 ID found for user ${userId}, skipping Auth0 deletion`);
+        console.log(`[deleteUser] Auth0 identity retained for shared-tenant user: ${auth0Sub}`);
       }
 
       // Then delete the user account itself from local database

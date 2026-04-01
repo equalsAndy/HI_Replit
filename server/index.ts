@@ -31,13 +31,9 @@ import holisticReportDebugRoutes from './routes/holistic-report-debug-routes.ts'
 import adminUploadRoutes from './routes/admin-upload-routes.ts';
 import discernmentRoutes from './routes/discernment-routes.ts';
 import coachingRoutes from './routes/coaching-routes.ts';
-// import coachingChatRoutes from './routes/coaching-chat-routes.ts';
 import featureFlagRoutes from './routes/feature-flag-routes.ts';
 import jiraRoutes from './routes/jira-routes.ts';
 import feedbackRoutes from './routes/feedback-routes.ts';
-// ARCHIVED: RAG pipeline routes (not used by exercise training docs)
-// import trainingDocumentsRoutes from './routes/training-documents-routes.ts';
-// import trainingRoutes from './routes/training-routes.ts';
 import aiManagementRoutes from './routes/ai-management-routes.ts';
 // import personaManagementRoutes from './routes/persona-management-routes.ts'; // Temporarily disabled - causes startup hang
 import betaTesterRoutes from './routes/beta-tester-routes.ts';
@@ -45,20 +41,12 @@ import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.ts';
 import beyondASTRoutes from './routes/beyond-ast-routes.ts';
 import metaliaRoutes from './routes/metalia-routes.ts';
 import growthPlanRoutes from './routes/growth-plan-routes.ts';
-// ARCHIVED: RAG pipeline route (AdminChat backend)
-// import adminChatRoutes from './routes/admin-chat-routes.ts';
-// ARCHIVED: RAG pipeline route (training doc upload to vector stores)
-// import trainingUploadRoutes from './routes/training-upload-routes.ts';
 import iaExerciseInstructionsRoutes from './routes/ia-exercise-instructions-routes.ts';
 import exerciseTrainingDocsRoutes from './routes/exercise-training-docs-routes.ts';
 import videoTranscriptRoutes from './routes/video-transcript-routes.ts';
 import transcriptImageUploadRoutes from './routes/transcript-image-upload.ts';
 import taliaStatusRoutes from './routes/talia-status-routes.ts';
-// ARCHIVED: RAG pipeline route (persona-document sync)
-// import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.ts';
 import assistantTestRoutes from './routes/assistant-test-routes.ts';
-// REMOVED: Vector store admin panel (feature abandoned)
-// import adminAIResourcesRoutes from './routes/admin-ai-resources.ts';
 import iaStepRoutes from './routes/ia-step-routes.ts';
 import aiRoutes from './routes/ai.ts';
 import moduleReflectionRoutes from './routes/module-reflection-routes.ts';
@@ -70,10 +58,11 @@ import auth0Routes from './routes/auth0-routes.ts';
 import astReportRoutes from './routes/ast-reports-routes.ts';
 import astSectionalReportRoutes from './routes/ast-sectional-reports-routes.ts';
 import iaInterestRoutes from './routes/ia-interest-routes.ts';
-import beyondASTRoutes from './routes/beyond-ast-routes.ts';
 import { resetRouter } from './routes/reset-routes.ts';
 import starCardRoutes from './routes/starcard-routes.ts';
 import workshopResponsesRoutes from './routes/workshop-responses-routes.ts';
+import vaultRoutes from './routes/vault-routes.ts';
+import { facilitatorRouter } from './routes/facilitator-routes.ts';
 import { initializeDatabase, db, queryClient } from './db.ts';
 import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
 import { AuthEnvironmentManager } from './config/auth-environment.ts';
@@ -85,7 +74,8 @@ import { createServer } from 'http';
 import { expressjwt as jwt } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 import './src/env';
-import { adminRouter } from './src/routes';
+// Legacy admin hard-delete route removed — Auth0 identity lifecycle is managed by
+// SelfActual, not AST. See server/src/routes/admin.deleteUser.ts (decommissioned).
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -414,7 +404,7 @@ async function initializeApp() {
         '/trpc',
         trpcExpress.createExpressMiddleware({
           router: appRouter,
-          createContext: ({ req }) => ({ db, userId: req.session?.userId }),
+          createContext: ({ req }) => ({ db, userId: (req.session as any)?.userId }),
         })
       );
 
@@ -532,8 +522,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
       app.use('/api/beta-tester', betaTesterNotesRoutes);
       app.use('/api/beyond-ast', beyondASTRoutes);
-      // Admin hard-delete endpoint
-      app.use('/admin', adminRouter);
+      // Legacy admin hard-delete endpoint decommissioned (shared Auth0 tenant)
       app.use('/api/metalia', metaliaRoutes);
   app.use('/api/growth-plan', growthPlanRoutes);
       // AST Report Routes
@@ -545,6 +534,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/reset', resetRouter);
       app.use('/api/starcard', starCardRoutes);
       app.use('/api/workshop-responses', workshopResponsesRoutes);
+      app.use('/api/vault', vaultRoutes);
+      app.use('/api/facilitator', facilitatorRouter);
 
       // PhotoService alias endpoint for StarCard images
       app.get('/api/photoservice/starcard/:userId', (req, res) => {

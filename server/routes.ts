@@ -53,7 +53,7 @@ router.post('/assessments', async (req, res) => {
   let userId: number | null = null;
   let assessmentType: string | undefined;
   try {
-    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = (req.session as any)?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -101,7 +101,7 @@ router.get('/assessments/:type', async (req, res) => {
   let userId: number | null = null;
   const { type } = req.params;
   try {
-    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = (req.session as any)?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -160,7 +160,7 @@ router.get('/assessments/:type', async (req, res) => {
 router.get('/final-reflection', async (req, res) => {
   let userId: number | null = null;
   try {
-    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = (req.session as any)?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -194,7 +194,7 @@ router.get('/final-reflection', async (req, res) => {
 router.post('/final-reflection', async (req, res) => {
   let userId: number | null = null;
   try {
-    userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    userId = (req.session as any)?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({

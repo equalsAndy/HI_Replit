@@ -5,6 +5,7 @@ import * as schema from '../../shared/schema.js';
 import { users } from '../../shared/schema.js';
 import { getFeatureStatus } from '../middleware/feature-flags.js';
 import { authenticateUser, generateAndStoreStarCard } from './workshop-data-shared.js';
+import { syncAll, syncStarCardVisual } from '../services/solid-pod/index.js';
 
 const router = Router();
 
@@ -94,10 +95,10 @@ router.get('/navigation-progress/:appType', async (req: Request, res: Response) 
     if (progress.length === 0) {
       const defaultProgress = {
         completedSteps: [],
-        currentStepId: appType === 'ia' ? 'ia-1-1' : '1-1',
+        currentStepId: appType === 'ia' ? 'ia-1-1' : appType === 'pm' ? 'pm-1-1' : '1-1',
         appType,
         lastVisitedAt: new Date().toISOString(),
-        unlockedSteps: appType === 'ia' ? ['ia-1-1'] : ['1-1'],
+        unlockedSteps: appType === 'ia' ? ['ia-1-1'] : appType === 'pm' ? ['pm-1-1'] : ['1-1'],
         videoProgress: {}
       };
       return res.status(200).json({ success: true, data: defaultProgress });
@@ -169,6 +170,31 @@ router.post('/navigation-progress', async (req: Request, res: Response) => {
       await db.insert(schema.navigationProgress).values(progressData);
     }
 
+    // Trigger pod sync when AST workshop step 3-4 is newly completed
+    if (detectedAppType === 'ast' && completedSteps?.includes('3-4')) {
+      const previousSteps = existingProgress[0]?.completedSteps;
+      const wasPreviouslyCompleted = previousSteps
+        ? JSON.parse(previousSteps).includes('3-4')
+        : false;
+
+      if (!wasPreviouslyCompleted) {
+        console.log(`[solid-pod] AST step 3-4 completed for user ${userId}, triggering pod sync`);
+        syncAll(userId)
+          .then(result => {
+            if (result.written.length > 0) {
+              console.log(`[solid-pod] Synced ${result.written.length} resources for user ${userId}`);
+            }
+            if (result.errors.length > 0) {
+              console.warn(`[solid-pod] ${result.errors.length} sync errors for user ${userId}:`, result.errors);
+            }
+            // Sync StarCard visual after data sync completes
+            return syncStarCardVisual(userId);
+          })
+          .then(r => { if (r?.ok) console.log(`[solid-pod] StarCard visual synced for user ${userId}`); })
+          .catch(err => console.error(`[solid-pod] syncAll/syncStarCardVisual failed for user ${userId}:`, err));
+      }
+    }
+
     return res.status(200).json({ success: true, message: 'Navigation progress saved' });
   } catch (error) {
     console.error('Error saving navigation progress:', error);
@@ -191,8 +217,10 @@ router.get('/completion-status', authenticateUser, async (req: Request, res: Res
     const user = await db.select({
       astWorkshopCompleted: users.astWorkshopCompleted,
       iaWorkshopCompleted: users.iaWorkshopCompleted,
+      pmWorkshopCompleted: users.pmWorkshopCompleted,
       astCompletedAt: users.astCompletedAt,
-      iaCompletedAt: users.iaCompletedAt
+      iaCompletedAt: users.iaCompletedAt,
+      pmCompletedAt: users.pmCompletedAt
     }).from(users).where(eq(users.id, userId)).limit(1);
 
     if (!user[0]) {
@@ -214,8 +242,8 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
     const { appType } = req.body;
     const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
 
-    if (!appType || !['ast', 'ia'].includes(appType)) {
-      return res.status(400).json({ error: 'Invalid app type. Must be "ast" or "ia"' });
+    if (!appType || !['ast', 'ia', 'pm'].includes(appType)) {
+      return res.status(400).json({ error: 'Invalid app type. Must be "ast", "ia", or "pm"' });
     }
 
     const navigationData = await db
@@ -242,7 +270,9 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
     // Note: Step 2-3 was removed from the workshop - no longer required
     const requiredSteps = appType === 'ast'
       ? ['1-1', '1-2', '1-3', '2-1', '2-2', '2-4', '3-1', '3-2', '3-3', '3-4']
-      : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-3-7', 'ia-4-1', 'ia-4-7'];
+      : appType === 'ia'
+      ? ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-3-7', 'ia-4-1', 'ia-4-7']
+      : []; // PM: will be defined when workshop content is built
 
     const allCompleted = requiredSteps.every(step => completedSteps.includes(step));
 
@@ -262,12 +292,12 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
-    if (user[0][completionField as keyof typeof user[0]]) {
+    const completionField = appType === 'ast' ? 'astWorkshopCompleted' : appType === 'ia' ? 'iaWorkshopCompleted' : 'pmWorkshopCompleted';
+    if ((user[0] as any)[completionField]) {
       return res.status(400).json({ error: 'Workshop already completed' });
     }
 
-    const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+    const timestampField = appType === 'ast' ? 'astCompletedAt' : appType === 'ia' ? 'iaCompletedAt' : 'pmCompletedAt';
     const completedAt = new Date();
 
     await db.update(users)
@@ -286,6 +316,21 @@ router.post('/complete-workshop', authenticateUser, async (req: Request, res: Re
         console.error(`⚠️ Failed to generate StarCard for user ${userId}:`, starCardError);
         // Don't fail the workshop completion, just log the error
       }
+
+      // Fire-and-forget: sync all user data to Solid Pod via gateway
+      syncAll(userId)
+        .then(result => {
+          if (result.written.length > 0) {
+            console.log(`[solid-pod] Synced ${result.written.length} resources for user ${userId}`);
+          }
+          if (result.errors.length > 0) {
+            console.warn(`[solid-pod] ${result.errors.length} sync errors for user ${userId}:`, result.errors);
+          }
+          // Sync StarCard visual after data sync completes
+          return syncStarCardVisual(userId);
+        })
+        .then(r => { if (r?.ok) console.log(`[solid-pod] StarCard visual synced for user ${userId}`); })
+        .catch(err => console.error(`[solid-pod] syncAll/syncStarCardVisual failed for user ${userId}:`, err));
     }
 
     res.json({

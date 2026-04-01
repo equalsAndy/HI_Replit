@@ -54,13 +54,13 @@ const DOCUMENT_NAME_MAPPING = {
 };
 
 // Helper function to get document name from UUID
-function getDocumentName(uuid) {
-  return DOCUMENT_NAME_MAPPING[uuid] || `Document ${uuid.substring(0, 8)}...`;
+function getDocumentName(uuid: string) {
+  return (DOCUMENT_NAME_MAPPING as Record<string, string>)[uuid] || `Document ${uuid.substring(0, 8)}...`;
 }
 
 // Helper function to enhance personas with readable document names
-function enhancePersonasWithDocumentNames(personas) {
-  return personas.map(persona => ({
+function enhancePersonasWithDocumentNames(personas: any[]) {
+  return personas.map((persona: any) => ({
     ...persona,
     trainingDocumentNames: persona.trainingDocuments?.map(getDocumentName) || [],
     requiredDocumentNames: persona.requiredDocuments?.map(getDocumentName) || []

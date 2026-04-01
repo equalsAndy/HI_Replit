@@ -24,10 +24,13 @@ export interface UserWithPhotoReference {
   contentAccess: string;
   astAccess: boolean;
   iaAccess: boolean;
+  pmAccess: boolean;
   astWorkshopCompleted: boolean;
   iaWorkshopCompleted: boolean;
+  pmWorkshopCompleted: boolean;
   astCompletedAt?: Date;
   iaCompletedAt?: Date;
+  pmCompletedAt?: Date;
   assignedFacilitatorId?: number;
   cohortId?: number;
   teamId?: number;
@@ -58,10 +61,13 @@ export function convertUserToPhotoReference(user: any): UserWithPhotoReference {
     contentAccess: user.content_access || user.contentAccess || 'professional',
     astAccess: user.ast_access || user.astAccess || true,
     iaAccess: user.ia_access || user.iaAccess || false,
+    pmAccess: user.pm_access || user.pmAccess || false,
     astWorkshopCompleted: user.ast_workshop_completed || user.astWorkshopCompleted || false,
     iaWorkshopCompleted: user.ia_workshop_completed || user.iaWorkshopCompleted || false,
+    pmWorkshopCompleted: user.pm_workshop_completed || user.pmWorkshopCompleted || false,
     astCompletedAt: user.ast_completed_at || user.astCompletedAt,
     iaCompletedAt: user.ia_completed_at || user.iaCompletedAt,
+    pmCompletedAt: user.pm_completed_at || user.pmCompletedAt,
     assignedFacilitatorId: user.assigned_facilitator_id || user.assignedFacilitatorId,
     cohortId: user.cohort_id || user.cohortId,
     teamId: user.team_id || user.teamId,

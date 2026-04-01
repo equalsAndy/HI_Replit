@@ -182,7 +182,7 @@ Respond as Talia in training mode:`;
         personaType: 'training_mode',
         userName: 'trainer',
         contextData: { trainingMode: true },
-        userId: session.userId,
+        userId: parseInt(session.userId) || 0,
         sessionId: session.id,
         maxTokens: 300
       });
@@ -350,10 +350,10 @@ This training will now be part of my permanent knowledge and will help me provid
 
     return `TRAINING CONTEXT (from admin training sessions):
 Recent Training Guidelines:
-${guidelines.map((g, i) => `${i + 1}. ${g}`).join('\n')}
+${guidelines.map((g: any, i: number) => `${i + 1}. ${g}`).join('\n')}
 
 Recent Training Topics:
-${recentSessions.map(s => `- ${s.topic}: ${s.desiredBehavior.substring(0, 100)}...`).join('\n')}
+${recentSessions.map((s: any) => `- ${s.topic}: ${s.desiredBehavior.substring(0, 100)}...`).join('\n')}
 
 Apply this training context to improve your coaching responses.`;
   }
@@ -412,7 +412,7 @@ No training conversations have been recorded yet for this persona.
 
     // Show last 10 training sessions with details
     const recentSessions = trainingData.trainingSessions.slice(-10).reverse();
-    recentSessions.forEach((session, index) => {
+    recentSessions.forEach((session: any, index: number) => {
       historyDoc += `
 ### Session ${totalSessions - index} - ${new Date(session.timestamp).toLocaleDateString()}
 **Topic:** ${session.topic}
@@ -421,10 +421,10 @@ No training conversations have been recorded yet for this persona.
 **Examples Provided:** ${session.examples.length}
 
 **Key Guidelines:**
-${session.guidelines.map((g, i) => `${i + 1}. ${g}`).join('\n')}
+${session.guidelines.map((g: any, i: number) => `${i + 1}. ${g}`).join('\n')}
 
 **Training Examples:**
-${session.examples.map((e, i) => `${i + 1}. "${e.substring(0, 200)}${e.length > 200 ? '...' : ''}"`).join('\n')}
+${session.examples.map((e: any, i: number) => `${i + 1}. "${e.substring(0, 200)}${e.length > 200 ? '...' : ''}"`).join('\n')}
 
 ---
 `;
@@ -435,7 +435,7 @@ ${session.examples.map((e, i) => `${i + 1}. "${e.substring(0, 200)}${e.length > 
 ## All Current Guidelines
 These are the accumulated guidelines from all training sessions:
 
-${trainingData.guidelines.slice(-20).map((g, i) => `${i + 1}. ${g}`).join('\n')}
+${trainingData.guidelines.slice(-20).map((g: any, i: number) => `${i + 1}. ${g}`).join('\n')}
 
 ## Training Impact
 This training data is automatically integrated into Talia's responses to:
@@ -477,14 +477,14 @@ Currently, no specific training has been recorded for ${personaId}. Reports will
     }
 
     // Analyze training data for report-relevant insights
-    const reportRelevantSessions = trainingData.trainingSessions.filter(session => 
+    const reportRelevantSessions = trainingData.trainingSessions.filter((session: any) => 
       session.topic.toLowerCase().includes('report') || 
       session.desiredBehavior.toLowerCase().includes('report') ||
       session.desiredBehavior.toLowerCase().includes('coaching') ||
       session.desiredBehavior.toLowerCase().includes('analysis')
     );
 
-    const reportGuidelines = trainingData.guidelines.filter(guideline =>
+    const reportGuidelines = trainingData.guidelines.filter((guideline: any) =>
       guideline.toLowerCase().includes('report') ||
       guideline.toLowerCase().includes('analysis') ||
       guideline.toLowerCase().includes('insight') ||
@@ -503,7 +503,7 @@ Currently, no specific training has been recorded for ${personaId}. Reports will
 `;
 
     if (reportRelevantSessions.length > 0) {
-      reportRelevantSessions.forEach((session, index) => {
+      reportRelevantSessions.forEach((session: any, index: number) => {
         influenceDoc += `
 **Training Session ${index + 1}:** ${session.topic}
 - Focus: ${session.desiredBehavior.substring(0, 150)}...
@@ -518,7 +518,7 @@ Currently, no specific training has been recorded for ${personaId}. Reports will
 
     influenceDoc += `
 ### Report Generation Guidelines from Training
-${reportGuidelines.length > 0 ? reportGuidelines.map((g, i) => `${i + 1}. ${g}`).join('\n') : '*No specific report guidelines yet*'}
+${reportGuidelines.length > 0 ? reportGuidelines.map((g: any, i: number) => `${i + 1}. ${g}`).join('\n') : '*No specific report guidelines yet*'}
 
 ### How Training Improves Reports
 1. **Tone and Style:** Training feedback shapes the coaching voice used in reports

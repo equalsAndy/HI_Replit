@@ -227,7 +227,7 @@ PARTICIPANT CONTEXT:
 ${context.jobTitle ? `- Job Title: ${context.jobTitle}` : ''}
 
 TRAINING CONTEXT:
-${trainingContext.context}
+${(trainingContext as any).context}
 
 ${adminTrainingContext ? `\n${adminTrainingContext}\n` : ''}
 
@@ -451,7 +451,7 @@ USER PROFILE:
 - AST Completed: ${context.userData?.user?.ast_completed_at}
 
 ASSESSMENT DATA (${context.assessmentCount} assessments):
-${context.userData?.assessments?.map(assessment => {
+${context.userData?.assessments?.map((assessment: any) => {
   try {
     const results = typeof assessment.results === 'string' ? JSON.parse(assessment.results) : assessment.results;
     return `
@@ -463,7 +463,7 @@ ${context.userData?.assessments?.map(assessment => {
 }).join('\n') || 'No assessment data available'}
 
 WORKSHOP STEP DATA (${context.stepDataCount} steps):
-${context.userData?.stepData?.map(step => {
+${context.userData?.stepData?.map((step: any) => {
   try {
     const stepData = typeof step.data === 'string' ? JSON.parse(step.data) : step.data;
     return `
@@ -503,7 +503,7 @@ Respond now as Report Talia:`;
       const stepData = userData.stepData || [];
       
       // Extract only essential data for report generation
-      const essentialAssessmentData = assessments.map(assessment => {
+      const essentialAssessmentData = assessments.map((assessment: any) => {
         try {
           const results = typeof assessment.results === 'string' ? JSON.parse(assessment.results) : assessment.results;
           
@@ -528,7 +528,7 @@ Respond now as Report Talia:`;
       });
       
       // Extract MINIMAL reflection content only - super aggressive for token optimization
-      const essentialStepData = stepData.slice(0, 10).map(step => { // Only first 10 steps
+      const essentialStepData = stepData.slice(0, 10).map((step: any) => { // Only first 10 steps
         try {
           const stepDataParsed = typeof step.data === 'string' ? JSON.parse(step.data) : step.data;
           
@@ -655,8 +655,8 @@ Respond now as Report Talia:`;
     const isPersonalReport = context.reportType === 'personal';
     
     // ULTRA-MINIMAL prompt for token optimization
-    const strengthsData = context.essentialAssessments?.filter(a => a.type === 'strengths')[0];
-    const flowData = context.essentialAssessments?.filter(a => a.type === 'flow')[0];
+    const strengthsData = context.essentialAssessments?.filter((a: any) => a.type === 'strengths')[0];
+    const flowData = context.essentialAssessments?.filter((a: any) => a.type === 'flow')[0];
     const reflections = context.essentialReflections?.slice(0, 5) || []; // Only first 5 reflections
     
     // Get the unified main prompt document for consistency
@@ -695,9 +695,9 @@ TEMPLATE: Follow the exact structure and style of example reports from your trai
 
 PARTICIPANT DATA:
 Name: ${context.userName}
-Strengths: ${strengthsData?.strengths?.slice(0, 3).map(s => `${s.label} (${s.score}%)`).join(', ') || 'Assessment data pending'}
-Flow Attributes: ${flowData?.attributes?.slice(0, 5).join(', ') || 'Flow assessment pending'}  
-Workshop Reflections: ${reflections.map(r => `Step ${r.stepId}: ${r.reflection?.substring(0, 100) || 'No reflection provided'}`).join(' | ') || 'No reflections available'}
+Strengths: ${strengthsData?.strengths?.slice(0, 3).map((s: any) => `${s.label} (${s.score}%)`).join(', ') || 'Assessment data pending'}
+Flow Attributes: ${flowData?.attributes?.slice(0, 5).join(', ') || 'Flow assessment pending'}
+Workshop Reflections: ${reflections.map((r: any) => `Step ${r.stepId}: ${r.reflection?.substring(0, 100) || 'No reflection provided'}`).join(' | ') || 'No reflections available'}
 
 COACHING GUIDANCE:
 ${trainingContext}

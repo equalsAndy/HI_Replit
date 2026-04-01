@@ -8,7 +8,7 @@ const pool = new Pool({
 
 interface AIUsageLogEntry {
   userId: number;
-  featureName: 'coaching' | 'holistic_reports' | 'reflection_assistance';
+  featureName: 'coaching' | 'holistic_reports' | 'reflection_assistance' | 'admin_chat';
   apiCallCount?: number;
   tokensUsed?: number;
   responseTimeMs?: number;

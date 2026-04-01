@@ -137,7 +137,7 @@ class ASTPayloadBuilderService {
         workshop_steps: ['3-3']
       }
     };
-    return sections[sectionId] || sections[1];
+    return (sections as Record<number, any>)[sectionId] || sections[1];
   }
 
   /**

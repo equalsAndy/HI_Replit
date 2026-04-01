@@ -307,15 +307,27 @@ export function NavBar() {
                 />
               )}
 
-              {/* Admin/Facilitator button - shown for admin and facilitator users */}
-              {(user?.role === 'admin' || user?.role === 'facilitator') && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+              {/* Admin button - shown for admin users */}
+              {user?.role === 'admin' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="rounded-md text-white hover:bg-yellow-400"
                   onClick={() => navigate('/admin')}
                 >
-                  {user?.role === 'admin' ? 'Admin' : 'Facilitator'}
+                  Admin
+                </Button>
+              )}
+
+              {/* Facilitator Console button - shown for facilitator and admin users */}
+              {(user?.role === 'facilitator' || user?.role === 'admin') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-md text-white hover:bg-yellow-400"
+                  onClick={() => navigate('/facilitator')}
+                >
+                  Facilitator Console
                 </Button>
               )}
 

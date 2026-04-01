@@ -43,7 +43,7 @@ interface UseWorkshopStepDataReturn<T> {
  * @param options - Configuration options
  */
 export function useWorkshopStepData<T extends Record<string, any>>(
-  workshopType: 'ast' | 'ia',
+  workshopType: 'ast' | 'ia' | 'pm',
   stepId: string,
   initialData: T,
   options: UseWorkshopStepDataOptions = {}
