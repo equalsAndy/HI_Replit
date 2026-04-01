@@ -19,6 +19,8 @@ import WorkshopSelectionPage from '@/pages/WorkshopSelectionPage';
 // KAN-147 Phase 2: Lazy load Admin components
 const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard-new'));
 const AiTrainingPage = React.lazy(() => import('@/pages/ai-training'));
+const FacilitatorDashboard = React.lazy(() => import('@/pages/FacilitatorDashboard'));
+const FacilitatorCohortDetail = React.lazy(() => import('@/pages/FacilitatorCohortDetail'));
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import ResetTestPage from '@/pages/reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -331,6 +333,30 @@ const App: React.FC = () => {
                         </Suspense>
                       </ProtectedRoute>
                     </Route>
+                    {/* Facilitator routes — specific path first for wouter Switch matching */}
+                    <Route path="/facilitator/cohorts/:cohortId">
+                      <ProtectedRoute requireFacilitator={true}>
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+                          </div>
+                        }>
+                          <FacilitatorCohortDetail />
+                        </Suspense>
+                      </ProtectedRoute>
+                    </Route>
+                    <Route path="/facilitator">
+                      <ProtectedRoute requireFacilitator={true}>
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+                          </div>
+                        }>
+                          <FacilitatorDashboard />
+                        </Suspense>
+                      </ProtectedRoute>
+                    </Route>
+
                     {/* Backward compatibility: redirect old path to new */}
                     <Route path="/report-assistant">
                       {() => {

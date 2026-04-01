@@ -731,7 +731,7 @@ export const exerciseTrainingDocs = pgTable('exercise_training_docs', {
 // Vault accounts table — maps AST users to SelfActual Solid Pod URLs
 export const vaultAccounts = pgTable('vault_accounts', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
   auth0Sub: varchar('auth0_sub', { length: 255 }),
   podUsername: varchar('pod_username', { length: 255 }),
   masterPodUrl: varchar('master_pod_url', { length: 500 }),

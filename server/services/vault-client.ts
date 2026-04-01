@@ -135,9 +135,17 @@ export async function provisionUserVault(
   return result;
 }
 
+interface VaultStatusResponse {
+  status: string;
+  skipped?: boolean;
+  masterPodUrl?: string;
+  subPodUrl?: string;
+  username?: string;
+}
+
 export async function getVaultStatus(
   auth0Sub: string
-): Promise<{ status: string; skipped?: boolean } | null> {
+): Promise<VaultStatusResponse | null> {
   if (!isEnabled()) {
     return { status: 'skipped', skipped: true };
   }
@@ -149,6 +157,83 @@ export async function getVaultStatus(
 
   if (!response.ok) return null;
   return response.json();
+}
+
+/**
+ * Check whether a vault already exists before provisioning.
+ * All callsites should use this instead of calling provisionUserVault() directly.
+ * If a vault exists remotely but the local vault_accounts record is missing or
+ * incomplete, upserts it so pod-sync-service can find the pod.
+ */
+export async function provisionIfNeeded(
+  auth0Sub: string,
+  userId: number,
+  displayName: string
+): Promise<ProvisionResponse | null> {
+  // First check the provisioning API for an existing vault under this auth0Sub
+  try {
+    const remote = await getVaultStatus(auth0Sub);
+    if (remote && !remote.skipped && remote.status !== 'not_found') {
+      console.log(`[vault] Vault already exists for ${auth0Sub}, syncing local record`);
+
+      // Ensure the local vault_accounts row exists and has the pod URLs
+      await ensureLocalVaultRecord(userId, auth0Sub, remote);
+
+      return { status: 'already_exists', skipped: true };
+    }
+  } catch (err) {
+    console.warn('[vault] Vault status check failed, proceeding with provisioning:', err);
+  }
+  return provisionUserVault(auth0Sub, userId, displayName);
+}
+
+/** Upsert local vault_accounts row from remote vault status */
+async function ensureLocalVaultRecord(
+  userId: number,
+  auth0Sub: string,
+  remote: VaultStatusResponse
+): Promise<void> {
+  try {
+    const existing = await db
+      .select()
+      .from(vaultAccounts)
+      .where(eq(vaultAccounts.userId, userId))
+      .limit(1);
+
+    const podUsername = remote.username || (remote.masterPodUrl ? extractUsername(remote.masterPodUrl) : null);
+
+    if (existing.length > 0) {
+      // Update if pod URLs are missing
+      if (!existing[0].masterPodUrl && remote.masterPodUrl) {
+        await db
+          .update(vaultAccounts)
+          .set({
+            auth0Sub,
+            podUsername,
+            masterPodUrl: remote.masterPodUrl,
+            subPodUrl: remote.subPodUrl,
+            provisioningStatus: 'active',
+            lastError: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(vaultAccounts.userId, userId));
+        console.log(`[vault] Updated local vault_accounts for user ${userId} with remote pod URLs`);
+      }
+    } else {
+      // Create the local record from remote state
+      await db.insert(vaultAccounts).values({
+        userId,
+        auth0Sub,
+        podUsername,
+        masterPodUrl: remote.masterPodUrl || null,
+        subPodUrl: remote.subPodUrl || null,
+        provisioningStatus: 'active',
+      });
+      console.log(`[vault] Created local vault_accounts for user ${userId} from existing remote vault`);
+    }
+  } catch (err) {
+    console.error('[vault] Failed to sync local vault_accounts record:', err);
+  }
 }
 
 /** Update vault_accounts record to failed status */

@@ -40,6 +40,23 @@ export async function deleteAuth0User(userId: string): Promise<Response> {
   }) as any;
 }
 
+/** Look up an Auth0 user by email. Returns the first match or null. */
+export async function getAuth0UserByEmail(email: string): Promise<{ user_id: string; email: string } | null> {
+  if (!TENANT || !CLIENT_ID || !CLIENT_SECRET) return null;
+  try {
+    const token = await getMgmtToken();
+    const r = await fetch(
+      `https://${TENANT}/api/v2/users-by-email?email=${encodeURIComponent(email)}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!r.ok) return null;
+    const users = await r.json() as Array<{ user_id: string; email: string }>;
+    return users.length > 0 ? users[0] : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Create a database user in Auth0 via Management API */
 export async function createAuth0DbUser(params: { email: string; password: string; name?: string }): Promise<any> {
   if (!TENANT || !AUDIENCE || !CLIENT_ID || !CLIENT_SECRET) {

@@ -110,6 +110,23 @@ export async function writeSession(
   return gatewayRequest('POST', `/api/pods/${username}/sessions`, userIdentifier, payload);
 }
 
+/** Write an artifact (companion visual, companion report, etc.) to a pod resource */
+export async function writeArtifact(
+  username: string,
+  payload: {
+    resourcePath: string;
+    role: string;
+    url?: string;
+    base64Data?: string;
+    contentType?: string;
+    fileName?: string;
+    metadata?: Record<string, string>;
+  },
+  userIdentifier?: string
+) {
+  return gatewayRequest('POST', `/api/pods/${username}/artifacts`, userIdentifier, payload);
+}
+
 /** Health check (no auth required) */
 export async function healthCheck(): Promise<GatewayResult> {
   try {

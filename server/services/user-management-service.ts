@@ -1,5 +1,5 @@
 import { db } from '../db.ts';
-import { users } from '../../shared/schema.ts';
+import { users, vaultAccounts } from '../../shared/schema.ts';
 import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { convertUserToPhotoReference, processProfilePicture, sanitizeUserForNetwork } from '../utils/user-photo-utils.ts';
@@ -1296,6 +1296,22 @@ class UserManagementService {
       const { eq } = await import('drizzle-orm');
       const { sql } = await import('drizzle-orm');
 
+      // Block deletion if user has a SelfActual vault — vault records must survive
+      const vaultRecord = await db
+        .select()
+        .from(vaultAccounts)
+        .where(eq(vaultAccounts.userId, userId))
+        .limit(1);
+
+      if (vaultRecord.length > 0) {
+        const podUrl = vaultRecord[0].masterPodUrl || 'unknown';
+        console.error(`Cannot delete user ${userId}: active SelfActual vault exists (pod: ${podUrl})`);
+        return {
+          success: false,
+          error: `Cannot delete user ${userId}: active SelfActual vault exists (pod: ${podUrl}). Vault must be deprovisioned first.`
+        };
+      }
+
       // Get user's Auth0 ID before deletion
       const userResult = await db.execute(sql`SELECT auth0_sub FROM users WHERE id = ${userId}`);
       const auth0Sub = userResult[0]?.auth0_sub;
@@ -1303,26 +1319,11 @@ class UserManagementService {
       // First delete all related data
       await this.deleteUserData(userId);
 
-      // Delete from Auth0 if user has Auth0 ID
+      // Auth0 identity is NOT deleted here. AST and SelfActual share an Auth0 tenant.
+      // Auth0 user lifecycle is managed by SelfActual. Deleting the Auth0 identity from
+      // AST would revoke the user's access to their SelfActual vault.
       if (auth0Sub) {
-        try {
-          const { deleteAuth0User } = await import('../src/auth0/management.js');
-          console.log(`Deleting Auth0 user: ${auth0Sub}`);
-          const auth0Response = await deleteAuth0User(auth0Sub as string);
-
-          if (!auth0Response.ok) {
-            const errorText = await auth0Response.text();
-            console.warn(`Auth0 deletion failed for ${auth0Sub}: ${errorText}`);
-            // Continue with local deletion even if Auth0 deletion fails
-          } else {
-            console.log(`Successfully deleted Auth0 user: ${auth0Sub}`);
-          }
-        } catch (auth0Error) {
-          console.warn(`Auth0 deletion error for ${auth0Sub}:`, auth0Error);
-          // Continue with local deletion even if Auth0 deletion fails
-        }
-      } else {
-        console.log(`No Auth0 ID found for user ${userId}, skipping Auth0 deletion`);
+        console.log(`[deleteUser] Auth0 identity retained for shared-tenant user: ${auth0Sub}`);
       }
 
       // Then delete the user account itself from local database

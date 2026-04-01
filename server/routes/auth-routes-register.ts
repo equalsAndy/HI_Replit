@@ -1,11 +1,13 @@
 import express from 'express';
 import { userManagementService } from '../services/user-management-service.js';
-import { createAuth0DbUser } from '../src/auth0/management.js';
+import { createAuth0DbUser, getAuth0UserByEmail } from '../src/auth0/management.js';
 import { inviteService } from '../services/invite-service.js';
 import { z } from 'zod';
 import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code.js';
 import { UserRole } from '../../shared/schema.js';
-import { provisionUserVault } from '../services/vault-client.js';
+import { provisionIfNeeded } from '../services/vault-client.js';
+import { db } from '../db.js';
+import { sql } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -152,35 +154,63 @@ router.post('/register', async (req, res) => {
       return res.status(400).json(createResult);
     }
     
-    // Provision Auth0 user if Management API is configured
+    // Resolve Auth0 identity: check for existing account first (shared tenant),
+    // then create only if none exists. This prevents duplicate Auth0 accounts when
+    // a user already has a SelfActual identity on the shared Auth0 tenant.
     let auth0Sub: string | undefined;
     try {
       if (process.env.AUTH0_TENANT_DOMAIN || process.env.TENANT_DOMAIN) {
-        const created = await createAuth0DbUser({ email: data.email, password: data.password, name: data.name });
-        if (created?.user_id && createResult.user?.id) {
-          auth0Sub = created.user_id;
-          await userManagementService.updateUser(createResult.user.id, { auth0Sub: created.user_id });
+        // Check if Auth0 account already exists for this email
+        const existingAuth0 = await getAuth0UserByEmail(data.email);
+        if (existingAuth0?.user_id) {
+          auth0Sub = existingAuth0.user_id;
+          console.log(`🔐 Existing Auth0 account found for ${data.email}: ${auth0Sub}`);
+        } else {
+          // No Auth0 account — create one
+          const created = await createAuth0DbUser({ email: data.email, password: data.password, name: data.name });
+          if (created?.user_id) {
+            auth0Sub = created.user_id;
+            console.log(`🔐 New Auth0 account created for ${data.email}: ${auth0Sub}`);
+          }
+        }
+        // Link the auth0Sub to the local user record
+        if (auth0Sub && createResult.user?.id) {
+          await userManagementService.updateUser(createResult.user.id, { auth0Sub });
         }
       }
     } catch (auth0Err) {
       console.warn('⚠️ Auth0 provisioning failed (continuing with app user):', auth0Err instanceof Error ? auth0Err.message : String(auth0Err));
-      // Continue; app user is already created. Optionally attach error details to response.
     }
 
-    // Provision Solid Pod vault (silently skips if not configured)
+    // Provision Solid Pod vault — checks for existing vault before provisioning
     if (createResult.user?.id) {
       const sub = auth0Sub || `app|${createResult.user.id}`;
-      provisionUserVault(sub, createResult.user.id, data.name)
+      provisionIfNeeded(sub, createResult.user.id, data.name)
         .then(result => {
           if (result?.skipped) return;
           console.log('🔐 Vault provisioned for new user:', result?.status || 'sent');
         })
-        .catch(err => console.error('🔐 Vault provisioning failed (non-blocking):', err.message));
+        .catch(err => console.error('���� Vault provisioning failed (non-blocking):', err.message));
     }
 
     // Mark the invite as used
     await inviteService.markInviteAsUsed(normalizedCode, createResult.user?.id as number);
-    
+
+    // If the invite is cohort-scoped, add the user to cohort_participants
+    const inviteCohortId = inviteResult.invite?.cohortId;
+    if (inviteCohortId && createResult.user?.id) {
+      try {
+        await db.execute(sql`
+          INSERT INTO cohort_participants (cohort_id, participant_id, joined_at)
+          VALUES (${inviteCohortId}, ${createResult.user.id}, NOW())
+          ON CONFLICT DO NOTHING
+        `);
+        console.log(`✅ Added user ${createResult.user.id} to cohort ${inviteCohortId}`);
+      } catch (cohortErr) {
+        console.warn('⚠️ Failed to add user to cohort_participants (non-blocking):', cohortErr);
+      }
+    }
+
     // Set session data with proper error handling
     (req.session as any).userId = createResult.user?.id as number;
     (req.session as any).username = createResult.user?.username as string;

@@ -21,7 +21,8 @@ import {
   userAssessments,
 } from '../../../shared/schema.js';
 import { isFeatureEnabled } from '../../utils/feature-flags.js';
-import { writeExternalAssessment, isGatewayConfigured } from './gateway-client.js';
+import { writeExternalAssessment, writeArtifact, isGatewayConfigured } from './gateway-client.js';
+import { photoStorageService } from '../photo-storage-service.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -325,6 +326,117 @@ export async function syncHolisticReport(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     logError(`syncHolisticReport failed for user ${userId}:`, msg);
+    return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Sync the StarCard PNG visual as a companion-visual artifact on the StarCard assessment.
+ * Sends a URL reference — the pod stores a pointer, not the binary.
+ * Called after syncAll on workshop completion.
+ */
+export async function syncStarCardVisual(
+  userId: number
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    if (!isFeatureEnabled('solidPodSync') || !isGatewayConfigured()) {
+      return { ok: false, error: 'Pod sync not enabled or gateway not configured' };
+    }
+
+    const account = await getVaultAccount(userId);
+    if (!account) {
+      return { ok: false, error: 'No vault account' };
+    }
+
+    const username = extractUsername(account.masterPodUrl || '');
+    if (!username) {
+      return { ok: false, error: 'Could not extract username from masterPodUrl' };
+    }
+
+    // Check if the user has a StarCard PNG in photo storage
+    const starCard = await photoStorageService.getUserStarCard(userId.toString());
+    if (!starCard || !starCard.photoData) {
+      log(`syncStarCardVisual: no StarCard PNG for user ${userId}`);
+      return { ok: false, error: 'No StarCard PNG found' };
+    }
+
+    // Construct the public URL for the StarCard image endpoint
+    const appBaseUrl = process.env.APP_BASE_URL
+      || (process.env.NODE_ENV === 'production' ? 'https://app2.heliotropeimaginal.com' : `http://localhost:${process.env.PORT || 8080}`);
+    const pngUrl = `${appBaseUrl}/api/starcard/${userId}`;
+
+    const userIdentifier = account.auth0Sub || `user:${userId}`;
+
+    const result = await writeArtifact(username, {
+      resourcePath: 'master/assessments/starcard',
+      role: 'companion-visual',
+      url: pngUrl,
+    }, userIdentifier);
+
+    if (result.ok) {
+      log(`✓ syncStarCardVisual → gateway for user ${userId}`);
+      return { ok: true };
+    } else {
+      logError(`✗ syncStarCardVisual: ${result.status} ${result.statusText}`);
+      return { ok: false, error: `${result.status} ${result.statusText}` };
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logError(`syncStarCardVisual failed for user ${userId}:`, msg);
+    return { ok: false, error: msg };
+  }
+}
+
+/**
+ * Sync a compiled workshop report HTML as a companion-report artifact on the StarCard assessment.
+ * The report HTML is base64-encoded and stored inline in the pod.
+ * Called after report generation completes (server-side) or via manual endpoint.
+ */
+export async function syncWorkshopReport(
+  userId: number,
+  reportHtml: string,
+  aiModelVersion: string = 'Imaginal_AI_v24.3'
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    if (!isFeatureEnabled('solidPodSync') || !isGatewayConfigured()) {
+      return { ok: false, error: 'Pod sync not enabled or gateway not configured' };
+    }
+
+    const account = await getVaultAccount(userId);
+    if (!account) {
+      return { ok: false, error: 'No vault account' };
+    }
+
+    const username = extractUsername(account.masterPodUrl || '');
+    if (!username) {
+      return { ok: false, error: 'Could not extract username from masterPodUrl' };
+    }
+
+    const userIdentifier = account.auth0Sub || `user:${userId}`;
+    const base64Data = Buffer.from(reportHtml, 'utf-8').toString('base64');
+
+    const result = await writeArtifact(username, {
+      resourcePath: 'master/assessments/starcard',
+      role: 'companion-report',
+      base64Data,
+      contentType: 'text/html',
+      fileName: 'starcard.report.html',
+      metadata: {
+        reportType: 'ai-interpretation',
+        reportGeneratedBy: aiModelVersion,
+      },
+    }, userIdentifier);
+
+    if (result.ok) {
+      log(`✓ syncWorkshopReport → gateway for user ${userId}`);
+      return { ok: true };
+    } else {
+      logError(`✗ syncWorkshopReport: ${result.status} ${result.statusText}`);
+      return { ok: false, error: `${result.status} ${result.statusText}` };
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logError(`syncWorkshopReport failed for user ${userId}:`, msg);
     return { ok: false, error: msg };
   }
 }

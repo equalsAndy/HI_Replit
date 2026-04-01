@@ -62,6 +62,7 @@ import { resetRouter } from './routes/reset-routes.ts';
 import starCardRoutes from './routes/starcard-routes.ts';
 import workshopResponsesRoutes from './routes/workshop-responses-routes.ts';
 import vaultRoutes from './routes/vault-routes.ts';
+import { facilitatorRouter } from './routes/facilitator-routes.ts';
 import { initializeDatabase, db, queryClient } from './db.ts';
 import { validateFlagsOnStartup } from './middleware/validateFlags.ts';
 import { AuthEnvironmentManager } from './config/auth-environment.ts';
@@ -73,7 +74,8 @@ import { createServer } from 'http';
 import { expressjwt as jwt } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 import './src/env';
-import { adminRouter } from './src/routes';
+// Legacy admin hard-delete route removed — Auth0 identity lifecycle is managed by
+// SelfActual, not AST. See server/src/routes/admin.deleteUser.ts (decommissioned).
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -520,8 +522,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
       app.use('/api/beta-tester', betaTesterNotesRoutes);
       app.use('/api/beyond-ast', beyondASTRoutes);
-      // Admin hard-delete endpoint
-      app.use('/admin', adminRouter);
+      // Legacy admin hard-delete endpoint decommissioned (shared Auth0 tenant)
       app.use('/api/metalia', metaliaRoutes);
   app.use('/api/growth-plan', growthPlanRoutes);
       // AST Report Routes
@@ -534,6 +535,7 @@ app.use('/api/admin/ai', assistantTestRoutes);
       app.use('/api/starcard', starCardRoutes);
       app.use('/api/workshop-responses', workshopResponsesRoutes);
       app.use('/api/vault', vaultRoutes);
+      app.use('/api/facilitator', facilitatorRouter);
 
       // PhotoService alias endpoint for StarCard images
       app.get('/api/photoservice/starcard/:userId', (req, res) => {
