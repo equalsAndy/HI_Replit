@@ -412,6 +412,77 @@ const FacilitatorCohortDetail: React.FC = () => {
 
         {/* Content */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Cohort Details Card */}
+          <div className="bg-white rounded-lg border border-slate-200 mb-8">
+            <div className="px-6 py-4 border-b border-slate-100">
+              <h2 className="text-lg font-medium text-slate-800">Cohort Details</h2>
+            </div>
+            <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 text-sm">
+              <div>
+                <span className="text-slate-400 block mb-1">Organization</span>
+                <span className="text-slate-800 font-medium">
+                  {cohort.organization_name || <span className="text-slate-400 font-normal italic">None</span>}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block mb-1">Status</span>
+                <Badge
+                  variant={cohort.status === 'active' ? 'default' : 'secondary'}
+                  className={
+                    cohort.status === 'active'
+                      ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                      : ''
+                  }
+                >
+                  {cohort.status}
+                </Badge>
+              </div>
+              <div>
+                <span className="text-slate-400 block mb-1">Participants</span>
+                <span className="text-slate-800 font-medium">{participants.length}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block mb-1">Workshop Access</span>
+                <div className="flex gap-2">
+                  {cohort.ast_access && (
+                    <Badge variant="outline" className="border-blue-300 text-blue-700">AST</Badge>
+                  )}
+                  {cohort.ia_access && (
+                    <Badge variant="outline" className="border-purple-300 text-purple-700">IA</Badge>
+                  )}
+                  {cohort.pm_access && (
+                    <Badge variant="outline" className="border-amber-300 text-amber-700">PM</Badge>
+                  )}
+                  {!cohort.ast_access && !cohort.ia_access && !cohort.pm_access && (
+                    <span className="text-slate-400 italic">None</span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <span className="text-slate-400 block mb-1">Start Date</span>
+                <span className="text-slate-800 font-medium">
+                  {cohort.start_date
+                    ? new Date(cohort.start_date).toLocaleDateString()
+                    : <span className="text-slate-400 font-normal italic">Not set</span>}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block mb-1">End Date</span>
+                <span className="text-slate-800 font-medium">
+                  {cohort.end_date
+                    ? new Date(cohort.end_date).toLocaleDateString()
+                    : <span className="text-slate-400 font-normal italic">Not set</span>}
+                </span>
+              </div>
+              {cohort.description && (
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <span className="text-slate-400 block mb-1">Description</span>
+                  <span className="text-slate-800">{cohort.description}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Action buttons */}
           <div className="flex items-center gap-3 mb-6">
             <Button

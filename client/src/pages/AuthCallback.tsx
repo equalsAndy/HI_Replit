@@ -16,15 +16,16 @@ export default function AuthCallback() {
 
   useEffect(() => {
     let mounted = true;
-    
+    const controller = new AbortController();
+
     // If not loading and user is not authenticated, re-trigger login
     if (!isLoading && !isAuthenticated) {
       loginWithRedirect({ authorizationParams: { redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin + '/auth/callback', scope: 'openid profile email', prompt: 'login' } });
-      return () => { mounted = false; };
+      return () => { mounted = false; controller.abort(); };
     }
     // Wait until Auth0 finishes loading and user is authenticated
     if (isLoading || !isAuthenticated) {
-      return () => { mounted = false; };
+      return () => { mounted = false; controller.abort(); };
     }
 
     (async () => {
@@ -33,12 +34,14 @@ export default function AuthCallback() {
         let claims: any | null = null;
         // Try up to 3 times to allow context hydration
         for (let i = 0; i < 3; i++) {
+          if (!mounted) return;
           // eslint-disable-next-line no-await-in-loop
           claims = await getIdTokenClaims();
           if (claims?.__raw) break;
           // eslint-disable-next-line no-await-in-loop
           await new Promise(r => setTimeout(r, 200));
         }
+        if (!mounted) return;
         console.log('[AuthCallback] ID token claims:', claims ? Object.keys(claims) : 'null');
         let idToken: string | null = claims?.__raw ?? null;
 
@@ -53,6 +56,7 @@ export default function AuthCallback() {
           }
         }
 
+        if (!mounted) return;
         if (!idToken) {
           console.error('[AuthCallback] Missing id token');
           setError('Missing ID token from Auth0 after redirect');
@@ -60,39 +64,27 @@ export default function AuthCallback() {
           return;
         }
 
-        // Create app session on backend (try a few well-known endpoints for compatibility)
-        const endpoints = [
-          '/api/auth/auth0-session',
-          '/api/auth/session',
-          '/api/auth0/auth0-session',
-          '/api/auth0/session',
-          '/api/auth0-session',
-        ];
-        let created = false;
-        let lastStatus = 0;
-        let lastText = '';
-        for (const url of endpoints) {
-          const r = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${idToken}`,
-            },
-            credentials: 'include',
-          });
-          if (r.ok) { created = true; break; }
-          lastStatus = r.status; lastText = await r.text();
-          console.warn('[AuthCallback] Session endpoint failed', url, lastStatus, lastText);
-        }
-        if (!created) {
-          console.error('[AuthCallback] Session creation failed:', lastStatus, lastText);
-          setError(`Failed to create session (${lastStatus || 'unknown'})`);
+        // Create app session on backend
+        const r = await fetch('/api/auth/auth0-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          },
+          credentials: 'include',
+          signal: controller.signal,
+        });
+        if (!mounted) return;
+        if (!r.ok) {
+          const lastText = await r.text();
+          console.error('[AuthCallback] Session creation failed:', r.status, lastText);
+          setError(`Failed to create session (${r.status || 'unknown'})`);
           setDebug({ response: lastText });
           return;
         }
 
         // Fetch current user
-        const meResp = await fetch('/api/auth/me', { credentials: 'include' });
+        const meResp = await fetch('/api/auth/me', { credentials: 'include', signal: controller.signal });
         if (!meResp.ok) {
           const t = await meResp.text();
           console.error('[AuthCallback] /api/auth/me failed:', meResp.status, t);
@@ -141,8 +133,8 @@ export default function AuthCallback() {
 
         console.log('[AuthCallback] Final destination:', dest);
         if (mounted) navigate(dest);
-      } catch (e) {
-        // On error, go back to landing
+      } catch (e: any) {
+        if (e?.name === 'AbortError') return; // Cleanup aborted the fetch — expected
         console.error('[AuthCallback] Error during callback processing:', e);
         if (mounted && !error) {
           setError('Authentication processing failed');
@@ -150,7 +142,7 @@ export default function AuthCallback() {
         }
       }
     })();
-    return () => { mounted = false; };
+    return () => { mounted = false; controller.abort(); };
   }, [isAuthenticated, isLoading]); // Removed function references that cause re-renders
 
   if (!error) return null;
