@@ -33,10 +33,18 @@ class InviteService {
         };
       }
 
-      // Prevent duplicate invites for the same email
-      const existingInvites = await db.select().from(invites).where(eq(invites.email, data.email.toLowerCase()));
-      if (existingInvites.length > 0) {
-        return { success: false, error: 'An invite already exists for this email' };
+      // Prevent duplicate PENDING invites for the same email + cohort
+      const existingPending = await db.execute(sql`
+        SELECT id FROM invites
+        WHERE email = ${data.email.toLowerCase()}
+          AND used_at IS NULL
+          AND (expires_at IS NULL OR expires_at > NOW())
+          ${data.cohortId ? sql`AND cohort_id = ${data.cohortId}` : sql``}
+        LIMIT 1
+      `);
+      const pendingRows = (existingPending as any).rows ?? existingPending;
+      if (pendingRows && pendingRows.length > 0) {
+        return { success: false, error: 'A pending invite already exists for this email' };
       }
       // Generate a unique invite code (remove hyphens to fit 12-char limit)
       const inviteCode = generateInviteCode().replace(/-/g, '');
@@ -45,6 +53,9 @@ class InviteService {
       if (inviteCode.length > 12) {
         throw new Error('Generated invite code exceeds database limit');
       }
+
+      // Convert Date to ISO string for raw SQL compatibility
+      const expiresAtStr = data.expiresAt ? data.expiresAt.toISOString() : null;
 
       // Insert the invite into the database with cohort and organization assignment
       const result = await db.execute(sql`
@@ -57,7 +68,7 @@ class InviteService {
           ${data.jobTitle || null},
           ${data.organization || null},
           ${data.createdBy},
-          ${data.expiresAt || null},
+          ${expiresAtStr},
           ${data.cohortId || null},
           ${data.organizationId || null},
           ${data.isBetaTester || false},
@@ -139,6 +150,9 @@ class InviteService {
         throw new Error('Generated invite code exceeds database limit');
       }
       
+      // Convert Date to ISO string for raw SQL compatibility
+      const expiresAtStr = data.expiresAt ? data.expiresAt.toISOString() : null;
+
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
         INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, pm_access, show_demo_data_buttons)
@@ -148,7 +162,7 @@ class InviteService {
           ${data.role},
           ${data.name || null},
           ${data.createdBy},
-          ${data.expiresAt || null},
+          ${expiresAtStr},
           ${data.cohortId ? parseInt(data.cohortId) : null},
           ${data.organizationId || null},
           ${data.isBetaTester || false},
