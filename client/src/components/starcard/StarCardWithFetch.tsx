@@ -114,11 +114,16 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   // Create a profile object for the star card using actual user data
   const user = userProfile?.user || userProfile;
   
+  // Compute full name from firstName/lastName with fallback to legacy name
+  const userDisplayName = user?.firstName
+    ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
+    : (user?.username || '');
+
   // Debug logging for profile data
   console.log('🎯 StarCardWithFetch Profile Debug:', {
     userProfile,
     extractedUser: user,
-    name: user?.name,
+    displayName: userDisplayName,
     username: user?.username,
     profilePictureUrl: user?.profilePictureUrl || 'Missing',
     profilePicture: user?.profilePicture ? 'Present (base64)' : 'Missing',
@@ -127,7 +132,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   });
 
   console.log('🎯 StarCardWithFetch Final Profile Being Passed:', {
-    name: user?.name || user?.username || '',
+    name: userDisplayName,
     title: user?.title || '',
     organization: user?.organization || '',
     profilePictureUrl: user?.profilePictureUrl || 'Missing',
@@ -152,7 +157,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   };
   
   const profile = {
-    name: user?.name || user?.username || '',
+    name: userDisplayName,
     title: user?.title || user?.jobTitle || '',
     organization: user?.organization || '',
     avatarUrl: processImageUrl(user?.profilePicture) || null,

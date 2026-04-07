@@ -625,7 +625,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
             .returning({
               id: users.id,
               username: users.username,
-              name: users.name,
+              firstName: users.firstName,
+              lastName: users.lastName,
               role: users.role,
               isTestUser: users.isTestUser
             });
@@ -663,7 +664,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
           const result = await db.select({
             id: users.id,
             username: users.username,
-            name: users.name,
+            firstName: users.firstName,
+            lastName: users.lastName,
             role: users.role,
             isTestUser: users.isTestUser,
             astWorkshopCompleted: users.astWorkshopCompleted,
@@ -710,7 +712,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
             .returning({
               id: users.id,
               username: users.username,
-              name: users.name,
+              firstName: users.firstName,
+              lastName: users.lastName,
               astWorkshopCompleted: users.astWorkshopCompleted,
               astCompletedAt: users.astCompletedAt
             });
@@ -763,7 +766,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
             (req.session as any).user = {
               id: user.id,
               username: user.username,
-              name: user.name,
+              firstName: user.firstName,
+              lastName: user.lastName,
               email: user.email,
               role: user.role,
               isTestUser: user.isTestUser,

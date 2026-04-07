@@ -147,7 +147,7 @@ export function TestUserPicker({ open, onClose }: TestUserPickerProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center">
-                          <h3 className="font-medium">{user.name}</h3>
+                          <h3 className="font-medium">{user.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'User'}</h3>
                           {hasData && (
                             <TooltipProvider>
                               <Tooltip>

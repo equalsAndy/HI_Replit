@@ -625,7 +625,7 @@ router.get('/admin/notes', async (req, res) => {
       SELECT 
         btn.id,
         btn.user_id as userId,
-        u.name as userName,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as userName,
         u.username,
         btn.workshop_type as workshopType,
         btn.page_title as pageTitle,
@@ -704,7 +704,7 @@ router.get('/admin/surveys', async (req, res) => {
       SELECT 
         bfs.id,
         bfs.user_id,
-        u.name as user_name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_name,
         u.username,
         bfs.overall_quality,
         bfs.authenticity,
@@ -761,7 +761,7 @@ router.get('/admin/surveys/export/csv', async (req, res) => {
       SELECT 
         bfs.id,
         bfs.user_id,
-        u.name as user_name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_name,
         u.username,
         bfs.overall_quality,
         bfs.authenticity,

@@ -89,7 +89,8 @@ router.post('/register', async (req, res) => {
     inviteCode: z.string().min(12, 'Invite code is required'),
     username: z.string().min(3, 'Username must be at least 3 characters'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
-    name: z.string().min(1, 'Name is required'),
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().optional().nullable(),
     email: z.string().email('Invalid email address'),
     organization: z.string().optional().nullable(),
     jobTitle: z.string().optional().nullable(),
@@ -136,7 +137,8 @@ router.post('/register', async (req, res) => {
     const createResult = await userManagementService.createUser({
       username: data.username,
       password: data.password,
-      name: data.name,
+      firstName: data.firstName,
+      lastName: data.lastName,
       email: data.email,
       role: inviteResult.invite.role as 'admin' | 'facilitator' | 'participant' | 'student',
       organization: data.organization,
@@ -167,7 +169,7 @@ router.post('/register', async (req, res) => {
           console.log(`🔐 Existing Auth0 account found for ${data.email}: ${auth0Sub}`);
         } else {
           // No Auth0 account — create one
-          const created = await createAuth0DbUser({ email: data.email, password: data.password, name: data.name });
+          const created = await createAuth0DbUser({ email: data.email, password: data.password, name: `${data.firstName} ${data.lastName || ''}`.trim() });
           if (created?.user_id) {
             auth0Sub = created.user_id;
             console.log(`🔐 New Auth0 account created for ${data.email}: ${auth0Sub}`);
@@ -185,7 +187,7 @@ router.post('/register', async (req, res) => {
     // Provision Solid Pod vault — checks for existing vault before provisioning
     if (createResult.user?.id) {
       const sub = auth0Sub || `app|${createResult.user.id}`;
-      provisionIfNeeded(sub, createResult.user.id, data.name)
+      provisionIfNeeded(sub, createResult.user.id, `${data.firstName} ${data.lastName || ''}`.trim())
         .then(result => {
           if (result?.skipped) return;
           console.log('🔐 Vault provisioned for new user:', result?.status || 'sent');

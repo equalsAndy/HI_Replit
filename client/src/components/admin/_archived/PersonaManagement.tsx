@@ -576,7 +576,7 @@ function ReportTaliaFeatures(): JSX.Element {
             <SelectContent>
               {completedUsers.map((user) => (
                 <SelectItem key={user.id} value={user.id.toString()}>
-                  {user.name} ({user.username}) - Completed {new Date(user.ast_completed_at).toLocaleDateString()}
+                  {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.username} ({user.username}) - Completed {new Date(user.ast_completed_at).toLocaleDateString()}
                 </SelectItem>
               ))}
             </SelectContent>

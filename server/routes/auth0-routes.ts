@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { userManagementService } from '../services/user-management-service.ts';
 import { PostLoginRouter, type UserRouteConfig } from '../utils/post-login-router.ts';
 import { provisionIfNeeded } from '../services/vault-client.js';
+import { getFullName } from '../../shared/utils.js';
 
 const router = express.Router();
 
@@ -74,9 +75,16 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       }
       
       // Create new user from Auth0 data if they don't exist
+      // Parse Auth0 name into first/last
+      const auth0FullName = decoded.name || (email ? email.split('@')[0] : 'user');
+      const auth0NameParts = auth0FullName.split(' ');
+      const auth0FirstName = auth0NameParts[0] || auth0FullName;
+      const auth0LastName = auth0NameParts.length > 1 ? auth0NameParts.slice(1).join(' ') : null;
+
       const createResult = await userManagementService.createUser({
         email: email || `${decoded.sub}@placeholder.local`,
-        name: decoded.name || (email ? email.split('@')[0] : 'user'),
+        firstName: auth0FirstName,
+        lastName: auth0LastName,
         username: email || decoded.sub, // Prefer email, fallback to sub
         password: `auth0-generated-${Math.random().toString(36)}`, // Random password for Auth0 users
         role: userRole as any, // Use determined role
@@ -94,7 +102,7 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       console.log('Created new user from Auth0:', user!.id);
 
       // Provision Solid Pod vault — checks for existing vault before provisioning
-      provisionIfNeeded(decoded.sub, user!.id, decoded.name || email?.split('@')[0] || 'user')
+      provisionIfNeeded(decoded.sub, user!.id, getFullName(user) || decoded.name || email?.split('@')[0] || 'user')
         .then(result => {
           if (result?.skipped) return;
           console.log('🔐 Vault provisioning initiated:', result?.status || 'sent');
@@ -146,7 +154,7 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
 
       // Retroactive vault provisioning — checks for existing vault before provisioning
       if (decoded.sub) {
-        provisionIfNeeded(decoded.sub, user!.id, user!.name || email?.split('@')[0] || 'user')
+        provisionIfNeeded(decoded.sub, user!.id, getFullName(user) || email?.split('@')[0] || 'user')
           .then(r => {
             if (r?.skipped) return;
             console.log('🔐 Retroactive vault provisioning:', r?.status || 'sent');
@@ -166,7 +174,8 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
     (req.session as any).auth0Token = idToken; // Preserve for gateway API calls (Solid Pod sync)
     (req.session as any).user = {
       id: user.id,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.role,
       astWorkshopCompleted: user.astWorkshopCompleted || false,
@@ -203,7 +212,8 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
         success: true,
         user: {
           id: user!.id,
-          name: user!.name,
+          firstName: user!.firstName,
+          lastName: user!.lastName,
           email: user!.email,
           role: user!.role
         },

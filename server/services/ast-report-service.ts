@@ -398,7 +398,7 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
     try {
       // Get user basic info
       const userResult = await pool.query(
-        'SELECT id, name FROM users WHERE id = $1',
+        'SELECT id, first_name, last_name FROM users WHERE id = $1',
         [userId]
       );
 
@@ -515,7 +515,7 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
 
       return {
         userId: user.id.toString(),
-        userName: user.name,
+        userName: [user.first_name, user.last_name].filter(Boolean).join(' '),
         starStrengths: {
           thinking: strengthsData.thinking || 25,
           acting: strengthsData.acting || 25,

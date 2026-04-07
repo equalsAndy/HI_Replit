@@ -53,12 +53,13 @@ export default function ProfileManagement() {
   });
 
   // Get initials for avatar fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
+  const getInitials = (user: { firstName?: string; lastName?: string } | string) => {
+    if (typeof user === 'string') {
+      return user.split(' ').map(part => part.charAt(0).toUpperCase()).slice(0, 2).join('');
+    }
+    const first = user.firstName || '';
+    const last = user.lastName || '';
+    return ((first[0] || '') + (last[0] || '')).toUpperCase() || 'U';
   };
 
   if (isCurrentUserLoading) {
@@ -132,11 +133,11 @@ export default function ProfileManagement() {
                             onClick={() => setSelectedUserId(user.id)}
                           >
                             <Avatar className="h-10 w-10 mr-3">
-                              <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
-                              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                              <AvatarImage src={user.avatarUrl || undefined} alt={user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'User'} />
+                              <AvatarFallback>{getInitials(user)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                              <p className="font-medium">{user.name}</p>
+                              <p className="font-medium">{user.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'User'}</p>
                               <p className="text-sm text-gray-500">{user.title || 'No title'}</p>
                             </div>
                             <Button variant="ghost" size="sm">View</Button>
@@ -147,19 +148,19 @@ export default function ProfileManagement() {
                       // Show mock users for the UI demo
                       <div className="grid gap-4">
                         {[
-                          { id: 2, name: 'Jane Smith', title: 'Marketing Director', organization: 'Acme Corp' },
-                          { id: 3, name: 'John Doe', title: 'Sales Representative', organization: 'Acme Corp' },
-                          { id: 4, name: 'Maria Garcia', title: 'Product Manager', organization: 'Acme Corp' },
+                          { id: 2, firstName: 'Jane', lastName: 'Smith', title: 'Marketing Director', organization: 'Acme Corp' },
+                          { id: 3, firstName: 'John', lastName: 'Doe', title: 'Sales Representative', organization: 'Acme Corp' },
+                          { id: 4, firstName: 'Maria', lastName: 'Garcia', title: 'Product Manager', organization: 'Acme Corp' },
                         ].map(user => (
-                          <div 
-                            key={user.id} 
+                          <div
+                            key={user.id}
                             className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                           >
                             <Avatar className="h-10 w-10 mr-3">
-                              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                              <AvatarFallback>{getInitials(user)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                              <p className="font-medium">{user.name}</p>
+                              <p className="font-medium">{user.firstName} {user.lastName}</p>
                               <p className="text-sm text-gray-500">{user.title || 'No title'}</p>
                             </div>
                             <Button variant="ghost" size="sm">View</Button>
@@ -191,11 +192,12 @@ export default function ProfileManagement() {
                 </div>
                 
                 {/* For the demo, just show the same profile but with different edit permissions */}
-                <ProfileView 
+                <ProfileView
                   user={{
                     ...userWithRole,
                     id: selectedUserId,
-                    name: selectedUserId === 2 ? 'Jane Smith' : (selectedUserId === 3 ? 'John Doe' : 'Maria Garcia'),
+                    firstName: selectedUserId === 2 ? 'Jane' : (selectedUserId === 3 ? 'John' : 'Maria'),
+                    lastName: selectedUserId === 2 ? 'Smith' : (selectedUserId === 3 ? 'Doe' : 'Garcia'),
                     title: selectedUserId === 2 ? 'Marketing Director' : (selectedUserId === 3 ? 'Sales Representative' : 'Product Manager'),
                     role: UserRole.Participant
                   }}

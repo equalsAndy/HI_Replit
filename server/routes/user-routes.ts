@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { userManagementService } from '../services/user-management-service.js';
 import { convertUserToPhotoReference, sanitizeUserForNetwork } from '../utils/user-photo-utils.js';
+import { getFullName } from '../../shared/utils.js';
 import { NavigationSyncService } from '../services/navigation-sync-service.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isAdmin } from '../middleware/roles.js';
@@ -83,7 +84,8 @@ router.get('/me', async (req, res) => {
     // Return simplified user info for /me endpoint
     const userInfo = {
       id: userWithPhotoRef.id,
-      name: userWithPhotoRef.name,
+      firstName: userWithPhotoRef.firstName,
+      lastName: userWithPhotoRef.lastName,
       email: userWithPhotoRef.email,
       role: userWithPhotoRef.role,
       username: userWithPhotoRef.username,
@@ -196,11 +198,12 @@ router.put('/profile', requireAuth, async (req, res) => {
       });
     }
 
-    const { name, email, organization, jobTitle, profilePicture } = req.body;
+    const { firstName, lastName, email, organization, jobTitle, profilePicture } = req.body;
 
     const updateData: any = {};
 
-    if (name !== undefined) updateData.name = name;
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
     if (email !== undefined) updateData.email = email;
     if (organization !== undefined) updateData.organization = organization;
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
@@ -886,7 +889,7 @@ router.delete('/data', requireAuth, async (req: any, res: any) => {
       });
     }
 
-    console.log(`Test user ${sessionUserId} (${result.user.name}) requesting data deletion`);
+    console.log(`Test user ${sessionUserId} (${getFullName(result.user)}) requesting data deletion`);
 
     // Delete user data using the service
     const deleteResult = await userManagementService.deleteUserData(sessionUserId);
@@ -947,14 +950,15 @@ router.get('/export-data', requireAuth, async (req, res) => {
       });
     }
 
-    console.log(`Test user ${sessionUserId} (${result.user.name}) requesting data export`);
+    console.log(`Test user ${sessionUserId} (${getFullName(result.user)}) requesting data export`);
 
     // Get all user data from database
     const userData = {
       user: {
         id: result.user.id,
         username: result.user.username,
-        name: result.user.name,
+        firstName: result.user.firstName,
+        lastName: result.user.lastName,
         email: result.user.email,
         role: result.user.role,
         organization: result.user.organization,
@@ -1089,7 +1093,7 @@ router.post('/reset-data', requireAuth, async (req, res) => {
       });
     }
 
-    console.log(`Test user ${sessionUserId} (${result.user.name}) requesting data reset`);
+    console.log(`Test user ${sessionUserId} (${getFullName(result.user)}) requesting data reset`);
 
     // Delete user data using the service
     const deleteResult = await userManagementService.deleteUserData(sessionUserId);

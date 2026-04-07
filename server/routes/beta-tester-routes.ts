@@ -11,6 +11,8 @@ router.post('/create', async (req, res) => {
   try {
     const {
       name,
+      firstName: reqFirstName,
+      lastName: reqLastName,
       email,
       username,
       password,
@@ -20,11 +22,20 @@ router.post('/create', async (req, res) => {
       isBetaTester
     } = req.body;
 
+    // Derive firstName/lastName from name if not provided separately
+    let firstName = reqFirstName || '';
+    let lastName = reqLastName || '';
+    if (!firstName && name) {
+      const nameParts = name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+
     // Validate required fields
-    if (!name || !email || !username || !password) {
+    if ((!name && !firstName) || !email || !username || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Name, email, username, and password are required'
+        error: 'Name (or firstName), email, username, and password are required'
       });
     }
 
@@ -71,7 +82,8 @@ router.post('/create', async (req, res) => {
     const userData = {
       username,
       password: hashedPassword,
-      name,
+      firstName,
+      lastName,
       email,
       role: 'participant' as const,
       organization: organization || null,

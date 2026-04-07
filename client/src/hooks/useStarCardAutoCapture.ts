@@ -185,6 +185,6 @@ export function useStarCardAutoCapture(options: UseStarCardAutoCaptureOptions = 
     
     // User info
     userId: user?.id,
-    userName: user?.name
+    userName: user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : undefined
   };
 }

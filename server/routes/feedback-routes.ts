@@ -142,7 +142,7 @@ router.get('/beta-tester-counts', requireAdmin, async (req, res) => {
   try {
     // Get all users who are beta testers OR test users (since admins are both)
     const betaTesters = await db
-      .select({ id: users.id, username: users.username, name: users.name })
+      .select({ id: users.id, username: users.username, firstName: users.firstName, lastName: users.lastName })
       .from(users)
       .where(or(eq(users.isBetaTester, true), eq(users.isTestUser, true)));
 
@@ -176,7 +176,7 @@ router.get('/beta-tester-counts', requireAdmin, async (req, res) => {
     const result = betaTesters.map(user => ({
       userId: user.id,
       username: user.username,
-      name: user.name,
+      name: [user.firstName, user.lastName].filter(Boolean).join(' '),
       ticketCount: countMap[user.id] || 0
     }));
 
@@ -302,7 +302,8 @@ router.get('/list', requireAdmin, async (req, res) => {
       .select({
         id: feedback.id,
         userId: feedback.userId,
-        userName: users.name,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
         userEmail: users.email,
         workshopType: feedback.workshopType,
         pageContext: feedback.pageContext,
@@ -359,7 +360,8 @@ router.get('/:id', requireAdmin, async (req, res) => {
       .select({
         id: feedback.id,
         userId: feedback.userId,
-        userName: users.name,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
         userEmail: users.email,
         workshopType: feedback.workshopType,
         pageContext: feedback.pageContext,
@@ -666,7 +668,8 @@ router.post('/export/csv', requireAdmin, async (req, res) => {
       .select({
         id: feedback.id,
         userId: feedback.userId,
-        userName: users.name,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
         userEmail: users.email,
         workshopType: feedback.workshopType,
         pageContext: feedback.pageContext,
@@ -712,7 +715,7 @@ router.post('/export/csv', requireAdmin, async (req, res) => {
       return [
         item.id,
         new Date(item.createdAt).toISOString(),
-        item.userName || 'Anonymous',
+        [item.userFirstName, item.userLastName].filter(Boolean).join(' ') || 'Anonymous',
         item.userEmail || 'N/A',
         item.workshopType.toUpperCase(),
         item.pageContext,

@@ -163,7 +163,7 @@ const FacilitatorDashboard: React.FC = () => {
                 Heliotrope Imaginal &mdash; Facilitator Console
               </h1>
               <p className="mt-1 text-sm text-slate-500">
-                Welcome, {user?.name || user?.username || 'Facilitator'}
+                Welcome, {user?.firstName || user?.username || 'Facilitator'}
               </p>
             </div>
             <Button

@@ -3,6 +3,7 @@ import { users, vaultAccounts } from '../../shared/schema.ts';
 import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { convertUserToPhotoReference, processProfilePicture, sanitizeUserForNetwork } from '../utils/user-photo-utils.ts';
+import { getFullName } from '../../shared/utils.js';
 
 class UserManagementService {
   /**
@@ -27,7 +28,8 @@ class UserManagementService {
   async createUser(data: {
     username: string;
     password: string;
-    name: string;
+    firstName: string;
+    lastName?: string | null;
     email: string;
     role: 'admin' | 'facilitator' | 'participant' | 'student';
     organization?: string | null;
@@ -48,11 +50,12 @@ class UserManagementService {
 
       // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, invited_by, created_at, updated_at)
+        INSERT INTO users (username, password, first_name, last_name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, invited_by, created_at, updated_at)
         VALUES (
           ${data.username},
           ${hashedPassword},
-          ${data.name},
+          ${data.firstName},
+          ${data.lastName || null},
           ${data.email.toLowerCase()},
           ${data.role},
           ${data.organization || null},
@@ -101,7 +104,8 @@ class UserManagementService {
         user: {
           id: userData.id,
           username: userData.username,
-          name: userData.name,
+          firstName: userData.first_name,
+          lastName: userData.last_name,
           email: userData.email,
           role: userData.role,
           organization: userData.organization,
@@ -255,7 +259,8 @@ class UserManagementService {
    * Update a user
    */
   async updateUser(id: number, data: {
-    name?: string;
+    firstName?: string;
+    lastName?: string | null;
     email?: string;
     organization?: string | null;
     jobTitle?: string | null;
@@ -276,9 +281,10 @@ class UserManagementService {
   }) {
     try {
       const updateData: any = {};
-      
+
       // Handle regular fields
-      if (data.name !== undefined) updateData.name = data.name;
+      if (data.firstName !== undefined) updateData.firstName = data.firstName;
+      if (data.lastName !== undefined) updateData.lastName = data.lastName;
       if (data.email !== undefined) updateData.email = data.email;
       if (data.organization !== undefined) updateData.organization = data.organization;
       if (data.jobTitle !== undefined) updateData.jobTitle = data.jobTitle;
@@ -587,7 +593,8 @@ class UserManagementService {
         users: result.map(user => ({
           id: user.id,
           username: user.username,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           email: user.email,
           role: user.role,
           organization: user.organization,
@@ -1213,7 +1220,7 @@ class UserManagementService {
 
       // Get user data to validate
       const userResult = await pool.query(
-        'SELECT id, username, name, email FROM users WHERE id = $1',
+        'SELECT id, username, CONCAT(first_name, \' \', COALESCE(last_name, \'\')) as name, email FROM users WHERE id = $1',
         [userId]
       );
 

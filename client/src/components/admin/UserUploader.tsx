@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UserUploadData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   organization: string;
   jobTitle: string;
@@ -22,7 +23,8 @@ const generateTestUserData = (userNumber: number) => {
   return {
     userInfo: {
       username: `testuser${userNumber}`,
-      name: `Test User ${userNumber}`,
+      firstName: 'Test',
+      lastName: `User ${userNumber}`,
       email: `testuser${userNumber}@example.com`,
       role: "participant",
       organization: "Test Organization",
@@ -116,7 +118,8 @@ const generateTestUserData = (userNumber: number) => {
 
 export default function UserUploader() {
   const [formData, setFormData] = useState<UserUploadData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     organization: '',
     jobTitle: '',
@@ -148,13 +151,14 @@ export default function UserUploader() {
     onSuccess: (data) => {
       toast({
         title: "User Created Successfully",
-        description: `User "${data.user.name}" has been created with complete workshop data.`,
+        description: `User "${data.user.firstName ? `${data.user.firstName} ${data.user.lastName || ''}`.trim() : data.user.username}" has been created with complete workshop data.`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       
       // Reset form for next user
       setFormData({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         organization: '',
         jobTitle: '',
@@ -183,10 +187,10 @@ export default function UserUploader() {
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email) {
+    if (!formData.firstName || !formData.email) {
       toast({
         title: "Validation Error",
-        description: "Name and email are required fields.",
+        description: "First name and email are required fields.",
         variant: "destructive",
       });
       return;
@@ -195,7 +199,8 @@ export default function UserUploader() {
     const userData = {
       userInfo: {
         username: formData.email.split('@')[0],
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName || '',
         email: formData.email,
         role: formData.role,
         organization: formData.organization,
@@ -256,19 +261,29 @@ export default function UserUploader() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCustomSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="firstName">First Name *</Label>
                 <Input
-                  id="name"
+                  id="firstName"
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter full name"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="First name"
                   required
                 />
               </div>
-              
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="Last name"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="email">Email *</Label>
                 <Input

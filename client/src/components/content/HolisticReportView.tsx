@@ -1002,7 +1002,7 @@ export default function HolisticReportView({
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-purple-900 mb-2 flex items-center gap-2">
                   <MessageSquareText className="w-5 h-5" />
-                  Thank you {user?.name?.split(' ')[0] || 'participant'} for beta testing AllStarTeams!
+                  Thank you {user?.firstName || 'participant'} for beta testing AllStarTeams!
                 </h3>
                 <p className="text-purple-800 text-sm">
                   {canGiveFeedback

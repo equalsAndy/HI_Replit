@@ -82,7 +82,7 @@ export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: 
 
         if (!hasSeenDemoModal) {
           setDemoAccountData({
-            userName: data.user.name || 'Demo User',
+            userName: data.user.firstName || 'Demo User',
             hasWorkshopData: true, // We'll assume they have data since it's a demo account
           });
           setShowDemoModal(true);
@@ -98,7 +98,7 @@ export function LoginForm({ showTestInfoToggle = true }: { showTestInfoToggle?: 
       // Show success message
       toast({
         title: 'Login successful',
-        description: `Welcome back, ${data.user.name || 'User'}!`,
+        description: `Welcome back, ${data.user.firstName || 'User'}!`,
       });
       
       // Route users based on their role and user type

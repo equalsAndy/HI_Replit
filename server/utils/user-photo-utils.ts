@@ -8,7 +8,8 @@ import { photoStorageService } from '../services/photo-storage-service';
 export interface UserWithPhotoReference {
   id: number;
   username: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   organization?: string;
@@ -46,7 +47,8 @@ export function convertUserToPhotoReference(user: any): UserWithPhotoReference {
   const result: UserWithPhotoReference = {
     id: user.id,
     username: user.username,
-    name: user.name,
+    firstName: user.first_name || user.firstName || '',
+    lastName: user.last_name || user.lastName || '',
     email: user.email,
     role: user.role,
     organization: user.organization,

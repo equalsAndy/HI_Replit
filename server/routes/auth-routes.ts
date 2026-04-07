@@ -21,7 +21,8 @@ router.put('/me', requireAuth, async (req, res) => {
 
     // Extract allowed fields for profile update
     const {
-      name,
+      firstName,
+      lastName,
       email,
       organization,
       jobTitle,
@@ -32,12 +33,12 @@ router.put('/me', requireAuth, async (req, res) => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Validate required fields for profile updates (if updating profile fields, name and email are required)
-    const isProfileUpdate = name !== undefined || email !== undefined || organization !== undefined || jobTitle !== undefined || profilePicture !== undefined;
-    if (isProfileUpdate && (!name || !email)) {
+    // Validate required fields for profile updates (if updating profile fields, firstName and email are required)
+    const isProfileUpdate = firstName !== undefined || lastName !== undefined || email !== undefined || organization !== undefined || jobTitle !== undefined || profilePicture !== undefined;
+    if (isProfileUpdate && (!firstName || !email)) {
       return res.status(400).json({
         success: false,
-        error: 'Name and email are required for profile updates'
+        error: 'First name and email are required for profile updates'
       });
     }
 
@@ -59,7 +60,8 @@ router.put('/me', requireAuth, async (req, res) => {
 
     // Update the user profile
     const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
     if (email !== undefined) updateData.email = email;
     if (organization !== undefined) updateData.organization = organization;
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;

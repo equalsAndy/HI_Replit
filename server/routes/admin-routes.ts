@@ -79,11 +79,11 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
     const password = Math.random().toString(36).substring(2, 12);
 
     // Create the user
-    const name = `${result.data.firstName || ''} ${result.data.lastName || ''}`.trim() || result.data.username;
     const userResult = await userManagementService.createUser({
       username: result.data.username,
       password: password,
-      name: name,
+      firstName: result.data.firstName || result.data.username,
+      lastName: result.data.lastName || null,
       email: result.data.email,
       role: result.data.role as 'admin' | 'facilitator' | 'participant' | 'student',
       organization: result.data.organization,
@@ -203,7 +203,8 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     }
 
     const updateSchema = z.object({
-      name: z.string().min(1).optional(),
+      firstName: z.string().min(1).optional(),
+      lastName: z.string().optional(),
       email: z.string().email().optional(),
       organization: z.string().optional(),
       jobTitle: z.string().optional(),
@@ -727,7 +728,7 @@ router.get('/users/:id/reports/ai-payloads', requireAuth, isAdmin, async (req: R
 
     // Get user information
     const userResult = await pool.query(
-      'SELECT id, name, email FROM users WHERE id = $1',
+      'SELECT id, first_name, last_name, email FROM users WHERE id = $1',
       [userId]
     );
 
@@ -787,7 +788,7 @@ router.get('/users/:id/reports/ai-payloads', requireAuth, isAdmin, async (req: R
     // Build response payload
     const response = {
       userId: user.id,
-      userName: user.name,
+      userName: [user.first_name, user.last_name].filter(Boolean).join(' '),
       userEmail: user.email,
       exportedAt: new Date().toISOString(),
       totalSections: sectionsResult.rows.length,
@@ -840,7 +841,7 @@ router.get('/users/:userId/export', requireAuth, async (req: Request, res: Respo
     }
 
     // Get admin info for metadata
-    const adminUsername = (req.session as any).username || (req.session as any).name || 'admin';
+    const adminUsername = (req.session as any).username || 'admin';
 
     const exportData = await ExportService.exportUserData(userId, adminUsername);
 

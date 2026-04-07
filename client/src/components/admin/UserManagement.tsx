@@ -39,7 +39,10 @@ import { AdminStarCardModal } from './AdminStarCardModal';
 interface User {
   id: number;
   username: string;
-  name: string;
+  firstName: string;
+  lastName?: string;
+  /** @deprecated Use firstName + lastName */
+  name?: string;
   email: string;
   organization?: string;
   jobTitle?: string;
@@ -74,7 +77,8 @@ const createUserSchema = z.object({
     .min(3, 'Username must be at least 3 characters')
     .max(20, 'Username cannot exceed 20 characters')
     .regex(/^[a-z0-9][a-z0-9_\-]*[a-z0-9]$/i, 'Username must start and end with letter or number, and contain only letters, numbers, underscores, and hyphens'),
-  name: z.string().min(1, 'Name is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional(),
   email: z.string().email('Please enter a valid email'),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
@@ -90,7 +94,8 @@ type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
 // Form schema for editing users
 const editUserSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional(),
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
@@ -213,7 +218,8 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       if (barney) {
         console.log('🔍 DEBUG: User 8 (Barney) data from API:', {
           id: barney.id,
-          name: barney.name,
+          firstName: barney.firstName,
+          lastName: barney.lastName,
           isBetaTester: barney.isBetaTester,
           isTestUser: barney.isTestUser,
           showDemoDataButtons: barney.showDemoDataButtons
@@ -266,8 +272,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const filteredAndSortedUsers = React.useMemo(() => {
     let filtered = users.filter((user: User) => {
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-      const matchesSearch = !searchTerm || 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const userDisplayName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      const matchesSearch = !searchTerm ||
+        userDisplayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.organization && user.organization.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -281,7 +288,10 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       let bValue: any = b[sortField as keyof User];
 
       // Handle special cases
-      if (sortField === 'name' || sortField === 'username') {
+      if (sortField === 'name' || sortField === 'firstName') {
+        aValue = `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase();
+        bValue = `${b.firstName || ''} ${b.lastName || ''}`.trim().toLowerCase();
+      } else if (sortField === 'username') {
         aValue = aValue?.toLowerCase() || '';
         bValue = bValue?.toLowerCase() || '';
       } else if (sortField === 'id') {
@@ -800,7 +810,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     setStarCardModalState({
       isOpen: true,
       userId: user.id,
-      userName: user.name || user.username,
+      userName: user.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : user.username,
       username: user.username
     });
   };
@@ -873,7 +883,8 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     setSelectedUser(user);
 
     editForm.reset({
-      name: user.name,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       email: user.email,
       organization: user.organization || '',
       jobTitle: user.jobTitle || '',
@@ -928,13 +939,16 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   };
 
   // Get initials for avatar
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+  const getInitials = (user: User | { firstName?: string; lastName?: string }) => {
+    const first = (user as any).firstName || '';
+    const last = (user as any).lastName || '';
+    return ((first[0] || '') + (last[0] || '')).toUpperCase() || 'U';
+  };
+
+  // Get display name for a user
+  const getDisplayName = (user: User) => {
+    if (user.firstName) return `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`;
+    return user.username;
   };
 
   // Get ticket count for a beta tester
@@ -1072,13 +1086,13 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                             <div className="flex items-center space-x-2">
                               <Avatar className="h-7 w-7 flex-shrink-0">
                                 {user.profilePicture ? (
-                                  <AvatarImage src={user.profilePicture} alt={user.name} />
+                                  <AvatarImage src={user.profilePicture} alt={getDisplayName(user)} />
                                 ) : (
-                                  <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                                  <AvatarFallback className="text-xs">{getInitials(user)}</AvatarFallback>
                                 )}
                               </Avatar>
                               <div className="space-y-0.5 min-w-0">
-                                <p className="font-medium text-sm truncate">{user.name}</p>
+                                <p className="font-medium text-sm truncate">{getDisplayName(user)}</p>
                                 <p className="text-xs text-muted-foreground truncate">{user.organization || 'No organization'}</p>
                               </div>
                             </div>
@@ -1764,12 +1778,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={user.profilePicture || undefined} />
                             <AvatarFallback>
-                              {user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                              {getInitials(user)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="flex items-center space-x-2">
-                              <p className="font-medium">{user.name}</p>
+                              <p className="font-medium">{getDisplayName(user)}</p>
                               <Badge variant="outline" className="text-xs">
                                 {user.role}
                               </Badge>
@@ -2350,14 +2364,14 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 <div>
                   <Avatar className="h-10 w-10">
                     {selectedUser.profilePicture ? (
-                      <AvatarImage src={selectedUser.profilePicture} alt={selectedUser.name} />
+                      <AvatarImage src={selectedUser.profilePicture} alt={getDisplayName(selectedUser)} />
                     ) : (
-                      <AvatarFallback>{getInitials(selectedUser.name)}</AvatarFallback>
+                      <AvatarFallback>{getInitials(selectedUser)}</AvatarFallback>
                     )}
                   </Avatar>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium">{selectedUser.name}</h4>
+                  <h4 className="font-medium">{getDisplayName(selectedUser)}</h4>
                   <p className="text-sm text-muted-foreground">{selectedUser.username}</p>
                 </div>
                 <Badge className={getRoleBadgeColor(selectedUser.role)}>
@@ -2371,8 +2385,8 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
             <Button variant="outline" onClick={() => setConfirmDeleteOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => selectedUser && deleteUserMutation.mutate(selectedUser.id)}
               disabled={deleteUserMutation.isPending}
             >
@@ -2389,7 +2403,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
           <DialogHeader>
             <DialogTitle>Delete User Data</DialogTitle>
             <DialogDescription>
-              This will permanently delete all assessment data, progress, and workshop results for this user. 
+              This will permanently delete all assessment data, progress, and workshop results for this user.
               The user profile and login credentials will be preserved. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
@@ -2400,14 +2414,14 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 <div>
                   <Avatar className="h-10 w-10">
                     {selectedUser.profilePicture ? (
-                      <AvatarImage src={selectedUser.profilePicture} alt={selectedUser.name} />
+                      <AvatarImage src={selectedUser.profilePicture} alt={getDisplayName(selectedUser)} />
                     ) : (
-                      <AvatarFallback>{getInitials(selectedUser.name)}</AvatarFallback>
+                      <AvatarFallback>{getInitials(selectedUser)}</AvatarFallback>
                     )}
                   </Avatar>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium">{selectedUser.name}</h4>
+                  <h4 className="font-medium">{getDisplayName(selectedUser)}</h4>
                   <p className="text-sm text-muted-foreground">{selectedUser.username}</p>
                 </div>
                 <Badge className={getRoleBadgeColor(selectedUser.role)}>
@@ -2448,7 +2462,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       <Dialog open={dataViewOpen} onOpenChange={setDataViewOpen}>
         <DialogContent className="max-w-4xl max-h-[85vh]">
           <DialogHeader className="pb-2">
-            <DialogTitle className="text-lg">Export Data - {selectedUser?.name}</DialogTitle>
+            <DialogTitle className="text-lg">Export Data - {selectedUser ? getDisplayName(selectedUser) : ''}</DialogTitle>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto">

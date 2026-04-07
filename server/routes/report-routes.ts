@@ -91,7 +91,7 @@ router.get('/generate/:userId', async (req, res) => {
     await browser.close();
 
     // Save and serve PDF
-    const fileName = `HI-Report-${user[0].name?.replace(/[^a-zA-Z0-9]/g, '-') || 'User'}-${Date.now()}.pdf`;
+    const fileName = `HI-Report-${[user[0].firstName, user[0].lastName].filter(Boolean).join('-').replace(/[^a-zA-Z0-9-]/g, '') || 'User'}-${Date.now()}.pdf`;
     const filePath = path.join(process.cwd(), 'uploads', fileName);
     
     await writeFile(filePath, pdf);
@@ -177,10 +177,10 @@ function generateComprehensiveReportHTML(data: any): string {
   const futureSelf = {};
   const finalReflection = data.assessments?.finalReflection || {};
 
-  const userName = data.user?.name || 'Participant';
+  const userName = [data.user?.firstName, data.user?.lastName].filter(Boolean).join(' ') || 'Participant';
   const userTitle = data.user?.jobTitle || '';
   const userOrg = data.user?.organization || '';
-  
+
   // Calculate strength percentages
   const total = (starCard.thinking || 0) + (starCard.acting || 0) + (starCard.feeling || 0) + (starCard.planning || 0);
   const strengthPercentages = {

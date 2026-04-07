@@ -30,9 +30,11 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
     }
   }, [user]);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProfileData>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProfileData & { firstName: string; lastName: string }>({
     defaultValues: {
-      name: user?.name || "",
+      name: '',  // computed on submit
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
       title: user?.title || "",
       organization: user?.organization || "",
       avatarUrl: user?.avatarUrl || ""
@@ -67,8 +69,13 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
     }
   });
 
-  const onSubmit = (data: ProfileData) => {
-    updateProfile.mutate(data);
+  const onSubmit = (data: ProfileData & { firstName: string; lastName: string }) => {
+    // Compute display name from first/last and send both formats
+    const displayName = data.lastName ? `${data.firstName} ${data.lastName}` : data.firstName;
+    updateProfile.mutate({
+      ...data,
+      name: displayName,
+    });
   };
 
   const handleAvatarChange = (base64Image: string) => {
@@ -95,14 +102,24 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
       </div>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Name:</Label>
-          <Input
-            id="name"
-            placeholder="Your name"
-            {...register('name', { required: 'Name is required' })}
-          />
-          {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name:</Label>
+            <Input
+              id="firstName"
+              placeholder="First name"
+              {...register('firstName', { required: 'First name is required' })}
+            />
+            {errors.firstName && <p className="text-sm text-red-500">{errors.firstName.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name:</Label>
+            <Input
+              id="lastName"
+              placeholder="Last name"
+              {...register('lastName')}
+            />
+          </div>
         </div>
         
         <div className="space-y-2">

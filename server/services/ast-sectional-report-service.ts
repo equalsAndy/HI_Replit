@@ -1504,7 +1504,7 @@ class ASTSectionalReportService {
 
       // Get user info from database
       const userResult = await pool.query(
-        'SELECT id, username, name FROM users WHERE id = $1',
+        'SELECT id, username, first_name, last_name FROM users WHERE id = $1',
         [userId]
       );
 
@@ -1522,7 +1522,7 @@ class ASTSectionalReportService {
 
       // Create metadata for template service
       const metadata: ReportMetadata = {
-        userName: user.name,
+        userName: [user.first_name, user.last_name].filter(Boolean).join(' '),
         reportType: reportType,
         generatedAt: new Date(),
         subtitle: reportType === 'ast_personal'
