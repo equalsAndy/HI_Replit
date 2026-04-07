@@ -332,6 +332,19 @@ const InviteManagement: React.FC = () => {
   const [editValues, setEditValues] = React.useState<any | null>(null);
   const { toast } = useToast();
 
+  // Email sending controls
+  const [sendWelcomeEmail, setSendWelcomeEmail] = React.useState(false);
+  const [emailTemplateId, setEmailTemplateId] = React.useState<number | ''>('');
+  const [senderIdentity, setSenderIdentity] = React.useState('heliotrope');
+  const [emailTemplates, setEmailTemplates] = React.useState<Array<{ id: number; name: string; templateCategory: string }>>([]);
+
+  // Fetch email templates once on mount
+  React.useEffect(() => {
+    apiRequest('/api/email-templates')
+      .then(data => { if (data.success) setEmailTemplates(data.templates || []); })
+      .catch(() => {});
+  }, []);
+
   const fetchInvites = async () => {
     setIsLoading(true);
     try {
@@ -385,11 +398,29 @@ const InviteManagement: React.FC = () => {
       });
 
       if (response.success) {
-        toast({ 
-          title: 'Success', 
-          description: `Invite created for ${newInvite.email}` 
-        });
+        const inviteId = response.invite?.id;
+
+        // Send welcome email if checkbox is checked
+        if (sendWelcomeEmail && emailTemplateId && inviteId) {
+          try {
+            const emailRes = await apiRequest('/api/email-send/invite', {
+              method: 'POST',
+              body: JSON.stringify({ inviteId, templateId: emailTemplateId, senderIdentity }),
+            });
+            if (emailRes.success) {
+              toast({ title: 'Success', description: `Invite created and email sent to ${newInvite.email}` });
+            } else {
+              toast({ title: 'Invite created', description: `Email failed to send: ${emailRes.error}`, variant: 'destructive' });
+            }
+          } catch {
+            toast({ title: 'Invite created', description: 'Failed to send welcome email', variant: 'destructive' });
+          }
+        } else {
+          toast({ title: 'Success', description: `Invite created for ${newInvite.email}` });
+        }
+
         setNewInvite({ email: '', role: 'participant', name: '', jobTitle: '', organization: '', isTestUser: false, isBetaTester: false, astAccess: true, iaAccess: true, pmAccess: false, showDemoDataButtons: false });
+        setSendWelcomeEmail(false);
         fetchInvites();
       } else {
         toast({ 
@@ -866,6 +897,51 @@ const InviteManagement: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Send Welcome Email option (create mode only) */}
+                {!editingInvite && emailTemplates.length > 0 && (
+                  <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <input
+                        type="checkbox"
+                        checked={sendWelcomeEmail}
+                        onChange={(e) => setSendWelcomeEmail(e.target.checked)}
+                        disabled={isSendingInvite}
+                        style={{ margin: 0 }}
+                      />
+                      Send welcome email on creation
+                    </label>
+                    {sendWelcomeEmail && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div>
+                          <label style={{ ...styles.label, fontSize: '12px' }}>Email Template</label>
+                          <select
+                            style={styles.input}
+                            value={emailTemplateId}
+                            onChange={(e) => setEmailTemplateId(e.target.value ? parseInt(e.target.value) : '')}
+                          >
+                            <option value="">Select template...</option>
+                            {emailTemplates.map((t: any) => (
+                              <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ ...styles.label, fontSize: '12px' }}>Send From</label>
+                          <select
+                            style={styles.input}
+                            value={senderIdentity}
+                            onChange={(e) => setSenderIdentity(e.target.value)}
+                          >
+                            <option value="heliotrope">Heliotrope Imaginal</option>
+                            <option value="allstarteams">AllStarTeams</option>
+                            <option value="imaginalagility">Imaginal Agility</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <button
                   style={{
                     ...styles.button,
@@ -877,7 +953,7 @@ const InviteManagement: React.FC = () => {
                 >
                   {editingInvite
                     ? (isSendingInvite ? 'Saving...' : 'Save Invite')
-                    : (isSendingInvite ? 'Creating...' : 'Create Invite')}
+                    : (isSendingInvite ? (sendWelcomeEmail ? 'Creating & Sending...' : 'Creating...') : (sendWelcomeEmail ? 'Create & Send Email' : 'Create Invite'))}
                 </button>
                 {editingInvite && (
                   <button
@@ -1027,15 +1103,48 @@ const InviteManagement: React.FC = () => {
                           {formatDate(invite.createdAt || invite.created_at)}
                         </td>
                         <td style={styles.td}>
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                             {!invite.used_at && !invite.isUsed && (
-                              <button
-                                style={{ ...styles.codeButton, padding: '6px 10px' }}
-                                onClick={() => startEditInvite(invite)}
-                                title="Edit invite"
-                              >
-                                Edit
-                              </button>
+                              <>
+                                <button
+                                  style={{ ...styles.codeButton, padding: '6px 10px' }}
+                                  onClick={() => startEditInvite(invite)}
+                                  title="Edit invite"
+                                >
+                                  Edit
+                                </button>
+                                {emailTemplates.length > 0 && (
+                                  <button
+                                    style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                                    onClick={async () => {
+                                      const defaultTemplate = emailTemplates.find((t: any) => t.isDefault) || emailTemplates[0];
+                                      if (!defaultTemplate) return;
+                                      if (!confirm(`Send welcome email to ${invite.email}?`)) return;
+                                      const res = await apiRequest('/api/email-send/invite', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ inviteId: invite.id, templateId: defaultTemplate.id, senderIdentity: 'heliotrope' }),
+                                      });
+                                      toast(res.success
+                                        ? { title: 'Email sent', description: invite.email }
+                                        : { title: 'Send failed', description: res.error, variant: 'destructive' as const });
+                                    }}
+                                    title="Send welcome email"
+                                  >
+                                    Send
+                                  </button>
+                                )}
+                                <button
+                                  style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#f0fdf4', color: '#16a34a' }}
+                                  onClick={() => {
+                                    const defaultTemplate = emailTemplates.find((t: any) => t.isDefault) || emailTemplates[0];
+                                    if (!defaultTemplate) { toast({ title: 'No templates', description: 'Create a template first', variant: 'destructive' }); return; }
+                                    window.open(`/api/email-send/download/${invite.id}?templateId=${defaultTemplate.id}`, '_blank');
+                                  }}
+                                  title="Download email as HTML"
+                                >
+                                  HTML
+                                </button>
+                              </>
                             )}
                             <button
                               style={styles.deleteButton}
