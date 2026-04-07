@@ -67,6 +67,11 @@ export const featureFlags: Record<string, FeatureFlag> = {
     enabled: process.env.FEATURE_SOLID_POD_SYNC === 'true',
     environment: 'all',
     description: 'Sync assessment data to SelfActual Solid Pods'
+  },
+  emailInvitationSystem: {
+    enabled: process.env.FEATURE_EMAIL_TEMPLATES === 'true',
+    environment: 'all',
+    description: 'Email invitation system with rich-text templates and AWS SES delivery'
   }
 };
 
