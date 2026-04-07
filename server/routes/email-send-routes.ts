@@ -153,4 +153,87 @@ router.get('/history/:id', requireAuth, isFacilitatorOrAdmin, async (req: Reques
   }
 });
 
+// ── Download as HTML ──────────────────────────────────────────────────────────
+
+/** GET /api/email-send/download/:inviteId — download rendered HTML for a single invite */
+router.get('/download/:inviteId', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const inviteId = parseInt(req.params.inviteId, 10);
+    const templateId = parseInt(req.query.templateId as string, 10);
+
+    if (isNaN(inviteId) || isNaN(templateId)) {
+      return res.status(400).json({ success: false, message: 'inviteId and templateId are required' });
+    }
+
+    const { emailVariableService } = await import('../services/email-variable-service.js');
+    const { emailTemplateService } = await import('../services/email-template-service.js');
+
+    const template = await emailTemplateService.getTemplateById(templateId);
+    if (!template) {
+      return res.status(404).json({ success: false, message: 'Template not found' });
+    }
+
+    const variables = await emailVariableService.buildVariableContext(inviteId);
+    const { html } = emailVariableService.renderBoth(template.htmlContent, template.plainTextContent, variables);
+    const subject = emailVariableService.renderTemplate(template.subject, variables);
+
+    const filename = `email-${variables.invite_name || 'invite'}-${variables.invite_code_raw}.html`
+      .replace(/[^a-zA-Z0-9._-]/g, '_');
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(html);
+  } catch (error: any) {
+    console.error('Error downloading email:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to download email' });
+  }
+});
+
+/** POST /api/email-send/download-bulk — download a zip of rendered HTML files for multiple invites */
+router.post('/download-bulk', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const { inviteIds, templateId } = req.body;
+
+    if (!inviteIds || !Array.isArray(inviteIds) || !templateId) {
+      return res.status(400).json({ success: false, message: 'inviteIds array and templateId are required' });
+    }
+
+    const { emailVariableService } = await import('../services/email-variable-service.js');
+    const { emailTemplateService } = await import('../services/email-template-service.js');
+
+    const template = await emailTemplateService.getTemplateById(templateId);
+    if (!template) {
+      return res.status(404).json({ success: false, message: 'Template not found' });
+    }
+
+    // Build all rendered HTMLs
+    const files: Array<{ name: string; content: string }> = [];
+    for (const inviteId of inviteIds) {
+      try {
+        const variables = await emailVariableService.buildVariableContext(inviteId);
+        const { html } = emailVariableService.renderBoth(template.htmlContent, template.plainTextContent, variables);
+        const filename = `${variables.invite_name || 'invite'}-${variables.invite_code_raw}.html`
+          .replace(/[^a-zA-Z0-9._-]/g, '_');
+        files.push({ name: filename, content: html });
+      } catch (err: any) {
+        files.push({ name: `error-invite-${inviteId}.txt`, content: `Error: ${err.message}` });
+      }
+    }
+
+    // For single file, just return the HTML directly
+    if (files.length === 1) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${files[0].name}"`);
+      return res.send(files[0].content);
+    }
+
+    // For multiple files, return JSON with all rendered content
+    // (Client-side zip generation is more practical than server-side for small batches)
+    res.json({ success: true, files });
+  } catch (error: any) {
+    console.error('Error downloading bulk emails:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to download emails' });
+  }
+});
+
 export default router;

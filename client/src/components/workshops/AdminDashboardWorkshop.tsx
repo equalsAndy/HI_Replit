@@ -11,9 +11,10 @@ const EnhancedVideoManagement = React.lazy(() =>
   import('@/components/admin/EnhancedVideoManagement').then(m => ({ default: m.EnhancedVideoManagement }))
 );
 const VideoTranscriptAdmin = React.lazy(() => import('@/components/admin/VideoTranscriptAdmin'));
+const EmailTemplateManagement = React.lazy(() => import('@/components/admin/email/EmailTemplateManagement'));
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
-import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video, FileText, Database } from 'lucide-react';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Send, Video, FileText, Database } from 'lucide-react';
 import VersionInfo from '@/components/ui/VersionInfo';
 import { FeedbackTrigger } from '@/components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '@/utils/pageContext';
@@ -1439,6 +1440,7 @@ export default function AdminDashboardWorkshop() {
             { id: 'videos', label: 'Videos', icon: Video, adminOnly: true },
             { id: 'ai', label: 'AI', icon: Bot },
             { id: 'pods', label: 'Pods', icon: Database, adminOnly: true },
+            { id: 'email-templates', label: 'Email', icon: Send, adminOnly: true },
             { id: 'feedback', label: 'Feedback', icon: null }
           ].map((tab) => (
             <button
@@ -1528,6 +1530,7 @@ export default function AdminDashboardWorkshop() {
               </div>
             )}
             {activeTab === 'pods' && isAdmin && <VaultSyncPanel />}
+            {activeTab === 'email-templates' && isAdmin && <EmailTemplateManagement />}
             {activeTab === 'feedback' && <FeedbackManagement />}
           </Suspense>
         </div>
