@@ -9,6 +9,7 @@ export const VariableNode = Node.create({
   group: 'inline',
   inline: true,
   atom: true, // non-editable — treated as a single unit
+  marks: '_', // allow all marks (bold, italic, etc.) — formatting carries into sent email
 
   addAttributes() {
     return {
