@@ -63,7 +63,7 @@ class EmailVariableService {
     return {
       invite_code: formatted,
       invite_code_raw: raw,
-      invite_url: `${platformUrl}/register?code=${raw}`,
+      invite_url: `${platformUrl}/register/${formatted}`,
       invite_email: invite.email,
       invite_name: invite.name || 'there',
       invite_expires_at: invite.expiresAt ? new Date(invite.expiresAt).toLocaleDateString() : '',
@@ -79,11 +79,24 @@ class EmailVariableService {
   }
 
   /**
+   * Strip Tiptap VariableNode chip wrappers from HTML before Handlebars rendering.
+   * Converts `<span class="variable-node" ...>{{var}}</span>` → `{{var}}`
+   * so that rendered values inherit surrounding text formatting, not chip styling.
+   */
+  private stripVariableNodeWrappers(html: string): string {
+    return html.replace(
+      /<span[^>]*class="variable-node"[^>]*>(\{\{[^}]+\}\})<\/span>/g,
+      '$1',
+    );
+  }
+
+  /**
    * Compile a Handlebars template string, returning rendered HTML.
-   * Uses Handlebars auto-escaping by default (triple-stache {{{var}}} for raw HTML).
+   * Strips VariableNode chip styling first so values look like normal text.
    */
   renderTemplate(templateString: string, variables: Record<string, any>): string {
-    const compiled = Handlebars.compile(templateString);
+    const cleaned = this.stripVariableNodeWrappers(templateString);
+    const compiled = Handlebars.compile(cleaned);
     return compiled(variables);
   }
 

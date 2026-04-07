@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Extension } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle, Color } from '@tiptap/extension-text-style';
 import { Underline } from '@tiptap/extension-underline';
@@ -9,6 +9,37 @@ import { Placeholder } from '@tiptap/extension-placeholder';
 import { CharacterCount } from '@tiptap/extension-character-count';
 import { VariableNode } from './VariableNode';
 import VariablePicker from './VariablePicker';
+
+// FontSize extension — allows setting font-size via textStyle mark
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return { types: ['textStyle'] };
+  },
+  addGlobalAttributes() {
+    return [{
+      types: this.options.types,
+      attributes: {
+        fontSize: {
+          default: null,
+          parseHTML: (el: HTMLElement) => el.style.fontSize || null,
+          renderHTML: (attrs: Record<string, any>) => {
+            if (!attrs.fontSize) return {};
+            return { style: `font-size: ${attrs.fontSize}` };
+          },
+        },
+      },
+    }];
+  },
+  addCommands() {
+    return {
+      setFontSize: (size: string) => ({ chain }: any) =>
+        chain().setMark('textStyle', { fontSize: size }).run(),
+      unsetFontSize: () => ({ chain }: any) =>
+        chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run(),
+    };
+  },
+});
 
 interface EmailTemplateEditorProps {
   name: string;
@@ -58,6 +89,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     extensions: [
       StarterKit,
       TextStyle,
+      FontSize,
       Color,
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
@@ -69,7 +101,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     content: initHtml,
     editorProps: {
       attributes: {
-        style: 'outline: none; min-height: 350px; padding: 16px; font-size: 14px; line-height: 1.7;',
+        style: 'outline: none; min-height: 350px; padding: 16px; font-size: 16px; line-height: 1.7;',
       },
     },
   });
@@ -163,6 +195,32 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '6px 8px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', alignItems: 'center' }}>
             {!sourceMode && editor && (
               <>
+                {/* Font Size */}
+                <select
+                  onChange={e => {
+                    if (e.target.value === '') {
+                      (editor.commands as any).unsetFontSize();
+                    } else {
+                      (editor.commands as any).setFontSize(e.target.value);
+                    }
+                  }}
+                  value=""
+                  title="Font size"
+                  style={{ padding: '2px 4px', fontSize: '12px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white', width: '58px' }}
+                >
+                  <option value="" disabled>Size</option>
+                  <option value="">Default</option>
+                  <option value="12px">12</option>
+                  <option value="14px">14</option>
+                  <option value="16px">16</option>
+                  <option value="18px">18</option>
+                  <option value="20px">20</option>
+                  <option value="24px">24</option>
+                  <option value="28px">28</option>
+                  <option value="32px">32</option>
+                  <option value="36px">36</option>
+                </select>
+                <Divider />
                 <ToolbarBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Bold"><strong>B</strong></ToolbarBtn>
                 <ToolbarBtn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Italic"><em>I</em></ToolbarBtn>
                 <ToolbarBtn onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Underline"><span style={{ textDecoration: 'underline' }}>U</span></ToolbarBtn>

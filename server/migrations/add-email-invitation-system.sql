@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS template_variables (
 INSERT INTO template_variables (variable_key, variable_name, description, category, data_type, example_value, is_required, is_conditional, fallback_value) VALUES
   ('invite_code', 'Invite Code', 'Formatted invite code with hyphens', 'invite', 'string', 'ABC-DEF-GHI', true, false, NULL),
   ('invite_code_raw', 'Invite Code (Raw)', 'Raw invite code without formatting', 'invite', 'string', 'ABCDEFGHI', false, false, NULL),
-  ('invite_url', 'Invite URL', 'Full registration URL with invite code', 'invite', 'string', 'https://app2.heliotropeimaginal.com/register?code=ABCDEFGHI', true, false, NULL),
+  ('invite_url', 'Invite URL', 'Full registration URL with invite code', 'invite', 'string', 'https://app2.heliotropeimaginal.com/register/ABCD-EFGH-IJKL', true, false, NULL),
   ('invite_email', 'Recipient Email', 'Email address of the invite recipient', 'invite', 'string', 'user@example.com', true, false, NULL),
   ('invite_name', 'Recipient Name', 'Name of the invite recipient', 'invite', 'string', 'Jane Smith', false, false, 'there'),
   ('invite_expires_at', 'Invite Expiry', 'When the invite expires', 'invite', 'date', '2026-05-01', false, false, NULL),
