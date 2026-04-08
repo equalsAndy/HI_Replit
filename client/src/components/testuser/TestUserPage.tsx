@@ -359,7 +359,7 @@ const TestUserPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-sm text-muted-foreground">Logged in as:</p>
-                <p className="font-medium">{userResponse.user.name}</p>
+                <p className="font-medium">{userResponse.user.firstName ? `${userResponse.user.firstName}${userResponse.user.lastName ? ' ' + userResponse.user.lastName : ''}` : userResponse.user.username}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Email:</p>

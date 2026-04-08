@@ -13,13 +13,14 @@ interface ProfileViewProps {
 }
 
 export function ProfileView({ user, onEdit, canEdit = false, isSelf = true }: ProfileViewProps) {
+  // Get full display name
+  const fullName = user.firstName
+    ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
+    : '';
+
   // Get initials for avatar fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
+  const getInitials = () => {
+    return ((user.firstName?.[0] || '') + (user.lastName?.[0] || '')).toUpperCase() || 'U';
   };
 
   // Role display
@@ -53,8 +54,8 @@ export function ProfileView({ user, onEdit, canEdit = false, isSelf = true }: Pr
           {/* Avatar and basic info */}
           <div className="flex flex-col items-center space-y-3">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
-              <AvatarFallback className="text-lg">{getInitials(user.name)}</AvatarFallback>
+              <AvatarImage src={user.avatarUrl || undefined} alt={fullName} />
+              <AvatarFallback className="text-lg">{getInitials()}</AvatarFallback>
             </Avatar>
             
             {/* Role badge */}
@@ -67,7 +68,7 @@ export function ProfileView({ user, onEdit, canEdit = false, isSelf = true }: Pr
           <div className="flex-1">
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-medium">{user.name}</h3>
+                <h3 className="text-xl font-medium">{fullName}</h3>
                 <div className="text-gray-500">
                   {user.title && <p>{user.title}</p>}
                   {user.organization && <p>{user.organization}</p>}

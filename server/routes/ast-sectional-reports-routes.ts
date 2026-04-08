@@ -769,7 +769,7 @@ router.get('/list', requireAuth, async (req, res) => {
     const usersWithSectionalReports = await pool.query(`
       SELECT
         u.id,
-        u.name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         COUNT(CASE WHEN hr.report_type = 'ast_personal' AND hr.generation_mode = 'sectional' THEN 1 END) as sectional_personal_reports,
         COUNT(CASE WHEN hr.report_type = 'ast_professional' AND hr.generation_mode = 'sectional' THEN 1 END) as sectional_professional_reports,
         AVG(CASE WHEN hr.generation_mode = 'sectional' THEN hr.sectional_progress END) as avg_progress,
@@ -781,7 +781,7 @@ router.get('/list', requireAuth, async (req, res) => {
         AND hr.generation_mode = 'sectional'
       LEFT JOIN report_sections rs ON u.id = rs.user_id
         AND rs.report_type IN ('ast_personal', 'ast_professional')
-      GROUP BY u.id, u.name
+      GROUP BY u.id, u.first_name, u.last_name
       HAVING COUNT(hr.id) > 0 OR COUNT(rs.id) > 0
       ORDER BY MAX(hr.updated_at) DESC NULLS LAST
     `);

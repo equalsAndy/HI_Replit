@@ -18,7 +18,8 @@ const BetaTesterPage: React.FC = () => {
   
   // Profile creation form state
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     username: '',
     password: '',
@@ -47,7 +48,7 @@ const BetaTesterPage: React.FC = () => {
     e.preventDefault();
     
     // Basic validation
-    if (!formData.name || !formData.email || !formData.username || !formData.password) {
+    if (!formData.firstName || !formData.email || !formData.username || !formData.password) {
       toast({
         variant: 'destructive',
         title: 'Missing fields',
@@ -194,17 +195,30 @@ const BetaTesterPage: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Full Name *
+                  <label htmlFor="firstName" className="text-sm font-medium">
+                    First Name *
                   </label>
                   <Input
-                    id="name"
+                    id="firstName"
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Your full name"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    placeholder="First name"
                     disabled={isCreating}
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="lastName" className="text-sm font-medium">
+                    Last Name
+                  </label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    placeholder="Last name"
+                    disabled={isCreating}
                   />
                 </div>
                 

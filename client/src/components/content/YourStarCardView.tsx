@@ -132,9 +132,9 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
             </div>
           ) : user?.user && starCard?.success ? (
             <div ref={starCardRef} className="flex justify-center" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
-              <StarCard 
+              <StarCard
                 profile={{
-                  name: user.user.name || 'Your Name',
+                  name: user.user.firstName ? `${user.user.firstName}${user.user.lastName ? ' ' + user.user.lastName : ''}` : 'Your Name',
                   title: user.user.jobTitle || user.user.title || '',
                   organization: user.user.organization || ''
                 }}

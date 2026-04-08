@@ -12,14 +12,6 @@ interface ContactModalProps {
   onClose: () => void;
 }
 
-// Helper function to parse full name into first and last name
-const parseFullName = (fullName: string) => {
-  const parts = fullName.trim().split(' ');
-  const firstName = parts[0] || '';
-  const lastName = parts.slice(1).join(' ') || '';
-  return { firstName, lastName };
-};
-
 // Build JotForm URL with pre-populated user data
 const buildJotFormUrl = (user: any): string => {
   const baseUrl = 'https://form.jotform.com/253496080873163';
@@ -30,11 +22,8 @@ const buildJotFormUrl = (user: any): string => {
 
   // Pre-populate with user data if available
   if (user) {
-    if (user.name) {
-      const { firstName, lastName } = parseFullName(user.name);
-      if (firstName) params.append('name[first]', firstName);
-      if (lastName) params.append('name[last]', lastName);
-    }
+    if (user.firstName) params.append('name[first]', user.firstName);
+    if (user.lastName) params.append('name[last]', user.lastName);
     if (user.email) params.append('email', user.email);
   }
 

@@ -16,9 +16,9 @@ router.post('/users/upload', async (req, res) => {
     const { userInfo, password, navigationProgress: navProgress, assessments: assessmentData } = req.body;
 
     // Validate required fields
-    if (!userInfo || !userInfo.name || !userInfo.email || !password) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: userInfo.name, userInfo.email, and password' 
+    if (!userInfo || !userInfo.firstName || !userInfo.email || !password) {
+      return res.status(400).json({
+        error: 'Missing required fields: userInfo.firstName, userInfo.email, and password'
       });
     }
 
@@ -38,12 +38,12 @@ router.post('/users/upload', async (req, res) => {
 
     // Create user using direct SQL to ensure proper field mapping
     const userResult = await db.execute(sql`
-      INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, profile_picture, navigation_progress, created_at, updated_at)
-      VALUES (${userInfo.username}, ${hashedPassword}, ${userInfo.name}, ${userInfo.email}, ${userInfo.role || 'participant'}, ${userInfo.organization || ''}, ${userInfo.jobTitle || ''}, ${userInfo.isTestUser || true}, ${userInfo.profilePicture || null}, ${navProgress ? JSON.stringify(navProgress) : null}, ${new Date()}, ${new Date()})
-      RETURNING id, username, name, email
+      INSERT INTO users (username, password, first_name, last_name, email, role, organization, job_title, is_test_user, profile_picture, navigation_progress, created_at, updated_at)
+      VALUES (${userInfo.username}, ${hashedPassword}, ${userInfo.firstName}, ${userInfo.lastName || null}, ${userInfo.email}, ${userInfo.role || 'participant'}, ${userInfo.organization || ''}, ${userInfo.jobTitle || ''}, ${userInfo.isTestUser || true}, ${userInfo.profilePicture || null}, ${navProgress ? JSON.stringify(navProgress) : null}, ${new Date()}, ${new Date()})
+      RETURNING id, username, first_name, last_name, email
     `);
     
-    const newUser = userResult[0] as { id: number; username: string; name: string; email: string };
+    const newUser = userResult[0] as { id: number; username: string; first_name: string; last_name: string; email: string };
 
     let createdAssessments = [];
 
@@ -83,7 +83,8 @@ router.post('/users/upload', async (req, res) => {
       user: {
         id: newUser.id,
         username: newUser.username,
-        name: newUser.name,
+        firstName: newUser.first_name,
+        lastName: newUser.last_name,
         email: newUser.email,
         role: (newUser as any).role,
         organization: (newUser as any).organization,

@@ -731,9 +731,9 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
         // This will be implemented on the backend
         // For now, return a placeholder array of members
         return [
-          { id: 3, name: 'Test User 3', title: 'Data Scientist' },
-          { id: 4, name: 'Test User 4', title: 'Marketing Manager' }
-        ] as User[];
+          { id: 3, firstName: 'Test', lastName: 'User 3', title: 'Data Scientist' },
+          { id: 4, firstName: 'Test', lastName: 'User 4', title: 'Marketing Manager' }
+        ] as any as User[];
       } catch (error) {
         console.error('Failed to fetch cohort members:', error);
         return [];
@@ -749,10 +749,10 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
         // This will be implemented on the backend
         // For now, return a placeholder array of available users
         return [
-          { id: 5, name: 'Test User 5', title: 'Product Manager', email: 'user5@example.com' },
-          { id: 6, name: 'Test User 6', title: 'UX Designer', email: 'user6@example.com' },
-          { id: 7, name: 'Test User 7', title: 'Fullstack Developer', email: 'user7@example.com' }
-        ] as User[];
+          { id: 5, firstName: 'Test', lastName: 'User 5', title: 'Product Manager', email: 'user5@example.com' },
+          { id: 6, firstName: 'Test', lastName: 'User 6', title: 'UX Designer', email: 'user6@example.com' },
+          { id: 7, firstName: 'Test', lastName: 'User 7', title: 'Fullstack Developer', email: 'user7@example.com' }
+        ] as any as User[];
       } catch (error) {
         console.error('Failed to fetch available users:', error);
         return [];
@@ -761,10 +761,11 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
   });
 
   // Filter available users based on search
-  const filteredAvailableUsers = availableUsers.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAvailableUsers = availableUsers.filter(user => {
+    const displayName = `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim();
+    return displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.title?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const updateMembersMutation = useMutation({
     mutationFn: async (userIds: number[]) => {
@@ -849,7 +850,7 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
                   ) : (
                     members.map((member) => (
                       <TableRow key={member.id}>
-                        <TableCell>{member.name}</TableCell>
+                        <TableCell>{`${(member as any).firstName || ''} ${(member as any).lastName || ''}`.trim() || 'Unknown'}</TableCell>
                         <TableCell>{member.title || '-'}</TableCell>
                         <TableCell>
                           <Button
@@ -907,7 +908,7 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
                           />
                         </TableCell>
                         <TableCell onClick={() => toggleUserSelection(user.id)}>
-                          {user.name}
+                          {`${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() || 'Unknown'}
                         </TableCell>
                         <TableCell onClick={() => toggleUserSelection(user.id)}>
                           {user.title || '-'}

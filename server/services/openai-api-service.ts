@@ -680,7 +680,7 @@ function buildUserDataContext(userData: any, userName: string): string {
 ## Complete Assessment and Reflection Data
 
 **Participant Profile:**
-- **Name**: ${userInfo.name || userName}
+- **Name**: ${[userInfo.first_name || userInfo.firstName, userInfo.last_name || userInfo.lastName].filter(Boolean).join(' ') || userName}
 - **Position**: ${userInfo.jobTitle || 'Not specified'}
 - **Email**: ${userInfo.email || 'Not specified'}
 - **Organization**: ${userInfo.organization || 'Not specified'}
@@ -984,7 +984,7 @@ export async function createAstReportFromExport(
   console.log("🔍 [TRANSFORM DEBUG] Raw export keys:", Object.keys(rawExport || {}));
   if (rawExport?.user) {
     console.log("🔍 [TRANSFORM DEBUG] User info:", {
-      name: rawExport.user.name,
+      name: [rawExport.user.first_name || rawExport.user.firstName, rawExport.user.last_name || rawExport.user.lastName].filter(Boolean).join(' '),
       completed: rawExport.user.ast_workshop_completed
     });
   }

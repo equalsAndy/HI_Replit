@@ -104,7 +104,7 @@ export class TaliaPersonaService {
     try {
       // Get basic user info
       const userResult = await pool.query(
-        'SELECT id, name FROM users WHERE id = $1',
+        'SELECT id, first_name, last_name FROM users WHERE id = $1',
         [userId]
       );
 
@@ -113,7 +113,7 @@ export class TaliaPersonaService {
       }
 
       const user = userResult.rows[0];
-      const firstName = user.name.split(' ')[0];
+      const firstName = user.first_name || '';
 
       // Get current strengths data for context
       const strengthsResult = await pool.query(`
@@ -167,7 +167,7 @@ export class TaliaPersonaService {
 
       return {
         userId: user.id.toString(),
-        userName: user.name,
+        userName: [user.first_name, user.last_name].filter(Boolean).join(' '),
         firstName,
         currentStep: stepId,
         stepTitle: this.getStepTitle(stepId),
@@ -296,7 +296,7 @@ Respond as the encouraging AST Reflection Coach Talia.`;
         hasStepData: !!userData?.stepData,
         userInfo: userData?.user ? {
           id: userData.user.id,
-          name: userData.user.name,
+          name: [userData.user.first_name || userData.user.firstName, userData.user.last_name || userData.user.lastName].filter(Boolean).join(' '),
           username: userData.user.username
         } : 'No user data'
       });
@@ -314,7 +314,7 @@ Respond as the encouraging AST Reflection Coach Talia.`;
       
       const context = {
         userId,
-        userName: user.name,
+        userName: [user.first_name || user.firstName, user.last_name || user.lastName].filter(Boolean).join(' '),
         username: user.username,
         email: user.email,
         completedAt: user.ast_completed_at,
@@ -445,7 +445,7 @@ COMPLETE USER DATA FOR ANALYSIS:
 
 USER PROFILE:
 - ID: ${context.userData?.user?.id}
-- Name: ${context.userData?.user?.name}
+- Name: ${[context.userData?.user?.first_name, context.userData?.user?.last_name].filter(Boolean).join(' ') || context.userData?.user?.username}
 - Username: ${context.userData?.user?.username}
 - Email: ${context.userData?.user?.email}
 - AST Completed: ${context.userData?.user?.ast_completed_at}
@@ -547,7 +547,7 @@ Respond now as Report Talia:`;
       
       const context = {
         userId,
-        userName: user.name,
+        userName: [user.first_name || user.firstName, user.last_name || user.lastName].filter(Boolean).join(' '),
         username: user.username,
         completedAt: user.ast_completed_at,
         reportType,

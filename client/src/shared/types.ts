@@ -9,7 +9,10 @@ export enum UserRole {
 export interface User {
   id: number;
   username: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
+  /** @deprecated Use firstName + lastName instead */
+  name?: string;
   title?: string;
   organization?: string;
   avatarUrl?: string;
@@ -19,10 +22,12 @@ export interface User {
   email?: string;
   phone?: string;
   role?: UserRole;
+  facilitatorId?: number;
 }
 
 export interface ProfileUpdateRequest {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   title?: string;
   organization?: string;
   bio?: string;

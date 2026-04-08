@@ -1434,7 +1434,7 @@ export default function AdminDashboardWorkshop() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <p style={styles.subtitle}>
-              Logged in as {currentUser.name} ({currentUser.role}) • {currentUser.email}
+              Logged in as {currentUser.firstName ? `${currentUser.firstName}${currentUser.lastName ? ' ' + currentUser.lastName : ''}` : currentUser.username} ({currentUser.role}) • {currentUser.email}
             </p>
             <FeedbackTrigger 
               currentPage={{

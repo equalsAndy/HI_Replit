@@ -771,7 +771,7 @@ export default function FindYourFlow() {
                     <div className="flex flex-col items-center">
                       <StarCard 
                         profile={{
-                          name: user?.name || 'Your Name',
+                          name: user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'Your Name',
                           title: user?.title || '',
                           organization: user?.organization || ''
                         }}

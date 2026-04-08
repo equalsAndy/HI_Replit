@@ -173,15 +173,16 @@ router.post('/chat', async (req, res) => {
             
             // Get basic user info
             const userResult = await pool.query(
-              'SELECT id, name, username, email, ast_completed_at, created_at FROM users WHERE id = $1',
+              'SELECT id, first_name, last_name, username, email, ast_completed_at, created_at FROM users WHERE id = $1',
               [targetUserId]
             );
-            
-            console.log(`📊 User query result:`, { 
+
+            console.log(`📊 User query result:`, {
               rowCount: userResult.rows.length,
               firstRow: userResult.rows[0] ? {
                 id: userResult.rows[0].id,
-                name: userResult.rows[0].name,
+                first_name: userResult.rows[0].first_name,
+                last_name: userResult.rows[0].last_name,
                 username: userResult.rows[0].username
               } : 'No rows'
             });
@@ -214,7 +215,7 @@ router.post('/chat', async (req, res) => {
               console.log('✅ Fetched complete user data for Report Talia:', {
                 targetUserId: targetUserId,
                 selectedUserId: context.selectedUserId,
-                userName: user.name,
+                userName: [user.first_name, user.last_name].filter(Boolean).join(' '),
                 assessmentCount: assessmentsResult.rows.length,
                 stepDataCount: stepDataResult.rows.length,
                 userDataStructure: {

@@ -31,7 +31,7 @@ router.get('/debug/:reportId', async (req, res) => {
     // Get the report from database
     const reportResult = await pool.query(
       `SELECT hr.*, 
-              u.id as user_id, u.name as user_name, u.username,
+              u.id as user_id, CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_name, u.username,
               u.ast_workshop_completed, u.ast_completed_at
        FROM holistic_reports hr
        JOIN users u ON hr.user_id = u.id

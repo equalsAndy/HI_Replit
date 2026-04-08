@@ -41,7 +41,7 @@ export function TestUserBanner({
 
   const user = userData?.user;
   const currentUserId = userId || user?.id;
-  const currentUserName = userName || user?.name || user?.username;
+  const currentUserName = userName || (user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : null) || user?.username;
   // SECURE: Database-only test user detection
   const isTestUser = user?.isTestUser === true;
 

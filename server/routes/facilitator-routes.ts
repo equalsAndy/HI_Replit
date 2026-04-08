@@ -320,7 +320,7 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
     const result = await db.execute(sql`
       SELECT
         u.id,
-        u.name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         u.email,
         u.username,
         cp.joined_at,
@@ -333,7 +333,7 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
       LEFT JOIN navigation_progress np_ast ON np_ast.user_id = u.id AND np_ast.app_type = 'ast'
       LEFT JOIN navigation_progress np_ia ON np_ia.user_id = u.id AND np_ia.app_type = 'ia'
       WHERE cp.cohort_id = ${cohortId}
-      ORDER BY u.name ASC
+      ORDER BY u.first_name ASC
     `);
 
     const rows = (result as any).rows ?? result ?? [];

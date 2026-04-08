@@ -23,7 +23,7 @@ export default function WorkshopContentWrapper({ stepId, children }: WorkshopCon
           userId={user.id}
           teamAccess={coaching.teamAccess}
           workshopCompleted={user.astWorkshopCompleted}
-          userName={user.name}
+          userName={user.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : ''}
         />
         
         {/* Coaching assistant available on all steps */}

@@ -57,7 +57,8 @@ export class DatabaseStorage implements IStorage {
     const requiredFields = {
       username: userData.username || '',
       password: userData.password || '',
-      name: userData.name || '',
+      firstName: (userData as any).firstName || '',
+      lastName: (userData as any).lastName || '',
       email: userData.email || '',
       role: userData.role || 'participant',
       createdAt: new Date(),

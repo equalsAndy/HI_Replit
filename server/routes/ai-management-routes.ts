@@ -241,7 +241,7 @@ router.get('/usage/logs', requireAdmin, async (req, res) => {
       SELECT 
         al.*,
         u.username,
-        u.name as user_name
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_name
       FROM ai_usage_logs al
       LEFT JOIN users u ON al.user_id = u.id
       WHERE 1=1
@@ -323,17 +323,17 @@ router.post('/emergency-disable', requireAdmin, async (req, res) => {
 router.get('/beta-testers', requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
+      SELECT
         u.id,
         u.username,
-        u.name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         u.email,
         u.is_beta_tester,
         u.is_test_user,
         u.beta_tester_granted_at,
         u.beta_tester_granted_by,
         admin.username as granted_by_username,
-        CASE 
+        CASE
           WHEN u.is_beta_tester = true THEN 'beta_tester'
           WHEN u.is_test_user = true THEN 'test_user'
           ELSE 'none'
@@ -584,16 +584,16 @@ router.get('/report-talia/completed-users', requireAdmin, async (_req, res) => {
     console.log('🔧 Fetching AST completed users for Report Talia');
 
     const result = await pool.query(`
-      SELECT 
+      SELECT
         u.id,
         u.username,
-        u.name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         u.email,
         u.ast_completed_at,
         u.created_at
       FROM users u
       WHERE u.ast_workshop_completed = true
-      ORDER BY u.ast_completed_at DESC NULLS LAST, u.name ASC
+      ORDER BY u.ast_completed_at DESC NULLS LAST, u.first_name ASC
     `);
 
     console.log(`📊 Found ${result.rows.length} users who completed AST workshop`);
@@ -685,7 +685,7 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
     // Check if user has completed AST workshop
     const db = getPoolForProject(projectType);
     const userResult = await db.query(
-      'SELECT id, username, name, ast_workshop_completed, ast_completed_at FROM users WHERE id = $1',
+      'SELECT id, username, first_name, last_name, ast_workshop_completed, ast_completed_at FROM users WHERE id = $1',
       [userId]
     );
 
@@ -697,6 +697,7 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
     }
 
     const user = userResult.rows[0];
+    const userDisplayName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
     if (!user.ast_workshop_completed) {
       return res.status(400).json({
         success: false,
@@ -753,7 +754,7 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
     
     // Build user context for semantic search using correct data sources
     const userContextData = {
-      name: user.name,
+      name: userDisplayName,
       strengths: assessmentResult.rows.find(a => a.assessment_type === 'starCard')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'starCard').results) : {"thinking":0,"feeling":0,"acting":0,"planning":0},
       reflections: assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection').results) : {},
       flowData: assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment').results) : null
@@ -780,11 +781,11 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
     console.log('🔧 About to call generateOpenAICoachingResponse with params:', {
       userMessage: reportPrompt.substring(0, 100) + '...',
       personaType: 'star_report',
-      userName: user.name,
+      userName: userDisplayName,
       contextData: {
         reportContext: 'md_generation',
         selectedUserId: userId,
-        selectedUserName: user.name,
+        selectedUserName: userDisplayName,
         adminMode: true
       }
     });
@@ -795,7 +796,7 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
       const debugContent = `# ADMIN CONSOLE PROMPT DEBUG - ${new Date().toISOString()}
 
 ## Context Data:
-- User: ${user.name} (ID: ${userId})
+- User: ${userDisplayName} (ID: ${userId})
 - Report Type: ${isPersonalReport ? 'Personal' : 'Professional'}
 - Assessments: ${assessmentResult.rows.length}
 - Workshop Data: ${stepDataResult.rows.length}
@@ -823,11 +824,11 @@ ${reportPrompt}
     const reportContent = await generateOpenAICoachingResponse({
       userMessage: reportPrompt,
       personaType: 'star_report',
-      userName: user.name,
+      userName: userDisplayName,
       contextData: {
         reportContext: 'md_generation',
         selectedUserId: userId,
-        selectedUserName: user.name,
+        selectedUserName: userDisplayName,
         userData: userData,
         starCardImageBase64: starCardImageBase64,
         adminMode: true,
@@ -864,11 +865,12 @@ ${reportPrompt}
         generatedBy: adminUserId,
         targetUser: {
           id: user.id,
-          name: user.name,
+          firstName: user.first_name,
+          lastName: user.last_name,
           username: user.username
         }
       },
-      message: `${reportType === 'personal' ? 'Personal development' : 'Professional development'} report successfully generated for ${user.name}${starCardImageBase64 ? ' (with StarCard)' : ' (no StarCard available)'}`,
+      message: `${reportType === 'personal' ? 'Personal development' : 'Professional development'} report successfully generated for ${userDisplayName}${starCardImageBase64 ? ' (with StarCard)' : ' (no StarCard available)'}`,
       note: 'Report content returned in response (container environment)'
     });
 

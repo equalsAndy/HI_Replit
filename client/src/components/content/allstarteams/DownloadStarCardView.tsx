@@ -57,7 +57,7 @@ export default function DownloadStarCardView({
     try {
       // Create dynamic filename with username, full name, and timestamp
       const user = (userData as any)?.user || userData;
-      const fullName = user?.name || 'Unknown_User';
+      const fullName = user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'Unknown_User';
       const username = user?.username || 'unknown';
       
       // Clean both name and username for filename (remove spaces and special characters)

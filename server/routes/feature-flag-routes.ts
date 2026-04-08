@@ -93,7 +93,7 @@ router.get('/admin/reports/health-check', requireAuth, requireAdmin, async (req,
       
       // Get user data first
       const userResult = await (db as any).execute(
-        'SELECT id, name, email, ast_workshop_completed FROM users WHERE id = ?',
+        'SELECT id, first_name, last_name, email, ast_workshop_completed FROM users WHERE id = ?',
         [testUserId]
       );
 
@@ -135,14 +135,15 @@ router.get('/admin/reports/health-check', requireAuth, requireAdmin, async (req,
       // Try a quick OpenAI health check (minimal test)
       const { generateOpenAICoachingResponse } = await import('../services/openai-api-service.js');
       
+      const userDisplayName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Test User';
       const testResponse = await generateOpenAICoachingResponse({
         userMessage: 'Quick health check - respond with exactly "HEALTH_CHECK_OK" if you can process data',
         personaType: 'star_report',
-        userName: (user.name as string) || 'Test User',
+        userName: userDisplayName,
         contextData: {
           reportContext: 'health_check',
           userData: { assessments: assessmentResult, user },
-          selectedUserName: user.name as string
+          selectedUserName: userDisplayName
         },
         userId: testUserId,
         sessionId: 'health-check',
@@ -194,7 +195,7 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
 
     // Get user data
     const userResult = await (db as any).execute(
-      'SELECT id, name, email, ast_workshop_completed FROM users WHERE id = ?',
+      'SELECT id, first_name, last_name, email, ast_workshop_completed FROM users WHERE id = ?',
       [testUserId]
     );
 
@@ -220,10 +221,11 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
     // Generate test report using the OpenAI service
     const { generateOpenAICoachingResponse } = await import('../services/openai-api-service.js');
     
+    const testUserDisplayName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Test User';
     const testReport = await generateOpenAICoachingResponse({
       userMessage: 'Generate a Personal Development Report for this user based on their complete workshop data.',
       personaType: 'star_report',
-      userName: (user.name as string) || 'Test User',
+      userName: testUserDisplayName,
       contextData: {
         reportContext: 'holistic_generation',
         userData: {
@@ -231,7 +233,7 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
           stepData: stepDataResult,
           user
         },
-        selectedUserName: user.name as string,
+        selectedUserName: testUserDisplayName,
         selectedUserId: testUserId
       },
       userId: testUserId,
@@ -243,7 +245,7 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
 
     // Analyze the response
     const isWorking = testReport.length > 200 && responseTime > 1000;
-    const hasRealData = testReport.includes(user.name) && 
+    const hasRealData = testReport.includes(testUserDisplayName) &&
                        (testReport.includes('%') || 
                         testReport.includes('assessment') || 
                         testReport.includes('workshop') ||
@@ -254,7 +256,7 @@ router.post('/admin/reports/test-generation', requireAuth, requireAdmin, async (
       hasRealData,
       responseTime,
       reportLength: testReport.length,
-      containsUserName: testReport.includes(user.name || 'Test User'),
+      containsUserName: testReport.includes(testUserDisplayName),
       containsPercentages: testReport.includes('%'),
       containsAssessmentRefs: testReport.includes('assessment'),
       reportPreview: testReport.substring(0, 200) + '...'

@@ -80,7 +80,7 @@ class WorkshopResponsesService {
 
     // Get participant info
     const participantResult = await pool.query(
-      'SELECT id, name, email FROM users WHERE id = $1',
+      'SELECT id, CONCAT(first_name, \' \', COALESCE(last_name, \'\')) as name, email FROM users WHERE id = $1',
       [userId]
     );
 

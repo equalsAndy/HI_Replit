@@ -93,7 +93,7 @@ async function main() {
   const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   const user = userRows[0];
   if (user) {
-    info(`Name: ${user.name}, Email: ${user.email}`);
+    info(`Name: ${[user.firstName, user.lastName].filter(Boolean).join(' ')}, Email: ${user.email}`);
   }
 
   // Step 3: Run syncAll via gateway

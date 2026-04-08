@@ -39,7 +39,7 @@ export class AuthEnvironmentManager {
       staging: {
         ...baseConfig,
         clientId: process.env.VITE_AUTH0_CLIENT_ID_STAGING || process.env.VITE_AUTH0_CLIENT_ID || '',
-        redirectUri: 'http://34.220.143.127/auth/callback',
+        redirectUri: 'https://staging.heliotropeimaginal.com/auth/callback',
         environment: 'staging' as const,
         databaseType: 'aws-staging'
       },
