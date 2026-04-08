@@ -67,11 +67,13 @@ router.post('/create', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create the beta tester user
+    // Create the beta tester user — split name into first/last
+    const nameParts = (name || '').split(' ');
     const userData = {
       username,
       password: hashedPassword,
-      name,
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || undefined,
       email,
       role: 'participant' as const,
       organization: organization || null,

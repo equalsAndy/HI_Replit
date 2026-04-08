@@ -188,7 +188,7 @@ router.post('/register', async (req, res) => {
     // Provision Solid Pod vault — checks for existing vault before provisioning
     if (createResult.user?.id) {
       const sub = auth0Sub || `app|${createResult.user.id}`;
-      provisionIfNeeded(sub, createResult.user.id, data.name)
+      provisionIfNeeded(sub, createResult.user.id, `${data.firstName} ${data.lastName || ''}`.trim())
         .then(result => {
           if (result?.skipped) return;
           console.log('🔐 Vault provisioned for new user:', result?.status || 'sent');
