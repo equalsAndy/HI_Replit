@@ -74,7 +74,8 @@ const createUserSchema = z.object({
     .min(3, 'Username must be at least 3 characters')
     .max(20, 'Username cannot exceed 20 characters')
     .regex(/^[a-z0-9][a-z0-9_\-]*[a-z0-9]$/i, 'Username must start and end with letter or number, and contain only letters, numbers, underscores, and hyphens'),
-  name: z.string().min(1, 'Name is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional(),
   email: z.string().email('Please enter a valid email'),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
@@ -90,7 +91,8 @@ type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
 // Form schema for editing users
 const editUserSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional(),
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
@@ -873,7 +875,8 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     setSelectedUser(user);
 
     editForm.reset({
-      name: user.name,
+      firstName: user.firstName || user.name?.split(' ')[0] || '',
+      lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
       email: user.email,
       organization: user.organization || '',
       jobTitle: user.jobTitle || '',
@@ -1507,18 +1510,34 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={createForm.control}
-                      name="name"
+                      name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter user's full name" {...field} />
+                            <Input placeholder="First name" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
+                    <FormField
+                      control={createForm.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Last name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={createForm.control}
                       name="username"
@@ -1837,10 +1856,10 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={editForm.control}
-                      name="name"
+                      name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>First Name</FormLabel>
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
@@ -1848,7 +1867,22 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={editForm.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         Username

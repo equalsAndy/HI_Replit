@@ -196,11 +196,13 @@ router.put('/profile', requireAuth, async (req, res) => {
       });
     }
 
-    const { name, email, organization, jobTitle, profilePicture } = req.body;
+    const { firstName, lastName, name, email, organization, jobTitle, profilePicture } = req.body;
 
     const updateData: any = {};
 
-    if (name !== undefined) updateData.name = name;
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (name !== undefined && firstName === undefined) updateData.name = name; // Legacy fallback
     if (email !== undefined) updateData.email = email;
     if (organization !== undefined) updateData.organization = organization;
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;

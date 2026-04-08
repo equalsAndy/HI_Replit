@@ -12,7 +12,9 @@ export interface QuadrantData {
 
 // Define ProfileData interface for StarCard components
 export interface ProfileData {
-  name: string;
+  firstName: string;
+  lastName?: string;
+  name?: string; // Derived full name (read-only)
   title: string;
   organization: string;
   avatarUrl?: string;
@@ -89,6 +91,8 @@ export const users: any = pgTable('users', {
   username: varchar('username', { length: 100 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
+  firstName: varchar('first_name', { length: 255 }),
+  lastName: varchar('last_name', { length: 255 }),
   email: varchar('email', { length: 255 }).notNull().unique(),
   role: varchar('role', { length: 20 }).notNull().default('participant'),
   organization: text('organization'),

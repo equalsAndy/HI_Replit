@@ -89,7 +89,9 @@ router.post('/register', async (req, res) => {
     inviteCode: z.string().min(12, 'Invite code is required'),
     username: z.string().min(3, 'Username must be at least 3 characters'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
-    name: z.string().min(1, 'Name is required'),
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().optional().nullable(),
+    name: z.string().optional(), // Legacy support
     email: z.string().email('Invalid email address'),
     organization: z.string().optional().nullable(),
     jobTitle: z.string().optional().nullable(),
@@ -136,7 +138,8 @@ router.post('/register', async (req, res) => {
     const createResult = await userManagementService.createUser({
       username: data.username,
       password: data.password,
-      name: data.name,
+      firstName: data.firstName || data.name?.split(' ')[0] || '',
+      lastName: data.lastName || data.name?.split(' ').slice(1).join(' '),
       email: data.email,
       role: inviteResult.invite.role as 'admin' | 'facilitator' | 'participant' | 'student',
       organization: data.organization,

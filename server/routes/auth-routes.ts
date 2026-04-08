@@ -21,7 +21,9 @@ router.put('/me', requireAuth, async (req, res) => {
 
     // Extract allowed fields for profile update
     const {
-      name,
+      firstName,
+      lastName,
+      name, // Legacy support
       email,
       organization,
       jobTitle,
@@ -32,9 +34,10 @@ router.put('/me', requireAuth, async (req, res) => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Validate required fields for profile updates (if updating profile fields, name and email are required)
-    const isProfileUpdate = name !== undefined || email !== undefined || organization !== undefined || jobTitle !== undefined || profilePicture !== undefined;
-    if (isProfileUpdate && (!name || !email)) {
+    // Validate required fields for profile updates
+    const hasNameField = firstName !== undefined || name !== undefined;
+    const isProfileUpdate = hasNameField || email !== undefined || organization !== undefined || jobTitle !== undefined || profilePicture !== undefined;
+    if (isProfileUpdate && !hasNameField && !email) {
       return res.status(400).json({
         success: false,
         error: 'Name and email are required for profile updates'
@@ -59,7 +62,9 @@ router.put('/me', requireAuth, async (req, res) => {
 
     // Update the user profile
     const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (name !== undefined && firstName === undefined) updateData.name = name; // Legacy fallback
     if (email !== undefined) updateData.email = email;
     if (organization !== undefined) updateData.organization = organization;
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;

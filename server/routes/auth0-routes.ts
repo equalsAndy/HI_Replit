@@ -74,9 +74,12 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       }
       
       // Create new user from Auth0 data if they don't exist
+      const auth0Name = decoded.name || (email ? email.split('@')[0] : 'user');
+      const nameParts = auth0Name.split(' ');
       const createResult = await userManagementService.createUser({
         email: email || `${decoded.sub}@placeholder.local`,
-        name: decoded.name || (email ? email.split('@')[0] : 'user'),
+        firstName: nameParts[0],
+        lastName: nameParts.slice(1).join(' ') || undefined,
         username: email || decoded.sub, // Prefer email, fallback to sub
         password: `auth0-generated-${Math.random().toString(36)}`, // Random password for Auth0 users
         role: userRole as any, // Use determined role

@@ -79,11 +79,11 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
     const password = Math.random().toString(36).substring(2, 12);
 
     // Create the user
-    const name = `${result.data.firstName || ''} ${result.data.lastName || ''}`.trim() || result.data.username;
     const userResult = await userManagementService.createUser({
       username: result.data.username,
       password: password,
-      name: name,
+      firstName: result.data.firstName || result.data.username,
+      lastName: result.data.lastName,
       email: result.data.email,
       role: result.data.role as 'admin' | 'facilitator' | 'participant' | 'student',
       organization: result.data.organization,
@@ -203,7 +203,9 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     }
 
     const updateSchema = z.object({
-      name: z.string().min(1).optional(),
+      firstName: z.string().min(1).optional(),
+      lastName: z.string().optional(),
+      name: z.string().min(1).optional(), // Legacy support
       email: z.string().email().optional(),
       organization: z.string().optional(),
       jobTitle: z.string().optional(),
