@@ -12,6 +12,7 @@ vite.config.ts.*
 create-admin-backup.ts
 dev_schema.sql
 .env
+.env.staging
 .env.local
 .env.*.local
 

@@ -145,9 +145,9 @@ app.get('/health', async (req, res) => {
     try {
       // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
-        ? path.join(__dirname, './public/version.json')
-        : path.join(__dirname, '../public/version.json');
+      const versionPath = process.env.NODE_ENV === 'development'
+        ? path.join(__dirname, '../public/version.json')
+        : path.join(__dirname, './public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
@@ -200,9 +200,9 @@ app.get('/health', async (req, res) => {
     try {
       // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
-        ? path.join(__dirname, './public/version.json')
-        : path.join(__dirname, '../public/version.json');
+      const versionPath = process.env.NODE_ENV === 'development'
+        ? path.join(__dirname, '../public/version.json')
+        : path.join(__dirname, './public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
@@ -413,9 +413,9 @@ async function initializeApp() {
         try {
           // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
-        ? path.join(__dirname, './public/version.json')
-        : path.join(__dirname, '../public/version.json');
+      const versionPath = process.env.NODE_ENV === 'development'
+        ? path.join(__dirname, '../public/version.json')
+        : path.join(__dirname, './public/version.json');
           const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
           
           res.setHeader('X-App-Version', versionData.version || 'unknown');

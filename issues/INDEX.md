@@ -56,6 +56,13 @@
 | [#22](022-admin-diff-sync-transcripts.md) | Admin: Diff report & selective sync for transcripts and AI training docs | enhancement, feature |
 | [#23](023-email-invitation-system.md) | Email Invitation System with Rich-Text Templates | (epic) |
 
+### Cleanup
+| # | Title | Labels |
+|---|-------|--------|
+| [#24](024-coaching-removal-phase1-disconnect.md) | Remove Coaching System — Phase 1: Disconnect Routes | cleanup, coaching, server |
+| [#25](025-coaching-removal-phase2-untangle-openai-service.md) | Remove Coaching System — Phase 2: Untangle openai-api-service | cleanup, coaching, server, refactor |
+| [#26](026-coaching-removal-phase3-delete-files.md) | Remove Coaching System — Phase 3: Delete Dead Files | cleanup, coaching, server, client |
+
 ---
 
 ## Closed Issues (1)
