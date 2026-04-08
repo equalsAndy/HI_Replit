@@ -18,6 +18,7 @@ import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain,
 import VersionInfo from '@/components/ui/VersionInfo';
 import { FeedbackTrigger } from '@/components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '@/utils/pageContext';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 // Simple navigation hook
 const useLocation = () => {
@@ -332,18 +333,20 @@ const InviteManagement: React.FC = () => {
   const [editValues, setEditValues] = React.useState<any | null>(null);
   const { toast } = useToast();
 
-  // Email sending controls
+  // Email sending controls (gated by feature flag)
+  const emailFeatureEnabled = isFeatureEnabled('emailInvitationSystem');
   const [sendWelcomeEmail, setSendWelcomeEmail] = React.useState(false);
   const [emailTemplateId, setEmailTemplateId] = React.useState<number | ''>('');
   const [senderIdentity, setSenderIdentity] = React.useState('heliotrope');
   const [emailTemplates, setEmailTemplates] = React.useState<Array<{ id: number; name: string; templateCategory: string }>>([]);
 
-  // Fetch email templates once on mount
+  // Fetch email templates once on mount (only if feature enabled)
   React.useEffect(() => {
+    if (!emailFeatureEnabled) return;
     apiRequest('/api/email-templates')
       .then(data => { if (data.success) setEmailTemplates(data.templates || []); })
       .catch(() => {});
-  }, []);
+  }, [emailFeatureEnabled]);
 
   const fetchInvites = async () => {
     setIsLoading(true);
@@ -897,8 +900,8 @@ const InviteManagement: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Send Welcome Email option (create mode only) */}
-                {!editingInvite && emailTemplates.length > 0 && (
+                {/* Send Welcome Email option (create mode only, gated by feature flag) */}
+                {emailFeatureEnabled && !editingInvite && emailTemplates.length > 0 && (
                   <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                     <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                       <input
@@ -1113,7 +1116,7 @@ const InviteManagement: React.FC = () => {
                                 >
                                   Edit
                                 </button>
-                                {emailTemplates.length > 0 && (
+                                {emailFeatureEnabled && emailTemplates.length > 0 && (
                                   <button
                                     style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#ede9fe', color: '#7c3aed' }}
                                     onClick={async () => {
@@ -1133,7 +1136,7 @@ const InviteManagement: React.FC = () => {
                                     Send
                                   </button>
                                 )}
-                                <button
+                                {emailFeatureEnabled && <button
                                   style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#f0fdf4', color: '#16a34a' }}
                                   onClick={() => {
                                     const defaultTemplate = emailTemplates.find((t: any) => t.isDefault) || emailTemplates[0];
@@ -1143,7 +1146,7 @@ const InviteManagement: React.FC = () => {
                                   title="Download email as HTML"
                                 >
                                   HTML
-                                </button>
+                                </button>}
                               </>
                             )}
                             <button
@@ -1549,7 +1552,7 @@ export default function AdminDashboardWorkshop() {
             { id: 'videos', label: 'Videos', icon: Video, adminOnly: true },
             { id: 'ai', label: 'AI', icon: Bot },
             { id: 'pods', label: 'Pods', icon: Database, adminOnly: true },
-            { id: 'email-templates', label: 'Email', icon: Send, adminOnly: true },
+            ...(isFeatureEnabled('emailInvitationSystem') ? [{ id: 'email-templates', label: 'Email', icon: Send, adminOnly: true }] : []),
             { id: 'feedback', label: 'Feedback', icon: null }
           ].map((tab) => (
             <button
