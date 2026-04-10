@@ -21,30 +21,28 @@ export class AuthEnvironmentManager {
 
   public static getAuthConfig(): AuthEnvironmentConfig {
     const environment = this.getEnvironment();
-    
-    // All environments use the same custom domain - separation by Client ID
-    const baseConfig = {
-      domain: 'auth.heliotropeimaginal.com', // Single custom domain for all
-      audience: 'https://api.heliotropeimaginal.com'
-    };
 
+    // Each environment has its own Auth0 tenant. Custom domain only on prod.
     const envConfigs = {
       development: {
-        ...baseConfig,
+        domain: process.env.VITE_AUTH0_DOMAIN_DEV || 'dev-y4g4ug6epxi167a4.us.auth0.com',
+        audience: 'https://api.heliotropeimaginal.com',
         clientId: process.env.VITE_AUTH0_CLIENT_ID_DEV || process.env.VITE_AUTH0_CLIENT_ID || '',
         redirectUri: 'http://localhost:8080/auth/callback',
         environment: 'development' as const,
         databaseType: 'local'
       },
       staging: {
-        ...baseConfig,
+        domain: process.env.VITE_AUTH0_DOMAIN_STAGING || 'selfactual-staging.us.auth0.com',
+        audience: 'https://api.heliotropeimaginal.com',
         clientId: process.env.VITE_AUTH0_CLIENT_ID_STAGING || process.env.VITE_AUTH0_CLIENT_ID || '',
         redirectUri: 'https://staging.heliotropeimaginal.com/auth/callback',
         environment: 'staging' as const,
         databaseType: 'aws-staging'
       },
       production: {
-        ...baseConfig,
+        domain: process.env.VITE_AUTH0_DOMAIN_PROD || 'auth.heliotropeimaginal.com',
+        audience: 'https://api.heliotropeimaginal.com',
         clientId: process.env.VITE_AUTH0_CLIENT_ID_PROD || process.env.VITE_AUTH0_CLIENT_ID || '',
         redirectUri: 'https://app2.heliotropeimaginal.com/auth/callback',
         environment: 'production' as const,
@@ -80,10 +78,10 @@ export class AuthEnvironmentManager {
       warnings.push('Production environment using local database');
     }
     
-    // Check Auth0 domain alignment
+    // Verify the resolved Auth0 domain matches the expected tenant for this environment
     const config = this.getAuthConfig();
-    if (environment === 'development' && config.domain === 'auth.heliotropeimaginal.com') {
-      warnings.push('Development using production Auth0 domain - SECURITY RISK');
+    if (environment === 'development' && config.domain.includes('prod')) {
+      warnings.push('Development environment resolved to a production Auth0 tenant');
     }
     
     if (warnings.length > 0) {

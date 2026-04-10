@@ -50,9 +50,13 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
     if (!user) {
       // Determine role for new Auth0 user
       let userRole = 'participant'; // Default role
-      
-      // Check for admin role in Auth0 metadata/roles
-      const auth0Roles = decoded?.['https://schemas.auth0.com/roles'] || decoded?.roles || [];
+
+      // Custom claims emitted by the Post-Login Claims action.
+      // selfActual namespace is the platform standard; HI namespace kept as fallback for backward compatibility.
+      const auth0Roles =
+        decoded?.['https://selfactual.ai/claims/roles'] ||
+        decoded?.['https://heliotropeimaginal.com/claims/roles'] ||
+        [];
       const auth0AppMetadata = decoded?.['https://schemas.auth0.com/app_metadata'] || decoded?.app_metadata || {};
       
       if (auth0Roles.includes('admin') || auth0AppMetadata.role === 'admin') {
@@ -107,9 +111,13 @@ async function handleAuth0Session(req: express.Request, res: express.Response) {
       // Check if existing user needs role update (for admin promotion)
       let needsRoleUpdate = false;
       let newRole = user.role;
-      
-      // Check for admin role in Auth0 metadata/roles
-      const auth0Roles = decoded?.['https://schemas.auth0.com/roles'] || decoded?.roles || [];
+
+      // Custom claims emitted by the Post-Login Claims action.
+      // selfActual namespace is the platform standard; HI namespace kept as fallback for backward compatibility.
+      const auth0Roles =
+        decoded?.['https://selfactual.ai/claims/roles'] ||
+        decoded?.['https://heliotropeimaginal.com/claims/roles'] ||
+        [];
       const auth0AppMetadata = decoded?.['https://schemas.auth0.com/app_metadata'] || decoded?.app_metadata || {};
       
       if (auth0Roles.includes('admin') || auth0AppMetadata.role === 'admin') {

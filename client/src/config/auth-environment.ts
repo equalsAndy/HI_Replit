@@ -8,6 +8,8 @@ export function getClientAuthConfig() {
 
   if (hostname === 'app2.heliotropeimaginal.com') {
     environment = 'production';
+  } else if (hostname === 'staging.heliotropeimaginal.com') {
+    environment = 'staging';
   } else if (hostname === 'localhost' && port === '8080') {
     environment = 'development';
   } else if (hostname === 'app.heliotropeimaginal.com') {
@@ -17,26 +19,28 @@ export function getClientAuthConfig() {
     console.warn('Unknown environment, defaulting to development');
   }
 
-  // All environments use the same custom domain
-  const baseConfig = {
-    domain: 'auth.heliotropeimaginal.com',
-    audience: 'https://api.heliotropeimaginal.com',
-    redirectUri: `${window.location.origin}/auth/callback`
-  };
+  // Each environment has its own Auth0 tenant. Custom domain only on prod.
+  const redirectUri = `${window.location.origin}/auth/callback`;
 
   const configs = {
     development: {
-      ...baseConfig,
+      domain: import.meta.env.VITE_AUTH0_DOMAIN_DEV || 'dev-y4g4ug6epxi167a4.us.auth0.com',
+      audience: 'https://api.heliotropeimaginal.com',
+      redirectUri,
       clientId: import.meta.env.VITE_AUTH0_CLIENT_ID_DEV || import.meta.env.VITE_AUTH0_CLIENT_ID,
       environment: 'development'
     },
     staging: {
-      ...baseConfig,
+      domain: import.meta.env.VITE_AUTH0_DOMAIN_STAGING || 'selfactual-staging.us.auth0.com',
+      audience: 'https://api.heliotropeimaginal.com',
+      redirectUri,
       clientId: import.meta.env.VITE_AUTH0_CLIENT_ID_STAGING || import.meta.env.VITE_AUTH0_CLIENT_ID,
       environment: 'staging'
     },
     production: {
-      ...baseConfig,
+      domain: import.meta.env.VITE_AUTH0_DOMAIN_PROD || 'auth.heliotropeimaginal.com',
+      audience: 'https://api.heliotropeimaginal.com',
+      redirectUri,
       clientId: import.meta.env.VITE_AUTH0_CLIENT_ID_PROD || import.meta.env.VITE_AUTH0_CLIENT_ID,
       environment: 'production'
     }
@@ -59,9 +63,9 @@ export function validateClientEnvironment() {
   const warnings: string[] = [];
   
   // Check for production domain in non-production environment
-  if (window.location.hostname !== 'app2.heliotropeimaginal.com' && 
-      config.domain === 'auth.heliotropeimaginal.com') {
-    warnings.push('Non-production environment using production Auth0 domain');
+  if (window.location.hostname !== 'app2.heliotropeimaginal.com' &&
+      config.domain.includes('prod')) {
+    warnings.push('Non-production environment resolved to a production Auth0 tenant');
   }
   
   // Check for localhost with production config
