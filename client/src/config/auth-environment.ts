@@ -38,7 +38,7 @@ export function getClientAuthConfig() {
       environment: 'staging'
     },
     production: {
-      domain: import.meta.env.VITE_AUTH0_DOMAIN_PROD || 'auth.heliotropeimaginal.com',
+      domain: import.meta.env.VITE_AUTH0_DOMAIN_PROD || 'auth.selfactual.ai',
       audience: 'https://api.heliotropeimaginal.com',
       redirectUri,
       clientId: import.meta.env.VITE_AUTH0_CLIENT_ID_PROD || import.meta.env.VITE_AUTH0_CLIENT_ID,
