@@ -3,6 +3,12 @@
 # Deploy to hi-replit-v2 service
 
 set -e  # Exit on any error
+
+# Use heliotrope AWS profile by default (has SSM, ECR, Lightsail permissions).
+# Override with AWS_PROFILE=other ./deploy-to-production.sh
+export AWS_PROFILE="${AWS_PROFILE:-heliotrope}"
+echo "🔑 Using AWS profile: $AWS_PROFILE"
+
 # Parse auto-confirm flag
 AUTO_CONFIRM=false
 if [[ "$1" == "-y" || "$1" == "--yes" ]]; then
