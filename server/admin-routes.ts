@@ -205,10 +205,10 @@ adminRouter.get('/facilitators', async (req: Request, res: Response) => {
 adminRouter.post('/users', async (req: Request, res: Response) => {
   try {
     const UserSchema = z.object({
-      name: z.string().min(2, 'Name must be at least 2 characters'),
-      username: z.string().min(3, 'Username must be at least 3 characters').optional(),
+      name: z.string().min(2, 'Name must be at least 2 characters').optional(),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
+      username: z.string().min(3, 'Username must be at least 3 characters').optional(),
       email: z.string().email('Invalid email address').optional(),
       title: z.string().optional(),
       organization: z.string().optional(),
@@ -218,31 +218,40 @@ adminRouter.post('/users', async (req: Request, res: Response) => {
     });
 
     const parsedData = UserSchema.parse(req.body);
-    
+
+    // Derive firstName/lastName from name if not provided separately
+    let derivedFirstName = parsedData.firstName || '';
+    let derivedLastName = parsedData.lastName || '';
+    if (!derivedFirstName && parsedData.name) {
+      const nameParts = parsedData.name.split(' ');
+      derivedFirstName = nameParts[0] || '';
+      derivedLastName = nameParts.slice(1).join(' ') || '';
+    }
+
     // Generate username if not provided
     if (!parsedData.username) {
-      const nameParts = parsedData.name.toLowerCase().split(' ');
+      const fullName = [derivedFirstName, derivedLastName].filter(Boolean).join(' ');
+      const nameParts = fullName.toLowerCase().split(' ');
       const baseUsername = nameParts.join('.');
       parsedData.username = `${baseUsername}-${nanoid(4)}`;
     }
-    
+
     // Generate password if requested or not provided
     const generatePassword = parsedData.generatePassword !== false;
     const password = parsedData.password || nanoid(10);
-    
+
     // Create the user
     const newUser = await storage.createUser({
-      name: parsedData.name,
       username: parsedData.username,
-      firstName: parsedData.firstName,
-      lastName: parsedData.lastName,
+      firstName: derivedFirstName,
+      lastName: derivedLastName,
       email: parsedData.email,
       title: parsedData.title,
       organization: parsedData.organization,
       // We'll handle role/userType via frontend logic since
       // our database doesn't have a role column
       password: password,
-    });
+    } as any);
     
     // Don't return the password in the response
     res.status(201).json({
@@ -280,24 +289,29 @@ adminRouter.put('/users/:id', async (req: Request, res: Response) => {
     
     const UserUpdateSchema = z.object({
       name: z.string().min(2, 'Name must be at least 2 characters').optional(),
-      username: z.string().min(3, 'Username must be at least 3 characters').optional(),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
+      username: z.string().min(3, 'Username must be at least 3 characters').optional(),
       email: z.string().email('Invalid email address').optional(),
       title: z.string().optional(),
       organization: z.string().optional(),
       userType: z.string().optional(), // We use userType instead of role
       password: z.string().optional(),
     });
-    
+
     const parsedData = UserUpdateSchema.parse(req.body);
-    
+
     // Build update object with only supported fields
     const updateData: any = {};
-    if (parsedData.name) updateData.name = parsedData.name;
-    if (parsedData.username) updateData.username = parsedData.username;
+    // If legacy name field is provided, split into firstName/lastName
+    if (parsedData.name && !parsedData.firstName) {
+      const nameParts = parsedData.name.split(' ');
+      updateData.firstName = nameParts[0] || '';
+      updateData.lastName = nameParts.slice(1).join(' ') || '';
+    }
     if (parsedData.firstName) updateData.firstName = parsedData.firstName;
-    if (parsedData.lastName) updateData.lastName = parsedData.lastName;
+    if (parsedData.lastName !== undefined) updateData.lastName = parsedData.lastName;
+    if (parsedData.username) updateData.username = parsedData.username;
     if (parsedData.email) updateData.email = parsedData.email;
     if (parsedData.title) updateData.title = parsedData.title;
     if (parsedData.organization) updateData.organization = parsedData.organization;

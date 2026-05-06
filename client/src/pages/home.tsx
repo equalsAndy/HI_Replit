@@ -55,7 +55,7 @@ export default function Home() {
       <div>
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <span className="text-gray-700">Welcome, {user.name}</span>
+                <span className="text-gray-700">Welcome, {user?.given_name || user?.name || 'User'}</span>
                 <Button variant="outline" onClick={() => appLogout.mutate()}>
                   Logout
                 </Button>

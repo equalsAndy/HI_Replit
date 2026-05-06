@@ -27,7 +27,9 @@ class UserManagementService {
   async createUser(data: {
     username: string;
     password: string;
-    name: string;
+    firstName: string;
+    lastName?: string;
+    name?: string; // Legacy — ignored if firstName provided, used as fallback
     email: string;
     role: 'admin' | 'facilitator' | 'participant' | 'student';
     organization?: string | null;
@@ -42,17 +44,24 @@ class UserManagementService {
     contentAccess?: 'student' | 'professional' | 'both';
   }) {
     try {
+      // Derive name fields
+      const firstName = data.firstName || data.name?.split(' ')[0] || '';
+      const lastName = data.lastName ?? (data.name ? data.name.split(' ').slice(1).join(' ') : '');
+      const fullName = `${firstName} ${lastName}`.trim();
+
       // Hash the password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(data.password, salt);
 
       // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, invited_by, created_at, updated_at)
+        INSERT INTO users (username, password, name, first_name, last_name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, invited_by, created_at, updated_at)
         VALUES (
           ${data.username},
           ${hashedPassword},
-          ${data.name},
+          ${fullName},
+          ${firstName},
+          ${lastName || null},
           ${data.email.toLowerCase()},
           ${data.role},
           ${data.organization || null},
@@ -102,6 +111,8 @@ class UserManagementService {
           id: userData.id,
           username: userData.username,
           name: userData.name,
+          firstName: userData.first_name,
+          lastName: userData.last_name,
           email: userData.email,
           role: userData.role,
           organization: userData.organization,
@@ -255,7 +266,9 @@ class UserManagementService {
    * Update a user
    */
   async updateUser(id: number, data: {
-    name?: string;
+    firstName?: string;
+    lastName?: string;
+    name?: string; // Legacy — ignored if firstName provided
     email?: string;
     organization?: string | null;
     jobTitle?: string | null;
@@ -276,9 +289,31 @@ class UserManagementService {
   }) {
     try {
       const updateData: any = {};
-      
-      // Handle regular fields
-      if (data.name !== undefined) updateData.name = data.name;
+
+      // Handle name fields — derive name from firstName/lastName
+      if (data.firstName !== undefined || data.lastName !== undefined) {
+        if (data.firstName !== undefined) updateData.firstName = data.firstName;
+        if (data.lastName !== undefined) updateData.lastName = data.lastName;
+        // Re-derive the full name; fetch existing values if only one field changed
+        const first = data.firstName ?? undefined;
+        const last = data.lastName ?? undefined;
+        if (first !== undefined && last !== undefined) {
+          updateData.name = `${first} ${last}`.trim();
+        } else {
+          // Need to fetch existing user to merge with partial update
+          const existing = await db.select({ firstName: users.firstName, lastName: users.lastName }).from(users).where(eq(users.id, id));
+          if (existing.length > 0) {
+            const mergedFirst = first ?? existing[0].firstName ?? '';
+            const mergedLast = last ?? existing[0].lastName ?? '';
+            updateData.name = `${mergedFirst} ${mergedLast}`.trim();
+          }
+        }
+      } else if (data.name !== undefined) {
+        // Legacy fallback: split name into parts
+        updateData.name = data.name;
+        updateData.firstName = data.name.split(' ')[0];
+        updateData.lastName = data.name.split(' ').slice(1).join(' ') || null;
+      }
       if (data.email !== undefined) updateData.email = data.email;
       if (data.organization !== undefined) updateData.organization = data.organization;
       if (data.jobTitle !== undefined) updateData.jobTitle = data.jobTitle;

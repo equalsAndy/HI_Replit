@@ -18,11 +18,12 @@ export const ReportPromptModal: React.FC<ReportPromptModalProps> = ({
 
   // Derive a friendly first name for greeting
   const firstName = React.useMemo(() => {
-    const raw = user?.name || user?.username || '';
+    if (user?.firstName) return user.firstName;
+    const raw = user?.username || '';
     if (!raw) return '';
     const parts = String(raw).trim().split(/\s+/);
     return parts[0] || raw;
-  }, [user?.name, user?.username]);
+  }, [user?.firstName, user?.username]);
 
   if (!isOpen) return null;
 

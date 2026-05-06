@@ -318,14 +318,14 @@ class InviteService {
       let base = sql`
         SELECT 
           i.*, 
-          creator.name as creator_name,
+          CONCAT(creator.first_name, ' ', COALESCE(creator.last_name, '')) as creator_name,
           creator.email as creator_email,
           creator.role as creator_role,
           c.name as cohort_name,
           o.name as organization_name,
           invited_user.is_test_user,
           invited_user.is_beta_tester as user_is_beta_tester,
-          used_user.name as used_by_name,
+          CONCAT(used_user.first_name, ' ', COALESCE(used_user.last_name, '')) as used_by_name,
           used_user.email as used_by_email
         FROM invites i
         LEFT JOIN users creator ON i.created_by = creator.id
@@ -370,14 +370,14 @@ class InviteService {
       let base = sql`
         SELECT 
           i.*,
-          creator.name as creator_name,
+          CONCAT(creator.first_name, ' ', COALESCE(creator.last_name, '')) as creator_name,
           creator.email as creator_email,
           creator.role as creator_role,
           c.name as cohort_name,
           o.name as organization_name,
           invited_user.is_test_user,
           invited_user.is_beta_tester as user_is_beta_tester,
-          used_user.name as used_by_name,
+          CONCAT(used_user.first_name, ' ', COALESCE(used_user.last_name, '')) as used_by_name,
           used_user.email as used_by_email
         FROM invites i
         LEFT JOIN users creator ON i.created_by = creator.id
@@ -415,7 +415,7 @@ class InviteService {
       const result = await db.execute(sql`
         SELECT 
           i.*,
-          u.name as creator_name,
+          CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as creator_name,
           u.email as creator_email,
           u.role as creator_role
         FROM invites i

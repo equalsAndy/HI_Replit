@@ -13,7 +13,8 @@ import { useLocation } from 'wouter';
 
 // Define the form schema
 const profileFormSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional(),
   jobTitle: z.string().optional(),
   organization: z.string().optional(),
   externalEmail: z.string().email('Invalid email address').optional(),
@@ -39,7 +40,8 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
   const form = useForm({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      fullName: inviteData.name || '',
+      firstName: inviteData.name?.split(' ')[0] || '',
+      lastName: inviteData.name?.split(' ').slice(1).join(' ') || '',
       jobTitle: inviteData.jobTitle || '',
       externalEmail: inviteData.email || '',
       organization: inviteData.organization || '',
@@ -49,7 +51,8 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
   });
 
   useEffect(() => {
-    form.setValue('fullName', inviteData.name || '');
+    form.setValue('firstName', inviteData.name?.split(' ')[0] || '');
+    form.setValue('lastName', inviteData.name?.split(' ').slice(1).join(' ') || '');
     form.setValue('jobTitle', inviteData.jobTitle || '');
     form.setValue('externalEmail', inviteData.email || '');
     form.setValue('organization', inviteData.organization || '');
@@ -85,7 +88,8 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
         inviteCode: (inviteData as any).inviteCode,
         username: (data.externalEmail || inviteData.email),
         password: data.password,
-        name: data.fullName,
+        firstName: data.firstName,
+        lastName: data.lastName || '',
         email: (data.externalEmail || inviteData.email),
         organization: data.organization || inviteData.organization || '',
         jobTitle: data.jobTitle || '',
@@ -175,19 +179,34 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Full Name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="First name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Last name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="jobTitle"

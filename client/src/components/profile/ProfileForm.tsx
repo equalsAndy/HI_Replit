@@ -32,7 +32,8 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProfileData>({
     defaultValues: {
-      name: user?.name || "",
+      firstName: user?.firstName || user?.name?.split(' ')[0] || "",
+      lastName: user?.lastName || user?.name?.split(' ').slice(1).join(' ') || "",
       title: user?.title || "",
       organization: user?.organization || "",
       avatarUrl: user?.avatarUrl || ""
@@ -95,14 +96,24 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
       </div>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Name:</Label>
-          <Input
-            id="name"
-            placeholder="Your name"
-            {...register('name', { required: 'Name is required' })}
-          />
-          {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name:</Label>
+            <Input
+              id="firstName"
+              placeholder="First name"
+              {...register('firstName' as any, { required: 'First name is required' })}
+            />
+            {(errors as any).firstName && <p className="text-sm text-red-500">{(errors as any).firstName.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name:</Label>
+            <Input
+              id="lastName"
+              placeholder="Last name"
+              {...register('lastName' as any)}
+            />
+          </div>
         </div>
         
         <div className="space-y-2">

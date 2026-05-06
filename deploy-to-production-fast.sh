@@ -5,6 +5,11 @@
 # Exit on any error
 set -e
 
+# Use heliotrope AWS profile by default (has SSM, ECR, Lightsail permissions).
+# Override with AWS_PROFILE=other ./deploy-to-production-fast.sh
+export AWS_PROFILE="${AWS_PROFILE:-heliotrope}"
+echo "🔑 Using AWS profile: $AWS_PROFILE"
+
 # Parse auto-confirm flag
 AUTO_CONFIRM=false
 if [[ "$1" == "-y" || "$1" == "--yes" ]]; then

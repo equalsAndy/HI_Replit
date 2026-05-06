@@ -145,9 +145,9 @@ app.get('/health', async (req, res) => {
     try {
       // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
-        ? path.join(__dirname, './public/version.json')
-        : path.join(__dirname, '../public/version.json');
+      const versionPath = process.env.NODE_ENV === 'development'
+        ? path.join(__dirname, '../public/version.json')
+        : path.join(__dirname, './public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
@@ -200,9 +200,9 @@ app.get('/health', async (req, res) => {
     try {
       // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
-        ? path.join(__dirname, './public/version.json')
-        : path.join(__dirname, '../public/version.json');
+      const versionPath = process.env.NODE_ENV === 'development'
+        ? path.join(__dirname, '../public/version.json')
+        : path.join(__dirname, './public/version.json');
       const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
       versionInfo = {
         version: versionData.version || 'unknown',
@@ -413,9 +413,9 @@ async function initializeApp() {
         try {
           // In development: server runs from source, version.json is at ../public/
       // In production: server runs from dist/, version.json is at ./public/
-      const versionPath = process.env.NODE_ENV === 'production' 
-        ? path.join(__dirname, './public/version.json')
-        : path.join(__dirname, '../public/version.json');
+      const versionPath = process.env.NODE_ENV === 'development'
+        ? path.join(__dirname, '../public/version.json')
+        : path.join(__dirname, './public/version.json');
           const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
           
           res.setHeader('X-App-Version', versionData.version || 'unknown');
@@ -625,7 +625,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
             .returning({
               id: users.id,
               username: users.username,
-              name: users.name,
+              firstName: users.firstName,
+              lastName: users.lastName,
               role: users.role,
               isTestUser: users.isTestUser
             });
@@ -663,7 +664,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
           const result = await db.select({
             id: users.id,
             username: users.username,
-            name: users.name,
+            firstName: users.firstName,
+            lastName: users.lastName,
             role: users.role,
             isTestUser: users.isTestUser,
             astWorkshopCompleted: users.astWorkshopCompleted,
@@ -710,7 +712,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
             .returning({
               id: users.id,
               username: users.username,
-              name: users.name,
+              firstName: users.firstName,
+              lastName: users.lastName,
               astWorkshopCompleted: users.astWorkshopCompleted,
               astCompletedAt: users.astCompletedAt
             });
@@ -763,7 +766,8 @@ app.use('/api/admin/ai', assistantTestRoutes);
             (req.session as any).user = {
               id: user.id,
               username: user.username,
-              name: user.name,
+              firstName: user.firstName,
+              lastName: user.lastName,
               email: user.email,
               role: user.role,
               isTestUser: user.isTestUser,

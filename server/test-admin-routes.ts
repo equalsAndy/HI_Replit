@@ -40,10 +40,11 @@ testAdminRouter.get('/login-as/:userId', async (req: Request, res: Response) => 
     });
     
     res.status(200).json({
-      message: `Logged in as ${user.name}`,
+      message: `Logged in as ${[user.firstName, user.lastName].filter(Boolean).join(' ') || user.username}`,
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         isAdmin: user.id === 1 // User with ID 1 is considered admin
       }
     });

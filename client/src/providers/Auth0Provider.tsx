@@ -37,6 +37,7 @@ export default function HIAuth0Provider({ children }: { children: React.ReactNod
         redirect_uri: redirectUri,
         scope: 'openid profile email',
         ...(audience ? { audience } : {}),
+        'ext-brand': 'hi',
       }}
       cacheLocation="localstorage" // Persist tokens across reloads (supports incognito session storage)
       onRedirectCallback={() => {

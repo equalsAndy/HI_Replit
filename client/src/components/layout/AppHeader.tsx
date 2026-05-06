@@ -28,7 +28,7 @@ export default function AppHeader() {
         <div className="flex items-center space-x-3">
           {user && (
             <>
-              <span className="text-gray-700 font-medium">{user.name || 'User'}</span>
+              <span className="text-gray-700 font-medium">{user.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'User'}</span>
               <div className="flex items-center space-x-1 text-gray-600 border-l border-gray-300 pl-3">
                 <span className="text-sm">English</span>
                 <span className="text-xs">🇺🇸</span>

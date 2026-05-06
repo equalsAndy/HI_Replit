@@ -12,7 +12,9 @@ export interface QuadrantData {
 
 // Define ProfileData interface for StarCard components
 export interface ProfileData {
-  name: string;
+  firstName: string;
+  lastName?: string;
+  name?: string; // Derived full name (read-only)
   title: string;
   organization: string;
   avatarUrl?: string;
@@ -89,6 +91,8 @@ export const users: any = pgTable('users', {
   username: varchar('username', { length: 100 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
+  firstName: varchar('first_name', { length: 255 }),
+  lastName: varchar('last_name', { length: 255 }),
   email: varchar('email', { length: 255 }).notNull().unique(),
   role: varchar('role', { length: 20 }).notNull().default('participant'),
   organization: text('organization'),
@@ -752,3 +756,141 @@ export const insertVaultAccountSchema = createInsertSchema(vaultAccounts);
 // Type definitions for vault accounts
 export type VaultAccount = typeof vaultAccounts.$inferSelect;
 export type InsertVaultAccount = z.infer<typeof insertVaultAccountSchema>;
+
+// ─── Email Invitation System Tables ────────────────────────────────────────────
+
+// Email templates table — rich-text templates for invitation emails
+export const emailTemplates = pgTable('email_templates', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  subject: varchar('subject', { length: 500 }).notNull(),
+  htmlContent: text('html_content').notNull(),
+  plainTextContent: text('plain_text_content'),
+  templateCategory: varchar('template_category', { length: 50 }).notNull().default('custom'), // welcome, beta_tester, workshop_specific, custom
+  workshopType: varchar('workshop_type', { length: 10 }), // ast, ia, both, NULL
+  createdBy: integer('created_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  isSystemTemplate: boolean('is_system_template').default(false).notNull(),
+  isShared: boolean('is_shared').default(false).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  isDefault: boolean('is_default').default(false).notNull(),
+  version: integer('version').default(1).notNull(),
+  tags: jsonb('tags').default('[]'),
+  previewImageUrl: text('preview_image_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  createdByIdx: index('idx_email_templates_created_by').on(table.createdBy),
+  categoryIdx: index('idx_email_templates_category').on(table.templateCategory),
+  workshopTypeIdx: index('idx_email_templates_workshop_type').on(table.workshopType),
+}));
+
+// Template assignments — links templates to facilitators
+export const templateAssignments = pgTable('template_assignments', {
+  id: serial('id').primaryKey(),
+  templateId: integer('template_id').notNull().references(() => emailTemplates.id, { onDelete: 'cascade' }),
+  assignedTo: integer('assigned_to').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  assignedBy: integer('assigned_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  canEdit: boolean('can_edit').default(false).notNull(),
+  canReassign: boolean('can_reassign').default(false).notNull(),
+  assignedAt: timestamp('assigned_at').defaultNow().notNull(),
+}, (table) => ({
+  templateAssigneeUnique: unique().on(table.templateId, table.assignedTo),
+}));
+
+// Email send log — audit trail for all sent emails
+export const emailSendLog = pgTable('email_send_log', {
+  id: serial('id').primaryKey(),
+  templateId: integer('template_id').references(() => emailTemplates.id, { onDelete: 'set null' }),
+  inviteId: integer('invite_id').references(() => invites.id, { onDelete: 'set null' }),
+  recipientEmail: varchar('recipient_email', { length: 255 }).notNull(),
+  recipientName: text('recipient_name'),
+  subject: varchar('subject', { length: 500 }).notNull(),
+  htmlBody: text('html_body').notNull(),
+  plainTextBody: text('plain_text_body'),
+  senderIdentity: varchar('sender_identity', { length: 50 }).notNull().default('heliotrope'), // heliotrope, allstarteams, imaginalagility
+  sesMessageId: varchar('ses_message_id', { length: 255 }),
+  sesRequestId: varchar('ses_request_id', { length: 255 }),
+  status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, sent, failed, bounced, complained
+  errorMessage: text('error_message'),
+  sentBy: integer('sent_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  variablesUsed: jsonb('variables_used').default('{}'),
+  queuedAt: timestamp('queued_at').defaultNow().notNull(),
+  sentAt: timestamp('sent_at'),
+  deliveredAt: timestamp('delivered_at'),
+  openedAt: timestamp('opened_at'),
+  clickedAt: timestamp('clicked_at'),
+}, (table) => ({
+  statusIdx: index('idx_email_send_log_status').on(table.status),
+  recipientIdx: index('idx_email_send_log_recipient').on(table.recipientEmail),
+  sentByIdx: index('idx_email_send_log_sent_by').on(table.sentBy),
+  queuedAtIdx: index('idx_email_send_log_queued_at').on(table.queuedAt),
+}));
+
+// Email images — S3-stored images for use in templates
+export const emailImages = pgTable('email_images', {
+  id: serial('id').primaryKey(),
+  originalFilename: varchar('original_filename', { length: 500 }).notNull(),
+  storedFilename: varchar('stored_filename', { length: 500 }).notNull(),
+  fileSizeBytes: integer('file_size_bytes').notNull(),
+  mimeType: varchar('mime_type', { length: 100 }).notNull(),
+  s3Bucket: varchar('s3_bucket', { length: 255 }).notNull(),
+  s3Key: varchar('s3_key', { length: 500 }).notNull(),
+  s3Url: text('s3_url').notNull(),
+  cdnUrl: text('cdn_url'),
+  widthPx: integer('width_px'),
+  heightPx: integer('height_px'),
+  altText: varchar('alt_text', { length: 500 }),
+  uploadedBy: integer('uploaded_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  isShared: boolean('is_shared').default(false).notNull(),
+  usageCount: integer('usage_count').default(0).notNull(),
+  uploadedAt: timestamp('uploaded_at').defaultNow().notNull(),
+  lastUsedAt: timestamp('last_used_at'),
+}, (table) => ({
+  uploadedByIdx: index('idx_email_images_uploaded_by').on(table.uploadedBy),
+}));
+
+// Template variables — defines available variables for Handlebars substitution
+export const templateVariables = pgTable('template_variables', {
+  id: serial('id').primaryKey(),
+  variableKey: varchar('variable_key', { length: 100 }).notNull().unique(),
+  variableName: varchar('variable_name', { length: 255 }).notNull(),
+  description: text('description'),
+  category: varchar('category', { length: 50 }).notNull(), // user, invite, workshop, platform, conditional
+  dataType: varchar('data_type', { length: 50 }).notNull().default('string'), // string, boolean, date, number
+  exampleValue: text('example_value'),
+  isRequired: boolean('is_required').default(false).notNull(),
+  isConditional: boolean('is_conditional').default(false).notNull(),
+  fallbackValue: text('fallback_value'),
+  availableForWorkshops: jsonb('available_for_workshops').default('["ast","ia","both"]'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Insert schemas for email tables
+export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).extend({
+  templateCategory: z.enum(['welcome', 'beta_tester', 'workshop_specific', 'custom']).default('custom'),
+  workshopType: z.enum(['ast', 'ia', 'both']).nullable().optional(),
+});
+export const insertTemplateAssignmentSchema = createInsertSchema(templateAssignments);
+export const insertEmailSendLogSchema = createInsertSchema(emailSendLog).extend({
+  senderIdentity: z.enum(['heliotrope', 'allstarteams', 'imaginalagility']).default('heliotrope'),
+  status: z.enum(['pending', 'sent', 'failed', 'bounced', 'complained']).default('pending'),
+});
+export const insertEmailImageSchema = createInsertSchema(emailImages);
+export const insertTemplateVariableSchema = createInsertSchema(templateVariables).extend({
+  category: z.enum(['user', 'invite', 'workshop', 'platform', 'conditional']),
+  dataType: z.enum(['string', 'boolean', 'date', 'number']).default('string'),
+});
+
+// Type definitions for email tables
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+export type TemplateAssignment = typeof templateAssignments.$inferSelect;
+export type InsertTemplateAssignment = z.infer<typeof insertTemplateAssignmentSchema>;
+export type EmailSendLogRecord = typeof emailSendLog.$inferSelect;
+export type InsertEmailSendLog = z.infer<typeof insertEmailSendLogSchema>;
+export type EmailImage = typeof emailImages.$inferSelect;
+export type InsertEmailImage = z.infer<typeof insertEmailImageSchema>;
+export type TemplateVariable = typeof templateVariables.$inferSelect;
+export type InsertTemplateVariable = z.infer<typeof insertTemplateVariableSchema>;

@@ -19,6 +19,8 @@ import photoRoutes from './routes/photo-routes.ts';
 import starCardRoutes from './routes/starcard-routes.ts';
 import iaChatRoutes from './routes/ia-chat-routes.ts';
 import aiRoutes from './routes/ai.ts';
+import emailTemplateRoutes from './routes/email-template-routes.ts';
+import emailSendRoutes from './routes/email-send-routes.ts';
 
 // Create a router
 export const router = express.Router();
@@ -42,6 +44,10 @@ router.use('/photos', photoRoutes);
 router.use('/starcard', starCardRoutes);
 // AI training routes
 router.use('/ai', aiRoutes);
+// Email template management routes
+router.use('/email-templates', emailTemplateRoutes);
+// Email sending routes
+router.use('/email-send', emailSendRoutes);
 // IA chat assistant routes
 router.use('/', iaChatRoutes);
 

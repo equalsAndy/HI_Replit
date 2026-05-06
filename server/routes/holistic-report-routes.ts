@@ -324,7 +324,7 @@ router.get('/admin/list', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(`
-      SELECT hr.*, u.username, u.name as user_name 
+      SELECT hr.*, u.username, CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_name
       FROM holistic_reports hr 
       JOIN users u ON hr.user_id = u.id 
       ORDER BY hr.generated_at DESC
@@ -856,7 +856,7 @@ router.get('/export-admin-data', async (req, res) => {
     const userId = 1; // Admin user
     
     // Get user info first
-    const userResult = await pool.query('SELECT id, name, username, role, created_at FROM users WHERE id = $1', [userId]);
+    const userResult = await pool.query('SELECT id, CONCAT(first_name, \' \', COALESCE(last_name, \'\')) as name, username, role, created_at FROM users WHERE id = $1', [userId]);
     
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });

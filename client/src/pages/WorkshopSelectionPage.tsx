@@ -71,7 +71,7 @@ export default function WorkshopSelectionPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-3 text-slate-900">
-            Welcome, {user.name || 'Participant'}!
+            Welcome, {user.firstName || 'Participant'}!
           </h1>
           <p className="text-xl text-slate-600 mb-2">
             Choose Your Workshop

@@ -207,7 +207,7 @@ export async function syncAll(
     // ── 1. Profile ──────────────────────────────────────────────────────
     if (user) {
       const ok = await writeToGateway(username, 'profile', {
-        name: user.name,
+        name: [user.firstName, user.lastName].filter(Boolean).join(' '),
         email: user.email,
         jobTitle: user.jobTitle ?? null,
         organization: user.organization ?? null,

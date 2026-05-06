@@ -142,7 +142,7 @@ export class ExportService {
         userInfo: {
           id: userWithPhotoReference.id,
           username: userWithPhotoReference.username,
-          name: userWithPhotoReference.name,
+          name: [userWithPhotoReference.firstName, userWithPhotoReference.lastName].filter(Boolean).join(' '),
           email: userWithPhotoReference.email,
           role: userWithPhotoReference.role,
           organization: userWithPhotoReference.organization,

@@ -271,25 +271,27 @@ router.get('/find-user/:username', async (req, res) => {
     });
     
     const result = await pool.query(
-      'SELECT id, name, username FROM users WHERE LOWER(username) = LOWER($1)',
+      'SELECT id, first_name, last_name, username FROM users WHERE LOWER(username) = LOWER($1)',
       [username]
     );
-    
+
     await pool.end();
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: `User with username '${username}' not found`
       });
     }
-    
+
     const user = result.rows[0];
+    const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
     res.json({
       success: true,
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.first_name,
+        lastName: user.last_name,
         username: user.username
       }
     });
@@ -328,10 +330,10 @@ router.post('/get-png/:userId', async (req, res) => {
     });
     
     const userResult = await pool.query(
-      'SELECT id, name, username FROM users WHERE id = $1',
+      'SELECT id, first_name, last_name, username FROM users WHERE id = $1',
       [userId]
     );
-    
+
     if (userResult.rows.length === 0) {
       await pool.end();
       return res.status(404).json({
@@ -339,10 +341,11 @@ router.post('/get-png/:userId', async (req, res) => {
         message: `User ${userId} not found`
       });
     }
-    
+
     const user = userResult.rows[0];
-    console.log(`👤 Found user: ${user.name || user.username} (ID: ${user.id})`);
-    
+    const userDisplayName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
+    console.log(`👤 Found user: ${userDisplayName} (ID: ${user.id})`);
+
     // Look for the most recent StarCard photo uploaded by this user (filter by image_type)
     const photoResult = await pool.query(`
       SELECT id, photo_data, photo_hash, mime_type, file_size, width, height, created_at
@@ -359,7 +362,7 @@ router.post('/get-png/:userId', async (req, res) => {
     if (photoResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: `No StarCard PNG found for user ${userId} (${user.name || user.username})`
+        message: `No StarCard PNG found for user ${userId} (${userDisplayName})`
       });
     }
 
@@ -400,8 +403,8 @@ router.post('/get-png/:userId', async (req, res) => {
     
     res.json({
       success: true,
-      message: `StarCard PNG retrieved for ${user.name || user.username}`,
-      user: user.name || user.username,
+      message: `StarCard PNG retrieved for ${userDisplayName}`,
+      user: userDisplayName,
       username: user.username,
       userId: userId,
       filename: filename,
@@ -611,10 +614,10 @@ router.get('/admin/download/:userId', async (req, res) => {
     });
     
     const userResult = await pool.query(
-      'SELECT id, name, username FROM users WHERE id = $1',
+      'SELECT id, first_name, last_name, username FROM users WHERE id = $1',
       [userId]
     );
-    
+
     if (userResult.rows.length === 0) {
       await pool.end();
       return res.status(404).json({
@@ -622,9 +625,10 @@ router.get('/admin/download/:userId', async (req, res) => {
         message: `User ${userId} not found`
       });
     }
-    
+
     const user = userResult.rows[0];
-    
+    const userDisplayName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
+
     // Look for the most recent StarCard photo (filter by image_type to avoid profile pictures)
     const photoResult = await pool.query(`
       SELECT id, photo_data, photo_hash, mime_type, file_size, width, height, created_at
@@ -641,7 +645,7 @@ router.get('/admin/download/:userId', async (req, res) => {
     if (photoResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: `No StarCard PNG found in database for ${user.name || user.username} (ID: ${userId})`
+        message: `No StarCard PNG found in database for ${userDisplayName} (ID: ${userId})`
       });
     }
 
@@ -704,7 +708,7 @@ router.get('/admin/download-by-id/:photoId', async (req, res) => {
     // Get the specific photo by ID
     const photoResult = await pool.query(`
       SELECT ps.id, ps.photo_data, ps.photo_hash, ps.mime_type, ps.file_size, ps.width, ps.height, ps.created_at, ps.uploaded_by,
-             u.name, u.username
+             CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_full_name, u.username
       FROM photo_storage ps
       JOIN users u ON ps.uploaded_by = u.id
       WHERE ps.id = $1
@@ -739,7 +743,7 @@ router.get('/admin/download-by-id/:photoId', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Length', buffer.length);
 
-    console.log(`✅ Admin downloading photo ID ${photoId}: ${filename} (${photo.file_size} bytes) for ${photo.name}`);
+    console.log(`✅ Admin downloading photo ID ${photoId}: ${filename} (${photo.file_size} bytes) for ${photo.user_full_name}`);
 
     // Send the image buffer
     res.send(buffer);
@@ -771,7 +775,7 @@ router.get('/admin/list-available', async (req, res) => {
     const result = await pool.query(`
       SELECT
         u.id,
-        u.name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         u.username,
         ps.id as photo_id,
         ps.file_size,

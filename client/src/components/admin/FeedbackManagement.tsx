@@ -291,7 +291,7 @@ export const FeedbackManagement: React.FC = () => {
         // Extract users list and format for dropdown
         const usersList = data.users.map((user: any) => ({
           id: user.id,
-          name: user.name,
+          name: user.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : (user.username || 'Unknown'),
           username: user.username,
           isBetaTester: user.isBetaTester || user.is_beta_tester,
           isTestUser: user.isTestUser || user.is_test_user
@@ -1042,7 +1042,7 @@ export const FeedbackManagement: React.FC = () => {
                   {betaSurveys.map((s: any) => {
                     const id = s.id ?? s.ID ?? s.Id;
                     const submitted = s.submitted_at || s.submittedAt || s.created_at || s.createdAt;
-                    const userName = s.user_name || s.userName || s.username || s.user?.name || 'Unknown';
+                    const userName = s.user_name || s.userName || s.username || (s.user?.firstName ? `${s.user.firstName}${s.user.lastName ? ' ' + s.user.lastName : ''}` : null) || 'Unknown';
                     return (
                       <tr key={id} style={styles.tr}>
                         <td style={styles.td}>

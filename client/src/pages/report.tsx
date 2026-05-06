@@ -217,7 +217,7 @@ export default function Report() {
   
   // Default profile data
   const profileData = {
-    name: user?.name || "User",
+    name: user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : "User",
     title: user?.title || "Title",
     organization: user?.organization || "Organization",
     avatarUrl: user?.avatarUrl
@@ -258,9 +258,9 @@ export default function Report() {
         </div>
         
         <div className="flex justify-center items-start">
-          <StarCard 
+          <StarCard
             profile={{
-              name: user?.name || "",
+              name: user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : "",
               title: user?.title || "",
               organization: user?.organization || ""
             }}

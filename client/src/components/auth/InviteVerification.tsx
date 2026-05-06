@@ -34,13 +34,34 @@ const InviteVerification: React.FC<InviteVerificationProps> = ({ onVerified }) =
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
 
+  // Read invite code from URL path (/register/XXXX-XXXX-XXXX) or query param (?code=XXXX)
+  const getCodeFromUrl = (): string => {
+    // Check path: /register/:inviteCode
+    const pathMatch = window.location.pathname.match(/\/register\/([A-Za-z0-9-]+)/);
+    if (pathMatch) return pathMatch[1].toUpperCase();
+    // Check query param: ?code=XXXX
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) return code.toUpperCase();
+    return '';
+  };
+
+  const initialCode = getCodeFromUrl();
+
   // Initialize form
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
-      inviteCode: ''
+      inviteCode: initialCode
     }
   });
+
+  // Auto-submit if invite code came from URL
+  React.useEffect(() => {
+    if (initialCode) {
+      form.handleSubmit(onSubmit)();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle form submission
   const onSubmit = async (data: InviteFormValues) => {

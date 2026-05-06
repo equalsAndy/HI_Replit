@@ -107,7 +107,7 @@ router.get('/:userId', requireAuth, async (req, res) => {
         hr.report_content,
         hr.metadata,
         hr.created_at,
-        u.name as user_name
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_name
       FROM holistic_reports hr
       JOIN users u ON hr.user_id = u.id
       WHERE hr.user_id = $1 ${reportTypeFilter}
@@ -171,7 +171,7 @@ router.get('/:userId/download/:type', requireAuth, async (req, res) => {
         hr.report_content,
         hr.metadata,
         hr.created_at,
-        u.name as user_name
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as user_name
       FROM holistic_reports hr
       JOIN users u ON hr.user_id = u.id
       WHERE hr.user_id = $1 AND hr.report_type = $2
@@ -244,16 +244,16 @@ router.get('/list', requireAuth, async (req, res) => {
     console.log('📊 Listing all users with AST reports');
 
     const usersWithReports = await pool.query(`
-      SELECT 
+      SELECT
         u.id,
-        u.name,
+        CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         COUNT(CASE WHEN hr.report_type = 'ast_personal' THEN 1 END) as personal_reports,
         COUNT(CASE WHEN hr.report_type = 'ast_professional' THEN 1 END) as professional_reports,
         MAX(hr.created_at) as latest_report
       FROM users u
-      LEFT JOIN holistic_reports hr ON u.id = hr.user_id 
+      LEFT JOIN holistic_reports hr ON u.id = hr.user_id
         AND hr.report_type IN ('ast_personal', 'ast_professional')
-      GROUP BY u.id, u.name
+      GROUP BY u.id, u.first_name, u.last_name
       HAVING COUNT(hr.id) > 0
       ORDER BY MAX(hr.created_at) DESC
     `);

@@ -23,7 +23,8 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
+    firstName: user?.firstName || user?.name?.split(' ')[0] || '',
+    lastName: user?.lastName || user?.name?.split(' ').slice(1).join(' ') || '',
     email: user?.email || user?.username || '',
     organization: user?.organization || '',
     jobTitle: user?.jobTitle || user?.title || '',
@@ -47,7 +48,8 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
   React.useEffect(() => {
     if (user) {
       const mappedData = {
-        name: user.name || '',
+        firstName: user.firstName || user.name?.split(' ')[0] || '',
+        lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
         email: user.email || user.username || '',
         organization: user.organization || '',
         jobTitle: user.jobTitle || user.title || '',
@@ -326,7 +328,8 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
     // Reset form data to original user data
     if (user) {
       setFormData({
-        name: user.name || '',
+        firstName: user.firstName || user.name?.split(' ')[0] || '',
+        lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
         email: user.email || user.username || '',
         organization: user.organization || '',
         jobTitle: user.jobTitle || user.title || '',
@@ -342,7 +345,8 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
     // Reset form data when closing modal
     if (user) {
       setFormData({
-        name: user.name || '',
+        firstName: user.firstName || user.name?.split(' ')[0] || '',
+        lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
         email: user.email || user.username || '',
         organization: user.organization || '',
         jobTitle: user.jobTitle || user.title || '',
@@ -376,7 +380,7 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
               {user?.name ? getUserInitials(user.name) : <User className="h-3 w-3" />}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden sm:inline">{user?.name || '...'}</span>
+          <span className="hidden sm:inline">{user?.firstName || user?.name || '...'}</span>
         </Button>
       </DialogTrigger>
       
@@ -391,7 +395,7 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
             <Avatar className="h-24 w-24">
               <AvatarImage src={profileImage} />
               <AvatarFallback className="text-lg">
-                {formData.name ? getUserInitials(formData.name) : <User className="h-8 w-8" />}
+                {formData.firstName ? getUserInitials(`${formData.firstName} ${formData.lastName}`.trim()) : <User className="h-8 w-8" />}
               </AvatarFallback>
             </Avatar>
             
@@ -446,14 +450,25 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
             {isEditing ? (
               // Edit Mode - Show input fields
               <>
-                <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter your full name"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      placeholder="First name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      placeholder="Last name"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -491,8 +506,8 @@ export default function ProfileEditor({ user, onLogout, currentApp, onToggleWork
               // View Mode - Show read-only information
               <>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Full Name</Label>
-                  <p className="text-sm mt-1 p-2 bg-muted rounded-md">{formData.name || 'Not provided'}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Name</Label>
+                  <p className="text-sm mt-1 p-2 bg-muted rounded-md">{`${formData.firstName} ${formData.lastName}`.trim() || 'Not provided'}</p>
                 </div>
 
                 <div>

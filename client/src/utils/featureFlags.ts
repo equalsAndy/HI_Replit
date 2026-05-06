@@ -36,6 +36,11 @@ export const clientFeatureFlags: Record<string, ClientFeatureFlag> = {
     enabled: import.meta.env.VITE_FEATURE_VIDEO_WATCH_REQUIREMENTS === 'true',
     environment: 'all',
     description: 'Enforce video watching requirements before step progression'
+  },
+  emailInvitationSystem: {
+    enabled: import.meta.env.VITE_FEATURE_EMAIL_TEMPLATES === 'true',
+    environment: 'all',
+    description: 'Email invitation system with templates and AWS SES delivery'
   }
 };
 

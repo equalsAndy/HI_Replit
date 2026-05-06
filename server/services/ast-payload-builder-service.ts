@@ -145,7 +145,7 @@ class ASTPayloadBuilderService {
    */
   private async getUserData(userId: string): Promise<any> {
     const result = await pool.query(
-      'SELECT id, name, email FROM users WHERE id = $1',
+      'SELECT id, CONCAT(first_name, \' \', COALESCE(last_name, \'\')) as name, email FROM users WHERE id = $1',
       [userId]
     );
     return result.rows[0] || {};
