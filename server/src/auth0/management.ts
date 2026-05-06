@@ -74,7 +74,11 @@ export async function createAuth0DbUser(params: { email: string; password: strin
       email: params.email,
       password: params.password,
       name: params.name,
-      email_verified: false
+      // Invite redemption already proves inbox ownership (the user received
+      // the invite at this address and entered the code). Marking verified
+      // suppresses Auth0's tenant-default verification email, which is
+      // SA-branded and confusing for HI users.
+      email_verified: true
     })
   });
   if (!r.ok) {
