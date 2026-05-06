@@ -17,7 +17,10 @@ const profileFormSchema = z.object({
   lastName: z.string().optional(),
   jobTitle: z.string().optional(),
   organization: z.string().optional(),
-  externalEmail: z.string().email('Invalid email address').optional(),
+  externalEmail: z
+    .string()
+    .transform((v) => (v ?? '').trim())
+    .pipe(z.string().email('Invalid email address').optional()),
   password: z.string().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Must include an uppercase letter').regex(/[a-z]/, 'Must include a lowercase letter').regex(/[0-9]/, 'Must include a number'),
   confirmPassword: z.string().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Must include an uppercase letter').regex(/[a-z]/, 'Must include a lowercase letter').regex(/[0-9]/, 'Must include a number'),
 });
@@ -43,7 +46,7 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
       firstName: inviteData.name?.split(' ')[0] || '',
       lastName: inviteData.name?.split(' ').slice(1).join(' ') || '',
       jobTitle: inviteData.jobTitle || '',
-      externalEmail: inviteData.email || '',
+      externalEmail: (inviteData.email || '').trim(),
       organization: inviteData.organization || '',
       password: '',
       confirmPassword: '',
@@ -54,7 +57,7 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
     form.setValue('firstName', inviteData.name?.split(' ')[0] || '');
     form.setValue('lastName', inviteData.name?.split(' ').slice(1).join(' ') || '');
     form.setValue('jobTitle', inviteData.jobTitle || '');
-    form.setValue('externalEmail', inviteData.email || '');
+    form.setValue('externalEmail', (inviteData.email || '').trim());
     form.setValue('organization', inviteData.organization || '');
   }, [inviteData, form]);
 
@@ -84,13 +87,14 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
         }
       }
 
+      const submittedEmail = ((data.externalEmail || inviteData.email) || '').trim();
       const payload = {
         inviteCode: (inviteData as any).inviteCode,
-        username: (data.externalEmail || inviteData.email),
+        username: submittedEmail,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName || '',
-        email: (data.externalEmail || inviteData.email),
+        email: submittedEmail,
         organization: data.organization || inviteData.organization || '',
         jobTitle: data.jobTitle || '',
         profilePicture: profilePictureBase64
@@ -227,7 +231,20 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Email" />
+                    <Input
+                      {...field}
+                      placeholder="Email"
+                      onBlur={(e) => {
+                        const trimmed = (e.target.value || '').trim();
+                        if (trimmed !== e.target.value) {
+                          form.setValue('externalEmail', trimmed, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          });
+                        }
+                        field.onBlur();
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -251,6 +268,8 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
                         type="button"
                         variant="ghost"
                         size="sm"
+                        tabIndex={-1}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
@@ -284,6 +303,8 @@ const ProfileSetup: React.FC<{ inviteData: { email: string; name?: string; jobTi
                         type="button"
                         variant="ghost"
                         size="sm"
+                        tabIndex={-1}
+                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       >

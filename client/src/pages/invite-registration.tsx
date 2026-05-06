@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
+import { useAuth0 } from '@auth0/auth0-react';
 import InviteVerification from '@/components/auth/InviteVerification';
 import ProfileSetup from '@/components/auth/ProfileSetup';
 import { Steps } from '@/components/ui/steps';
@@ -25,6 +26,10 @@ const InviteRegistrationPage: React.FC = () => {
   const [inviteData, setInviteData] = useState<InviteData | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { loginWithRedirect } = useAuth0();
+  const authRedirectUri =
+    (import.meta.env.VITE_AUTH0_REDIRECT_URI as string) ||
+    window.location.origin + '/auth/callback';
 
   // Define the steps in the registration process
   const steps = [
@@ -66,9 +71,17 @@ const InviteRegistrationPage: React.FC = () => {
     });
   };
 
-  // Handle redirecting to login page
+  // Handle redirecting to login page — kick off Auth0 login flow directly
+  // so the user lands on the Auth0 form ready to enter their new credentials.
   const handleGoToLogin = () => {
-    setLocation('/login');
+    loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: authRedirectUri,
+        prompt: 'login',
+        scope: 'openid profile email',
+        login_hint: inviteData?.email?.trim() || undefined,
+      },
+    });
   };
 
   return (
