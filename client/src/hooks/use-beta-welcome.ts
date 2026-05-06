@@ -1,12 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCurrentUser } from './use-current-user';
 import { useLocation } from 'wouter';
+import {
+  IA_BETA_NOTICE_DISMISSED_EVENT,
+  isIaBetaNoticeDismissed,
+} from './use-ia-beta-notice';
+
+// On IA routes the BetaTesterWelcomeModal must wait until the IA beta
+// disclaimer has been acknowledged, so the two don't stack on first login.
+function shouldGateOnIaBetaNotice(userId: string | number | undefined): boolean {
+  if (!userId) return false;
+  const path = window.location.pathname;
+  if (!path.startsWith('/imaginal-agility')) return false;
+  return !isIaBetaNoticeDismissed(userId);
+}
 
 export function useBetaWelcome() {
   const { data: user, isLoggedIn } = useCurrentUser();
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [, setLocation] = useLocation();
   const isInitialMount = useRef(true);
+  // Bumped when the IA beta disclaimer is dismissed so the gating effect re-runs.
+  const [iaDisclaimerTick, setIaDisclaimerTick] = useState(0);
   
   // Reset modal state when user changes (handles logout/login cycle)
   useEffect(() => {
@@ -83,13 +98,18 @@ export function useBetaWelcome() {
           shouldShow_isFreshLogin: isFreshLogin
         });
         
-        const shouldShowWelcome = user.isBetaTester && 
-                                 !user.hasSeenBetaWelcome && 
+        const gatedByIaDisclaimer = shouldGateOnIaBetaNotice(user.id);
+
+        const shouldShowWelcome = user.isBetaTester &&
+                                 !user.hasSeenBetaWelcome &&
                                  !hasShownThisSession &&
-                                 isFreshLogin;
-        
-        console.log('🎯 Final decision - shouldShowWelcome:', shouldShowWelcome);
-        
+                                 isFreshLogin &&
+                                 !gatedByIaDisclaimer;
+
+        console.log('🎯 Final decision - shouldShowWelcome:', shouldShowWelcome, {
+          gatedByIaDisclaimer,
+        });
+
         if (shouldShowWelcome) {
           console.log('🎉 SHOWING beta welcome modal for user:', user.username);
           setShowWelcomeModal(true);
@@ -97,6 +117,8 @@ export function useBetaWelcome() {
           sessionStorage.setItem(sessionKey, 'true');
           // Clear the fresh login flag since we've shown the modal
           sessionStorage.removeItem(freshLoginKey);
+        } else if (gatedByIaDisclaimer) {
+          console.log('⏸️ Holding beta welcome until IA beta disclaimer is dismissed');
         } else {
           console.log('🚫 NOT showing welcome modal because:');
           if (!user.isBetaTester) console.log('   - User is not a beta tester');
@@ -132,7 +154,17 @@ export function useBetaWelcome() {
     }, 1500); // Increased to 1.5 seconds delay to ensure authentication is completely stable
 
     return () => clearTimeout(timer);
-  }, [isLoggedIn, user?.id, user?.isBetaTester, user?.hasSeenBetaWelcome, user?.username, user?.astAccess, user?.iaAccess, setLocation]);
+  }, [isLoggedIn, user?.id, user?.isBetaTester, user?.hasSeenBetaWelcome, user?.username, user?.astAccess, user?.iaAccess, setLocation, iaDisclaimerTick]);
+
+  // When the IA beta disclaimer is dismissed, re-evaluate so the welcome modal
+  // can fire (the disclaimer was previously gating it).
+  useEffect(() => {
+    const handler = () => setIaDisclaimerTick((n) => n + 1);
+    window.addEventListener(IA_BETA_NOTICE_DISMISSED_EVENT, handler as EventListener);
+    return () => {
+      window.removeEventListener(IA_BETA_NOTICE_DISMISSED_EVENT, handler as EventListener);
+    };
+  }, []);
 
   const handleCloseModal = () => {
     setShowWelcomeModal(false);
