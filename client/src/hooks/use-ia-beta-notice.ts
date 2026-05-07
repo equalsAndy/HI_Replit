@@ -22,6 +22,9 @@ export function useIABetaNotice() {
   useEffect(() => {
     if (!isLoggedIn || !user?.id) return;
 
+    // Beta testers get the heavier BetaTesterWelcomeModal + FAB; don't stack this on top.
+    if (user.isBetaTester) return;
+
     if (isIaBetaNoticeDismissed(user.id)) return;
 
     const shownThisSession = sessionStorage.getItem(sessionKey(user.id)) === 'true';
@@ -29,7 +32,7 @@ export function useIABetaNotice() {
 
     setShowModal(true);
     sessionStorage.setItem(sessionKey(user.id), 'true');
-  }, [isLoggedIn, user?.id]);
+  }, [isLoggedIn, user?.id, user?.isBetaTester]);
 
   const handleClose = () => {
     if (user?.id) {
