@@ -41,7 +41,7 @@ export class AuthEnvironmentManager {
         databaseType: 'aws-staging'
       },
       production: {
-        domain: process.env.VITE_AUTH0_DOMAIN_PROD || 'auth.heliotropeimaginal.com',
+        domain: process.env.VITE_AUTH0_DOMAIN_PROD || '',
         audience: 'https://api.heliotropeimaginal.com',
         clientId: process.env.VITE_AUTH0_CLIENT_ID_PROD || process.env.VITE_AUTH0_CLIENT_ID || '',
         redirectUri: 'https://app2.heliotropeimaginal.com/auth/callback',

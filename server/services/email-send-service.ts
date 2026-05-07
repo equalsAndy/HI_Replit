@@ -158,6 +158,41 @@ class EmailSendService {
   }
 
   /**
+   * Send a system/transactional email (e.g. password reset) without requiring a
+   * sentBy user or persisting to email_send_log. The DB log requires a real
+   * user FK, but transactional emails are triggered by anonymous users.
+   */
+  async sendTransactionalEmail(opts: {
+    to: string;
+    subject: string;
+    html: string;
+    plainText: string;
+    senderIdentity: SenderIdentity;
+  }): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    const sender = SENDER_IDENTITIES[opts.senderIdentity];
+
+    try {
+      const result = await ses.send(
+        new SendEmailCommand({
+          Source: `${sender.name} <${sender.email}>`,
+          Destination: { ToAddresses: [opts.to] },
+          Message: {
+            Subject: { Data: opts.subject, Charset: 'UTF-8' },
+            Body: {
+              Html: { Data: opts.html, Charset: 'UTF-8' },
+              Text: { Data: opts.plainText, Charset: 'UTF-8' },
+            },
+          },
+        }),
+      );
+      return { success: true, messageId: result.MessageId };
+    } catch (err: any) {
+      console.error('[EmailSendService] Transactional send failed:', err.message);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
    * Bulk send to multiple invites using the same template.
    */
   async sendBulkInviteEmails(opts: {
