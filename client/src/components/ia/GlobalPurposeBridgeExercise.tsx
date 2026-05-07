@@ -227,6 +227,7 @@ export default function GlobalPurposeBridgeExercise() {
           {globalChallenges.map((challenge) => (
             <label
               key={challenge}
+              onMouseDown={(e) => e.preventDefault()}
               className={`block p-3 rounded-lg border-2 transition-all ${
                 isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
               } ${
@@ -351,6 +352,7 @@ export default function GlobalPurposeBridgeExercise() {
               {TAG_OPTIONS.map(({ value, label, helper }) => (
                 <label
                   key={value}
+                  onMouseDown={(e) => e.preventDefault()}
                   className={`flex items-start gap-3 p-3 border-[1.5px] rounded-lg transition-all ${
                     isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                   } ${
