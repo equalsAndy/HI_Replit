@@ -1,6 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCurrentUser } from './use-current-user';
 import { useLocation } from 'wouter';
+import {
+  IA_BETA_NOTICE_DISMISSED_EVENT,
+  isIaBetaNoticeDismissed,
+} from './use-ia-beta-notice';
+
+// On IA routes the welcome video modal must wait until the IA beta
+// disclaimer has been acknowledged, so the two don't stack on first visit.
+function shouldGateOnIaBetaNotice(
+  userId: string | number | undefined,
+  isBetaTester: boolean | undefined,
+): boolean {
+  if (!userId) return false;
+  // Beta testers don't see the IA beta notice, so don't gate on it.
+  if (isBetaTester) return false;
+  const path = window.location.pathname;
+  if (!path.startsWith('/imaginal-agility')) return false;
+  return !isIaBetaNoticeDismissed(userId);
+}
 
 export function useWelcomeVideo() {
   const { data: user, isLoggedIn } = useCurrentUser();
@@ -8,6 +26,8 @@ export function useWelcomeVideo() {
   const [isFirstTimeShow, setIsFirstTimeShow] = useState(true);
   const [, setLocation] = useLocation();
   const isInitialMount = useRef(true);
+  // Bumped when the IA beta disclaimer is dismissed so the gating effect re-runs.
+  const [iaDisclaimerTick, setIaDisclaimerTick] = useState(0);
 
 
   // Reset modal state when user changes (handles logout/login cycle)
@@ -101,10 +121,13 @@ export function useWelcomeVideo() {
         // 1. User hasn't seen it yet (!hasSeenWelcomeVideo), OR
         // 2. User has seen it but preference is still enabled (showWelcomeVideoOnStartup !== false)
         // AND it's a fresh login and not shown this session
+        const gatedByIaDisclaimer = shouldGateOnIaBetaNotice(user.id, user.isBetaTester);
+
         const shouldShowWelcome = (
           (!user.hasSeenWelcomeVideo || user.showWelcomeVideoOnStartup !== false) &&
           !hasShownThisSession &&
-          isFreshLogin
+          isFreshLogin &&
+          !gatedByIaDisclaimer
         );
 
         console.log('🎯 Final decision - shouldShowWelcomeVideo:', shouldShowWelcome);
@@ -123,6 +146,8 @@ export function useWelcomeVideo() {
           sessionStorage.setItem(sessionKey, 'true');
           // Clear the fresh login flag since we've shown the modal
           sessionStorage.removeItem(freshLoginKey);
+        } else if (gatedByIaDisclaimer) {
+          console.log('⏸️ Holding welcome video until IA beta disclaimer is dismissed');
         } else {
           console.log('🚫 NOT showing welcome video modal because:');
           if (user.hasSeenWelcomeVideo) console.log('   - User has already seen welcome video (hasSeenWelcomeVideo = true)');
@@ -144,7 +169,17 @@ export function useWelcomeVideo() {
     }, 1500); // 1.5 seconds delay to ensure authentication is completely stable
 
     return () => clearTimeout(timer);
-  }, [isLoggedIn, user?.id, user?.hasSeenWelcomeVideo, user?.username, setLocation]);
+  }, [isLoggedIn, user?.id, user?.hasSeenWelcomeVideo, user?.username, user?.isBetaTester, setLocation, iaDisclaimerTick]);
+
+  // When the IA beta disclaimer is dismissed, re-evaluate so the welcome video
+  // can fire (the disclaimer was previously gating it).
+  useEffect(() => {
+    const handler = () => setIaDisclaimerTick((n) => n + 1);
+    window.addEventListener(IA_BETA_NOTICE_DISMISSED_EVENT, handler as EventListener);
+    return () => {
+      window.removeEventListener(IA_BETA_NOTICE_DISMISSED_EVENT, handler as EventListener);
+    };
+  }, []);
 
   const handleCloseModal = () => {
     setShowWelcomeModal(false);

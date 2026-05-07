@@ -142,7 +142,7 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
       // Advanced Ladder of Imagination
-      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6', 'ia-4-7',
       // Outcomes & Benefits
       'ia-5-1'
       // Note: ia-6-1, ia-7-1, ia-7-2 handled by special rules below
@@ -163,39 +163,20 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
       }
     }
     
-    // Special unlock rules:
-    // ia-5-1, ia-5-2, ia-5-3 (Outcomes and Teams section) - unlocked after ia-4-6 completion
-    if (completedSteps.includes('ia-4-6')) {
-      if (!unlocked.includes('ia-5-1')) {
-        unlocked.push('ia-5-1');
-        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-1`);
-      }
-      if (!unlocked.includes('ia-5-2')) {
-        unlocked.push('ia-5-2');
-        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-2`);
-      }
-      if (!unlocked.includes('ia-5-3')) {
-        unlocked.push('ia-5-3');
-        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-5-3`);
-      }
-    }
-
-    // ia-6-1 (Quarterly Tune-up) - always accessible
-    if (!unlocked.includes('ia-6-1')) {
-      unlocked.push('ia-6-1');
-      console.log(`🔓 IA: ia-6-1 always accessible`);
-    }
-
-    // ia-7-1 and ia-7-2 (Team Ladder) - unlocked after ia-4-6 completion
-    if (completedSteps.includes('ia-4-6')) {
-      if (!unlocked.includes('ia-7-1')) {
-        unlocked.push('ia-7-1');
-        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-7-1`);
-      }
-      if (!unlocked.includes('ia-7-2')) {
-        unlocked.push('ia-7-2');
-        console.log(`🔓 IA: ia-4-6 completed → unlocked ia-7-2`);
-      }
+    // Survey completion (ia-4-7) gates all post-workshop resources:
+    // Module 5 is non-linear (Outcomes), Module 6 (Teamwork), Module 7 (Organization)
+    if (completedSteps.includes('ia-4-7')) {
+      const postSurveyUnlocks = [
+        'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+        'ia-6-1', 'ia-6-2',
+        'ia-7-1'
+      ];
+      postSurveyUnlocks.forEach(stepId => {
+        if (!unlocked.includes(stepId)) {
+          unlocked.push(stepId);
+          console.log(`🔓 IA: ia-4-7 completed → unlocked ${stepId}`);
+        }
+      });
     }
 
     console.log(`🔓 IA unlocked steps:`, unlocked);
@@ -266,7 +247,7 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
       '1': ['ia-1-1', 'ia-1-2', 'ia-1-3', 'ia-1-4'],
       '2': ['ia-2-1', 'ia-2-2', 'ia-2-3'],
       '3': ['ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6'],
-      '4': ['ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6'],
+      '4': ['ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6', 'ia-4-7'],
       '5': ['ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5'],
       '6': ['ia-6-1', 'ia-6-2'],
       '7': ['ia-7-1']
@@ -386,9 +367,9 @@ const getSectionFromStepId = (stepId: string, appType: 'ast' | 'ia' = 'ast'): nu
 // Check if workshop is completed
 const isWorkshopCompleted = (completedSteps: string[], appType: 'ast' | 'ia' = 'ast'): boolean => {
   if (appType === 'ia') {
-    // KAN-112: IA workshop completed when user finishes section 4 (ia-4-6)
-    const workshopCompleted = completedSteps.includes('ia-4-6');
-    console.log(`🏆 IA Workshop completion check: ${workshopCompleted ? 'COMPLETED' : 'IN PROGRESS'} (ia-4-6: ${completedSteps.includes('ia-4-6') ? 'YES' : 'NO'})`);
+    // IA workshop completed when user finishes Module 4 reflection/survey (ia-4-7)
+    const workshopCompleted = completedSteps.includes('ia-4-7');
+    console.log(`🏆 IA Workshop completion check: ${workshopCompleted ? 'COMPLETED' : 'IN PROGRESS'} (ia-4-7: ${completedSteps.includes('ia-4-7') ? 'YES' : 'NO'})`);
     return workshopCompleted;
   }
   
@@ -437,12 +418,12 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any, app
     // IA progression sequence
     const iaMainSequence = [
       'ia-1-1', 'ia-1-2',
-      'ia-2-1', 'ia-2-2', 
+      'ia-2-1', 'ia-2-2',
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
-      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6', 'ia-4-7',
       'ia-5-1'
     ];
-    
+
     const currentIndex = iaMainSequence.indexOf(currentStepId);
     const completedSteps: string[] = [];
 
@@ -511,7 +492,7 @@ const getNextStepFromCompletedSteps = (completedSteps: string[], appType: 'ast' 
       // Module 3: LADDER OF IMAGINATION
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
       // Module 4: ADVANCED LADDER OF IMAGINATION
-      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6', 'ia-4-7',
       // Module 5: OUTCOMES & BENEFITS
       'ia-5-1'
     ];
@@ -976,7 +957,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' | 'pm' = 'ast') {
         'ia-1-1', 'ia-1-2',
         'ia-2-1', 'ia-2-2',
         'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
-        'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+        'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6', 'ia-4-7',
         'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-7-2'
       ];
       const currentIndex = iaAllSteps.indexOf(currentStepId);

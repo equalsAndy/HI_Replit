@@ -492,4 +492,8 @@ router.post('/mark-welcome-video-seen', requireAuth, async (req, res) => {
 import registerRoutes from './auth-routes-register.ts';
 router.use(registerRoutes);
 
+// Import password reset routes (public; no auth middleware)
+import passwordResetRoutes from './password-reset-routes.ts';
+router.use(passwordResetRoutes);
+
 export default router;

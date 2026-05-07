@@ -8,8 +8,29 @@ interface IA_4_4_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
+const wordCount = (text?: string) => (text || '').trim().split(/\s+/).filter(Boolean).length;
+
 const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
   const { state, setState } = useContinuity();
+
+  const ia: any = state?.ia_4_4 ?? {};
+  const isModalDone = Boolean(ia.reframed_view);
+  const reflectionWords = wordCount(ia.intention_reflection);
+  const selectedCapsCount = (ia.selected_capabilities ?? []).length;
+  const imagineWords = wordCount(ia.imagine_text);
+  const isComplete =
+    isModalDone &&
+    Boolean(ia.tag) &&
+    reflectionWords >= 20 &&
+    selectedCapsCount >= 1 &&
+    imagineWords >= 15;
+
+  const missingItems: string[] = [];
+  if (!isModalDone) missingItems.push('explore with AI');
+  if (!ia.tag) missingItems.push('pick a tag');
+  if (reflectionWords < 20) missingItems.push(`"What changed" reflection (${reflectionWords}/20 words)`);
+  if (selectedCapsCount < 1) missingItems.push('pick at least one capability');
+  if (imagineWords < 15) missingItems.push(`"If I brought…" sentence (${imagineWords}/15 words)`);
 
   // One-time migration from any legacy storage (if needed)
   useEffect(() => {
@@ -101,9 +122,15 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
       </div>
       
       <div className="flex justify-end items-center gap-3 mt-8">
-        <Button 
-          onClick={() => onNext && onNext('ia-4-5')}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+        {!isComplete && missingItems.length > 0 && (
+          <p className="text-sm text-purple-600 italic mr-2">
+            Still to do: {missingItems.join(' · ')}
+          </p>
+        )}
+        <Button
+          onClick={() => isComplete && onNext && onNext('ia-4-5')}
+          disabled={!isComplete}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continue to Inspiration Support
         </Button>

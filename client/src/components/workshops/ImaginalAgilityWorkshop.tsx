@@ -241,9 +241,9 @@ export default function ImaginalAgilityWorkshop() {
       return true;
     }
 
-    // Sections 6 & 7 (TEAMWORK, ORGANIZATION) - all unlock after Module 5 completion
-    if (stepId === 'ia-6-1' || stepId === 'ia-6-2' || stepId === 'ia-7-1') {
-      return completedSteps.includes('ia-5-5');
+    // Module 5, 6, 7 all unlock after the Module 4 survey (ia-4-7) — non-linear resources
+    if (stepId.startsWith('ia-5-') || stepId === 'ia-6-1' || stepId === 'ia-6-2' || stepId === 'ia-7-1') {
+      return completedSteps.includes('ia-4-7');
     }
 
     // Allow navigation to any completed step (for revisiting)

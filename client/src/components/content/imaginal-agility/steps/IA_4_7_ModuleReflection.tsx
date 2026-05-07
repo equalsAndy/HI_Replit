@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
+import IA_ClosingReflectionModal from '../IA_ClosingReflectionModal';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -205,6 +206,32 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
   });
 
   const [synopsisLoading, setSynopsisLoading] = useState(false);
+
+  // ── Closing reflection modal state ─────────────────────────────────────────
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
+  // null = not yet checked; boolean once known
+  const [surveyAlreadySubmitted, setSurveyAlreadySubmitted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch('/api/workshop-data/step/ia/ia-survey', {
+          credentials: 'include',
+        });
+        if (cancelled) return;
+        if (!r.ok) {
+          setSurveyAlreadySubmitted(false);
+          return;
+        }
+        const j = await r.json();
+        setSurveyAlreadySubmitted(Boolean(j?.success && j?.data));
+      } catch {
+        if (!cancelled) setSurveyAlreadySubmitted(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // ── Fetch prior exercise data ──────────────────────────────────────────────
   useEffect(() => {
@@ -469,6 +496,11 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
         <div className="flex justify-end mb-8">
           <button
             onClick={async () => {
+              // Show closing reflection modal on first completion of ia-4-7
+              if (surveyAlreadySubmitted === false && !isStepLocked) {
+                setShowSurveyModal(true);
+                return;
+              }
               if (!iaCompleted) {
                 const result = await completeWorkshop('ia');
                 if (result.success) {
@@ -479,13 +511,31 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
               }
               onNext?.('ia-5-1');
             }}
-            disabled={saving}
+            disabled={saving || surveyAlreadySubmitted === null}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Continue to Module 5 →'}
           </button>
         </div>
       )}
+
+      {/* ── Closing reflection modal (first ia-4-7 completion only) ── */}
+      <IA_ClosingReflectionModal
+        open={showSurveyModal}
+        onSubmitted={async () => {
+          setShowSurveyModal(false);
+          setSurveyAlreadySubmitted(true);
+          if (!iaCompleted) {
+            const result = await completeWorkshop('ia');
+            if (result.success) {
+              console.log('✅ IA workshop completed — modules 1-4 now locked');
+            } else {
+              console.warn('⚠️ IA workshop completion not ready:', result.error);
+            }
+          }
+          onNext?.('ia-5-1');
+        }}
+      />
     </div>
   );
 };

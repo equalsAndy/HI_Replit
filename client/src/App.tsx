@@ -2,6 +2,7 @@ import React, { Suspense, useState, useEffect } from 'react';
 import { Route, Switch, useLocation, Router } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
 import InviteRegistrationPage from '@/pages/invite-registration';
+import ForgotPasswordPage from '@/pages/forgot-password';
 import BetaTesterPage from '@/pages/beta-tester';
 
 import TestUserPage from '@/pages/testuser';
@@ -230,6 +231,7 @@ const App: React.FC = () => {
                       </ProtectedRoute>
                     </Route>
                     <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
+                    <Route path="/forgot-password" component={ForgotPasswordPage} />
 
                     {/* Workshop Selection Page - for users with access to both workshops */}
                     <Route path="/workshop-selection">

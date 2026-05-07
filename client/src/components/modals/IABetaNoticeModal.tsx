@@ -13,11 +13,13 @@ const IABetaNoticeModal: React.FC<IABetaNoticeModalProps> = ({ isOpen, onClose }
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-lg p-0 overflow-hidden">
         <div className="bg-gradient-to-br from-purple-600 to-purple-800 p-6 text-white text-center">
-          <img
-            src={ImaginalAgilityLogo}
-            alt="Imaginal Agility"
-            className="h-12 mx-auto mb-3"
-          />
+          <div className="inline-block bg-white rounded-lg px-4 py-2 mb-3 shadow-sm">
+            <img
+              src={ImaginalAgilityLogo}
+              alt="Imaginal Agility"
+              className="h-10"
+            />
+          </div>
           <h2 className="text-2xl font-semibold">Welcome to Imaginal Agility</h2>
         </div>
 
@@ -28,6 +30,7 @@ const IABetaNoticeModal: React.FC<IABetaNoticeModalProps> = ({ isOpen, onClose }
           </p>
           <p className="text-slate-700 leading-relaxed">
             You may notice a few areas still being polished as we refine the experience.
+            At the end, you'll be invited to take a brief survey to share your experience.
             Thank you for being part of this early journey with us.
           </p>
 

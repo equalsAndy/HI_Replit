@@ -100,7 +100,7 @@ const IA_1_2_WhatIsImagination: React.FC<IA12WhatIsImaginationProps> = ({ onNext
 
           <div className="flex justify-center my-6">
             <img
-              src="/assets/black_box_imagination.png"
+              src="/assets/black_box_imagination.jpg"
               alt="The black box — your imagination running unseen, with light breaking through"
               className="w-full max-w-md rounded-xl shadow-md"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
