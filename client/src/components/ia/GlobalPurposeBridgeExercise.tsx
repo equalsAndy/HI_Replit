@@ -227,8 +227,7 @@ export default function GlobalPurposeBridgeExercise() {
           {globalChallenges.map((challenge) => (
             <label
               key={challenge}
-              onMouseDown={(e) => e.preventDefault()}
-              className={`block p-3 rounded-lg border-2 transition-all ${
+              className={`relative block p-3 rounded-lg border-2 transition-all ${
                 isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
               } ${
                 selectedChallenge === challenge
@@ -236,16 +235,23 @@ export default function GlobalPurposeBridgeExercise() {
                   : 'border-gray-200 hover:border-purple-300'
               }`}
             >
+              <input
+                type="radio"
+                name="globalChallenge"
+                value={challenge}
+                checked={selectedChallenge === challenge}
+                onChange={() => handleChallengeSelect(challenge)}
+                disabled={isStepLocked}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
               <div className="flex items-start gap-3">
-                <input
-                  type="radio"
-                  name="globalChallenge"
-                  value={challenge}
-                  checked={selectedChallenge === challenge}
-                  onChange={() => handleChallengeSelect(challenge)}
-                  disabled={isStepLocked}
-                  className="mt-1"
-                />
+                <div className={`w-[18px] h-[18px] rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
+                  selectedChallenge === challenge ? 'border-purple-500' : 'border-gray-300'
+                }`}>
+                  {selectedChallenge === challenge && (
+                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                  )}
+                </div>
                 <span className="text-sm font-medium text-gray-800">{challenge}</span>
               </div>
             </label>
@@ -352,8 +358,7 @@ export default function GlobalPurposeBridgeExercise() {
               {TAG_OPTIONS.map(({ value, label, helper }) => (
                 <label
                   key={value}
-                  onMouseDown={(e) => e.preventDefault()}
-                  className={`flex items-start gap-3 p-3 border-[1.5px] rounded-lg transition-all ${
+                  className={`relative flex items-start gap-3 p-3 border-[1.5px] rounded-lg transition-all ${
                     isStepLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                   } ${
                     ia.tag === value
@@ -361,13 +366,6 @@ export default function GlobalPurposeBridgeExercise() {
                       : 'border-gray-200 hover:border-purple-300 bg-white'
                   }`}
                 >
-                  <div className={`w-[18px] h-[18px] rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
-                    ia.tag === value ? 'border-purple-500' : 'border-gray-300'
-                  }`}>
-                    {ia.tag === value && (
-                      <div className="w-2 h-2 rounded-full bg-purple-500" />
-                    )}
-                  </div>
                   <input
                     type="radio"
                     name="tag44"
@@ -382,8 +380,15 @@ export default function GlobalPurposeBridgeExercise() {
                       }));
                       setTimeout(() => saveNow(), 0);
                     }}
-                    className="sr-only"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
+                  <div className={`w-[18px] h-[18px] rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${
+                    ia.tag === value ? 'border-purple-500' : 'border-gray-300'
+                  }`}>
+                    {ia.tag === value && (
+                      <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    )}
+                  </div>
                   <div>
                     <div className="font-semibold text-sm text-gray-800">{label}</div>
                     <div className="text-[13px] text-gray-500 mt-0.5">{helper}</div>
