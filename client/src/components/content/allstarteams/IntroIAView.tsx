@@ -98,7 +98,7 @@ const IntroIAView: React.FC<ContentViewProps> = ({
       <div className="text-center">
         <div className="flex justify-center mb-6">
           <img
-            src="http://localhost:8080/assets/imaginal_agility_logo_sq.png"
+            src="/assets/imaginal_agility_logo_sq.png"
             alt="Imaginal Agility"
             className="h-32 w-32"
           />
