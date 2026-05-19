@@ -208,8 +208,17 @@ export function useWelcomeVideo() {
     // Close modal
     setShowWelcomeModal(false);
 
-    // Navigate to appropriate workshop based on user's access
-    if (user?.astAccess) {
+    // Navigate to appropriate workshop — prefer staying in the workshop the
+    // user is currently on so dual-access users aren't yanked across workshops.
+    const currentPath = window.location.pathname;
+    const onIa = currentPath.startsWith('/imaginal-agility');
+    const onAst = currentPath.startsWith('/allstarteams');
+
+    if (onIa && user?.iaAccess) {
+      setLocation('/imaginal-agility');
+    } else if (onAst && user?.astAccess) {
+      setLocation('/allstarteams');
+    } else if (user?.astAccess) {
       setLocation('/allstarteams');
     } else if (user?.iaAccess) {
       setLocation('/imaginal-agility');
