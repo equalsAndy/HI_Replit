@@ -251,3 +251,10 @@ archived-sections-6-7-8/
 
 # Separate course planning docs (not part of HI_Replit)
 Product Mindset Course Claude Folder/
+
+# ICIE IA invite one-off data and scripts (kept locally, not tracked)
+icie-ia-invites-*.csv
+scripts/create-icie-ia-invites.ts
+
+# Asset staging area
+newimagestoadd/
