@@ -77,7 +77,7 @@ const IntroIAView: React.FC<ContentViewProps> = ({
   const handleExploreIA = () => {
     if (user?.iaAccess) {
       // User has IA access - navigate to IA workshop using window.location
-      window.location.href = '/workshop/ia';
+      window.location.href = '/imaginal-agility';
     } else {
       // User doesn't have IA access - open contact modal
       setIsContactModalOpen(true);
