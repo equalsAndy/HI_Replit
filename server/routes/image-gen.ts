@@ -23,6 +23,40 @@ function getDalleClient(): OpenAI {
 }
 
 /**
+ * Generate an image with OpenAI's image model and return it as a base64 data URL.
+ *
+ * Uses `gpt-image-1`, OpenAI's current image model. The legacy `dall-e-3` model
+ * is no longer available on this account ("400 The model 'dall-e-3' does not
+ * exist."), and `gpt-image-1` rejects the old `response_format` parameter
+ * ("400 Unknown parameter: 'response_format'") — it always returns base64 in
+ * `b64_json`, so we never pass `response_format`. A `url` fallback is kept in
+ * case the API ever returns one instead.
+ */
+async function generateDalleImageDataUrl(client: OpenAI, prompt: string): Promise<string> {
+  const imageResponse = await client.images.generate({
+    model: 'gpt-image-1',
+    prompt,
+    n: 1,
+    size: '1024x1024',
+    quality: 'medium',
+  });
+
+  const datum = imageResponse.data?.[0];
+  if (datum?.b64_json) {
+    return `data:image/png;base64,${datum.b64_json}`;
+  }
+
+  if (datum?.url) {
+    const imgRes = await fetch(datum.url);
+    if (!imgRes.ok) throw new Error(`Failed to download generated image: ${imgRes.status}`);
+    const base64 = Buffer.from(await imgRes.arrayBuffer()).toString('base64');
+    return `data:image/png;base64,${base64}`;
+  }
+
+  throw new Error('Image model returned no image data');
+}
+
+/**
  * POST /api/ai/image/stretch
  *
  * Generates a DALL-E image from the stretch conversation.
@@ -119,23 +153,10 @@ Nothing else.`,
     const dalleClient = getDalleClient();
     console.log(`[image-gen/stretch] Generating. Title: "${suggestedTitle}". Prompt: ${dallePrompt.substring(0, 100)}...`);
 
-    const imageResponse = await dalleClient.images.generate({
-      model: 'dall-e-3',
-      prompt: dallePrompt,
-      n: 1,
-      size: '1024x1024',
-      quality: 'standard',
-      response_format: 'b64_json',
-    });
-
-    const base64Data = imageResponse.data?.[0]?.b64_json;
-    if (!base64Data) {
-      return res.status(500).json({ success: false, error: 'DALL-E returned no image data' });
-    }
+    const base64DataUrl = await generateDalleImageDataUrl(dalleClient, dallePrompt);
 
     // Step 3: Store in photo_storage
     const userId = (req.session as any)?.userId;
-    const base64DataUrl = `data:image/png;base64,${base64Data}`;
     try {
       const photoId = await photoStorageService.storePhoto(
         base64DataUrl,
@@ -258,23 +279,10 @@ TITLE: [title]`,
     const dalleClient = getDalleClient();
     console.log(`[image-gen/capability] Generating ${capability}. Title: "${title}"`);
 
-    const imageResponse = await dalleClient.images.generate({
-      model: 'dall-e-3',
-      prompt: dallePrompt,
-      n: 1,
-      size: '1024x1024',
-      quality: 'standard',
-      response_format: 'b64_json',
-    });
-
-    const base64Data = imageResponse.data?.[0]?.b64_json;
-    if (!base64Data) {
-      return res.status(500).json({ success: false, error: 'DALL-E returned no image' });
-    }
+    const base64DataUrl = await generateDalleImageDataUrl(dalleClient, dallePrompt);
 
     // Step 3: Store in photo_storage
     const userId = (req.session as any)?.userId;
-    const base64DataUrl = `data:image/png;base64,${base64Data}`;
     try {
       const photoId = await photoStorageService.storePhoto(
         base64DataUrl,
