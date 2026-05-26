@@ -56,6 +56,26 @@ const WORKSHOP_CONFIGS = {
   }
 };
 
+/**
+ * Handle a server access-denial (HTTP 403) when saving workshop progress.
+ *
+ * This is the safety net for the case where a user without access to a workshop
+ * still reached its UI (e.g. the client route guard was bypassed or regressed).
+ * The save handlers below optimistically update local state before persisting,
+ * so a swallowed 403 would leave "ghost" progress that looks saved but vanishes
+ * on the next reload. Instead we hard-navigate to /workshop-selection, which
+ * re-reads the user's real access flags and forwards them to a workshop they can
+ * actually use (or the landing page if none). The full navigation also discards
+ * the stale optimistic state. Guarded so concurrent saves only redirect once.
+ */
+let accessDenialHandled = false;
+function handleWorkshopAccessDenied(workshop: string) {
+  if (accessDenialHandled) return;
+  accessDenialHandled = true;
+  console.warn(`🚫 Access denied for '${workshop}' workshop — routing to workshop selection.`);
+  window.location.assign('/workshop-selection');
+}
+
 export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' | 'pm' = 'ast') {
   const config = WORKSHOP_CONFIGS[workshop];
   const allSteps = [...config.progressiveSteps, ...config.unlockAllSteps];
@@ -370,6 +390,12 @@ export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' | 'pm' = 'as
 
       if (!response.ok) {
         const errorText = await response.text();
+        // 403 = the user lacks access to this workshop. Don't silently continue
+        // with optimistic progress; route them out to a workshop they can use.
+        if (response.status === 403) {
+          handleWorkshopAccessDenied(workshop);
+          return;
+        }
         console.error(`❌ Save failed with status ${response.status}:`, errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       } else {
@@ -586,6 +612,12 @@ export function useUnifiedWorkshopNavigation(workshop: 'ast' | 'ia' | 'pm' = 'as
 
       if (!response.ok) {
         const errorText = await response.text();
+        // 403 = the user lacks access to this workshop. Don't silently continue
+        // with optimistic progress; route them out to a workshop they can use.
+        if (response.status === 403) {
+          handleWorkshopAccessDenied(workshop);
+          return;
+        }
         console.error(`❌ Save failed with status ${response.status}:`, errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       } else {
