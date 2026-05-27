@@ -83,7 +83,7 @@ npm test                      # Run tests
 
 **Branch Structure:**
 ```
-main (production — deployed automatically)
+main (production — deployed MANUALLY via ./deploy-to-production.sh)
 └── development (integration & testing)
     ├── feature/dalle-ia-module4        (DALL-E image generation for IA Module 4)
     ├── feature/product-mindset          (new Product Mindset course)
@@ -92,7 +92,7 @@ main (production — deployed automatically)
 ```
 
 **Branch Rules:**
-- **main**: Production only. Deployment pipeline picks this up automatically. Never commit directly.
+- **main**: Production only. Never commit directly. **Deployment is NOT automatic** — pushing main does nothing on its own. Production deploys are run manually with `./deploy-to-production.sh -y` (local Docker + AWS profile `heliotrope`). The GitHub Actions `deploy.yml` workflow is currently broken (missing AWS credential secrets) — see `issues/github-actions-deploy-missing-aws-secrets.md`.
 - **development**: Integration branch. Features merge here first for testing before going to main.
 - **feature/***: All new work happens on feature branches created from `development`.
 - **hotfix/**: Critical production fixes — branch from main, merge back to both main and development.
