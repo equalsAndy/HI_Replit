@@ -38,10 +38,12 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SessionManagerProvider } from '@/components/core/SessionManagerProvider';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useBetaWelcome } from '@/hooks/use-beta-welcome';
+import { useAstUnlockNotice } from '@/hooks/use-ast-unlock-notice';
 import { useBetaFeedbackReview } from '@/hooks/use-beta-feedback-review';
 import { useBetaWorkshopCompletion } from '@/hooks/use-beta-workshop-completion';
 import { ReportPromptModal } from '@/components/beta-testing/ReportPromptModal';
 import BetaTesterWelcomeModal from '@/components/modals/BetaTesterWelcomeModal';
+import AstUnlockNoticeModal from '@/components/modals/AstUnlockNoticeModal';
 import { BetaTesterFAB } from '@/components/beta-testing/BetaTesterFAB';
 import { BetaTesterReviewModal } from '@/components/beta-testing/BetaTesterReviewModal';
 import { BetaTesterFeedbackModal } from '@/components/beta-testing/BetaTesterFeedbackModal';
@@ -95,6 +97,20 @@ const BetaWelcomeWrapper: React.FC = () => {
       onStartWorkshop={handleStartWorkshop}
       user={user}
       appType={currentApp}
+    />
+  );
+};
+
+// Component to handle the ICIE pilot "start with AllStarTeams first" onboarding notice
+const AstUnlockNoticeWrapper: React.FC = () => {
+  const { showNotice, handleClose, handleStartAst, userName } = useAstUnlockNotice();
+
+  return (
+    <AstUnlockNoticeModal
+      isOpen={showNotice}
+      onClose={handleClose}
+      onStartAst={handleStartAst}
+      userName={userName}
     />
   );
 };
@@ -196,6 +212,7 @@ const App: React.FC = () => {
                     <div className="min-h-screen bg-background">
                     <AutoSyncWrapper />
                     <BetaWelcomeWrapper />
+                    <AstUnlockNoticeWrapper />
                     <BetaFeedbackReviewWrapper />
                     <BetaReportPromptWrapper />
                     <BetaCompletionFeedbackWrapper />

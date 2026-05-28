@@ -135,6 +135,11 @@ router.post('/register', async (req, res) => {
     const invitePmAccess = (inviteResult.invite as any)?.pmAccess ?? (inviteResult.invite as any)?.pm_access;
     const inviteShowDemo = (inviteResult.invite as any)?.showDemoDataButtons ?? (inviteResult.invite as any)?.show_demo_data_buttons;
 
+    // ICIE pilot participants get the one-time "start with AllStarTeams first" onboarding
+    // notice on their first workshop login (the revised AST → IA pathway).
+    const inviteOrg = (inviteResult.invite as any)?.organization;
+    const isIciePilot = typeof inviteOrg === 'string' && inviteOrg.trim().toUpperCase() === 'ICIE';
+
     const createResult = await userManagementService.createUser({
       username: data.username,
       password: data.password,
@@ -150,7 +155,8 @@ router.post('/register', async (req, res) => {
       astAccess: inviteAstAccess !== undefined ? !!inviteAstAccess : true,
       iaAccess: inviteIaAccess !== undefined ? !!inviteIaAccess : true,
       pmAccess: invitePmAccess !== undefined ? !!invitePmAccess : false,
-      showDemoDataButtons: inviteShowDemo !== undefined ? !!inviteShowDemo : false
+      showDemoDataButtons: inviteShowDemo !== undefined ? !!inviteShowDemo : false,
+      astUnlockNoticePending: isIciePilot
     });
     
     if (!createResult.success) {
