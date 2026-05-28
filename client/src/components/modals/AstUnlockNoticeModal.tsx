@@ -47,7 +47,7 @@ const AstUnlockNoticeModal: React.FC<AstUnlockNoticeModalProps> = ({
 
           <div className="bg-white rounded-2xl p-5 shadow-xl">
             <p className="text-slate-700 text-sm leading-relaxed mb-3">
-              You probably received an email from <strong>Dr. Howard Esbin</strong> letting you
+              You will have received an email from <strong>Dr. Howard Esbin</strong> letting you
               know we&rsquo;ve added an <strong>AllStarTeams (AST)</strong> microcourse before
               {' '}<strong>Imaginal Agility (IA)</strong>.
             </p>
