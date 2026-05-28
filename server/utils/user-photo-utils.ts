@@ -22,6 +22,7 @@ export interface UserWithPhotoReference {
   isDemoAccount: boolean;
   isBetaTester: boolean;
   showDemoDataButtons: boolean;
+  astUnlockNoticePending: boolean;
   navigationProgress?: string;
   contentAccess: string;
   astAccess: boolean;
@@ -61,6 +62,7 @@ export function convertUserToPhotoReference(user: any): UserWithPhotoReference {
     isDemoAccount: user.is_demo_account || user.isDemoAccount || false,
     isBetaTester: user.is_beta_tester || user.isBetaTester || false,
     showDemoDataButtons: user.show_demo_data_buttons || user.showDemoDataButtons || false,
+    astUnlockNoticePending: user.ast_unlock_notice_pending || user.astUnlockNoticePending || false,
     navigationProgress: user.navigation_progress || user.navigationProgress,
     contentAccess: user.content_access || user.contentAccess || 'professional',
     astAccess: user.ast_access || user.astAccess || true,

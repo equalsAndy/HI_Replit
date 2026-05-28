@@ -42,6 +42,7 @@ class UserManagementService {
     pmAccess?: boolean;
     showDemoDataButtons?: boolean;
     contentAccess?: 'student' | 'professional' | 'both';
+    astUnlockNoticePending?: boolean;
   }) {
     try {
       // Derive name fields
@@ -55,7 +56,7 @@ class UserManagementService {
 
       // Create the user first without profile picture
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, first_name, last_name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, invited_by, created_at, updated_at)
+        INSERT INTO users (username, password, name, first_name, last_name, email, role, organization, job_title, is_test_user, is_beta_tester, content_access, ast_access, ia_access, pm_access, show_demo_data_buttons, ast_unlock_notice_pending, invited_by, created_at, updated_at)
         VALUES (
           ${data.username},
           ${hashedPassword},
@@ -73,6 +74,7 @@ class UserManagementService {
           ${data.iaAccess ?? true},
           ${data.pmAccess ?? false},
           ${data.showDemoDataButtons ?? false},
+          ${data.astUnlockNoticePending ?? false},
           ${data.invitedBy || null},
           NOW(),
           NOW()
@@ -125,6 +127,7 @@ class UserManagementService {
           contentAccess: userData.content_access,
           astAccess: userData.ast_access,
           iaAccess: userData.ia_access,
+          astUnlockNoticePending: userData.ast_unlock_notice_pending,
           invitedBy: userData.invited_by,
           createdAt: userData.created_at,
           updatedAt: userData.updated_at
@@ -1587,6 +1590,39 @@ class UserManagementService {
       return {
         success: false,
         error: 'Failed to update beta welcome status'
+      };
+    }
+  }
+
+  /**
+   * Clear the ICIE pilot "start with AST first" onboarding notice for a user
+   * (called when the user dismisses the popup).
+   */
+  async markAstUnlockNoticeSeen(userId: number) {
+    try {
+      const result = await db.execute(sql`
+        UPDATE users
+        SET ast_unlock_notice_pending = false, updated_at = NOW()
+        WHERE id = ${userId}
+        RETURNING id, username, ast_unlock_notice_pending
+      `);
+
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      return {
+        success: true,
+        user: result[0]
+      };
+    } catch (error) {
+      console.error('Error marking AST unlock notice as seen:', error);
+      return {
+        success: false,
+        error: 'Failed to update AST unlock notice status'
       };
     }
   }
