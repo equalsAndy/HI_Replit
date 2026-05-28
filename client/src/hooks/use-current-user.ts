@@ -14,6 +14,7 @@ export interface User {
   isTestUser: boolean;
   isBetaTester?: boolean;
   hasSeenBetaWelcome?: boolean;
+  astUnlockNoticePending?: boolean; // ICIE pilot: show "start with AST first" onboarding notice
   showDemoDataButtons?: boolean; // Admin-granted permission for demo data access
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;

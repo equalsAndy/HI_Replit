@@ -379,6 +379,39 @@ router.post('/mark-beta-welcome-seen', requireAuth, async (req, res) => {
 });
 
 /**
+ * Clear the ICIE pilot "start with AST first" onboarding notice for current user
+ */
+router.post('/mark-ast-unlock-notice-seen', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const result = await userManagementService.markAstUnlockNoticeSeen(userId);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      success: true,
+      message: 'AST unlock notice marked as seen',
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Error marking AST unlock notice as seen:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to mark AST unlock notice as seen'
+    });
+  }
+});
+
+/**
  * Change user password
  */
 router.post('/change-password', requireAuth, async (req, res) => {

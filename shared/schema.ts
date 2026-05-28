@@ -105,6 +105,9 @@ export const users: any = pgTable('users', {
   hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
   hasSeenWelcomeVideo: boolean('has_seen_welcome_video').default(false).notNull(),
   showWelcomeVideoOnStartup: boolean('show_welcome_video_on_startup').default(true).notNull(),
+  // When true, show the ICIE pilot "start with AST first" onboarding notice on next workshop login.
+  // Set for ICIE pilot users (org='ICIE' invites); cleared once the user dismisses the notice.
+  astUnlockNoticePending: boolean('ast_unlock_notice_pending').default(false).notNull(),
   showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(), // Admin-granted permission for demo data access
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields
