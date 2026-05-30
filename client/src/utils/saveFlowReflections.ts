@@ -2,8 +2,8 @@
 
 interface FlowReflectionSaveResult {
   success: boolean;
-  message: string;
   data?: any;
+  error?: string;
 }
 
 export async function saveFlowReflections(reflections: Record<string, string>): Promise<FlowReflectionSaveResult> {
@@ -28,7 +28,15 @@ export async function saveFlowReflections(reflections: Record<string, string>): 
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Surface the server's actual error (e.g. validation/lock message) instead of a bare status
+      let serverMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorBody = await response.json();
+        serverMessage = errorBody.error || errorBody.message || serverMessage;
+      } catch {
+        // response had no JSON body; keep the status-based message
+      }
+      throw new Error(serverMessage);
     }
 
     const result = await response.json();
