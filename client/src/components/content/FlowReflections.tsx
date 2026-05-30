@@ -92,11 +92,17 @@ const buildSaveErrorMessage = (rawError?: string): string => {
 
   // Workshop locked
   if (/lock/i.test(rawError)) {
-    return "We couldn't save your reflections because this workshop is locked. If you think this is a mistake, please contact your facilitator.";
+    return "We couldn't save your reflections because this workshop is locked. If you think this is a mistake, please contact support.";
   }
 
   return `${fallback} (Details: ${rawError})`;
 };
+
+// Per-field length cap — must match MAX_REFLECTION_LEN on the server
+// (server/routes/workshop-reflection-routes.ts). The counter stays hidden during
+// normal writing and only appears once a response approaches the cap.
+const MAX_REFLECTION_LENGTH = 5000;
+const COUNTER_VISIBLE_THRESHOLD = 4000;
 
 export default function FlowReflections({
   onComplete,
@@ -200,7 +206,11 @@ export default function FlowReflections({
 
   const currentReflection = reflectionConfigs[currentIndex];
   const currentResponse = responses[currentReflection?.id] || '';
-  const isCurrentComplete = currentResponse.trim().length >= (currentReflection?.minLength || 25);
+  const currentLength = currentResponse.length;
+  const isOverLimit = currentLength > MAX_REFLECTION_LENGTH;
+  const isNearLimit = currentLength >= COUNTER_VISIBLE_THRESHOLD;
+  const isCurrentComplete =
+    currentResponse.trim().length >= (currentReflection?.minLength || 25) && !isOverLimit;
 
   const handleResponseChange = (value: string) => {
     if (!currentReflection) return;
@@ -233,9 +243,11 @@ export default function FlowReflections({
   };
 
   const allCompleted = reflectionConfigs.every((reflection, index) => {
-    const hasResponse = responses[reflection.id]?.trim().length >= (reflection.minLength || 25);
+    const response = responses[reflection.id] || '';
+    const hasResponse = response.trim().length >= (reflection.minLength || 25);
+    const withinLimit = response.length <= MAX_REFLECTION_LENGTH;
     const isMarkedComplete = completedIndices.has(index);
-    return hasResponse && isMarkedComplete;
+    return hasResponse && withinLimit && isMarkedComplete;
   });
 
   // Check if all reflections completed for UI control
@@ -450,15 +462,29 @@ export default function FlowReflections({
                 value={currentResponse}
                 onChange={workshopLocked ? undefined : (e) => handleResponseChange(e.target.value)}
                 placeholder="Share your thoughts here..."
-                className={`w-full min-h-[180px] p-4 text-base leading-relaxed border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${workshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+                aria-invalid={isOverLimit}
+                className={`w-full min-h-[180px] p-4 text-base leading-relaxed border rounded-md resize-none focus:ring-2 transition-colors ${
+                  isOverLimit
+                    ? 'border-red-400 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                } ${workshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
                 disabled={isSaving || workshopLocked}
                 readOnly={workshopLocked}
               />
               <div className="flex justify-between mt-3">
                 <div className="text-base text-gray-500">
-                  {currentResponse.trim().length} characters
-                  {currentReflection.minLength && (
-                    <span className="ml-2">(minimum {currentReflection.minLength})</span>
+                  {/* Counter stays minimal until nearing the cap, then shows "x / max" with a warning/error tone */}
+                  {isNearLimit ? (
+                    <span className={isOverLimit ? 'text-red-600 font-medium' : 'text-amber-600 font-medium'}>
+                      {currentLength.toLocaleString()} / {MAX_REFLECTION_LENGTH.toLocaleString()} characters
+                    </span>
+                  ) : (
+                    <>
+                      {currentResponse.trim().length} characters
+                      {currentReflection.minLength && (
+                        <span className="ml-2">(minimum {currentReflection.minLength})</span>
+                      )}
+                    </>
                   )}
                 </div>
                 {isCurrentComplete && (
@@ -468,6 +494,12 @@ export default function FlowReflections({
                   </div>
                 )}
               </div>
+              {isOverLimit && (
+                <p className="mt-2 text-base text-red-600" role="alert">
+                  This response is too long by {(currentLength - MAX_REFLECTION_LENGTH).toLocaleString()} characters.
+                  Please shorten it to {MAX_REFLECTION_LENGTH.toLocaleString()} or fewer to continue.
+                </p>
+              )}
             </div>
 
             {/* Action Buttons */}
