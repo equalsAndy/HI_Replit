@@ -7,6 +7,11 @@ import { authenticateUser, checkWorkshopLocked } from './workshop-data-shared.js
 
 const router = Router();
 
+// Reflection fields are long-form (each prompt has multiple sub-questions). The client
+// textareas have no upper bound, so keep the server cap generous to avoid silently
+// rejecting detailed answers. Shared across all reflection endpoints to prevent drift.
+const MAX_REFLECTION_LEN = 5000;
+
 /**
  * Rounding Out Reflection endpoints
  */
@@ -25,20 +30,20 @@ router.post('/rounding-out', authenticateUser, checkWorkshopLocked, async (req: 
 
     const { strengths, values, passions, growthAreas } = req.body;
 
-    if (!strengths || typeof strengths !== 'string' || strengths.trim().length === 0 || strengths.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Strengths is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { strengths: 'Required field, 1-1000 characters' } });
+    if (!strengths || typeof strengths !== 'string' || strengths.trim().length === 0 || strengths.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Strengths is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { strengths: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
-    if (!values || typeof values !== 'string' || values.trim().length === 0 || values.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Values is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { values: 'Required field, 1-1000 characters' } });
+    if (!values || typeof values !== 'string' || values.trim().length === 0 || values.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Values is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { values: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
-    if (!passions || typeof passions !== 'string' || passions.trim().length === 0 || passions.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Passions is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { passions: 'Required field, 1-1000 characters' } });
+    if (!passions || typeof passions !== 'string' || passions.trim().length === 0 || passions.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Passions is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { passions: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
-    if (!growthAreas || typeof growthAreas !== 'string' || growthAreas.trim().length === 0 || growthAreas.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Growth Areas is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { growthAreas: 'Required field, 1-1000 characters' } });
+    if (!growthAreas || typeof growthAreas !== 'string' || growthAreas.trim().length === 0 || growthAreas.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Growth Areas is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { growthAreas: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
     const assessmentData = { strengths: strengths.trim(), values: values.trim(), passions: passions.trim(), growthAreas: growthAreas.trim() };
@@ -115,7 +120,7 @@ router.post('/future-self', authenticateUser, checkWorkshopLocked, async (req: R
       return res.status(400).json({ success: false, error: 'At least one reflection field must contain at least 10 characters, or at least one image must be selected', code: 'VALIDATION_ERROR', debug: { hasTextContent, hasMinimalImageContent, imageDataStructure: imageData ? Object.keys(imageData) : null, hint: 'Select at least one image or provide meaningful text content' } });
     }
 
-    const validateField = (field: string, value: string, maxLength: number = 2000) => {
+    const validateField = (field: string, value: string, maxLength: number = MAX_REFLECTION_LEN) => {
       if (value && (typeof value !== 'string' || value.length > maxLength)) {
         throw new Error(`${field} must be a string with maximum ${maxLength} characters`);
       }
@@ -123,9 +128,9 @@ router.post('/future-self', authenticateUser, checkWorkshopLocked, async (req: R
 
     try {
       validateField('flowOptimizedLife', flowOptimizedLife);
-      validateField('futureSelfDescription', futureSelfDescription, 1000);
-      validateField('visualizationNotes', visualizationNotes, 1000);
-      validateField('additionalNotes', additionalNotes, 1000);
+      validateField('futureSelfDescription', futureSelfDescription);
+      validateField('visualizationNotes', visualizationNotes);
+      validateField('additionalNotes', additionalNotes);
     } catch (validationError) {
       return res.status(400).json({ success: false, error: (validationError as Error).message, code: 'VALIDATION_ERROR' });
     }
@@ -298,16 +303,16 @@ router.post('/final-insights', authenticateUser, checkWorkshopLocked, async (req
 
     const { keyInsights, actionSteps, commitments } = req.body;
 
-    if (!keyInsights || typeof keyInsights !== 'string' || keyInsights.trim().length === 0 || keyInsights.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Key Insights is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { keyInsights: 'Required field, 1-1000 characters' } });
+    if (!keyInsights || typeof keyInsights !== 'string' || keyInsights.trim().length === 0 || keyInsights.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Key Insights is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { keyInsights: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
-    if (!actionSteps || typeof actionSteps !== 'string' || actionSteps.trim().length === 0 || actionSteps.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Action Steps is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { actionSteps: 'Required field, 1-1000 characters' } });
+    if (!actionSteps || typeof actionSteps !== 'string' || actionSteps.trim().length === 0 || actionSteps.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Action Steps is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { actionSteps: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
-    if (!commitments || typeof commitments !== 'string' || commitments.trim().length === 0 || commitments.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Commitments is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { commitments: 'Required field, 1-1000 characters' } });
+    if (!commitments || typeof commitments !== 'string' || commitments.trim().length === 0 || commitments.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Commitments is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { commitments: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
     const assessmentData = { keyInsights: keyInsights.trim(), actionSteps: actionSteps.trim(), commitments: commitments.trim() };
@@ -430,8 +435,8 @@ router.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (r
 
     const { futureLetterText } = req.body;
 
-    if (!futureLetterText || typeof futureLetterText !== 'string' || futureLetterText.trim().length === 0 || futureLetterText.length > 1000) {
-      return res.status(400).json({ success: false, error: 'Future Letter Text is required and must be 1-1000 characters', code: 'VALIDATION_ERROR', details: { futureLetterText: 'Required field, 1-1000 characters' } });
+    if (!futureLetterText || typeof futureLetterText !== 'string' || futureLetterText.trim().length === 0 || futureLetterText.length > MAX_REFLECTION_LEN) {
+      return res.status(400).json({ success: false, error: `Future Letter Text is required and must be 1-${MAX_REFLECTION_LEN} characters`, code: 'VALIDATION_ERROR', details: { futureLetterText: `Required field, 1-${MAX_REFLECTION_LEN} characters` } });
     }
 
     const assessmentData = { futureLetterText: futureLetterText.trim() };

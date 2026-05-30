@@ -73,6 +73,31 @@ const getFlowPrompt = (flowIndex: number) => {
   return prompts[flowIndex as keyof typeof prompts] || { question: "", instruction: "", bullets: [], examples: [] };
 };
 
+// Turn a raw save error into an actionable, user-facing message. Your typed responses are
+// never lost on a failed save, so always reassure the user and point at a likely remedy.
+const buildSaveErrorMessage = (rawError?: string): string => {
+  const fallback = "We couldn't save your reflections. Your responses are still here — please try again in a moment.";
+
+  if (!rawError) return fallback;
+
+  // Length validation from the server (fields are capped at 5000 characters)
+  if (/\d+\s*characters/i.test(rawError) || /too long/i.test(rawError)) {
+    return "We couldn't save your reflections because one of them is too long. Please shorten your responses and try again — your answers are still here.";
+  }
+
+  // Session / auth expiry
+  if (/auth/i.test(rawError) || /not authenticated/i.test(rawError)) {
+    return "We couldn't save your reflections because your session expired. Please refresh the page and sign in again — your answers are still here.";
+  }
+
+  // Workshop locked
+  if (/lock/i.test(rawError)) {
+    return "We couldn't save your reflections because this workshop is locked. If you think this is a mistake, please contact your facilitator.";
+  }
+
+  return `${fallback} (Details: ${rawError})`;
+};
+
 export default function FlowReflections({
   onComplete,
   setCurrentContent,
@@ -250,11 +275,11 @@ export default function FlowReflections({
 
       } else {
         console.error('❌ Failed to save flow reflections:', result.error);
-        alert('Failed to save reflections. Please try again.');
+        alert(buildSaveErrorMessage(result.error));
       }
     } catch (error) {
       console.error('❌ Error saving flow reflections:', error);
-      alert('Failed to save reflections. Please try again.');
+      alert(buildSaveErrorMessage(error instanceof Error ? error.message : undefined));
     } finally {
       setIsSaving(false);
     }
