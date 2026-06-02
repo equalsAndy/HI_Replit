@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ChevronRight, ChevronDown, ChevronUp, Lightbulb, ListChecks } from 'lucide-react';
 import { saveCantrilReflections, loadCantrilReflections } from '@/utils/saveCantrilReflections';
+import { buildReflectionSaveErrorMessage } from '@/utils/reflectionSaveError';
 
 interface WellBeingReflectionsProps {
   onComplete?: () => void;
@@ -287,11 +288,11 @@ export default function WellBeingReflections({
         
       } else {
         console.error('❌ Failed to save well-being reflections:', result.error);
-        alert('Failed to save reflections. Please try again.');
+        alert(buildReflectionSaveErrorMessage(result.error));
       }
     } catch (error) {
       console.error('❌ Error saving well-being reflections:', error);
-      alert('Failed to save reflections. Please try again.');
+      alert(buildReflectionSaveErrorMessage(error instanceof Error ? error.message : undefined));
     } finally {
       setIsSaving(false);
     }
