@@ -40,8 +40,16 @@ export async function saveCantrilReflections(reflections: Record<string, string>
         return { success: false, error: result.error || 'Unknown error' };
       }
     } else {
+      // Surface the server's actual error (validation / lock / auth) instead of a bare status
       console.error('❌ HTTP error:', response.status, response.statusText);
-      return { success: false, error: `HTTP ${response.status}: ${response.statusText}` };
+      let serverMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorBody = await response.json();
+        serverMessage = errorBody.error || errorBody.message || serverMessage;
+      } catch {
+        // response had no JSON body; keep the status-based message
+      }
+      return { success: false, error: serverMessage };
     }
   } catch (error) {
     console.error('❌ Network error saving Cantril reflections:', error);
