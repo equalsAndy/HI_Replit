@@ -36,6 +36,11 @@ import VersionInfo from '@/components/ui/VersionInfo';
 import { AdminStarCardModal } from './AdminStarCardModal';
 
 // Types
+// Date login tracking went live in production. Accounts created before this had
+// no last_login_at recorded, so a null value means "unknown" rather than "never".
+// Set this to the deploy date of the login-tracking fix.
+const LOGIN_TRACKING_START = new Date('2026-06-02T00:00:00Z');
+
 interface User {
   id: number;
   username: string;
@@ -1042,6 +1047,16 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                               )}
                             </div>
                           </TableHead>
+                          <TableHead
+                            className="w-[120px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('lastLoginAt')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Last Login {sortField === 'lastLoginAt' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
                           <TableHead className="min-w-[160px]">User</TableHead>
                           <TableHead 
                             className="w-[90px] cursor-pointer hover:bg-muted/50"
@@ -1067,16 +1082,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                           <TableHead className="w-[50px]">Beta</TableHead>
                           <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
-                          <TableHead
-                            className="w-[120px] cursor-pointer hover:bg-muted/50"
-                            onClick={() => handleSort('lastLoginAt')}
-                          >
-                            <div className="flex items-center gap-1">
-                              Last Login {sortField === 'lastLoginAt' && (
-                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
-                              )}
-                            </div>
-                          </TableHead>
                           <TableHead className="min-w-[240px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1085,6 +1090,28 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                         <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
                           <TableCell className="w-[50px]">
                             <span className="font-mono text-xs text-muted-foreground">#{user.id}</span>
+                          </TableCell>
+                          <TableCell className="w-[120px]">
+                            {user.lastLoginAt ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatDistanceToNow(new Date(user.lastLoginAt), { addSuffix: true })}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{new Date(user.lastLoginAt).toLocaleString()}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              // Accounts predating login tracking show "Unknown" (we simply didn't record it);
+                              // accounts created once tracking was live that still have no login are truly "Never".
+                              <span className="text-xs text-gray-400">
+                                {new Date(user.createdAt) < LOGIN_TRACKING_START ? 'Unknown' : 'Never'}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="min-w-[160px]">
                             <div className="flex items-center space-x-2">
@@ -1292,24 +1319,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 </div>
                               );
                             })()}
-                          </TableCell>
-                          <TableCell className="w-[120px]">
-                            {user.lastLoginAt ? (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <span className="text-xs text-muted-foreground">
-                                      {formatDistanceToNow(new Date(user.lastLoginAt), { addSuffix: true })}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{new Date(user.lastLoginAt).toLocaleString()}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            ) : (
-                              <span className="text-xs text-gray-400">Never</span>
-                            )}
                           </TableCell>
                           <TableCell className="min-w-[240px] sticky right-0 bg-white border-l">
                             <TooltipProvider>
