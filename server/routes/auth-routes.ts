@@ -132,6 +132,12 @@ router.post('/login', async (req, res) => {
     (req.session as any).userRole = result.user?.role;
     (req.session as any).user = result.user; // Store full user object for beta tester access
 
+    // Record last login (fire-and-forget — never block or fail the login on this)
+    if (result.user?.id) {
+      userManagementService.updateUser(result.user.id, { lastLoginAt: new Date() })
+        .catch((err) => console.error('⚠️ Failed to record lastLoginAt for user', result.user?.id, err));
+    }
+
     // Force session save with comprehensive error handling
     req.session.save((err: unknown) => {
       if (err) {
