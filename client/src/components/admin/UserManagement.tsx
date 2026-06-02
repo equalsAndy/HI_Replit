@@ -64,6 +64,7 @@ interface User {
   iaProgress?: any;
   createdAt: string;
   updatedAt: string;
+  lastLoginAt?: string | null;
   deletedAt?: string;
   isDeleted: boolean;
 }
@@ -248,9 +249,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     enabled: betaTesters.length > 0, // Only fetch if we have beta testers
   });
 
-  // Sorting and filtering state
-  const [sortField, setSortField] = useState<string>('id');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  // Sorting and filtering state — default to most recently logged-in users first
+  const [sortField, setSortField] = useState<string>('lastLoginAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -289,6 +290,10 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       } else if (sortField === 'id') {
         aValue = Number(aValue) || 0;
         bValue = Number(bValue) || 0;
+      } else if (sortField === 'lastLoginAt' || sortField === 'createdAt' || sortField === 'updatedAt') {
+        // Date fields: compare as epoch ms; never-logged-in (null) sorts to 0 (bottom when desc)
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
       }
 
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
@@ -1062,6 +1067,16 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                           <TableHead className="w-[50px]">Beta</TableHead>
                           <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
+                          <TableHead
+                            className="w-[120px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('lastLoginAt')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Last Login {sortField === 'lastLoginAt' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
                           <TableHead className="min-w-[240px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1277,6 +1292,24 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 </div>
                               );
                             })()}
+                          </TableCell>
+                          <TableCell className="w-[120px]">
+                            {user.lastLoginAt ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatDistanceToNow(new Date(user.lastLoginAt), { addSuffix: true })}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{new Date(user.lastLoginAt).toLocaleString()}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <span className="text-xs text-gray-400">Never</span>
+                            )}
                           </TableCell>
                           <TableCell className="min-w-[240px] sticky right-0 bg-white border-l">
                             <TooltipProvider>
