@@ -39,7 +39,7 @@ import { AdminStarCardModal } from './AdminStarCardModal';
 // Date login tracking went live in production. Accounts created before this had
 // no last_login_at recorded, so a null value means "unknown" rather than "never".
 // Set this to the deploy date of the login-tracking fix.
-const LOGIN_TRACKING_START = new Date('2026-06-02T00:00:00Z');
+const LOGIN_TRACKING_START = new Date('2026-06-03T00:00:00Z');
 
 interface User {
   id: number;
