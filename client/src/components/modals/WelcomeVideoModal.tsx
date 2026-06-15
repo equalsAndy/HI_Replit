@@ -3,12 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { X, Play } from 'lucide-react';
 
+const FALLBACK_VIDEO_URL = 'https://www.youtube.com/embed/H3SBMsxZAGY';
+
 interface WelcomeVideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGetStarted: () => void;
   showCloseButton?: boolean;
   autoplay?: boolean;
+  videoUrl?: string;
 }
 
 export const WelcomeVideoModal: React.FC<WelcomeVideoModalProps> = ({
@@ -16,8 +19,10 @@ export const WelcomeVideoModal: React.FC<WelcomeVideoModalProps> = ({
   onClose,
   onGetStarted,
   showCloseButton = true,
-  autoplay = true
+  autoplay = true,
+  videoUrl,
 }) => {
+  const baseUrl = videoUrl || FALLBACK_VIDEO_URL;
   const handleGetStarted = () => {
     onGetStarted();
     onClose();
@@ -56,7 +61,7 @@ export const WelcomeVideoModal: React.FC<WelcomeVideoModalProps> = ({
           <div className="bg-white rounded-3xl p-6 shadow-2xl">
             <div className="relative w-full mb-6" style={{ paddingBottom: '56.25%' }}>
               <iframe
-                src={`https://www.youtube.com/embed/-2rSUwW17rw?${autoplay ? 'autoplay=1&' : ''}enablejsapi=1&rel=0`}
+                src={`${baseUrl}?${autoplay ? 'autoplay=1&' : ''}enablejsapi=1&rel=0`}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

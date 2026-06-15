@@ -22,6 +22,7 @@ import { forceAssessmentCacheDump } from '@/utils/forceRefresh';
 import { useStarCardData } from '@/hooks/useStarCardData';
 import { useWelcomeVideo } from '@/hooks/useWelcomeVideo';
 import WelcomeVideoModal from '@/components/modals/WelcomeVideoModal';
+import { useVideoByStepId } from '@/hooks/use-videos';
 import { useStepContextSafe } from '@/contexts/StepContext';
 
 export default function AllStarTeamsWorkshop() {
@@ -41,6 +42,8 @@ export default function AllStarTeamsWorkshop() {
     triggerWelcomeVideo,
     isFirstTimeShow,
   } = useWelcomeVideo();
+
+  const { data: welcomeVideo } = useVideoByStepId('allstarteams', 'welcome');
   // Updated to use unified navigation system
   const navigation = useUnifiedWorkshopNavigation('ast');
   const { isWorkshopLocked, isModuleAccessible, getStepModule, astCompleted } = useWorkshopStatus();
@@ -837,6 +840,7 @@ export default function AllStarTeamsWorkshop() {
             onGetStarted={handleGetStarted}
             showCloseButton={true}
             autoplay={isFirstTimeShow}
+            videoUrl={welcomeVideo?.url}
           />
 
           {/* Left Navigation Drawer */}
