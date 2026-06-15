@@ -140,6 +140,35 @@ router.post('/navigation-progress', async (req: Request, res: Response) => {
 
     console.log(`Navigation Progress: Received appType: ${appType}, Detected from steps: ${detectedAppType}`);
 
+    // Enforce workshop access: never record progress for a workshop the user
+    // cannot access. This is the authoritative gate — the client route guard
+    // can be bypassed, this cannot. Admins/facilitators are exempt so they can
+    // preview workshop content.
+    const [accessRow] = await db
+      .select({
+        role: schema.users.role,
+        astAccess: schema.users.astAccess,
+        iaAccess: schema.users.iaAccess,
+        pmAccess: schema.users.pmAccess,
+      })
+      .from(schema.users)
+      .where(eq(schema.users.id, userId));
+
+    const isPrivileged = accessRow?.role === 'admin' || accessRow?.role === 'facilitator';
+    const accessByType: Record<string, boolean | undefined> = {
+      ast: accessRow?.astAccess,
+      ia: accessRow?.iaAccess,
+      pm: accessRow?.pmAccess,
+    };
+
+    if (!isPrivileged && !accessByType[detectedAppType]) {
+      console.warn(`Navigation Progress: user ${userId} denied write to '${detectedAppType}' workshop (no access flag)`);
+      return res.status(403).json({
+        success: false,
+        message: `You do not have access to the ${detectedAppType} workshop.`,
+      });
+    }
+
     const existingProgress = await db
       .select()
       .from(schema.navigationProgress)
