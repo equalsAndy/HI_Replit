@@ -1032,7 +1032,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   <p>No users match your filters. Try adjusting your search or role filter.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500">
                   <div className="min-w-[1200px]">
                     <Table>
                       <TableHeader>
