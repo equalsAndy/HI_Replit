@@ -133,6 +133,7 @@ export const users: any = pgTable('users', {
   // Auth0 integration
   auth0Sub: varchar('auth0_sub', { length: 255 }),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  disabledAt: timestamp('disabled_at', { withTimezone: true }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

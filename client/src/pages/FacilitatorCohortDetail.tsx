@@ -53,17 +53,32 @@ import {
   Clock,
   Pencil,
   AlertTriangle,
+  ShieldOff,
+  ShieldCheck,
+  Download,
+  LogIn,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface Participant {
   id: number;
+  firstName: string;
+  lastName: string;
   name: string;
   email: string;
+  jobTitle: string;
+  organization: string;
   joinedAt: string;
+  lastLoginAt: string | null;
+  disabledAt: string | null;
+  astAccess: boolean;
+  iaAccess: boolean;
   astStatus: 'complete' | 'in_progress' | 'not_started';
   iaStatus: 'complete' | 'in_progress' | 'not_started';
+  astStepCount: number;
+  iaStepCount: number;
+  inviteUsed: boolean;
 }
 
 interface PendingInvite {
@@ -189,6 +204,17 @@ const FacilitatorCohortDetail: React.FC = () => {
   // Remove confirmation
   const [removeTarget, setRemoveTarget] = useState<Participant | null>(null);
 
+  // Edit profile modal
+  const [editProfileTarget, setEditProfileTarget] = useState<Participant | null>(null);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editJobTitle, setEditJobTitle] = useState('');
+  const [editOrganization, setEditOrganization] = useState('');
+
+  // Disable/enable confirmation
+  const [disableTarget, setDisableTarget] = useState<Participant | null>(null);
+
   // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailTargetInvite, setEmailTargetInvite] = useState<PendingInvite | null>(null);
@@ -249,6 +275,47 @@ const FacilitatorCohortDetail: React.FC = () => {
       setInviteErrors(data.errors || []);
       setInviteModalStep('success');
       queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
+    },
+  });
+
+  const disableParticipantMutation = useMutation({
+    mutationFn: ({ userId, disabled }: { userId: number; disabled: boolean }) =>
+      fetch(`/api/facilitator/cohorts/${cohortId}/participants/${userId}/disable`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ disabled }),
+      }).then(async (r) => {
+        if (!r.ok) throw new Error('Failed to update account status');
+        return r.json();
+      }),
+    onSuccess: (_, vars) => {
+      toast({
+        title: vars.disabled ? 'Account disabled' : 'Account re-enabled',
+        description: vars.disabled
+          ? 'The participant can no longer log in.'
+          : 'The participant can now log in again.',
+      });
+      setDisableTarget(null);
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'participants'] });
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: { userId: number; firstName: string; lastName: string; email: string; jobTitle: string; organization: string }) =>
+      fetch(`/api/facilitator/cohorts/${cohortId}/participants/${data.userId}/profile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      }).then(async (r) => {
+        if (!r.ok) throw new Error('Failed to update profile');
+        return r.json();
+      }),
+    onSuccess: () => {
+      toast({ title: 'Profile updated' });
+      setEditProfileTarget(null);
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'participants'] });
     },
   });
 
@@ -363,6 +430,15 @@ const FacilitatorCohortDetail: React.FC = () => {
     await navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  function openEditProfile(p: Participant) {
+    setEditProfileTarget(p);
+    setEditFirstName(p.firstName);
+    setEditLastName(p.lastName);
+    setEditEmail(p.email);
+    setEditJobTitle(p.jobTitle);
+    setEditOrganization(p.organization);
   }
 
   function addInviteeRow() {
@@ -572,7 +648,7 @@ const FacilitatorCohortDetail: React.FC = () => {
           <div className="flex items-center gap-3 mb-6">
             <Button
               onClick={() => {
-                setLastCreatedInvite(null);
+                resetInviteModal();
                 setShowInviteModal(true);
               }}
               className="bg-indigo-600 hover:bg-indigo-700"
@@ -616,41 +692,166 @@ const FacilitatorCohortDetail: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead>AST</TableHead>
-                    <TableHead>IA</TableHead>
-                    <TableHead className="w-[60px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {participants.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.name || 'Unnamed'}</TableCell>
-                      <TableCell className="text-slate-500">{p.email}</TableCell>
-                      <TableCell className="text-slate-500 text-sm">
-                        {new Date(p.joinedAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell><StatusBadge status={p.astStatus} /></TableCell>
-                      <TableCell><StatusBadge status={p.iaStatus} /></TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-slate-400 hover:text-red-600"
-                          onClick={() => setRemoveTarget(p)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Participant</TableHead>
+                      <TableHead>Access</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>AST</TableHead>
+                      <TableHead>IA</TableHead>
+                      <TableHead className="text-right pr-4">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {participants.map((p) => (
+                      <TableRow key={p.id} className={p.disabledAt ? 'opacity-50' : undefined}>
+                        {/* Participant name + email */}
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-slate-800 flex items-center gap-1.5">
+                              {p.name || 'Unnamed'}
+                              {p.disabledAt && (
+                                <Badge variant="outline" className="text-xs text-red-500 border-red-300 py-0">
+                                  Disabled
+                                </Badge>
+                              )}
+                            </p>
+                            <p className="text-xs text-slate-400">{p.email}</p>
+                          </div>
+                        </TableCell>
+
+                        {/* Workshop access */}
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {p.astAccess && (
+                              <Badge variant="outline" className="text-xs border-blue-200 text-blue-600">AST</Badge>
+                            )}
+                            {p.iaAccess && (
+                              <Badge variant="outline" className="text-xs border-purple-200 text-purple-600">IA</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* Login / joined status */}
+                        <TableCell>
+                          {p.lastLoginAt ? (
+                            <div>
+                              <p className="text-xs text-slate-500 flex items-center gap-1">
+                                <LogIn className="h-3 w-3" />
+                                {new Date(p.lastLoginAt).toLocaleDateString()}
+                              </p>
+                              <p className="text-xs text-slate-400">
+                                Joined {new Date(p.joinedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          ) : p.inviteUsed ? (
+                            <p className="text-xs text-amber-600">Invite redeemed, not logged in</p>
+                          ) : (
+                            <p className="text-xs text-slate-400 italic">Never logged in</p>
+                          )}
+                        </TableCell>
+
+                        {/* AST progress */}
+                        <TableCell>
+                          {p.astAccess ? (
+                            <div>
+                              <StatusBadge status={p.astStatus} />
+                              {p.astStatus === 'in_progress' && (
+                                <p className="text-xs text-slate-400 mt-0.5">{p.astStepCount} steps</p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-300">—</span>
+                          )}
+                        </TableCell>
+
+                        {/* IA progress */}
+                        <TableCell>
+                          {p.iaAccess ? (
+                            <div>
+                              <StatusBadge status={p.iaStatus} />
+                              {p.iaStatus === 'in_progress' && (
+                                <p className="text-xs text-slate-400 mt-0.5">{p.iaStepCount} steps</p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-300">—</span>
+                          )}
+                        </TableCell>
+
+                        {/* Actions */}
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-slate-400 hover:text-indigo-600"
+                                  onClick={() => openEditProfile(p)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Edit profile</p></TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-slate-400 hover:text-indigo-600"
+                                  onClick={() => window.open(`/api/star-card/admin/download/${p.id}`, '_blank')}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Download star card</p></TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={`h-8 w-8 p-0 ${p.disabledAt ? 'text-amber-500 hover:text-emerald-600' : 'text-slate-400 hover:text-amber-600'}`}
+                                  onClick={() => setDisableTarget(p)}
+                                >
+                                  {p.disabledAt ? (
+                                    <ShieldCheck className="h-4 w-4" />
+                                  ) : (
+                                    <ShieldOff className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{p.disabledAt ? 'Re-enable account' : 'Disable account'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-slate-400 hover:text-red-600"
+                                  onClick={() => setRemoveTarget(p)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Remove from cohort</p></TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
 
@@ -946,6 +1147,100 @@ const FacilitatorCohortDetail: React.FC = () => {
                 disabled={removeMutation.isPending}
               >
                 {removeMutation.isPending ? 'Removing...' : 'Remove'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Edit Participant Profile Modal ────────────────────────────────── */}
+        <Dialog open={!!editProfileTarget} onOpenChange={(open) => !open && setEditProfileTarget(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Profile</DialogTitle>
+              <DialogDescription>
+                Update {editProfileTarget?.name || 'this participant'}'s profile information.
+              </DialogDescription>
+            </DialogHeader>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!editProfileTarget) return;
+                updateProfileMutation.mutate({
+                  userId: editProfileTarget.id,
+                  firstName: editFirstName,
+                  lastName: editLastName,
+                  email: editEmail,
+                  jobTitle: editJobTitle,
+                  organization: editOrganization,
+                });
+              }}
+              className="space-y-3 pt-1"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="ep-first">First name</Label>
+                  <Input id="ep-first" value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="ep-last">Last name</Label>
+                  <Input id="ep-last" value={editLastName} onChange={(e) => setEditLastName(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="ep-email">Email</Label>
+                <Input id="ep-email" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="ep-title">Job title</Label>
+                <Input id="ep-title" value={editJobTitle} onChange={(e) => setEditJobTitle(e.target.value)} placeholder="Optional" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="ep-org">Organization</Label>
+                <Input id="ep-org" value={editOrganization} onChange={(e) => setEditOrganization(e.target.value)} placeholder="Optional" />
+              </div>
+              {updateProfileMutation.isError && (
+                <p className="text-sm text-red-600">{(updateProfileMutation.error as Error).message}</p>
+              )}
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditProfileTarget(null)}>Cancel</Button>
+                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700" disabled={updateProfileMutation.isPending}>
+                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Disable / Enable Account Dialog ──────────────────────────────── */}
+        <Dialog open={!!disableTarget} onOpenChange={(open) => !open && setDisableTarget(null)}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>
+                {disableTarget?.disabledAt ? 'Re-enable Account' : 'Disable Account'}
+              </DialogTitle>
+              <DialogDescription>
+                {disableTarget?.disabledAt
+                  ? `Re-enable ${disableTarget.name}'s account so they can log in again.`
+                  : `Disable ${disableTarget?.name}'s account. They will not be able to log in until re-enabled. Their data will not be deleted.`}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDisableTarget(null)}>Cancel</Button>
+              <Button
+                variant={disableTarget?.disabledAt ? 'default' : 'destructive'}
+                className={disableTarget?.disabledAt ? 'bg-emerald-600 hover:bg-emerald-700' : undefined}
+                onClick={() => {
+                  if (!disableTarget) return;
+                  disableParticipantMutation.mutate({
+                    userId: disableTarget.id,
+                    disabled: !disableTarget.disabledAt,
+                  });
+                }}
+                disabled={disableParticipantMutation.isPending}
+              >
+                {disableParticipantMutation.isPending
+                  ? 'Updating...'
+                  : disableTarget?.disabledAt ? 'Re-enable Account' : 'Disable Account'}
               </Button>
             </DialogFooter>
           </DialogContent>

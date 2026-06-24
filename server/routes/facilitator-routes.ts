@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { isFacilitatorOrAdmin } from '../middleware/roles.js';
 import { db } from '../db.js';
-import { organizations, cohorts } from '../../shared/schema.js';
+import { organizations, cohorts, users } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { inviteService } from '../services/invite-service.js';
 
@@ -320,14 +320,25 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
     const result = await db.execute(sql`
       SELECT
         u.id,
+        u.first_name,
+        u.last_name,
         CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         u.email,
         u.username,
-        cp.joined_at,
+        u.title as job_title,
+        u.organization,
+        u.ast_access,
+        u.ia_access,
         u.ast_workshop_completed,
         u.ia_workshop_completed,
+        u.last_login_at,
+        u.disabled_at,
+        cp.joined_at,
         np_ast.completed_steps as ast_completed_steps,
-        np_ia.completed_steps as ia_completed_steps
+        np_ia.completed_steps as ia_completed_steps,
+        (SELECT used_at FROM invites
+           WHERE email = u.email AND cohort_id = ${cohortId}
+           ORDER BY created_at DESC LIMIT 1) as invite_used_at
       FROM cohort_participants cp
       JOIN users u ON cp.participant_id = u.id
       LEFT JOIN navigation_progress np_ast ON np_ast.user_id = u.id AND np_ast.app_type = 'ast'
@@ -344,13 +355,29 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
       const hasAstProgress = astSteps && astSteps !== '[]' && astSteps !== '';
       const hasIaProgress = iaSteps && iaSteps !== '[]' && iaSteps !== '';
 
+      let astStepCount = 0;
+      let iaStepCount = 0;
+      try { astStepCount = hasAstProgress ? JSON.parse(astSteps).length : 0; } catch {}
+      try { iaStepCount = hasIaProgress ? JSON.parse(iaSteps).length : 0; } catch {}
+
       return {
         id: row.id,
-        name: row.name || row.username,
+        firstName: row.first_name || '',
+        lastName: row.last_name || '',
+        name: row.name?.trim() || row.username,
         email: row.email,
+        jobTitle: row.job_title || '',
+        organization: row.organization || '',
         joinedAt: row.joined_at,
+        lastLoginAt: row.last_login_at || null,
+        disabledAt: row.disabled_at || null,
+        astAccess: row.ast_access ?? true,
+        iaAccess: row.ia_access ?? true,
         astStatus: row.ast_workshop_completed ? 'complete' : hasAstProgress ? 'in_progress' : 'not_started',
         iaStatus: row.ia_workshop_completed ? 'complete' : hasIaProgress ? 'in_progress' : 'not_started',
+        astStepCount,
+        iaStepCount,
+        inviteUsed: !!row.invite_used_at,
       };
     });
 
@@ -380,6 +407,80 @@ router.delete('/cohorts/:cohortId/participants/:userId', requireAuth, isFacilita
   } catch (error) {
     console.error('Error removing participant:', error);
     res.status(500).json({ success: false, error: 'Failed to remove participant' });
+  }
+});
+
+/**
+ * Disable or re-enable a participant account
+ */
+router.patch('/cohorts/:cohortId/participants/:userId/disable', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const participantId = parseInt(req.params.userId);
+    const cohort = await verifyCohortOwnership(cohortId, req, res);
+    if (!cohort) return;
+
+    // Confirm participant is in this cohort
+    const membership = await db.execute(sql`
+      SELECT 1 FROM cohort_participants
+      WHERE cohort_id = ${cohortId} AND participant_id = ${participantId}
+    `);
+    const memberRows = (membership as any).rows ?? membership ?? [];
+    if (!memberRows.length) {
+      return res.status(404).json({ success: false, error: 'Participant not in this cohort' });
+    }
+
+    const { disabled } = req.body; // true = disable, false = re-enable
+    if (disabled) {
+      await db.execute(sql`UPDATE users SET disabled_at = NOW() WHERE id = ${participantId} AND disabled_at IS NULL`);
+    } else {
+      await db.execute(sql`UPDATE users SET disabled_at = NULL WHERE id = ${participantId}`);
+    }
+
+    res.json({ success: true, disabled: !!disabled });
+  } catch (error) {
+    console.error('Error toggling participant disable:', error);
+    res.status(500).json({ success: false, error: 'Failed to update account status' });
+  }
+});
+
+/**
+ * Update a participant's profile fields
+ */
+router.patch('/cohorts/:cohortId/participants/:userId/profile', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const participantId = parseInt(req.params.userId);
+    const cohort = await verifyCohortOwnership(cohortId, req, res);
+    if (!cohort) return;
+
+    const membership = await db.execute(sql`
+      SELECT 1 FROM cohort_participants
+      WHERE cohort_id = ${cohortId} AND participant_id = ${participantId}
+    `);
+    const memberRows = (membership as any).rows ?? membership ?? [];
+    if (!memberRows.length) {
+      return res.status(404).json({ success: false, error: 'Participant not in this cohort' });
+    }
+
+    const { firstName, lastName, email, jobTitle, organization } = req.body;
+    const updateObj: Record<string, any> = { updatedAt: new Date() };
+    if (firstName !== undefined) updateObj.firstName = firstName;
+    if (lastName !== undefined) updateObj.lastName = lastName;
+    if (email !== undefined) updateObj.email = email;
+    if (jobTitle !== undefined) updateObj.title = jobTitle;
+    if (organization !== undefined) updateObj.organization = organization;
+
+    if (Object.keys(updateObj).length <= 1) {
+      return res.status(400).json({ success: false, error: 'No fields to update' });
+    }
+
+    await db.update(users).set(updateObj).where(eq(users.id, participantId));
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating participant profile:', error);
+    res.status(500).json({ success: false, error: 'Failed to update profile' });
   }
 });
 
