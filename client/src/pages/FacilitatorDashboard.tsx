@@ -271,71 +271,86 @@ const FacilitatorDashboard: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {cohorts.map((cohort: any) => (
-                  <Card
-                    key={cohort.id}
-                    className="hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => navigate(`/facilitator/cohorts/${cohort.id}`)}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">{cohort.name}</CardTitle>
-                        <Badge
-                          variant={cohort.status === 'active' ? 'default' : 'secondary'}
-                          className={
-                            cohort.status === 'active'
-                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                              : ''
-                          }
-                        >
-                          {cohort.status}
-                        </Badge>
+            ) : (() => {
+              // Group cohorts by organization name
+              const grouped: Record<string, any[]> = {};
+              cohorts.forEach((cohort: any) => {
+                const key = cohort.organization_name || '\u2014 No Organization';
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(cohort);
+              });
+              const orgNames = Object.keys(grouped).sort((a, b) =>
+                a.startsWith('\u2014') ? 1 : b.startsWith('\u2014') ? -1 : a.localeCompare(b)
+              );
+
+              const CohortCard = ({ cohort }: { cohort: any }) => (
+                <Card
+                  key={cohort.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/facilitator/cohorts/${cohort.id}`)}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">{cohort.name}</CardTitle>
+                      <Badge
+                        variant={cohort.status === 'active' ? 'default' : 'secondary'}
+                        className={
+                          cohort.status === 'active'
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                            : ''
+                        }
+                      >
+                        {cohort.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {cohort.description && (
+                      <p className="text-sm text-slate-400 mb-3">{cohort.description}</p>
+                    )}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex gap-2">
+                        {cohort.ast_access && (
+                          <Badge variant="outline" className="text-xs border-slate-300">AST</Badge>
+                        )}
+                        {cohort.ia_access && (
+                          <Badge variant="outline" className="text-xs border-slate-300">IA</Badge>
+                        )}
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      {cohort.organization_name && (
-                        <p className="text-sm text-slate-500 mb-2">{cohort.organization_name}</p>
-                      )}
-                      {cohort.description && (
-                        <p className="text-sm text-slate-400 mb-3">{cohort.description}</p>
-                      )}
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex gap-2">
-                          {cohort.ast_access && (
-                            <Badge variant="outline" className="text-xs border-slate-300">
-                              AST
-                            </Badge>
-                          )}
-                          {cohort.ia_access && (
-                            <Badge variant="outline" className="text-xs border-slate-300">
-                              IA
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="flex items-center gap-1 text-xs text-slate-400">
-                          <Users className="h-3 w-3" />
-                          {cohort.participant_count ?? 0} participant{cohort.participant_count !== 1 ? 's' : ''}
-                        </span>
+                      <span className="flex items-center gap-1 text-xs text-slate-400">
+                        <Users className="h-3 w-3" />
+                        {cohort.participant_count ?? 0} participant{cohort.participant_count !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    {(cohort.start_date || cohort.end_date) && (
+                      <div className="flex items-center text-xs text-slate-400 gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : '...'}
+                        {' \u2013 '}
+                        {cohort.end_date ? new Date(cohort.end_date).toLocaleDateString() : '...'}
                       </div>
-                      {(cohort.start_date || cohort.end_date) && (
-                        <div className="flex items-center text-xs text-slate-400 gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {cohort.start_date
-                            ? new Date(cohort.start_date).toLocaleDateString()
-                            : '...'}
-                          {' \u2013 '}
-                          {cohort.end_date
-                            ? new Date(cohort.end_date).toLocaleDateString()
-                            : '...'}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                    )}
+                  </CardContent>
+                </Card>
+              );
+
+              return (
+                <div className="space-y-8">
+                  {orgNames.map((orgName) => (
+                    <div key={orgName}>
+                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                        {orgName}
+                      </h3>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {grouped[orgName].map((cohort: any) => (
+                          <CohortCard key={cohort.id} cohort={cohort} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* ── Email Templates Tab ──────────────────────────────────────── */}

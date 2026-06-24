@@ -432,6 +432,55 @@ router.post('/cohorts/:cohortId/invites', requireAuth, isFacilitatorOrAdmin, asy
 });
 
 /**
+ * Bulk create invites for a cohort
+ */
+router.post('/cohorts/:cohortId/invites/bulk', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const userId = (req.session as any).userId;
+    const cohort = await verifyCohortOwnership(cohortId, req, res);
+    if (!cohort) return;
+
+    const { invitees } = req.body; // [{ email, name }]
+    if (!Array.isArray(invitees) || invitees.length === 0) {
+      return res.status(400).json({ success: false, error: 'invitees array is required' });
+    }
+
+    const expiration = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const results: any[] = [];
+    const errors: string[] = [];
+
+    for (const invitee of invitees) {
+      if (!invitee.email?.trim()) {
+        errors.push(`Skipped row with missing email`);
+        continue;
+      }
+      const result = await inviteService.createInviteWithAssignment({
+        email: invitee.email.trim(),
+        name: invitee.name?.trim() || undefined,
+        role: 'participant',
+        cohortId,
+        organizationId: cohort.organization_id ? String(cohort.organization_id) : null,
+        createdBy: userId,
+        expiresAt: expiration,
+        astAccess: cohort.ast_access ?? true,
+        iaAccess: cohort.ia_access ?? true,
+      });
+      if (result.success) {
+        results.push(result.invite);
+      } else {
+        errors.push(`${invitee.email}: ${result.error}`);
+      }
+    }
+
+    res.json({ success: true, invites: results, errors });
+  } catch (error) {
+    console.error('Error bulk creating cohort invites:', error);
+    res.status(500).json({ success: false, error: 'Failed to create invites' });
+  }
+});
+
+/**
  * List pending invites for a cohort
  */
 router.get('/cohorts/:cohortId/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {

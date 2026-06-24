@@ -125,16 +125,22 @@ async function fetchOrganizations() {
   return res.json();
 }
 
-async function createInvite(cohortId: string, data: { email: string; name?: string; expiresAt?: string }) {
-  const res = await fetch(`/api/facilitator/cohorts/${cohortId}/invites`, {
+async function bulkCreateInvites(cohortId: string, invitees: { email: string; name: string }[]) {
+  const res = await fetch(`/api/facilitator/cohorts/${cohortId}/invites/bulk`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(data),
+    body: JSON.stringify({ invitees }),
   });
   const json = await res.json();
-  if (!res.ok || !json.success) throw new Error(json.error || 'Failed to create invite');
+  if (!res.ok || !json.success) throw new Error(json.error || 'Failed to create invites');
   return json;
+}
+
+interface InviteeRow {
+  key: string;
+  name: string;
+  email: string;
 }
 
 // ── Status Badge Component ───────────────────────────────────────────────────
@@ -172,12 +178,12 @@ const FacilitatorCohortDetail: React.FC = () => {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
-  // Modal state
+  // Invite modal state — multi-row form
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteName, setInviteName] = useState('');
-  const [inviteExpiry, setInviteExpiry] = useState('');
-  const [lastCreatedInvite, setLastCreatedInvite] = useState<any>(null);
+  const [inviteeRows, setInviteeRows] = useState<InviteeRow[]>([{ key: '1', name: '', email: '' }]);
+  const [inviteModalStep, setInviteModalStep] = useState<'form' | 'success'>('form');
+  const [createdInvites, setCreatedInvites] = useState<any[]>([]);
+  const [inviteErrors, setInviteErrors] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Remove confirmation
@@ -235,14 +241,13 @@ const FacilitatorCohortDetail: React.FC = () => {
     },
   });
 
-  const inviteMutation = useMutation({
-    mutationFn: (data: { email: string; name?: string; expiresAt?: string }) =>
-      createInvite(cohortId, data),
+  const bulkInviteMutation = useMutation({
+    mutationFn: (rows: InviteeRow[]) =>
+      bulkCreateInvites(cohortId, rows.map(r => ({ email: r.email, name: r.name }))),
     onSuccess: (data) => {
-      setLastCreatedInvite(data.invite);
-      setInviteEmail('');
-      setInviteName('');
-      setInviteExpiry('');
+      setCreatedInvites(data.invites || []);
+      setInviteErrors(data.errors || []);
+      setInviteModalStep('success');
       queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
     },
   });
@@ -270,7 +275,7 @@ const FacilitatorCohortDetail: React.FC = () => {
       const data = await res.json();
       return (data.templates || []) as Array<{ id: number; name: string; subject: string }>;
     },
-    enabled: showEmailModal,
+    enabled: showEmailModal || inviteModalStep === 'success',
   });
 
   const sendEmailMutation = useMutation({
@@ -291,6 +296,11 @@ const FacilitatorCohortDetail: React.FC = () => {
       });
       setShowEmailModal(false);
       setEmailTargetInvite(null);
+      // Close invite modal if send was triggered from there
+      if (inviteModalStep === 'success') {
+        setShowInviteModal(false);
+        resetInviteModal();
+      }
       setSelectedTemplateId('');
       queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
     },
@@ -355,20 +365,31 @@ const FacilitatorCohortDetail: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   }
 
-  function handleSubmitInvite(e: React.FormEvent) {
-    e.preventDefault();
-    if (!inviteEmail.trim()) return;
-    inviteMutation.mutate({
-      email: inviteEmail,
-      name: inviteName || undefined,
-      expiresAt: inviteExpiry || undefined,
-    });
+  function addInviteeRow() {
+    setInviteeRows(rows => [...rows, { key: String(Date.now()), name: '', email: '' }]);
   }
 
-  function defaultExpiry() {
-    const d = new Date();
-    d.setDate(d.getDate() + 30);
-    return d.toISOString().split('T')[0];
+  function removeInviteeRow(key: string) {
+    setInviteeRows(rows => rows.filter(r => r.key !== key));
+  }
+
+  function updateInviteeRow(key: string, field: 'name' | 'email', value: string) {
+    setInviteeRows(rows => rows.map(r => r.key === key ? { ...r, [field]: value } : r));
+  }
+
+  function resetInviteModal() {
+    setInviteeRows([{ key: '1', name: '', email: '' }]);
+    setInviteModalStep('form');
+    setCreatedInvites([]);
+    setInviteErrors([]);
+    setSelectedTemplateId('');
+  }
+
+  function handleSubmitInvites(e: React.FormEvent) {
+    e.preventDefault();
+    const valid = inviteeRows.filter(r => r.email.trim());
+    if (!valid.length) return;
+    bulkInviteMutation.mutate(valid);
   }
 
   // ── Data ─────────────────────────────────────────────────────────────────
@@ -725,116 +746,182 @@ const FacilitatorCohortDetail: React.FC = () => {
         </div>
 
         {/* ── Invite Modal ──────────────────────────────────────────────────── */}
-        <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Invite Participant</DialogTitle>
-              <DialogDescription>
-                Send an invite link to add a participant to this cohort.
-              </DialogDescription>
-            </DialogHeader>
+        <Dialog open={showInviteModal} onOpenChange={(open) => {
+          setShowInviteModal(open);
+          if (!open) resetInviteModal();
+        }}>
+          <DialogContent className="sm:max-w-xl">
+            {inviteModalStep === 'form' ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Add Participants</DialogTitle>
+                  <DialogDescription>
+                    Enter the name and email for each person you want to invite. Add as many rows as you need.
+                  </DialogDescription>
+                </DialogHeader>
 
-            {lastCreatedInvite ? (
-              <div className="space-y-4">
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                  <p className="text-sm font-medium text-emerald-800 mb-2">
-                    Invite created successfully!
-                  </p>
-                  <p className="text-xs text-emerald-600 mb-3">Share this link:</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-xs bg-white px-3 py-2 rounded border border-emerald-200 break-all">
-                      {getInviteUrl(lastCreatedInvite.inviteCode || lastCreatedInvite.invite_code)}
-                    </code>
+                <form onSubmit={handleSubmitInvites} className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[1fr_1fr_36px] gap-2 text-xs font-medium text-slate-500 px-1">
+                      <span>Name</span>
+                      <span>Email *</span>
+                      <span />
+                    </div>
+                    {inviteeRows.map((row) => (
+                      <div key={row.key} className="grid grid-cols-[1fr_1fr_36px] gap-2 items-center">
+                        <Input
+                          value={row.name}
+                          onChange={(e) => updateInviteeRow(row.key, 'name', e.target.value)}
+                          placeholder="Full name"
+                        />
+                        <Input
+                          type="email"
+                          value={row.email}
+                          onChange={(e) => updateInviteeRow(row.key, 'email', e.target.value)}
+                          placeholder="email@example.com"
+                          required={inviteeRows.length === 1}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-slate-400 hover:text-red-500 px-2"
+                          onClick={() => removeInviteeRow(row.key)}
+                          disabled={inviteeRows.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+
                     <Button
-                      variant="outline"
+                      type="button"
+                      variant="ghost"
                       size="sm"
-                      className="shrink-0"
-                      onClick={() =>
-                        copyToClipboard(
-                          getInviteUrl(lastCreatedInvite.inviteCode || lastCreatedInvite.invite_code),
-                          'modal-invite'
-                        )
-                      }
+                      className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 mt-1"
+                      onClick={addInviteeRow}
                     >
-                      {copiedId === 'modal-invite' ? (
-                        <><Check className="h-4 w-4 mr-1 text-emerald-600" /> Copied</>
-                      ) : (
-                        <><Copy className="h-4 w-4 mr-1" /> Copy Link</>
-                      )}
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Another
                     </Button>
+                  </div>
+
+                  {bulkInviteMutation.isError && (
+                    <p className="text-sm text-red-600">
+                      {(bulkInviteMutation.error as Error).message}
+                    </p>
+                  )}
+
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setShowInviteModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                      disabled={bulkInviteMutation.isPending || !inviteeRows.some(r => r.email.trim())}
+                    >
+                      {bulkInviteMutation.isPending
+                        ? 'Creating...'
+                        : `Create Invite${inviteeRows.filter(r => r.email.trim()).length !== 1 ? 's' : ''}`}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </>
+            ) : (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Invites Created</DialogTitle>
+                  <DialogDescription>
+                    {createdInvites.length} invite{createdInvites.length !== 1 ? 's' : ''} created successfully.
+                    {inviteErrors.length > 0 && ` ${inviteErrors.length} skipped.`}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 pt-2">
+                  {/* Errors (skipped rows) */}
+                  {inviteErrors.length > 0 && (
+                    <div className="rounded-md bg-amber-50 border border-amber-200 p-3 space-y-1">
+                      {inviteErrors.map((err, i) => (
+                        <p key={i} className="text-xs text-amber-700">{err}</p>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Created invite links */}
+                  <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 space-y-2 max-h-40 overflow-y-auto">
+                    {createdInvites.map((inv) => {
+                      const code = inv.invite_code || inv.inviteCode;
+                      const url = getInviteUrl(code);
+                      return (
+                        <div key={inv.id} className="flex items-center gap-2">
+                          <span className="text-xs text-emerald-800 font-medium min-w-[120px] truncate">
+                            {inv.name || inv.email}
+                          </span>
+                          <code className="flex-1 text-xs bg-white px-2 py-1 rounded border border-emerald-200 truncate">
+                            {url}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 shrink-0"
+                            onClick={() => copyToClipboard(url, `ci-${inv.id}`)}
+                          >
+                            {copiedId === `ci-${inv.id}` ? (
+                              <Check className="h-3 w-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="h-3 w-3 text-slate-500" />
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Template picker for email send */}
+                  <div className="border-t pt-4 space-y-3">
+                    <p className="text-sm font-medium text-slate-700">Send invite emails now?</p>
+                    {templatesQuery.isLoading ? (
+                      <p className="text-sm text-slate-500">Loading templates...</p>
+                    ) : (templatesQuery.data?.length ?? 0) === 0 ? (
+                      <p className="text-sm text-slate-500">No templates available. You can send links manually above.</p>
+                    ) : (
+                      <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a template to send emails" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {templatesQuery.data?.map((t) => (
+                            <SelectItem key={t.id} value={String(t.id)}>
+                              {t.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex justify-between">
-                  <Button
-                    variant="outline"
-                    onClick={() => setLastCreatedInvite(null)}
-                  >
-                    Invite Another
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setShowInviteModal(false)}
-                  >
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => { setShowInviteModal(false); resetInviteModal(); }}>
                     Done
                   </Button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitInvite} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="invite-email">Email *</Label>
-                  <Input
-                    id="invite-email"
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="participant@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="invite-name">Name</Label>
-                  <Input
-                    id="invite-name"
-                    value={inviteName}
-                    onChange={(e) => setInviteName(e.target.value)}
-                    placeholder="Optional"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="invite-expiry">Expiration</Label>
-                  <Input
-                    id="invite-expiry"
-                    type="date"
-                    value={inviteExpiry || defaultExpiry()}
-                    onChange={(e) => setInviteExpiry(e.target.value)}
-                  />
-                </div>
-
-                {inviteMutation.isError && (
-                  <p className="text-sm text-red-600">
-                    {(inviteMutation.error as Error).message}
-                  </p>
-                )}
-
-                <DialogFooter>
                   <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowInviteModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
+                    onClick={() => {
+                      const templateId = parseInt(selectedTemplateId);
+                      if (!templateId) return;
+                      sendEmailMutation.mutate({
+                        inviteIds: createdInvites.map(i => i.id),
+                        templateId,
+                      });
+                    }}
+                    disabled={!selectedTemplateId || sendEmailMutation.isPending}
                     className="bg-indigo-600 hover:bg-indigo-700"
-                    disabled={inviteMutation.isPending || !inviteEmail.trim()}
                   >
-                    {inviteMutation.isPending ? 'Creating...' : 'Create Invite'}
+                    {sendEmailMutation.isPending ? 'Sending...' : 'Send Invite Emails'}
                   </Button>
                 </DialogFooter>
-              </form>
+              </>
             )}
           </DialogContent>
         </Dialog>
