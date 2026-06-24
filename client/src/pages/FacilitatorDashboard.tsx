@@ -17,7 +17,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Plus, Building2, Users, Calendar, ArrowLeft, Mail } from 'lucide-react';
-import { EmailTemplateManagement } from '@/components/admin/email/EmailTemplateManagement';
+import EmailTemplateManagement from '@/components/admin/email/EmailTemplateManagement';
 import { useLocation } from 'wouter';
 
 // ── API helpers ──────────────────────────────────────────────────────────────
