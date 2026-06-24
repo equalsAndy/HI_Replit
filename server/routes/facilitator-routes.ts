@@ -325,7 +325,7 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
         CONCAT(u.first_name, ' ', COALESCE(u.last_name, '')) as name,
         u.email,
         u.username,
-        u.title as job_title,
+        u.job_title,
         u.organization,
         u.ast_access,
         u.ia_access,
@@ -468,7 +468,7 @@ router.patch('/cohorts/:cohortId/participants/:userId/profile', requireAuth, isF
     if (firstName !== undefined) updateObj.firstName = firstName;
     if (lastName !== undefined) updateObj.lastName = lastName;
     if (email !== undefined) updateObj.email = email;
-    if (jobTitle !== undefined) updateObj.title = jobTitle;
+    if (jobTitle !== undefined) updateObj.jobTitle = jobTitle;
     if (organization !== undefined) updateObj.organization = organization;
 
     if (Object.keys(updateObj).length <= 1) {

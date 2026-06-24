@@ -1125,7 +1125,7 @@ router.get('/cohorts/:cohortId/members', requireAuth, isAdmin, async (req: Reque
   try {
     const cohortId = parseInt(req.params.cohortId);
     const rows = await db.execute(sql`
-      SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.title
+      SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.job_title AS "title"
       FROM cohort_participants cp
       JOIN users u ON cp.participant_id = u.id
       WHERE cp.cohort_id = ${cohortId}
@@ -1165,10 +1165,10 @@ router.put('/cohorts/:cohortId/members', requireAuth, isAdmin, async (req: Reque
 router.get('/facilitators', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const rows = await db.execute(sql`
-      SELECT id, first_name || ' ' || last_name AS name
+      SELECT id, first_name || ' ' || COALESCE(last_name, '') AS name
       FROM users
       WHERE role IN ('facilitator', 'admin')
-        AND deleted_at IS NULL
+        AND disabled_at IS NULL
       ORDER BY first_name, last_name
     `);
     res.json(rows);
@@ -1182,10 +1182,9 @@ router.get('/users/available-for-cohort/:cohortId', requireAuth, isAdmin, async 
   try {
     const cohortId = parseInt(req.params.cohortId);
     const rows = await db.execute(sql`
-      SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.title
+      SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.job_title AS "title"
       FROM users u
-      WHERE u.deleted_at IS NULL
-        AND NOT EXISTS (
+      WHERE NOT EXISTS (
           SELECT 1 FROM cohort_participants cp
           WHERE cp.cohort_id = ${cohortId}
             AND cp.participant_id = u.id
