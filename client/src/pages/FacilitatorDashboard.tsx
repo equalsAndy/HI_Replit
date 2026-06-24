@@ -16,7 +16,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Plus, Building2, Users, Calendar, ArrowLeft } from 'lucide-react';
+import { Plus, Building2, Users, Calendar, ArrowLeft, Mail } from 'lucide-react';
+import { EmailTemplateManagement } from '@/components/admin/email/EmailTemplateManagement';
 import { useLocation } from 'wouter';
 
 // ── API helpers ──────────────────────────────────────────────────────────────
@@ -191,6 +192,10 @@ const FacilitatorDashboard: React.FC = () => {
               <Users className="h-4 w-4" />
               Cohorts
             </TabsTrigger>
+            <TabsTrigger value="email-templates" className="gap-2">
+              <Mail className="h-4 w-4" />
+              Email Templates
+            </TabsTrigger>
           </TabsList>
 
           {/* ── Organizations Tab ──────────────────────────────────────── */}
@@ -332,6 +337,12 @@ const FacilitatorDashboard: React.FC = () => {
               </div>
             )}
           </TabsContent>
+
+          {/* ── Email Templates Tab ──────────────────────────────────────── */}
+          <TabsContent value="email-templates">
+            <EmailTemplateManagement />
+          </TabsContent>
+
         </Tabs>
       </div>
 

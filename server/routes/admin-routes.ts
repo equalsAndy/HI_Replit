@@ -7,6 +7,9 @@ import { SnapshotService } from '../services/snapshot-service.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles.js';
 import { formatInviteCode } from '../utils/invite-code.js';
+import { db } from '../db.js';
+import { eq, sql, and } from 'drizzle-orm';
+import * as schema from '../../shared/schema.js';
 
 const router = express.Router();
 
@@ -1019,6 +1022,180 @@ router.post('/demo-accounts/restore/ast', requireAuth, async (req: Request, res:
       success: false,
       error: error instanceof Error ? error.message : 'Failed to reset workshop'
     });
+  }
+});
+
+// ====== COHORT MANAGEMENT ROUTES ======
+
+router.get('/cohorts', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const rows = await db.execute(sql`
+      SELECT
+        c.id,
+        c.name,
+        c.description,
+        c.start_date AS "startDate",
+        c.end_date AS "endDate",
+        c.status,
+        c.cohort_type AS "cohortType",
+        c.parent_cohort_id AS "parentCohortId",
+        c.facilitator_id AS "facilitatorId",
+        CASE WHEN u.id IS NOT NULL
+          THEN u.first_name || ' ' || u.last_name
+          ELSE NULL
+        END AS "facilitatorName",
+        (SELECT COUNT(*) FROM cohort_participants cp WHERE cp.cohort_id = c.id)::int AS "memberCount"
+      FROM cohorts c
+      LEFT JOIN users u ON c.facilitator_id = u.id
+      ORDER BY c.name ASC
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching cohorts:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.post('/cohorts', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const { name, description, facilitatorId, cohortType, status, startDate, endDate, astAccess, iaAccess, pmAccess, organizationId } = req.body;
+    if (!name?.trim()) {
+      return res.status(400).json({ message: 'Cohort name is required' });
+    }
+    const resolvedFacilitatorId = facilitatorId && facilitatorId !== 'unassigned' ? parseInt(facilitatorId) : null;
+    const [cohort] = await db.insert(schema.cohorts).values({
+      name: name.trim(),
+      description: description || null,
+      facilitatorId: resolvedFacilitatorId,
+      cohortType: cohortType || 'standard',
+      status: status || 'upcoming',
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
+      astAccess: astAccess ?? false,
+      iaAccess: iaAccess ?? false,
+      pmAccess: pmAccess ?? false,
+      organizationId: organizationId || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning();
+    res.status(201).json({ message: 'Cohort created', cohort });
+  } catch (error) {
+    console.error('Error creating cohort:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.put('/cohorts/:cohortId', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const { name, description, facilitatorId, cohortType, status, startDate, endDate, astAccess, iaAccess, pmAccess } = req.body;
+    const updateData: Record<string, any> = { updatedAt: new Date() };
+    if (name !== undefined) updateData.name = name.trim();
+    if (description !== undefined) updateData.description = description || null;
+    if (facilitatorId !== undefined) updateData.facilitatorId = facilitatorId && facilitatorId !== 'unassigned' ? parseInt(facilitatorId) : null;
+    if (cohortType !== undefined) updateData.cohortType = cohortType;
+    if (status !== undefined) updateData.status = status;
+    if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
+    if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
+    if (astAccess !== undefined) updateData.astAccess = astAccess;
+    if (iaAccess !== undefined) updateData.iaAccess = iaAccess;
+    if (pmAccess !== undefined) updateData.pmAccess = pmAccess;
+    const [updated] = await db.update(schema.cohorts).set(updateData).where(eq(schema.cohorts.id, cohortId)).returning();
+    if (!updated) return res.status(404).json({ message: 'Cohort not found' });
+    res.json({ message: 'Cohort updated', cohort: updated });
+  } catch (error) {
+    console.error('Error updating cohort:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.delete('/cohorts/:cohortId', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const [deleted] = await db.delete(schema.cohorts).where(eq(schema.cohorts.id, cohortId)).returning();
+    if (!deleted) return res.status(404).json({ message: 'Cohort not found' });
+    res.json({ message: 'Cohort deleted' });
+  } catch (error) {
+    console.error('Error deleting cohort:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/cohorts/:cohortId/members', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const rows = await db.execute(sql`
+      SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.title
+      FROM cohort_participants cp
+      JOIN users u ON cp.participant_id = u.id
+      WHERE cp.cohort_id = ${cohortId}
+      ORDER BY u.first_name, u.last_name
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching cohort members:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.put('/cohorts/:cohortId/members', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const { addUserIds = [], removeUserIds = [] } = req.body;
+    for (const userId of removeUserIds) {
+      await db.execute(sql`
+        DELETE FROM cohort_participants
+        WHERE cohort_id = ${cohortId} AND participant_id = ${userId}
+      `);
+    }
+    for (const userId of addUserIds) {
+      await db.execute(sql`
+        INSERT INTO cohort_participants (cohort_id, participant_id, joined_at)
+        VALUES (${cohortId}, ${userId}, NOW())
+        ON CONFLICT (cohort_id, participant_id) DO NOTHING
+      `);
+    }
+    res.json({ message: 'Members updated' });
+  } catch (error) {
+    console.error('Error updating cohort members:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/facilitators', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const rows = await db.execute(sql`
+      SELECT id, first_name || ' ' || last_name AS name
+      FROM users
+      WHERE role IN ('facilitator', 'admin')
+        AND deleted_at IS NULL
+      ORDER BY first_name, last_name
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching facilitators:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/users/available-for-cohort/:cohortId', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const rows = await db.execute(sql`
+      SELECT u.id, u.first_name AS "firstName", u.last_name AS "lastName", u.email, u.title
+      FROM users u
+      WHERE u.deleted_at IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM cohort_participants cp
+          WHERE cp.cohort_id = ${cohortId}
+            AND cp.participant_id = u.id
+        )
+      ORDER BY u.first_name, u.last_name
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching available users:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

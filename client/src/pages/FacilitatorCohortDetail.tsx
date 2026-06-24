@@ -29,6 +29,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft,
@@ -176,6 +183,11 @@ const FacilitatorCohortDetail: React.FC = () => {
   // Remove confirmation
   const [removeTarget, setRemoveTarget] = useState<Participant | null>(null);
 
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailTargetInvite, setEmailTargetInvite] = useState<PendingInvite | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+
   // Edit cohort modal state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState('');
@@ -249,6 +261,58 @@ const FacilitatorCohortDetail: React.FC = () => {
       }
     },
   });
+
+  const templatesQuery = useQuery({
+    queryKey: ['email-templates'],
+    queryFn: async () => {
+      const res = await fetch('/api/email-templates', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch templates');
+      const data = await res.json();
+      return (data.templates || []) as Array<{ id: number; name: string; subject: string }>;
+    },
+    enabled: showEmailModal,
+  });
+
+  const sendEmailMutation = useMutation({
+    mutationFn: async ({ inviteIds, templateId }: { inviteIds: number[]; templateId: number }) => {
+      const res = await fetch('/api/email-send/bulk', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteIds, templateId, senderIdentity: 'heliotrope' }),
+      });
+      if (!res.ok) throw new Error('Failed to send email');
+      return res.json();
+    },
+    onSuccess: (_, vars) => {
+      toast({
+        title: 'Email sent',
+        description: `Invite email sent to ${vars.inviteIds.length} recipient${vars.inviteIds.length !== 1 ? 's' : ''}.`,
+      });
+      setShowEmailModal(false);
+      setEmailTargetInvite(null);
+      setSelectedTemplateId('');
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to send email. Please try again.', variant: 'destructive' });
+    },
+  });
+
+  function openEmailModal(invite: PendingInvite | null) {
+    setEmailTargetInvite(invite);
+    setSelectedTemplateId('');
+    setShowEmailModal(true);
+  }
+
+  function handleSendEmail() {
+    const templateId = parseInt(selectedTemplateId);
+    if (!templateId) return;
+    const inviteIds = emailTargetInvite
+      ? [emailTargetInvite.id]
+      : pendingInvites.map((i) => i.id);
+    sendEmailMutation.mutate({ inviteIds, templateId });
+  }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -496,18 +560,15 @@ const FacilitatorCohortDetail: React.FC = () => {
               Invite Participant
             </Button>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" className="gap-2 opacity-60 cursor-not-allowed" disabled>
-                  <Mail className="h-4 w-4" />
-                  Send Email
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Email templates coming soon. You can copy invite links manually for now.</p>
-              </TooltipContent>
-            </Tooltip>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => openEmailModal(null)}
+              disabled={pendingInvites.length === 0}
+            >
+              <Mail className="h-4 w-4" />
+              Send Email
+            </Button>
           </div>
 
           {/* Participants Table */}
@@ -644,14 +705,13 @@ const FacilitatorCohortDetail: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="opacity-60 cursor-not-allowed"
-                                disabled
+                                onClick={() => openEmailModal(inv)}
                               >
                                 <RefreshCw className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Resend coming soon</p>
+                              <p>Send invite email</p>
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>
@@ -903,6 +963,62 @@ const FacilitatorCohortDetail: React.FC = () => {
             </form>
           </DialogContent>
         </Dialog>
+        {/* ── Send Email Modal ──────────────────────────────────────────────── */}
+        <Dialog open={showEmailModal} onOpenChange={(open) => {
+          setShowEmailModal(open);
+          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); }
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Send Invite Email</DialogTitle>
+              <DialogDescription>
+                {emailTargetInvite
+                  ? `Send an invite email to ${emailTargetInvite.name || emailTargetInvite.email}.`
+                  : `Send invite emails to all ${pendingInvites.length} pending invite${pendingInvites.length !== 1 ? 's' : ''}.`}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="template-select">Email Template</Label>
+                {templatesQuery.isLoading ? (
+                  <p className="text-sm text-slate-500">Loading templates...</p>
+                ) : (templatesQuery.data?.length ?? 0) === 0 ? (
+                  <p className="text-sm text-slate-500">
+                    No templates available. Create one in the Email Templates section.
+                  </p>
+                ) : (
+                  <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                    <SelectTrigger id="template-select">
+                      <SelectValue placeholder="Select a template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templatesQuery.data?.map((t) => (
+                        <SelectItem key={t.id} value={String(t.id)}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEmailModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendEmail}
+                disabled={!selectedTemplateId || sendEmailMutation.isPending}
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                {sendEmailMutation.isPending ? 'Sending...' : 'Send Email'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </TooltipProvider>
   );

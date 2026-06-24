@@ -68,42 +68,9 @@ export function CohortManagement() {
   const { data: cohorts, isLoading } = useQuery({
     queryKey: ['/api/admin/cohorts'],
     queryFn: async () => {
-      try {
-        // This will be implemented on the backend
-        // For now, return a placeholder array of cohorts
-        return [
-          {
-            id: 1,
-            name: 'AllStarTeams Workshop - Spring 2025',
-            description: 'Spring 2025 workshop for leadership teams',
-            startDate: '2025-05-01',
-            endDate: '2025-06-30',
-            status: 'active',
-            facilitatorId: 2,
-            facilitatorName: 'Jane Smith',
-            memberCount: 12
-          },
-          {
-            id: 2,
-            name: 'Imaginal Agility Workshop - Summer 2025',
-            description: 'Summer 2025 workshop focusing on agility training',
-            startDate: '2025-07-15',
-            endDate: '2025-08-30',
-            status: 'upcoming',
-            facilitatorId: 2,
-            facilitatorName: 'Jane Smith',
-            memberCount: 8
-          }
-        ] as Cohort[];
-      } catch (error) {
-        console.error('Failed to fetch cohorts:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load cohorts. Please try again.',
-          variant: 'destructive',
-        });
-        return [];
-      }
+      const res = await fetch('/api/admin/cohorts', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch cohorts');
+      return res.json() as Promise<Cohort[]>;
     },
   });
 
@@ -306,26 +273,22 @@ function AddCohortDialog({ open, onOpenChange, onSuccess }: AddCohortDialogProps
   const { data: facilitators = [] } = useQuery({
     queryKey: ['/api/admin/facilitators'],
     queryFn: async () => {
-      try {
-        // This will be implemented on the backend
-        // For now, return a placeholder array of facilitators
-        return [
-          { id: 2, name: 'Jane Smith' },
-          { id: 3, name: 'Bob Johnson' }
-        ] as Facilitator[];
-      } catch (error) {
-        console.error('Failed to fetch facilitators:', error);
-        return [];
-      }
+      const res = await fetch('/api/admin/facilitators', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch facilitators');
+      return res.json() as Promise<Facilitator[]>;
     },
   });
 
   const addCohortMutation = useMutation({
     mutationFn: async (cohortData: typeof formData) => {
-      // This will be implemented on the backend
-      // For now, just simulate a successful response
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true, id: Math.floor(Math.random() * 1000) };
+      const res = await fetch('/api/admin/cohorts', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cohortData),
+      });
+      if (!res.ok) throw new Error('Failed to create cohort');
+      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -354,6 +317,8 @@ function AddCohortDialog({ open, onOpenChange, onSuccess }: AddCohortDialogProps
       endDate: '',
       facilitatorId: '',
       status: 'upcoming',
+      cohortType: 'standard',
+      parentCohortId: '',
     });
   };
 
@@ -522,17 +487,9 @@ function EditCohortDialog({ cohort, open, onOpenChange, onSuccess }: EditCohortD
   const { data: facilitators = [] } = useQuery({
     queryKey: ['/api/admin/facilitators'],
     queryFn: async () => {
-      try {
-        // This will be implemented on the backend
-        // For now, return a placeholder array of facilitators
-        return [
-          { id: 2, name: 'Jane Smith' },
-          { id: 3, name: 'Bob Johnson' }
-        ] as Facilitator[];
-      } catch (error) {
-        console.error('Failed to fetch facilitators:', error);
-        return [];
-      }
+      const res = await fetch('/api/admin/facilitators', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch facilitators');
+      return res.json() as Promise<Facilitator[]>;
     },
   });
 
@@ -550,10 +507,14 @@ function EditCohortDialog({ cohort, open, onOpenChange, onSuccess }: EditCohortD
 
   const updateCohortMutation = useMutation({
     mutationFn: async (cohortData: typeof formData) => {
-      // This will be implemented on the backend
-      // For now, just simulate a successful response
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+      const res = await fetch(`/api/admin/cohorts/${cohort.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cohortData),
+      });
+      if (!res.ok) throw new Error('Failed to update cohort');
+      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -724,39 +685,22 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch cohort members
-  const { data: members = [] } = useQuery({
+  const { data: members = [], refetch: refetchMembers } = useQuery({
     queryKey: [`/api/admin/cohorts/${cohort.id}/members`],
     queryFn: async () => {
-      try {
-        // This will be implemented on the backend
-        // For now, return a placeholder array of members
-        return [
-          { id: 3, firstName: 'Test', lastName: 'User 3', title: 'Data Scientist' },
-          { id: 4, firstName: 'Test', lastName: 'User 4', title: 'Marketing Manager' }
-        ] as any as User[];
-      } catch (error) {
-        console.error('Failed to fetch cohort members:', error);
-        return [];
-      }
+      const res = await fetch(`/api/admin/cohorts/${cohort.id}/members`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch members');
+      return res.json() as Promise<User[]>;
     },
   });
 
   // Fetch available users (not already in the cohort)
-  const { data: availableUsers = [] } = useQuery({
+  const { data: availableUsers = [], refetch: refetchAvailable } = useQuery({
     queryKey: [`/api/admin/users/available-for-cohort/${cohort.id}`],
     queryFn: async () => {
-      try {
-        // This will be implemented on the backend
-        // For now, return a placeholder array of available users
-        return [
-          { id: 5, firstName: 'Test', lastName: 'User 5', title: 'Product Manager', email: 'user5@example.com' },
-          { id: 6, firstName: 'Test', lastName: 'User 6', title: 'UX Designer', email: 'user6@example.com' },
-          { id: 7, firstName: 'Test', lastName: 'User 7', title: 'Fullstack Developer', email: 'user7@example.com' }
-        ] as any as User[];
-      } catch (error) {
-        console.error('Failed to fetch available users:', error);
-        return [];
-      }
+      const res = await fetch(`/api/admin/users/available-for-cohort/${cohort.id}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch available users');
+      return res.json() as Promise<User[]>;
     },
   });
 
@@ -768,22 +712,27 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
   });
 
   const updateMembersMutation = useMutation({
-    mutationFn: async (userIds: number[]) => {
-      // This will be implemented on the backend
-      // For now, just simulate a successful response
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+    mutationFn: async ({ addUserIds = [], removeUserIds = [] }: { addUserIds?: number[]; removeUserIds?: number[] }) => {
+      const res = await fetch(`/api/admin/cohorts/${cohort.id}/members`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addUserIds, removeUserIds }),
+      });
+      if (!res.ok) throw new Error('Failed to update members');
+      return res.json();
     },
     onSuccess: () => {
       toast({
         title: 'Members updated',
         description: 'Cohort members have been updated successfully.',
       });
+      refetchMembers();
+      refetchAvailable();
+      setSelectedUserIds([]);
       onSuccess();
-      onOpenChange(false);
     },
-    onError: (error) => {
-      console.error('Error updating cohort members:', error);
+    onError: () => {
       toast({
         title: 'Error',
         description: 'Failed to update cohort members. Please try again.',
@@ -804,10 +753,14 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
 
     setIsSubmitting(true);
     try {
-      await updateMembersMutation.mutateAsync(selectedUserIds);
+      await updateMembersMutation.mutateAsync({ addUserIds: selectedUserIds });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRemoveMember = (userId: number) => {
+    updateMembersMutation.mutate({ removeUserIds: [userId] });
   };
 
   const toggleUserSelection = (userId: number) => {
@@ -857,6 +810,8 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
                             variant="ghost"
                             size="sm"
                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleRemoveMember(member.id)}
+                            disabled={updateMembersMutation.isPending}
                           >
                             Remove
                           </Button>
