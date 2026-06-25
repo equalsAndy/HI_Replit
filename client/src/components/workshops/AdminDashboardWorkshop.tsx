@@ -1541,7 +1541,7 @@ export default function AdminDashboardWorkshop() {
             )}
             Imaginal Agility
           </a>
-          <a href="/facilitator" style={{...styles.button, display: 'flex', alignItems: 'center', gap: '6px'}}>
+          <a href="/facilitator" target="_blank" rel="noopener noreferrer" style={{...styles.button, display: 'flex', alignItems: 'center', gap: '6px'}}>
             <GraduationCap size={16} />
             Facilitator Console
             <ExternalLink size={12} />
