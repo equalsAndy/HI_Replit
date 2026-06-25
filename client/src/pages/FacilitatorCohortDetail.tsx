@@ -50,6 +50,7 @@ import {
   MinusCircle,
   RefreshCw,
   UserPlus,
+  UserMinus,
   Clock,
   Pencil,
   AlertTriangle,
@@ -842,7 +843,7 @@ const FacilitatorCohortDetail: React.FC = () => {
                                   className="h-8 w-8 p-0 text-slate-400 hover:text-red-600"
                                   onClick={() => setRemoveTarget(p)}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <UserMinus className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent><p>Remove from cohort</p></TooltipContent>
