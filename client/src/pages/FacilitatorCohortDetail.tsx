@@ -140,7 +140,7 @@ async function fetchOrganizations() {
   return res.json();
 }
 
-async function bulkCreateInvites(cohortId: string, invitees: { email: string; name: string }[]) {
+async function bulkCreateInvites(cohortId: string, invitees: { email: string; name: string; jobTitle?: string; organization?: string }[]) {
   const res = await fetch(`/api/facilitator/cohorts/${cohortId}/invites/bulk`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -156,6 +156,8 @@ interface InviteeRow {
   key: string;
   name: string;
   email: string;
+  jobTitle: string;
+  organization: string;
 }
 
 // ── Status Badge Component ───────────────────────────────────────────────────
@@ -195,7 +197,7 @@ const FacilitatorCohortDetail: React.FC = () => {
 
   // Invite modal state — multi-row form
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteeRows, setInviteeRows] = useState<InviteeRow[]>([{ key: '1', name: '', email: '' }]);
+  const [inviteeRows, setInviteeRows] = useState<InviteeRow[]>([{ key: '1', name: '', email: '', jobTitle: '', organization: '' }]);
   const [inviteModalStep, setInviteModalStep] = useState<'form' | 'success'>('form');
   const [createdInvites, setCreatedInvites] = useState<any[]>([]);
   const [inviteErrors, setInviteErrors] = useState<string[]>([]);
@@ -269,7 +271,7 @@ const FacilitatorCohortDetail: React.FC = () => {
 
   const bulkInviteMutation = useMutation({
     mutationFn: (rows: InviteeRow[]) =>
-      bulkCreateInvites(cohortId, rows.map(r => ({ email: r.email, name: r.name }))),
+      bulkCreateInvites(cohortId, rows.map(r => ({ email: r.email, name: r.name, jobTitle: r.jobTitle, organization: r.organization }))),
     onSuccess: (data) => {
       setCreatedInvites(data.invites || []);
       setInviteErrors(data.errors || []);
@@ -442,19 +444,19 @@ const FacilitatorCohortDetail: React.FC = () => {
   }
 
   function addInviteeRow() {
-    setInviteeRows(rows => [...rows, { key: String(Date.now()), name: '', email: '' }]);
+    setInviteeRows(rows => [...rows, { key: String(Date.now()), name: '', email: '', jobTitle: '', organization: '' }]);
   }
 
   function removeInviteeRow(key: string) {
     setInviteeRows(rows => rows.filter(r => r.key !== key));
   }
 
-  function updateInviteeRow(key: string, field: 'name' | 'email', value: string) {
+  function updateInviteeRow(key: string, field: keyof Omit<InviteeRow, 'key'>, value: string) {
     setInviteeRows(rows => rows.map(r => r.key === key ? { ...r, [field]: value } : r));
   }
 
   function resetInviteModal() {
-    setInviteeRows([{ key: '1', name: '', email: '' }]);
+    setInviteeRows([{ key: '1', name: '', email: '', jobTitle: '', organization: '' }]);
     setInviteModalStep('form');
     setCreatedInvites([]);
     setInviteErrors([]);
@@ -951,36 +953,48 @@ const FacilitatorCohortDetail: React.FC = () => {
           setShowInviteModal(open);
           if (!open) resetInviteModal();
         }}>
-          <DialogContent className="sm:max-w-xl">
+          <DialogContent className="sm:max-w-4xl">
             {inviteModalStep === 'form' ? (
               <>
                 <DialogHeader>
                   <DialogTitle>Add Participants</DialogTitle>
                   <DialogDescription>
-                    Enter the name and email for each person you want to invite. Add as many rows as you need.
+                    Enter each person's details. Email is required; name, job title, and organization are optional but recommended.
                   </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmitInvites} className="space-y-4 pt-2">
                   <div className="space-y-2">
-                    <div className="grid grid-cols-[1fr_1fr_36px] gap-2 text-xs font-medium text-slate-500 px-1">
-                      <span>Name</span>
+                    <div className="grid grid-cols-[1fr_1.2fr_1fr_1fr_36px] gap-2 text-xs font-medium text-slate-500 px-1">
+                      <span>Full name</span>
                       <span>Email *</span>
+                      <span>Job title</span>
+                      <span>Organization</span>
                       <span />
                     </div>
                     {inviteeRows.map((row) => (
-                      <div key={row.key} className="grid grid-cols-[1fr_1fr_36px] gap-2 items-center">
+                      <div key={row.key} className="grid grid-cols-[1fr_1.2fr_1fr_1fr_36px] gap-2 items-center">
                         <Input
                           value={row.name}
                           onChange={(e) => updateInviteeRow(row.key, 'name', e.target.value)}
-                          placeholder="Full name"
+                          placeholder="Jane Smith"
                         />
                         <Input
                           type="email"
                           value={row.email}
                           onChange={(e) => updateInviteeRow(row.key, 'email', e.target.value)}
-                          placeholder="email@example.com"
+                          placeholder="jane@example.com"
                           required={inviteeRows.length === 1}
+                        />
+                        <Input
+                          value={row.jobTitle}
+                          onChange={(e) => updateInviteeRow(row.key, 'jobTitle', e.target.value)}
+                          placeholder="Product Manager"
+                        />
+                        <Input
+                          value={row.organization}
+                          onChange={(e) => updateInviteeRow(row.key, 'organization', e.target.value)}
+                          placeholder="Acme Corp"
                         />
                         <Button
                           type="button"

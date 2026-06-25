@@ -542,7 +542,7 @@ router.post('/cohorts/:cohortId/invites/bulk', requireAuth, isFacilitatorOrAdmin
     const cohort = await verifyCohortOwnership(cohortId, req, res);
     if (!cohort) return;
 
-    const { invitees } = req.body; // [{ email, name }]
+    const { invitees } = req.body; // [{ email, name, jobTitle?, organization? }]
     if (!Array.isArray(invitees) || invitees.length === 0) {
       return res.status(400).json({ success: false, error: 'invitees array is required' });
     }
@@ -559,6 +559,8 @@ router.post('/cohorts/:cohortId/invites/bulk', requireAuth, isFacilitatorOrAdmin
       const result = await inviteService.createInviteWithAssignment({
         email: invitee.email.trim(),
         name: invitee.name?.trim() || undefined,
+        jobTitle: invitee.jobTitle?.trim() || undefined,
+        organization: invitee.organization?.trim() || undefined,
         role: 'participant',
         cohortId,
         organizationId: cohort.organization_id ? String(cohort.organization_id) : null,
