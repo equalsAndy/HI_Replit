@@ -898,3 +898,19 @@ export type EmailImage = typeof emailImages.$inferSelect;
 export type InsertEmailImage = z.infer<typeof insertEmailImageSchema>;
 export type TemplateVariable = typeof templateVariables.$inferSelect;
 export type InsertTemplateVariable = z.infer<typeof insertTemplateVariableSchema>;
+
+// Workshop survey completions — one row per user per workshop slug
+export const workshopSurveyCompletions = pgTable('workshop_survey_completions', {
+  id:           serial('id').primaryKey(),
+  userId:       integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workshopSlug: varchar('workshop_slug', { length: 20 }).notNull(),
+  responses:    jsonb('responses').notNull().default('{}'),
+  submittedAt:  timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uniqueUserWorkshop: unique('unique_user_workshop_survey').on(table.userId, table.workshopSlug),
+  userIdIdx:          index('idx_wsc_user_id').on(table.userId),
+  workshopSlugIdx:    index('idx_wsc_workshop_slug').on(table.workshopSlug),
+}));
+export const insertWorkshopSurveyCompletionSchema = createInsertSchema(workshopSurveyCompletions);
+export type WorkshopSurveyCompletion = typeof workshopSurveyCompletions.$inferSelect;
+export type InsertWorkshopSurveyCompletion = z.infer<typeof insertWorkshopSurveyCompletionSchema>;

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -57,7 +59,9 @@ import {
   ShieldOff,
   ShieldCheck,
   Download,
+  Upload,
   LogIn,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -202,6 +206,9 @@ const FacilitatorCohortDetail: React.FC = () => {
   const [inviteModalStep, setInviteModalStep] = useState<'form' | 'success'>('form');
   const [createdInvites, setCreatedInvites] = useState<any[]>([]);
   const [inviteErrors, setInviteErrors] = useState<string[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [parseError, setParseError] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Remove confirmation
@@ -462,6 +469,8 @@ const FacilitatorCohortDetail: React.FC = () => {
     setCreatedInvites([]);
     setInviteErrors([]);
     setSelectedTemplateId('');
+    setParseError('');
+    setDragOver(false);
   }
 
   function handleSubmitInvites(e: React.FormEvent) {
@@ -470,6 +479,84 @@ const FacilitatorCohortDetail: React.FC = () => {
     if (!valid.length) return;
     bulkInviteMutation.mutate(valid);
   }
+
+  function downloadTemplate() {
+    const csv = 'Full name,Email,Job title,Organization\nJane Smith,jane@example.com,Product Manager,Acme Corp\n';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'participant-invite-template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function normalizeHeader(h: string) {
+    return h.toLowerCase().replace(/[\s_-]+/g, '');
+  }
+
+  function rowsFromData(headers: string[], data: string[][]): InviteeRow[] {
+    const idx = (candidates: string[]) => {
+      for (const c of candidates) {
+        const found = headers.findIndex(h => normalizeHeader(h) === c);
+        if (found !== -1) return found;
+      }
+      return -1;
+    };
+    const nameIdx   = idx(['fullname', 'name', 'firstname']);
+    const emailIdx  = idx(['email', 'emailaddress']);
+    const titleIdx  = idx(['jobtitle', 'title', 'position', 'role']);
+    const orgIdx    = idx(['organization', 'org', 'company', 'employer']);
+
+    return data
+      .filter(row => row.some(cell => cell?.trim()))
+      .map((row, i) => ({
+        key: `upload-${i}-${Date.now()}`,
+        name:         nameIdx  >= 0 ? (row[nameIdx]  || '').trim() : '',
+        email:        emailIdx >= 0 ? (row[emailIdx] || '').trim() : '',
+        jobTitle:     titleIdx >= 0 ? (row[titleIdx] || '').trim() : '',
+        organization: orgIdx   >= 0 ? (row[orgIdx]   || '').trim() : '',
+      }))
+      .filter(r => r.email);
+  }
+
+  const handleFileUpload = useCallback((file: File) => {
+    setParseError('');
+    const ext = file.name.split('.').pop()?.toLowerCase();
+
+    if (ext === 'csv') {
+      Papa.parse(file, {
+        skipEmptyLines: true,
+        complete: (result) => {
+          const [headers, ...data] = result.data as string[][];
+          if (!headers) { setParseError('Could not read file headers.'); return; }
+          const parsed = rowsFromData(headers, data);
+          if (!parsed.length) { setParseError('No valid rows found (email column required).'); return; }
+          setInviteeRows(parsed);
+        },
+        error: () => setParseError('Failed to parse CSV file.'),
+      });
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const wb = XLSX.read(e.target?.result, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const raw = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 }) as string[][];
+          const [headers, ...data] = raw;
+          if (!headers) { setParseError('Could not read file headers.'); return; }
+          const parsed = rowsFromData(headers.map(String), data.map(r => r.map(c => String(c ?? ''))));
+          if (!parsed.length) { setParseError('No valid rows found (email column required).'); return; }
+          setInviteeRows(parsed);
+        } catch {
+          setParseError('Failed to parse spreadsheet.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      setParseError('Please upload a .csv, .xlsx, or .xls file.');
+    }
+  }, []);
 
   // ── Data ─────────────────────────────────────────────────────────────────
 
@@ -965,6 +1052,60 @@ const FacilitatorCohortDetail: React.FC = () => {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmitInvites} className="space-y-4 pt-2">
+
+                  {/* Drop zone + template download */}
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-5 text-center transition-colors ${dragOver ? 'border-indigo-400 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragOver(false);
+                      const file = e.dataTransfer.files[0];
+                      if (file) handleFileUpload(file);
+                    }}
+                  >
+                    <FileSpreadsheet className="h-7 w-7 mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm text-slate-500 mb-3">
+                      Drop a CSV or Excel file here, or{' '}
+                      <button
+                        type="button"
+                        className="text-indigo-600 hover:underline font-medium"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        browse to upload
+                      </button>
+                    </p>
+                    <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="gap-1.5 text-xs">
+                      <Download className="h-3.5 w-3.5" />
+                      Download blank template
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file);
+                        e.target.value = '';
+                      }}
+                    />
+                  </div>
+
+                  {parseError && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertTriangle className="h-4 w-4" /> {parseError}
+                    </p>
+                  )}
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-2 text-xs text-slate-400">or enter manually</span>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <div className="grid grid-cols-[1fr_1.2fr_1fr_1fr_36px] gap-2 text-xs font-medium text-slate-500 px-1">
                       <span>Full name</span>

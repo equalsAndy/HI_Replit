@@ -21,6 +21,7 @@ import iaChatRoutes from './routes/ia-chat-routes.ts';
 import aiRoutes from './routes/ai.ts';
 import emailTemplateRoutes from './routes/email-template-routes.ts';
 import emailSendRoutes from './routes/email-send-routes.ts';
+import surveyRoutes from './routes/survey-routes.ts';
 
 // Create a router
 export const router = express.Router();
@@ -48,6 +49,8 @@ router.use('/ai', aiRoutes);
 router.use('/email-templates', emailTemplateRoutes);
 // Email sending routes
 router.use('/email-send', emailSendRoutes);
+// Workshop survey routes
+router.use('/surveys', surveyRoutes);
 // IA chat assistant routes
 router.use('/', iaChatRoutes);
 
