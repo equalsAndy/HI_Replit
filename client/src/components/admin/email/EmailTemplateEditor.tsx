@@ -143,7 +143,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false, underline: false }),
       TextStyle,
       FontSize,
       Color,
