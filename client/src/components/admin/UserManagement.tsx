@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage, RotateCcw, FileText, FileCode } from 'lucide-react';
+import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage, RotateCcw, FileText, FileCode, Ban } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -72,6 +72,7 @@ interface User {
   lastLoginAt?: string | null;
   deletedAt?: string;
   isDeleted: boolean;
+  disabledAt?: string | null;
 }
 
 // Form schema for creating new users (direct creation by admin)
@@ -602,6 +603,27 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
+  // Mutation for disabling/enabling a user account
+  const disableUserMutation = useMutation({
+    mutationFn: async ({ userId, disabled }: { userId: number; disabled: boolean }) => {
+      const res = await fetch(`/api/admin/users/${userId}/disable`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disabled }),
+      });
+      if (!res.ok) throw new Error('Failed to update account status');
+      return res.json();
+    },
+    onSuccess: (_, { disabled }) => {
+      toast({ title: disabled ? 'Account disabled' : 'Account re-enabled' });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
   // Track loading state per user
   const [loadingUsers, setLoadingUsers] = useState<Set<number>>(new Set());
 
@@ -1097,7 +1119,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                       </TableHeader>
                     <TableBody>
                       {filteredAndSortedUsers.map((user: User) => (
-                        <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
+                        <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : user.disabledAt ? 'bg-red-50/40' : ''}>
                           <TableCell className="w-[50px]">
                             <span className="font-mono text-xs text-muted-foreground">#{user.id}</span>
                           </TableCell>
@@ -1133,7 +1155,14 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 )}
                               </Avatar>
                               <div className="space-y-0.5 min-w-0">
-                                <p className="font-medium text-sm truncate">{user.name}</p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-medium text-sm truncate">{user.name}</p>
+                                  {user.disabledAt && (
+                                    <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
+                                      Disabled
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-xs text-muted-foreground truncate">{user.organization || 'No organization'}</p>
                               </div>
                             </div>
@@ -1492,6 +1521,23 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Delete all user assessment and progress data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className={`h-8 w-8 p-0 ${user.disabledAt ? 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200' : 'text-amber-600 hover:text-amber-800 hover:bg-amber-50 border-amber-200'}`}
+                                          onClick={() => disableUserMutation.mutate({ userId: user.id, disabled: !user.disabledAt })}
+                                          disabled={disableUserMutation.isPending}
+                                        >
+                                          <Ban className="h-3 w-3" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>{user.disabledAt ? 'Re-enable account' : 'Disable account (block login)'}</p>
                                       </TooltipContent>
                                     </Tooltip>
 
