@@ -106,6 +106,27 @@ interface PendingInvite {
   expires_at: string | null;
 }
 
+interface CohortSession {
+  id: number;
+  cohort_id: number;
+  program: string | null;
+  session_name: string;
+  subtitle: string | null;
+  format: string | null;
+  session_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  meeting_link: string | null;
+  whiteboard_link: string | null;
+  sort_order: number;
+}
+
+const BLANK_SESSION: Omit<CohortSession, 'id' | 'cohort_id' | 'sort_order'> = {
+  program: '', session_name: '', subtitle: '', format: '',
+  session_date: '', start_time: '', end_time: '',
+  meeting_link: '', whiteboard_link: '',
+};
+
 // ── API helpers ──────────────────────────────────────────────────────────────
 
 async function fetchCohortDetail(cohortId: string) {
@@ -297,6 +318,18 @@ const FacilitatorCohortDetail: React.FC = () => {
   const [emailTargetInvite, setEmailTargetInvite] = useState<PendingInvite | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [emailSelectedIds, setEmailSelectedIds] = useState<Set<number>>(new Set());
+  const [emailCc, setEmailCc] = useState<string>('');
+  const [emailBcc, setEmailBcc] = useState<string>('');
+
+  // Session modal state
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionModalMode, setSessionModalMode] = useState<'add' | 'edit'>('add');
+  const [sessionDraft, setSessionDraft] = useState<Omit<CohortSession, 'id' | 'cohort_id' | 'sort_order'>>(BLANK_SESSION);
+  const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
+
+  // Co-facilitator modal state
+  const [showCoFacilitatorModal, setShowCoFacilitatorModal] = useState(false);
+  const [coFacilitatorEmail, setCoFacilitatorEmail] = useState('');
 
   // Change organization modal state
   const [showChangeOrgModal, setShowChangeOrgModal] = useState(false);
@@ -346,6 +379,28 @@ const FacilitatorCohortDetail: React.FC = () => {
     queryKey: ['facilitator', 'cohorts'],
     queryFn: fetchFacilitatorCohorts,
     enabled: !!(moveInviteTarget || moveParticipantTarget),
+  });
+
+  const facilitatorsQuery = useQuery({
+    queryKey: ['facilitator', 'cohort', cohortId, 'facilitators'],
+    queryFn: async () => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/facilitators`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch facilitators');
+      const data = await res.json();
+      return (data.facilitators || []) as Array<{ id: number; name: string; email: string; role: 'primary' | 'secondary' }>;
+    },
+    enabled: !!cohortId,
+  });
+
+  const sessionsQuery = useQuery({
+    queryKey: ['facilitator', 'cohort', cohortId, 'sessions'],
+    queryFn: async () => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/sessions`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch sessions');
+      const data = await res.json();
+      return (data.sessions || []) as CohortSession[];
+    },
+    enabled: !!cohortId,
   });
 
   // ── Mutations ────────────────────────────────────────────────────────────
@@ -481,6 +536,115 @@ const FacilitatorCohortDetail: React.FC = () => {
     onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
   });
 
+  const addCoFacilitatorMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/facilitators`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to add co-facilitator');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'facilitators'] });
+      setShowCoFacilitatorModal(false);
+      setCoFacilitatorEmail('');
+      toast({ title: 'Co-facilitator added' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const removeCoFacilitatorMutation = useMutation({
+    mutationFn: async (facilId: number) => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/facilitators/${facilId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to remove co-facilitator');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'facilitators'] });
+      toast({ title: 'Co-facilitator removed' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const saveSessionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number | null; data: typeof sessionDraft }) => {
+      const url = id
+        ? `/api/facilitator/cohorts/${cohortId}/sessions/${id}`
+        : `/api/facilitator/cohorts/${cohortId}/sessions`;
+      const res = await fetch(url, {
+        method: id ? 'PATCH' : 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          program: data.program || null,
+          sessionName: data.session_name,
+          subtitle: data.subtitle || null,
+          format: data.format || null,
+          sessionDate: data.session_date || null,
+          startTime: data.start_time || null,
+          endTime: data.end_time || null,
+          meetingLink: data.meeting_link || null,
+          whiteboardLink: data.whiteboard_link || null,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Failed to save session');
+      return json;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'sessions'] });
+      setShowSessionModal(false);
+      setSessionDraft(BLANK_SESSION);
+      setEditingSessionId(null);
+      toast({ title: sessionModalMode === 'add' ? 'Session added' : 'Session updated' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (sessionId: number) => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/sessions/${sessionId}`, {
+        method: 'DELETE', credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to delete session');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'sessions'] });
+      toast({ title: 'Session deleted' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  function openAddSession() {
+    setSessionDraft(BLANK_SESSION);
+    setEditingSessionId(null);
+    setSessionModalMode('add');
+    setShowSessionModal(true);
+  }
+
+  function openEditSession(s: CohortSession) {
+    setSessionDraft({
+      program: s.program ?? '',
+      session_name: s.session_name,
+      subtitle: s.subtitle ?? '',
+      format: s.format ?? '',
+      session_date: s.session_date ?? '',
+      start_time: s.start_time ?? '',
+      end_time: s.end_time ?? '',
+      meeting_link: s.meeting_link ?? '',
+      whiteboard_link: s.whiteboard_link ?? '',
+    });
+    setEditingSessionId(s.id);
+    setSessionModalMode('edit');
+    setShowSessionModal(true);
+  }
+
   const templatesQuery = useQuery({
     queryKey: ['email-templates'],
     queryFn: async () => {
@@ -493,12 +657,12 @@ const FacilitatorCohortDetail: React.FC = () => {
   });
 
   const sendEmailMutation = useMutation({
-    mutationFn: async ({ inviteIds, templateId }: { inviteIds: number[]; templateId: number }) => {
+    mutationFn: async ({ inviteIds, templateId, cc, bcc }: { inviteIds: number[]; templateId: number; cc?: string[]; bcc?: string[] }) => {
       const res = await fetch('/api/email-send/bulk', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inviteIds, templateId, senderIdentity: 'heliotrope' }),
+        body: JSON.stringify({ inviteIds, templateId, senderIdentity: 'heliotrope', cc, bcc }),
       });
       if (!res.ok) throw new Error('Failed to send email');
       return res.json();
@@ -516,6 +680,8 @@ const FacilitatorCohortDetail: React.FC = () => {
         resetInviteModal();
       }
       setSelectedTemplateId('');
+      setEmailCc('');
+      setEmailBcc('');
       queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
     },
     onError: () => {
@@ -530,6 +696,11 @@ const FacilitatorCohortDetail: React.FC = () => {
     setShowEmailModal(true);
   }
 
+  function parseEmailList(raw: string): string[] | undefined {
+    const list = raw.split(',').map(s => s.trim()).filter(Boolean);
+    return list.length > 0 ? list : undefined;
+  }
+
   function handleSendEmail() {
     const templateId = parseInt(selectedTemplateId);
     if (!templateId) return;
@@ -537,7 +708,12 @@ const FacilitatorCohortDetail: React.FC = () => {
       ? [emailTargetInvite.id]
       : Array.from(emailSelectedIds);
     if (inviteIds.length === 0) return;
-    sendEmailMutation.mutate({ inviteIds, templateId });
+    sendEmailMutation.mutate({
+      inviteIds,
+      templateId,
+      cc: parseEmailList(emailCc),
+      bcc: parseEmailList(emailBcc),
+    });
   }
 
   function toggleEmailRecipient(id: number) {
@@ -740,6 +916,20 @@ const FacilitatorCohortDetail: React.FC = () => {
     );
   }
 
+  // isPrimary comes from the API; default true so the UI isn't broken before the flag arrives
+  const isPrimary: boolean = cohort.is_primary !== false;
+  const facilitators = facilitatorsQuery.data ?? [];
+  const secondaryFacilitators = facilitators.filter(f => f.role === 'secondary');
+  const sessions: CohortSession[] = sessionsQuery.data ?? [];
+
+  // Group sessions by program for display
+  const sessionsByProgram = sessions.reduce<Map<string, CohortSession[]>>((acc, s) => {
+    const key = s.program || '';
+    if (!acc.has(key)) acc.set(key, []);
+    acc.get(key)!.push(s);
+    return acc;
+  }, new Map());
+
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
@@ -762,14 +952,19 @@ const FacilitatorCohortDetail: React.FC = () => {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-semibold text-slate-900">{cohort.name}</h1>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-slate-400 hover:text-slate-600"
-                    onClick={openEditModal}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  {isPrimary && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400 hover:text-slate-600"
+                      onClick={openEditModal}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {!isPrimary && (
+                    <Badge variant="outline" className="border-indigo-300 text-indigo-600 text-xs">Co-facilitator</Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 mt-2 text-sm text-slate-500 flex-wrap">
                   {cohort.organization_name && (
@@ -910,32 +1105,73 @@ const FacilitatorCohortDetail: React.FC = () => {
                   <span className="text-slate-800">{cohort.description}</span>
                 </div>
               )}
+              {/* Facilitators row — always visible */}
+              <div className="sm:col-span-2 lg:col-span-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-slate-400">Facilitators</span>
+                  {isPrimary && secondaryFacilitators.length < 2 && (
+                    <button
+                      type="button"
+                      className="text-xs text-indigo-600 hover:underline"
+                      onClick={() => setShowCoFacilitatorModal(true)}
+                    >
+                      + Add co-facilitator
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {facilitatorsQuery.isLoading ? (
+                    <span className="text-sm text-slate-400 italic">Loading...</span>
+                  ) : facilitators.length === 0 ? (
+                    <span className="text-sm text-slate-400 italic">None</span>
+                  ) : facilitators.map((f) => (
+                    <div key={f.id} className="flex items-center gap-1.5 bg-slate-100 rounded-full px-3 py-0.5 text-sm">
+                      <span className="text-slate-700">{f.name}</span>
+                      {f.role === 'primary' && (
+                        <Badge variant="outline" className="border-indigo-300 text-indigo-600 text-xs px-1.5 py-0">Primary</Badge>
+                      )}
+                      {isPrimary && f.role === 'secondary' && (
+                        <button
+                          type="button"
+                          className="text-slate-400 hover:text-red-500 ml-0.5"
+                          onClick={() => removeCoFacilitatorMutation.mutate(f.id)}
+                          title="Remove co-facilitator"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-3 mb-6">
-            <Button
-              onClick={() => {
-                resetInviteModal();
-                setShowInviteModal(true);
-              }}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Invite Participant
-            </Button>
+          {/* Action buttons — write actions only available to primary facilitator */}
+          {isPrimary && (
+            <div className="flex items-center gap-3 mb-6">
+              <Button
+                onClick={() => {
+                  resetInviteModal();
+                  setShowInviteModal(true);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Invite Participant
+              </Button>
 
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => openEmailModal(null)}
-              disabled={pendingInvites.length === 0}
-            >
-              <Mail className="h-4 w-4" />
-              Send Email
-            </Button>
-          </div>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => openEmailModal(null)}
+                disabled={pendingInvites.length === 0}
+              >
+                <Mail className="h-4 w-4" />
+                Send Email
+              </Button>
+            </div>
+          )}
 
           {/* Participants Table */}
           <div className="bg-white rounded-lg border border-slate-200 mb-8">
@@ -1254,6 +1490,109 @@ const FacilitatorCohortDetail: React.FC = () => {
           </div>
         </div>
 
+        {/* ── Sessions ─────────────────────────────────────────────────────── */}
+        <div className="bg-white rounded-lg border border-slate-200 mb-8">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-lg font-medium text-slate-800">
+              Sessions
+              {sessions.length > 0 && (
+                <span className="text-sm font-normal text-slate-400 ml-2">({sessions.length})</span>
+              )}
+            </h2>
+            {isPrimary && (
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={openAddSession}>
+                <Plus className="h-3.5 w-3.5" />
+                Add Session
+              </Button>
+            )}
+          </div>
+
+          {sessionsQuery.isLoading ? (
+            <div className="text-center py-10 text-slate-400">Loading sessions...</div>
+          ) : sessions.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-slate-500 font-medium mb-1">No sessions yet</p>
+              {isPrimary && (
+                <p className="text-sm text-slate-400">Add your first session to include Zoom links and schedule in emails.</p>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[140px]">Program</TableHead>
+                    <TableHead>Session</TableHead>
+                    <TableHead>Format</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Links</TableHead>
+                    {isPrimary && <TableHead className="w-[80px]"></TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from(sessionsByProgram.entries()).map(([program, groupSessions], gi) =>
+                    groupSessions.map((s, si) => (
+                      <TableRow key={s.id}>
+                        {si === 0 ? (
+                          <TableCell rowSpan={groupSessions.length} className="align-top font-semibold text-slate-700 border-r border-slate-100 bg-slate-50/60">
+                            {program || <span className="text-slate-400 font-normal italic">—</span>}
+                          </TableCell>
+                        ) : null}
+                        <TableCell>
+                          <span className="font-medium">{s.session_name}</span>
+                          {s.subtitle && <span className="block text-xs text-slate-400">{s.subtitle}</span>}
+                        </TableCell>
+                        <TableCell className="text-slate-600">{s.format || <span className="text-slate-300">—</span>}</TableCell>
+                        <TableCell className="text-slate-600 whitespace-nowrap">
+                          {s.session_date
+                            ? new Date(s.session_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+                            : <span className="text-slate-300">—</span>}
+                        </TableCell>
+                        <TableCell className="text-slate-600 whitespace-nowrap">
+                          {(s.start_time || s.end_time)
+                            ? [s.start_time, s.end_time].filter(Boolean).join('–')
+                            : <span className="text-slate-300">—</span>}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            {s.meeting_link && (
+                              <a href={s.meeting_link} target="_blank" rel="noopener noreferrer"
+                                className="text-indigo-600 hover:underline text-sm flex items-center gap-1">
+                                <LogIn className="h-3 w-3" /> Meeting
+                              </a>
+                            )}
+                            {s.whiteboard_link && (
+                              <a href={s.whiteboard_link} target="_blank" rel="noopener noreferrer"
+                                className="text-purple-600 hover:underline text-sm flex items-center gap-1">
+                                <FileSpreadsheet className="h-3 w-3" /> Whiteboard
+                              </a>
+                            )}
+                            {!s.meeting_link && !s.whiteboard_link && <span className="text-slate-300">—</span>}
+                          </div>
+                        </TableCell>
+                        {isPrimary && (
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => openEditSession(s)}>
+                                <Pencil className="h-3.5 w-3.5 text-slate-400" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:text-red-600"
+                                onClick={() => deleteSessionMutation.mutate(s.id)}>
+                                <Trash2 className="h-3.5 w-3.5 text-slate-400 hover:text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+
         {/* ── Invite Modal ──────────────────────────────────────────────────── */}
         <Dialog open={showInviteModal} onOpenChange={(open) => {
           setShowInviteModal(open);
@@ -1474,6 +1813,30 @@ const FacilitatorCohortDetail: React.FC = () => {
                         </SelectContent>
                       </Select>
                     )}
+                    {selectedTemplateId && (
+                      <div className="space-y-2">
+                        <div>
+                          <label className="text-xs font-medium text-slate-600">CC <span className="text-slate-400 font-normal">(optional, comma-separated)</span></label>
+                          <input
+                            type="text"
+                            value={emailCc}
+                            onChange={(e) => setEmailCc(e.target.value)}
+                            placeholder="cc@example.com"
+                            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-slate-600">BCC <span className="text-slate-400 font-normal">(optional, comma-separated)</span></label>
+                          <input
+                            type="text"
+                            value={emailBcc}
+                            onChange={(e) => setEmailBcc(e.target.value)}
+                            placeholder="bcc@example.com"
+                            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1488,6 +1851,8 @@ const FacilitatorCohortDetail: React.FC = () => {
                       sendEmailMutation.mutate({
                         inviteIds: createdInvites.map(i => i.id),
                         templateId,
+                        cc: parseEmailList(emailCc),
+                        bcc: parseEmailList(emailBcc),
                       });
                     }}
                     disabled={!selectedTemplateId || sendEmailMutation.isPending}
@@ -1860,7 +2225,7 @@ const FacilitatorCohortDetail: React.FC = () => {
         {/* ── Send Email Modal ──────────────────────────────────────────────── */}
         <Dialog open={showEmailModal} onOpenChange={(open) => {
           setShowEmailModal(open);
-          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); setEmailSelectedIds(new Set()); }
+          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); setEmailSelectedIds(new Set()); setEmailCc(''); setEmailBcc(''); }
         }}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -1939,6 +2304,30 @@ const FacilitatorCohortDetail: React.FC = () => {
                   </Select>
                 )}
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email-cc">CC <span className="text-xs text-slate-400 font-normal">(optional, comma-separated)</span></Label>
+                <input
+                  id="email-cc"
+                  type="text"
+                  value={emailCc}
+                  onChange={(e) => setEmailCc(e.target.value)}
+                  placeholder="cc@example.com, another@example.com"
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email-bcc">BCC <span className="text-xs text-slate-400 font-normal">(optional, comma-separated)</span></Label>
+                <input
+                  id="email-bcc"
+                  type="text"
+                  value={emailBcc}
+                  onChange={(e) => setEmailBcc(e.target.value)}
+                  placeholder="bcc@example.com"
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
             </div>
 
             <DialogFooter>
@@ -1963,6 +2352,190 @@ const FacilitatorCohortDetail: React.FC = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+      {/* ── Add / Edit Session Modal ──────────────────────────────────────── */}
+      <Dialog open={showSessionModal} onOpenChange={(open) => {
+        setShowSessionModal(open);
+        if (!open) { setSessionDraft(BLANK_SESSION); setEditingSessionId(null); }
+      }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{sessionModalMode === 'add' ? 'Add Session' : 'Edit Session'}</DialogTitle>
+            <DialogDescription>
+              Add program, date, time, and meeting/whiteboard links. Use <code className="text-xs bg-slate-100 px-1 rounded">{'{{session_schedule_html}}'}</code> in email templates to include the full schedule automatically.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-4 py-2">
+            {/* Program */}
+            <div className="space-y-1.5">
+              <Label htmlFor="sess-program">Program</Label>
+              <input
+                id="sess-program"
+                list="program-suggestions"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="e.g. SELF AWARENESS"
+                value={sessionDraft.program ?? ''}
+                onChange={e => setSessionDraft(d => ({ ...d, program: e.target.value }))}
+              />
+              <datalist id="program-suggestions">
+                <option value="SELF AWARENESS" />
+                <option value="IMAGINAL AGILITY" />
+                <option value="ALLSTARTEAMS" />
+              </datalist>
+            </div>
+
+            {/* Session Name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="sess-name">Session Name <span className="text-red-500">*</span></Label>
+              <Input
+                id="sess-name"
+                placeholder="e.g. Session 1"
+                value={sessionDraft.session_name}
+                onChange={e => setSessionDraft(d => ({ ...d, session_name: e.target.value }))}
+              />
+            </div>
+
+            {/* Subtitle */}
+            <div className="space-y-1.5">
+              <Label htmlFor="sess-subtitle">Subtitle <span className="text-slate-400 text-xs font-normal">(optional)</span></Label>
+              <Input
+                id="sess-subtitle"
+                placeholder="e.g. Part One"
+                value={sessionDraft.subtitle ?? ''}
+                onChange={e => setSessionDraft(d => ({ ...d, subtitle: e.target.value }))}
+              />
+            </div>
+
+            {/* Format */}
+            <div className="space-y-1.5">
+              <Label htmlFor="sess-format">Format</Label>
+              <input
+                id="sess-format"
+                list="format-suggestions"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                placeholder="e.g. Web App"
+                value={sessionDraft.format ?? ''}
+                onChange={e => setSessionDraft(d => ({ ...d, format: e.target.value }))}
+              />
+              <datalist id="format-suggestions">
+                <option value="Web App" />
+                <option value="Whiteboard Workshop" />
+                <option value="In-Person" />
+                <option value="Hybrid" />
+              </datalist>
+            </div>
+
+            {/* Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="sess-date">Date</Label>
+              <Input
+                id="sess-date"
+                type="date"
+                value={sessionDraft.session_date ?? ''}
+                onChange={e => setSessionDraft(d => ({ ...d, session_date: e.target.value }))}
+              />
+            </div>
+
+            {/* Time range */}
+            <div className="space-y-1.5">
+              <Label>Time</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="4:00 PM"
+                  value={sessionDraft.start_time ?? ''}
+                  onChange={e => setSessionDraft(d => ({ ...d, start_time: e.target.value }))}
+                  className="flex-1"
+                />
+                <span className="text-slate-400 text-sm">–</span>
+                <Input
+                  placeholder="5:30 PM"
+                  value={sessionDraft.end_time ?? ''}
+                  onChange={e => setSessionDraft(d => ({ ...d, end_time: e.target.value }))}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            {/* Meeting Link */}
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="sess-meeting">Meeting / Video Call Link</Label>
+              <Input
+                id="sess-meeting"
+                type="url"
+                placeholder="https://us02web.zoom.us/j/..."
+                value={sessionDraft.meeting_link ?? ''}
+                onChange={e => setSessionDraft(d => ({ ...d, meeting_link: e.target.value }))}
+              />
+            </div>
+
+            {/* Whiteboard Link */}
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="sess-whiteboard">Whiteboard Link <span className="text-slate-400 text-xs font-normal">(optional — Miro, Mural, etc.)</span></Label>
+              <Input
+                id="sess-whiteboard"
+                type="url"
+                placeholder="https://miro.com/app/board/..."
+                value={sessionDraft.whiteboard_link ?? ''}
+                onChange={e => setSessionDraft(d => ({ ...d, whiteboard_link: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSessionModal(false)}>Cancel</Button>
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700"
+              disabled={!sessionDraft.session_name.trim() || saveSessionMutation.isPending}
+              onClick={() => saveSessionMutation.mutate({ id: editingSessionId, data: sessionDraft })}
+            >
+              {saveSessionMutation.isPending ? 'Saving...' : sessionModalMode === 'add' ? 'Add Session' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Add Co-facilitator Modal ──────────────────────────────────────── */}
+      <Dialog open={showCoFacilitatorModal} onOpenChange={(open) => {
+        setShowCoFacilitatorModal(open);
+        if (!open) setCoFacilitatorEmail('');
+      }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add Co-facilitator</DialogTitle>
+            <DialogDescription>
+              Enter the email address of another facilitator to give them read access to this cohort. You can add up to 2 co-facilitators.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label htmlFor="cofac-email">Facilitator Email</Label>
+            <Input
+              id="cofac-email"
+              type="email"
+              placeholder="facilitator@example.com"
+              value={coFacilitatorEmail}
+              onChange={(e) => setCoFacilitatorEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && coFacilitatorEmail.trim()) {
+                  addCoFacilitatorMutation.mutate(coFacilitatorEmail.trim());
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCoFacilitatorModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700"
+              disabled={!coFacilitatorEmail.trim() || addCoFacilitatorMutation.isPending}
+              onClick={() => addCoFacilitatorMutation.mutate(coFacilitatorEmail.trim())}
+            >
+              {addCoFacilitatorMutation.isPending ? 'Adding...' : 'Add Co-facilitator'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Change Organization Modal ──────────────────────────────────────── */}
       <Dialog open={showChangeOrgModal} onOpenChange={setShowChangeOrgModal}>
