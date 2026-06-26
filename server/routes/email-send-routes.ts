@@ -19,7 +19,7 @@ router.use((_req: Request, res: Response, next) => {
 /** POST /api/email-send/invite — send an email for a single invite */
 router.post('/invite', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
-    const { inviteId, templateId, senderIdentity } = req.body;
+    const { inviteId, templateId, senderIdentity, cc, bcc } = req.body;
     const sentBy = (req.session as any).userId;
 
     if (!inviteId || !templateId) {
@@ -36,6 +36,8 @@ router.post('/invite', requireAuth, isFacilitatorOrAdmin, async (req: Request, r
       templateId,
       senderIdentity: senderIdentity || 'heliotrope',
       sentBy,
+      cc: Array.isArray(cc) ? cc : undefined,
+      bcc: Array.isArray(bcc) ? bcc : undefined,
     });
 
     if (result.success) {
@@ -52,7 +54,7 @@ router.post('/invite', requireAuth, isFacilitatorOrAdmin, async (req: Request, r
 /** POST /api/email-send/bulk — send emails for multiple invites */
 router.post('/bulk', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
-    const { inviteIds, templateId, senderIdentity } = req.body;
+    const { inviteIds, templateId, senderIdentity, cc, bcc } = req.body;
     const sentBy = (req.session as any).userId;
 
     if (!inviteIds || !Array.isArray(inviteIds) || inviteIds.length === 0) {
@@ -67,6 +69,8 @@ router.post('/bulk', requireAuth, isFacilitatorOrAdmin, async (req: Request, res
       templateId,
       senderIdentity: senderIdentity || 'heliotrope',
       sentBy,
+      cc: Array.isArray(cc) ? cc : undefined,
+      bcc: Array.isArray(bcc) ? bcc : undefined,
     });
 
     res.json({ success: true, ...result });
@@ -79,7 +83,7 @@ router.post('/bulk', requireAuth, isFacilitatorOrAdmin, async (req: Request, res
 /** POST /api/email-send/test — send a test email (no invite required) */
 router.post('/test', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
-    const { to, subject, html, plainText, senderIdentity } = req.body;
+    const { to, subject, html, plainText, senderIdentity, cc, bcc } = req.body;
     const sentBy = (req.session as any).userId;
 
     if (!to || !subject) {
@@ -93,6 +97,8 @@ router.post('/test', requireAuth, isAdmin, async (req: Request, res: Response) =
       plainText,
       senderIdentity: senderIdentity || 'heliotrope',
       sentBy,
+      cc: Array.isArray(cc) ? cc : undefined,
+      bcc: Array.isArray(bcc) ? bcc : undefined,
     });
 
     if (result.success) {

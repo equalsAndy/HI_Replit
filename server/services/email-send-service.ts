@@ -16,6 +16,8 @@ class EmailSendService {
     templateId: number;
     senderIdentity: SenderIdentity;
     sentBy: number;
+    cc?: string[];
+    bcc?: string[];
   }): Promise<{ success: boolean; logId?: number; error?: string }> {
     // Build variables from the invite
     let variables: Record<string, any>;
@@ -68,6 +70,8 @@ class EmailSendService {
           Source: `${sender.name} <${sender.email}>`,
           Destination: {
             ToAddresses: [recipientEmail],
+            ...(opts.cc?.length ? { CcAddresses: opts.cc } : {}),
+            ...(opts.bcc?.length ? { BccAddresses: opts.bcc } : {}),
           },
           Message: {
             Subject: { Data: subject, Charset: 'UTF-8' },
@@ -116,6 +120,8 @@ class EmailSendService {
     plainText?: string;
     senderIdentity: SenderIdentity;
     sentBy: number;
+    cc?: string[];
+    bcc?: string[];
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     const sender = SENDER_IDENTITIES[opts.senderIdentity];
 
@@ -125,6 +131,8 @@ class EmailSendService {
           Source: `${sender.name} <${sender.email}>`,
           Destination: {
             ToAddresses: [opts.to],
+            ...(opts.cc?.length ? { CcAddresses: opts.cc } : {}),
+            ...(opts.bcc?.length ? { BccAddresses: opts.bcc } : {}),
           },
           Message: {
             Subject: { Data: opts.subject, Charset: 'UTF-8' },
@@ -200,6 +208,8 @@ class EmailSendService {
     templateId: number;
     senderIdentity: SenderIdentity;
     sentBy: number;
+    cc?: string[];
+    bcc?: string[];
   }): Promise<{ sent: number; failed: number; results: Array<{ inviteId: number; success: boolean; error?: string }> }> {
     const results: Array<{ inviteId: number; success: boolean; error?: string }> = [];
     let sent = 0;
@@ -211,6 +221,8 @@ class EmailSendService {
         templateId: opts.templateId,
         senderIdentity: opts.senderIdentity,
         sentBy: opts.sentBy,
+        cc: opts.cc,
+        bcc: opts.bcc,
       });
 
       results.push({ inviteId, success: result.success, error: result.error });

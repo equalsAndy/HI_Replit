@@ -318,6 +318,8 @@ const FacilitatorCohortDetail: React.FC = () => {
   const [emailTargetInvite, setEmailTargetInvite] = useState<PendingInvite | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [emailSelectedIds, setEmailSelectedIds] = useState<Set<number>>(new Set());
+  const [emailCc, setEmailCc] = useState<string>('');
+  const [emailBcc, setEmailBcc] = useState<string>('');
 
   // Session modal state
   const [showSessionModal, setShowSessionModal] = useState(false);
@@ -648,12 +650,12 @@ const FacilitatorCohortDetail: React.FC = () => {
   });
 
   const sendEmailMutation = useMutation({
-    mutationFn: async ({ inviteIds, templateId }: { inviteIds: number[]; templateId: number }) => {
+    mutationFn: async ({ inviteIds, templateId, cc, bcc }: { inviteIds: number[]; templateId: number; cc?: string[]; bcc?: string[] }) => {
       const res = await fetch('/api/email-send/bulk', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inviteIds, templateId, senderIdentity: 'heliotrope' }),
+        body: JSON.stringify({ inviteIds, templateId, senderIdentity: 'heliotrope', cc, bcc }),
       });
       if (!res.ok) throw new Error('Failed to send email');
       return res.json();
@@ -671,6 +673,8 @@ const FacilitatorCohortDetail: React.FC = () => {
         resetInviteModal();
       }
       setSelectedTemplateId('');
+      setEmailCc('');
+      setEmailBcc('');
       queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
     },
     onError: () => {
@@ -682,7 +686,14 @@ const FacilitatorCohortDetail: React.FC = () => {
     setEmailTargetInvite(invite);
     setSelectedTemplateId('');
     setEmailSelectedIds(invite ? new Set([invite.id]) : new Set(pendingInvites.map((i) => i.id)));
+    setEmailCc('');
+    setEmailBcc('');
     setShowEmailModal(true);
+  }
+
+  function parseEmailList(raw: string): string[] | undefined {
+    const list = raw.split(',').map(s => s.trim()).filter(Boolean);
+    return list.length > 0 ? list : undefined;
   }
 
   function handleSendEmail() {
@@ -692,7 +703,7 @@ const FacilitatorCohortDetail: React.FC = () => {
       ? [emailTargetInvite.id]
       : Array.from(emailSelectedIds);
     if (inviteIds.length === 0) return;
-    sendEmailMutation.mutate({ inviteIds, templateId });
+    sendEmailMutation.mutate({ inviteIds, templateId, cc: parseEmailList(emailCc), bcc: parseEmailList(emailBcc) });
   }
 
   function toggleEmailRecipient(id: number) {
@@ -1884,6 +1895,30 @@ const FacilitatorCohortDetail: React.FC = () => {
                         </SelectContent>
                       </Select>
                     )}
+                    {selectedTemplateId && (
+                      <div className="space-y-2">
+                        <div>
+                          <label className="text-xs font-medium text-slate-600">CC <span className="text-slate-400 font-normal">(optional, comma-separated)</span></label>
+                          <input
+                            type="text"
+                            value={emailCc}
+                            onChange={(e) => setEmailCc(e.target.value)}
+                            placeholder="cc@example.com"
+                            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-slate-600">BCC <span className="text-slate-400 font-normal">(optional, comma-separated)</span></label>
+                          <input
+                            type="text"
+                            value={emailBcc}
+                            onChange={(e) => setEmailBcc(e.target.value)}
+                            placeholder="bcc@example.com"
+                            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1898,6 +1933,8 @@ const FacilitatorCohortDetail: React.FC = () => {
                       sendEmailMutation.mutate({
                         inviteIds: createdInvites.map(i => i.id),
                         templateId,
+                        cc: parseEmailList(emailCc),
+                        bcc: parseEmailList(emailBcc),
                       });
                     }}
                     disabled={!selectedTemplateId || sendEmailMutation.isPending}
@@ -2270,7 +2307,7 @@ const FacilitatorCohortDetail: React.FC = () => {
         {/* ── Send Email Modal ──────────────────────────────────────────────── */}
         <Dialog open={showEmailModal} onOpenChange={(open) => {
           setShowEmailModal(open);
-          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); setEmailSelectedIds(new Set()); }
+          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); setEmailSelectedIds(new Set()); setEmailCc(''); setEmailBcc(''); }
         }}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -2348,6 +2385,30 @@ const FacilitatorCohortDetail: React.FC = () => {
                     </SelectContent>
                   </Select>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email-cc">CC <span className="text-xs text-slate-400 font-normal">(optional, comma-separated)</span></Label>
+                <input
+                  id="email-cc"
+                  type="text"
+                  value={emailCc}
+                  onChange={(e) => setEmailCc(e.target.value)}
+                  placeholder="cc@example.com, another@example.com"
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email-bcc">BCC <span className="text-xs text-slate-400 font-normal">(optional, comma-separated)</span></Label>
+                <input
+                  id="email-bcc"
+                  type="text"
+                  value={emailBcc}
+                  onChange={(e) => setEmailBcc(e.target.value)}
+                  placeholder="bcc@example.com"
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
               </div>
             </div>
 
