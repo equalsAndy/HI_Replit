@@ -71,6 +71,10 @@ export const cohorts = pgTable('cohorts', {
   astAccess: boolean('ast_access').default(false).notNull(),
   iaAccess: boolean('ia_access').default(false).notNull(),
   pmAccess: boolean('pm_access').default(false).notNull(),
+  // Participant flags — applied to all invites and participants in this cohort
+  isTestCohort: boolean('is_test_cohort').default(false).notNull(),
+  isBetaCohort: boolean('is_beta_cohort').default(false).notNull(),
+  showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -246,6 +250,7 @@ export const invites = pgTable('invites', {
   usedBy: integer('used_by'),
   cohortId: integer('cohort_id'),
   organizationId: varchar('organization_id', { length: 255 }),
+  isTestUser: boolean('is_test_user').default(false).notNull(),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   astAccess: boolean('ast_access').default(true).notNull(),
   iaAccess: boolean('ia_access').default(true).notNull(),

@@ -48,9 +48,12 @@ async function createOrganization(data: { name: string; description: string }) {
 async function createCohort(data: {
   name: string;
   description: string;
-  organizationId: number | null;
+  organizationId: string | null;
   astAccess: boolean;
   iaAccess: boolean;
+  isTestCohort?: boolean;
+  isBetaCohort?: boolean;
+  showDemoDataButtons?: boolean;
   startDate: string;
   endDate: string;
 }) {
@@ -81,9 +84,12 @@ const FacilitatorDashboard: React.FC = () => {
   // Form state — cohorts
   const [cohortName, setCohortName] = useState('');
   const [cohortDescription, setCohortDescription] = useState('');
-  const [cohortOrgId, setCohortOrgId] = useState<number | null>(null);
+  const [cohortOrgId, setCohortOrgId] = useState<string | null>(null);
   const [cohortAst, setCohortAst] = useState(true);
   const [cohortIa, setCohortIa] = useState(true);
+  const [cohortIsTest, setCohortIsTest] = useState(false);
+  const [cohortIsBeta, setCohortIsBeta] = useState(false);
+  const [cohortShowDemo, setCohortShowDemo] = useState(false);
   const [cohortStartDate, setCohortStartDate] = useState('');
   const [cohortEndDate, setCohortEndDate] = useState('');
 
@@ -121,6 +127,9 @@ const FacilitatorDashboard: React.FC = () => {
       setCohortOrgId(null);
       setCohortAst(true);
       setCohortIa(true);
+      setCohortIsTest(false);
+      setCohortIsBeta(false);
+      setCohortShowDemo(false);
       setCohortStartDate('');
       setCohortEndDate('');
     },
@@ -143,6 +152,9 @@ const FacilitatorDashboard: React.FC = () => {
       organizationId: cohortOrgId,
       astAccess: cohortAst,
       iaAccess: cohortIa,
+      isTestCohort: cohortIsTest,
+      isBetaCohort: cohortIsBeta,
+      showDemoDataButtons: cohortShowDemo,
       startDate: cohortStartDate,
       endDate: cohortEndDate,
     });
@@ -227,9 +239,19 @@ const FacilitatorDashboard: React.FC = () => {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {organizations.map((org: any) => (
-                  <Card key={org.id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={org.id}
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/facilitator/organizations/${org.id}`)}
+                  >
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base">{org.name}</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">{org.name}</CardTitle>
+                        <span className="flex items-center gap-1 text-xs text-slate-400">
+                          <Users className="h-3 w-3" />
+                          {org.cohort_count ?? 0} cohort{org.cohort_count !== 1 ? 's' : ''}
+                        </span>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       {org.description && (
@@ -446,7 +468,7 @@ const FacilitatorDashboard: React.FC = () => {
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={cohortOrgId ?? ''}
                 onChange={(e) =>
-                  setCohortOrgId(e.target.value ? Number(e.target.value) : null)
+                  setCohortOrgId(e.target.value || null)
                 }
               >
                 <option value="">None</option>
@@ -477,6 +499,23 @@ const FacilitatorDashboard: React.FC = () => {
                   checked={cohortIa}
                   onCheckedChange={setCohortIa}
                 />
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm text-slate-600 mb-2 block">Participant Flags</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                  <Label htmlFor="cohort-is-test" className="text-sm cursor-pointer">Test</Label>
+                  <Switch id="cohort-is-test" checked={cohortIsTest} onCheckedChange={setCohortIsTest} />
+                </div>
+                <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                  <Label htmlFor="cohort-is-beta" className="text-sm cursor-pointer">Beta</Label>
+                  <Switch id="cohort-is-beta" checked={cohortIsBeta} onCheckedChange={setCohortIsBeta} />
+                </div>
+                <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                  <Label htmlFor="cohort-show-demo" className="text-sm cursor-pointer">Demo Data</Label>
+                  <Switch id="cohort-show-demo" checked={cohortShowDemo} onCheckedChange={setCohortShowDemo} />
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

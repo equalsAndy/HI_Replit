@@ -38,6 +38,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft,
@@ -62,6 +69,9 @@ import {
   Upload,
   LogIn,
   FileSpreadsheet,
+  MoreHorizontal,
+  ArrowRight,
+  X,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -91,6 +101,7 @@ interface PendingInvite {
   invite_code: string;
   email: string;
   name: string | null;
+  created_by: number;
   created_at: string;
   expires_at: string | null;
 }
@@ -125,7 +136,7 @@ async function removeParticipant(cohortId: string, userId: number) {
 }
 
 async function updateCohort(cohortId: string, data: {
-  name?: string; description?: string; organizationId?: number | null;
+  name?: string; description?: string; organizationId?: string | null;
   startDate?: string | null; endDate?: string | null;
   astAccess?: boolean; iaAccess?: boolean;
 }) {
@@ -143,6 +154,54 @@ async function fetchOrganizations() {
   const res = await fetch('/api/facilitator/organizations', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch organizations');
   return res.json();
+}
+
+async function fetchFacilitatorCohorts() {
+  const res = await fetch('/api/facilitator/cohorts', { credentials: 'include' });
+  if (!res.ok) throw new Error('Failed to fetch cohorts');
+  return res.json();
+}
+
+async function deleteInvite(cohortId: string, inviteId: number) {
+  const res = await fetch(`/api/facilitator/cohorts/${cohortId}/invites/${inviteId}`, {
+    method: 'DELETE', credentials: 'include',
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) throw new Error(json.error || 'Failed to delete invite');
+  return json;
+}
+
+async function removeInviteFromCohort(cohortId: string, inviteId: number) {
+  const res = await fetch(`/api/facilitator/cohorts/${cohortId}/invites/${inviteId}/remove`, {
+    method: 'PATCH', credentials: 'include',
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) throw new Error(json.error || 'Failed to remove invite');
+  return json;
+}
+
+async function moveInvite(cohortId: string, inviteId: number, targetCohortId: number) {
+  const res = await fetch(`/api/facilitator/cohorts/${cohortId}/invites/${inviteId}/move`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ targetCohortId }),
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) throw new Error(json.error || 'Failed to move invite');
+  return json;
+}
+
+async function moveParticipant(cohortId: string, userId: number, targetCohortId: number) {
+  const res = await fetch(`/api/facilitator/cohorts/${cohortId}/participants/${userId}/move`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ targetCohortId }),
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) throw new Error(json.error || 'Failed to move participant');
+  return json;
 }
 
 async function bulkCreateInvites(cohortId: string, invitees: { email: string; name: string; jobTitle?: string; organization?: string }[]) {
@@ -225,20 +284,36 @@ const FacilitatorCohortDetail: React.FC = () => {
   // Disable/enable confirmation
   const [disableTarget, setDisableTarget] = useState<Participant | null>(null);
 
+  // Delete invite confirmation
+  const [deleteInviteTarget, setDeleteInviteTarget] = useState<PendingInvite | null>(null);
+
+  // Move modal (invite or participant)
+  const [moveInviteTarget, setMoveInviteTarget] = useState<PendingInvite | null>(null);
+  const [moveParticipantTarget, setMoveParticipantTarget] = useState<Participant | null>(null);
+  const [moveTargetCohortId, setMoveTargetCohortId] = useState<string>('');
+
   // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailTargetInvite, setEmailTargetInvite] = useState<PendingInvite | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [emailSelectedIds, setEmailSelectedIds] = useState<Set<number>>(new Set());
+
+  // Change organization modal state
+  const [showChangeOrgModal, setShowChangeOrgModal] = useState(false);
+  const [changeOrgId, setChangeOrgId] = useState<string>('');
 
   // Edit cohort modal state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editOrgId, setEditOrgId] = useState<number | null>(null);
+  const [editOrgId, setEditOrgId] = useState<string | null>(null);
   const [editStartDate, setEditStartDate] = useState('');
   const [editEndDate, setEditEndDate] = useState('');
   const [editAstAccess, setEditAstAccess] = useState(true);
   const [editIaAccess, setEditIaAccess] = useState(true);
+  const [editIsTestCohort, setEditIsTestCohort] = useState(false);
+  const [editIsBetaCohort, setEditIsBetaCohort] = useState(false);
+  const [editShowDemoData, setEditShowDemoData] = useState(false);
 
   const { toast } = useToast();
 
@@ -265,6 +340,12 @@ const FacilitatorCohortDetail: React.FC = () => {
   const orgsQuery = useQuery({
     queryKey: ['facilitator', 'organizations'],
     queryFn: fetchOrganizations,
+  });
+
+  const allCohortsQuery = useQuery({
+    queryKey: ['facilitator', 'cohorts'],
+    queryFn: fetchFacilitatorCohorts,
+    enabled: !!(moveInviteTarget || moveParticipantTarget),
   });
 
   // ── Mutations ────────────────────────────────────────────────────────────
@@ -329,6 +410,50 @@ const FacilitatorCohortDetail: React.FC = () => {
     },
   });
 
+  const deleteInviteMutation = useMutation({
+    mutationFn: (inviteId: number) => deleteInvite(cohortId, inviteId),
+    onSuccess: () => {
+      toast({ title: 'Invite deleted' });
+      setDeleteInviteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const removeInviteMutation = useMutation({
+    mutationFn: (inviteId: number) => removeInviteFromCohort(cohortId, inviteId),
+    onSuccess: () => {
+      toast({ title: 'Invite removed from cohort' });
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const moveInviteMutation = useMutation({
+    mutationFn: ({ inviteId, targetCohortId }: { inviteId: number; targetCohortId: number }) =>
+      moveInvite(cohortId, inviteId, targetCohortId),
+    onSuccess: () => {
+      toast({ title: 'Invite moved' });
+      setMoveInviteTarget(null);
+      setMoveTargetCohortId('');
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const moveParticipantMutation = useMutation({
+    mutationFn: ({ userId, targetCohortId }: { userId: number; targetCohortId: number }) =>
+      moveParticipant(cohortId, userId, targetCohortId),
+    onSuccess: () => {
+      toast({ title: 'Participant moved' });
+      setMoveParticipantTarget(null);
+      setMoveTargetCohortId('');
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'participants'] });
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
   const editMutation = useMutation({
     mutationFn: (data: Parameters<typeof updateCohort>[1]) => updateCohort(cohortId, data),
     onSuccess: (data) => {
@@ -337,11 +462,23 @@ const FacilitatorCohortDetail: React.FC = () => {
       setShowEditModal(false);
       if (data.propagatedCount > 0) {
         toast({
-          title: 'Workshop access updated',
-          description: `Workshop access updated for ${data.propagatedCount} participant${data.propagatedCount !== 1 ? 's' : ''}.`,
+          title: 'Cohort settings updated',
+          description: `Flags updated for ${data.propagatedCount} participant${data.propagatedCount !== 1 ? 's' : ''} and all pending invites.`,
         });
       }
     },
+  });
+
+  const changeOrgMutation = useMutation({
+    mutationFn: (organizationId: string | null) => updateCohort(cohortId, { organizationId: organizationId || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId] });
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'organizations'] });
+      setShowChangeOrgModal(false);
+      toast({ title: 'Organization updated' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
   });
 
   const templatesQuery = useQuery({
@@ -389,6 +526,7 @@ const FacilitatorCohortDetail: React.FC = () => {
   function openEmailModal(invite: PendingInvite | null) {
     setEmailTargetInvite(invite);
     setSelectedTemplateId('');
+    setEmailSelectedIds(invite ? new Set([invite.id]) : new Set(pendingInvites.map((i) => i.id)));
     setShowEmailModal(true);
   }
 
@@ -397,8 +535,17 @@ const FacilitatorCohortDetail: React.FC = () => {
     if (!templateId) return;
     const inviteIds = emailTargetInvite
       ? [emailTargetInvite.id]
-      : pendingInvites.map((i) => i.id);
+      : Array.from(emailSelectedIds);
+    if (inviteIds.length === 0) return;
     sendEmailMutation.mutate({ inviteIds, templateId });
+  }
+
+  function toggleEmailRecipient(id: number) {
+    setEmailSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -412,6 +559,9 @@ const FacilitatorCohortDetail: React.FC = () => {
     setEditEndDate(cohort.end_date ? new Date(cohort.end_date).toISOString().split('T')[0] : '');
     setEditAstAccess(cohort.ast_access ?? true);
     setEditIaAccess(cohort.ia_access ?? true);
+    setEditIsTestCohort(cohort.is_test_cohort ?? false);
+    setEditIsBetaCohort(cohort.is_beta_cohort ?? false);
+    setEditShowDemoData(cohort.show_demo_data_buttons ?? false);
     setShowEditModal(true);
   }
 
@@ -426,6 +576,9 @@ const FacilitatorCohortDetail: React.FC = () => {
       endDate: editEndDate || null,
       astAccess: editAstAccess,
       iaAccess: editIaAccess,
+      isTestCohort: editIsTestCohort,
+      isBetaCohort: editIsBetaCohort,
+      showDemoDataButtons: editShowDemoData,
     });
   }
 
@@ -671,9 +824,22 @@ const FacilitatorCohortDetail: React.FC = () => {
             <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 text-sm">
               <div>
                 <span className="text-slate-400 block mb-1">Organization</span>
-                <span className="text-slate-800 font-medium">
-                  {cohort.organization_name || <span className="text-slate-400 font-normal italic">None</span>}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-800 font-medium">
+                    {cohort.organization_name || <span className="text-slate-400 font-normal italic">None</span>}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-slate-500 hover:text-slate-700"
+                    onClick={() => {
+                      setChangeOrgId(cohort.organization_id ?? '');
+                      setShowChangeOrgModal(true);
+                    }}
+                  >
+                    Change
+                  </Button>
+                </div>
               </div>
               <div>
                 <span className="text-slate-400 block mb-1">Status</span>
@@ -701,14 +867,27 @@ const FacilitatorCohortDetail: React.FC = () => {
                   {cohort.ia_access && (
                     <Badge variant="outline" className="border-purple-300 text-purple-700">IA</Badge>
                   )}
-                  {cohort.pm_access && (
-                    <Badge variant="outline" className="border-amber-300 text-amber-700">PM</Badge>
-                  )}
-                  {!cohort.ast_access && !cohort.ia_access && !cohort.pm_access && (
+                  {!cohort.ast_access && !cohort.ia_access && (
                     <span className="text-slate-400 italic">None</span>
                   )}
                 </div>
               </div>
+              {(cohort.is_test_cohort || cohort.is_beta_cohort || cohort.show_demo_data_buttons) && (
+                <div>
+                  <span className="text-slate-400 block mb-1">Participant Flags</span>
+                  <div className="flex gap-2 flex-wrap">
+                    {cohort.is_test_cohort && (
+                      <Badge variant="outline" className="border-slate-300 text-slate-600">Test</Badge>
+                    )}
+                    {cohort.is_beta_cohort && (
+                      <Badge variant="outline" className="border-emerald-300 text-emerald-700">Beta</Badge>
+                    )}
+                    {cohort.show_demo_data_buttons && (
+                      <Badge variant="outline" className="border-orange-300 text-orange-700">Demo Data</Badge>
+                    )}
+                  </div>
+                </div>
+              )}
               <div>
                 <span className="text-slate-400 block mb-1">Start Date</span>
                 <span className="text-slate-800 font-medium">
@@ -927,6 +1106,20 @@ const FacilitatorCohortDetail: React.FC = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  className="h-8 w-8 p-0 text-slate-400 hover:text-slate-600"
+                                  onClick={() => { setMoveParticipantTarget(p); setMoveTargetCohortId(''); }}
+                                >
+                                  <ArrowRight className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Move to another cohort</p></TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   className="h-8 w-8 p-0 text-slate-400 hover:text-red-600"
                                   onClick={() => setRemoveTarget(p)}
                                 >
@@ -1012,20 +1205,45 @@ const FacilitatorCohortDetail: React.FC = () => {
                             : '\u2014'}
                         </TableCell>
                         <TableCell>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEmailModal(inv)}
-                              >
-                                <RefreshCw className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Send invite email</p>
-                            </TooltipContent>
-                          </Tooltip>
+                          <div className="flex items-center gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEmailModal(inv)}>
+                                  <RefreshCw className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Send invite email</p></TooltipContent>
+                            </Tooltip>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setMoveInviteTarget(inv); setMoveTargetCohortId(''); }}>
+                                  <ArrowRight className="h-4 w-4 mr-2" />
+                                  Move to cohort…
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => removeInviteMutation.mutate(inv.id)}>
+                                  <X className="h-4 w-4 mr-2" />
+                                  Remove from cohort
+                                </DropdownMenuItem>
+                                {inv.created_by === cohort?.facilitator_id && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-red-600 focus:text-red-600"
+                                      onClick={() => setDeleteInviteTarget(inv)}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete invite
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -1402,6 +1620,119 @@ const FacilitatorCohortDetail: React.FC = () => {
           </DialogContent>
         </Dialog>
 
+        {/* ── Delete Invite Confirmation ────────────────────────────────────── */}
+        <Dialog open={!!deleteInviteTarget} onOpenChange={(open) => !open && setDeleteInviteTarget(null)}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete Invite</DialogTitle>
+              <DialogDescription>
+                Permanently delete the invite for <strong>{deleteInviteTarget?.email}</strong>? The invite
+                link will stop working. This cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteInviteTarget(null)}>Cancel</Button>
+              <Button
+                variant="destructive"
+                disabled={deleteInviteMutation.isPending}
+                onClick={() => deleteInviteTarget && deleteInviteMutation.mutate(deleteInviteTarget.id)}
+              >
+                {deleteInviteMutation.isPending ? 'Deleting…' : 'Delete Invite'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Move Invite Dialog ────────────────────────────────────────────── */}
+        <Dialog
+          open={!!moveInviteTarget}
+          onOpenChange={(open) => { if (!open) { setMoveInviteTarget(null); setMoveTargetCohortId(''); } }}
+        >
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Move Invite to Cohort</DialogTitle>
+              <DialogDescription>
+                Move the invite for <strong>{moveInviteTarget?.email}</strong> to a different cohort.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-2">
+              <Label className="mb-2 block">Select cohort</Label>
+              <Select value={moveTargetCohortId} onValueChange={setMoveTargetCohortId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a cohort…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(allCohortsQuery.data?.cohorts ?? [])
+                    .filter((c: any) => String(c.id) !== cohortId)
+                    .map((c: any) => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setMoveInviteTarget(null); setMoveTargetCohortId(''); }}>
+                Cancel
+              </Button>
+              <Button
+                disabled={!moveTargetCohortId || moveInviteMutation.isPending}
+                onClick={() => {
+                  if (moveInviteTarget && moveTargetCohortId) {
+                    moveInviteMutation.mutate({ inviteId: moveInviteTarget.id, targetCohortId: parseInt(moveTargetCohortId) });
+                  }
+                }}
+              >
+                {moveInviteMutation.isPending ? 'Moving…' : 'Move Invite'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Move Participant Dialog ───────────────────────────────────────── */}
+        <Dialog
+          open={!!moveParticipantTarget}
+          onOpenChange={(open) => { if (!open) { setMoveParticipantTarget(null); setMoveTargetCohortId(''); } }}
+        >
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Move Participant to Cohort</DialogTitle>
+              <DialogDescription>
+                Move <strong>{moveParticipantTarget?.name}</strong> to a different cohort. Their invite (if any) will move with them.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-2">
+              <Label className="mb-2 block">Select cohort</Label>
+              <Select value={moveTargetCohortId} onValueChange={setMoveTargetCohortId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a cohort…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(allCohortsQuery.data?.cohorts ?? [])
+                    .filter((c: any) => String(c.id) !== cohortId)
+                    .map((c: any) => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setMoveParticipantTarget(null); setMoveTargetCohortId(''); }}>
+                Cancel
+              </Button>
+              <Button
+                disabled={!moveTargetCohortId || moveParticipantMutation.isPending}
+                onClick={() => {
+                  if (moveParticipantTarget && moveTargetCohortId) {
+                    moveParticipantMutation.mutate({ userId: moveParticipantTarget.id, targetCohortId: parseInt(moveTargetCohortId) });
+                  }
+                }}
+              >
+                {moveParticipantMutation.isPending ? 'Moving…' : 'Move Participant'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* ── Edit Cohort Modal ─────────────────────────────────────────────── */}
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
           <DialogContent className="sm:max-w-lg">
@@ -1436,7 +1767,7 @@ const FacilitatorCohortDetail: React.FC = () => {
                   id="edit-org"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   value={editOrgId ?? ''}
-                  onChange={(e) => setEditOrgId(e.target.value ? Number(e.target.value) : null)}
+                  onChange={(e) => setEditOrgId(e.target.value || null)}
                 >
                   <option value="">None</option>
                   {(orgsQuery.data?.organizations ?? []).map((org: any) => (
@@ -1455,13 +1786,38 @@ const FacilitatorCohortDetail: React.FC = () => {
                 </div>
               </div>
 
-              {/* Warning banner when access flags differ from current */}
-              {cohort && (editAstAccess !== (cohort.ast_access ?? true) || editIaAccess !== (cohort.ia_access ?? true)) && (
+              {/* Participant flags */}
+              <div>
+                <Label className="text-sm text-slate-600 mb-2 block">Participant Flags</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                    <Label htmlFor="edit-is-test" className="text-sm cursor-pointer">Test</Label>
+                    <Switch id="edit-is-test" checked={editIsTestCohort} onCheckedChange={setEditIsTestCohort} />
+                  </div>
+                  <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                    <Label htmlFor="edit-is-beta" className="text-sm cursor-pointer">Beta</Label>
+                    <Switch id="edit-is-beta" checked={editIsBetaCohort} onCheckedChange={setEditIsBetaCohort} />
+                  </div>
+                  <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                    <Label htmlFor="edit-show-demo" className="text-sm cursor-pointer">Demo Data</Label>
+                    <Switch id="edit-show-demo" checked={editShowDemoData} onCheckedChange={setEditShowDemoData} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Warning banner when any flag differs from current */}
+              {cohort && (
+                editAstAccess !== (cohort.ast_access ?? true) ||
+                editIaAccess !== (cohort.ia_access ?? true) ||
+                editIsTestCohort !== (cohort.is_test_cohort ?? false) ||
+                editIsBetaCohort !== (cohort.is_beta_cohort ?? false) ||
+                editShowDemoData !== (cohort.show_demo_data_buttons ?? false)
+              ) && (
                 <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
                   <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
                   <p className="text-sm text-amber-800">
-                    Changing workshop access will immediately update access for all{' '}
-                    <strong>{participants.length}</strong> current participant{participants.length !== 1 ? 's' : ''} in this cohort.
+                    Flag changes will immediately update all{' '}
+                    <strong>{participants.length}</strong> current participant{participants.length !== 1 ? 's' : ''} and all pending invites in this cohort.
                   </p>
                 </div>
               )}
@@ -1504,19 +1860,62 @@ const FacilitatorCohortDetail: React.FC = () => {
         {/* ── Send Email Modal ──────────────────────────────────────────────── */}
         <Dialog open={showEmailModal} onOpenChange={(open) => {
           setShowEmailModal(open);
-          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); }
+          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); setEmailSelectedIds(new Set()); }
         }}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Send Invite Email</DialogTitle>
               <DialogDescription>
                 {emailTargetInvite
                   ? `Send an invite email to ${emailTargetInvite.name || emailTargetInvite.email}.`
-                  : `Send invite emails to all ${pendingInvites.length} pending invite${pendingInvites.length !== 1 ? 's' : ''}.`}
+                  : `Select recipients and choose a template.`}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
+              {/* Recipient checklist — only shown in bulk mode */}
+              {!emailTargetInvite && pendingInvites.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Recipients</Label>
+                    <button
+                      type="button"
+                      className="text-xs text-indigo-600 hover:underline"
+                      onClick={() =>
+                        setEmailSelectedIds(
+                          emailSelectedIds.size === pendingInvites.length
+                            ? new Set()
+                            : new Set(pendingInvites.map((i) => i.id))
+                        )
+                      }
+                    >
+                      {emailSelectedIds.size === pendingInvites.length ? 'Deselect all' : 'Select all'}
+                    </button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto rounded-md border border-slate-200 divide-y divide-slate-100">
+                    {pendingInvites.map((inv) => (
+                      <label
+                        key={inv.id}
+                        className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50"
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          checked={emailSelectedIds.has(inv.id)}
+                          onChange={() => toggleEmailRecipient(inv.id)}
+                        />
+                        <span className="text-sm text-slate-700 truncate">
+                          {inv.name ? `${inv.name} — ${inv.email}` : inv.email}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {emailSelectedIds.size} of {pendingInvites.length} selected
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="template-select">Email Template</Label>
                 {templatesQuery.isLoading ? (
@@ -1548,14 +1947,60 @@ const FacilitatorCohortDetail: React.FC = () => {
               </Button>
               <Button
                 onClick={handleSendEmail}
-                disabled={!selectedTemplateId || sendEmailMutation.isPending}
+                disabled={
+                  !selectedTemplateId ||
+                  sendEmailMutation.isPending ||
+                  (!emailTargetInvite && emailSelectedIds.size === 0)
+                }
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                {sendEmailMutation.isPending ? 'Sending...' : 'Send Email'}
+                {sendEmailMutation.isPending
+                  ? 'Sending...'
+                  : emailTargetInvite
+                  ? 'Send Email'
+                  : `Send to ${emailSelectedIds.size}`}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+      {/* ── Change Organization Modal ──────────────────────────────────────── */}
+      <Dialog open={showChangeOrgModal} onOpenChange={setShowChangeOrgModal}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Change Organization</DialogTitle>
+            <DialogDescription>
+              Move this cohort to a different organization, or remove it from any organization.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label htmlFor="change-org-select">Organization</Label>
+            <select
+              id="change-org-select"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={changeOrgId}
+              onChange={(e) => setChangeOrgId(e.target.value)}
+            >
+              <option value="">— None —</option>
+              {(orgsQuery.data?.organizations ?? []).map((org: any) => (
+                <option key={org.id} value={org.id}>{org.name}</option>
+              ))}
+            </select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowChangeOrgModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700"
+              disabled={changeOrgMutation.isPending}
+              onClick={() => changeOrgMutation.mutate(changeOrgId || null)}
+            >
+              {changeOrgMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       </div>
     </TooltipProvider>
