@@ -106,6 +106,27 @@ interface PendingInvite {
   expires_at: string | null;
 }
 
+interface CohortSession {
+  id: number;
+  cohort_id: number;
+  program: string | null;
+  session_name: string;
+  subtitle: string | null;
+  format: string | null;
+  session_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  meeting_link: string | null;
+  whiteboard_link: string | null;
+  sort_order: number;
+}
+
+const BLANK_SESSION: Omit<CohortSession, 'id' | 'cohort_id' | 'sort_order'> = {
+  program: '', session_name: '', subtitle: '', format: '',
+  session_date: '', start_time: '', end_time: '',
+  meeting_link: '', whiteboard_link: '',
+};
+
 // ── API helpers ──────────────────────────────────────────────────────────────
 
 async function fetchCohortDetail(cohortId: string) {
@@ -298,6 +319,16 @@ const FacilitatorCohortDetail: React.FC = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [emailSelectedIds, setEmailSelectedIds] = useState<Set<number>>(new Set());
 
+  // Session modal state
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionModalMode, setSessionModalMode] = useState<'add' | 'edit'>('add');
+  const [sessionDraft, setSessionDraft] = useState<Omit<CohortSession, 'id' | 'cohort_id' | 'sort_order'>>(BLANK_SESSION);
+  const [editingSessionId, setEditingSessionId] = useState<number | null>(null);
+
+  // Co-facilitator modal state
+  const [showCoFacilitatorModal, setShowCoFacilitatorModal] = useState(false);
+  const [coFacilitatorEmail, setCoFacilitatorEmail] = useState('');
+
   // Change organization modal state
   const [showChangeOrgModal, setShowChangeOrgModal] = useState(false);
   const [changeOrgId, setChangeOrgId] = useState<string>('');
@@ -346,6 +377,28 @@ const FacilitatorCohortDetail: React.FC = () => {
     queryKey: ['facilitator', 'cohorts'],
     queryFn: fetchFacilitatorCohorts,
     enabled: !!(moveInviteTarget || moveParticipantTarget),
+  });
+
+  const facilitatorsQuery = useQuery({
+    queryKey: ['facilitator', 'cohort', cohortId, 'facilitators'],
+    queryFn: async () => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/facilitators`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch facilitators');
+      const data = await res.json();
+      return (data.facilitators || []) as Array<{ id: number; name: string; email: string; role: 'primary' | 'secondary' }>;
+    },
+    enabled: !!cohortId,
+  });
+
+  const sessionsQuery = useQuery({
+    queryKey: ['facilitator', 'cohort', cohortId, 'sessions'],
+    queryFn: async () => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/sessions`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch sessions');
+      const data = await res.json();
+      return (data.sessions || []) as CohortSession[];
+    },
+    enabled: !!cohortId,
   });
 
   // ── Mutations ────────────────────────────────────────────────────────────
@@ -480,6 +533,108 @@ const FacilitatorCohortDetail: React.FC = () => {
     },
     onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
   });
+
+  const addCoFacilitatorMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/facilitators`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to add co-facilitator');
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'facilitators'] });
+      setShowCoFacilitatorModal(false);
+      setCoFacilitatorEmail('');
+      toast({ title: 'Co-facilitator added' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const removeCoFacilitatorMutation = useMutation({
+    mutationFn: async (facilId: number) => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/facilitators/${facilId}`, {
+        method: 'DELETE', credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to remove co-facilitator');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'facilitators'] });
+      toast({ title: 'Co-facilitator removed' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const saveSessionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number | null; data: typeof sessionDraft }) => {
+      const url = id
+        ? `/api/facilitator/cohorts/${cohortId}/sessions/${id}`
+        : `/api/facilitator/cohorts/${cohortId}/sessions`;
+      const res = await fetch(url, {
+        method: id ? 'PATCH' : 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          program: data.program || null,
+          sessionName: data.session_name,
+          subtitle: data.subtitle || null,
+          format: data.format || null,
+          sessionDate: data.session_date || null,
+          startTime: data.start_time || null,
+          endTime: data.end_time || null,
+          meetingLink: data.meeting_link || null,
+          whiteboardLink: data.whiteboard_link || null,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Failed to save session');
+      return json;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'sessions'] });
+      setShowSessionModal(false);
+      setSessionDraft(BLANK_SESSION);
+      setEditingSessionId(null);
+      toast({ title: sessionModalMode === 'add' ? 'Session added' : 'Session updated' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (sessionId: number) => {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/sessions/${sessionId}`, {
+        method: 'DELETE', credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to delete session');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'sessions'] });
+      toast({ title: 'Session deleted' });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  });
+
+  function openAddSession() {
+    setSessionDraft(BLANK_SESSION);
+    setEditingSessionId(null);
+    setSessionModalMode('add');
+    setShowSessionModal(true);
+  }
+
+  function openEditSession(s: CohortSession) {
+    setSessionDraft({
+      program: s.program ?? '', session_name: s.session_name,
+      subtitle: s.subtitle ?? '', format: s.format ?? '',
+      session_date: s.session_date ?? '', start_time: s.start_time ?? '',
+      end_time: s.end_time ?? '', meeting_link: s.meeting_link ?? '',
+      whiteboard_link: s.whiteboard_link ?? '',
+    });
+    setEditingSessionId(s.id);
+    setSessionModalMode('edit');
+    setShowSessionModal(true);
+  }
 
   const templatesQuery = useQuery({
     queryKey: ['email-templates'],
@@ -740,6 +895,17 @@ const FacilitatorCohortDetail: React.FC = () => {
     );
   }
 
+  const isPrimary: boolean = cohort.is_primary !== false;
+  const facilitators = facilitatorsQuery.data ?? [];
+  const secondaryFacilitators = facilitators.filter(f => f.role === 'secondary');
+  const sessions: CohortSession[] = sessionsQuery.data ?? [];
+  const sessionsByProgram = sessions.reduce<Map<string, CohortSession[]>>((acc, s) => {
+    const key = s.program || '';
+    if (!acc.has(key)) acc.set(key, []);
+    acc.get(key)!.push(s);
+    return acc;
+  }, new Map());
+
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
@@ -762,14 +928,13 @@ const FacilitatorCohortDetail: React.FC = () => {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-semibold text-slate-900">{cohort.name}</h1>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-slate-400 hover:text-slate-600"
-                    onClick={openEditModal}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  {isPrimary ? (
+                    <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-600" onClick={openEditModal}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Badge variant="outline" className="border-indigo-300 text-indigo-600 text-xs">Co-facilitator</Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 mt-2 text-sm text-slate-500 flex-wrap">
                   {cohort.organization_name && (
@@ -910,10 +1075,43 @@ const FacilitatorCohortDetail: React.FC = () => {
                   <span className="text-slate-800">{cohort.description}</span>
                 </div>
               )}
+              {/* Facilitators row */}
+              <div className="sm:col-span-2 lg:col-span-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-slate-400">Facilitators</span>
+                  {isPrimary && secondaryFacilitators.length < 2 && (
+                    <button type="button" className="text-xs text-indigo-600 hover:underline"
+                      onClick={() => setShowCoFacilitatorModal(true)}>
+                      + Add co-facilitator
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {facilitatorsQuery.isLoading ? (
+                    <span className="text-sm text-slate-400 italic">Loading...</span>
+                  ) : facilitators.length === 0 ? (
+                    <span className="text-sm text-slate-400 italic">None</span>
+                  ) : facilitators.map((f) => (
+                    <div key={f.id} className="flex items-center gap-1.5 bg-slate-100 rounded-full px-3 py-0.5 text-sm">
+                      <span className="text-slate-700">{f.name}</span>
+                      {f.role === 'primary' && (
+                        <Badge variant="outline" className="border-indigo-300 text-indigo-600 text-xs px-1.5 py-0">Primary</Badge>
+                      )}
+                      {isPrimary && f.role === 'secondary' && (
+                        <button type="button" className="text-slate-400 hover:text-red-500 ml-0.5"
+                          onClick={() => removeCoFacilitatorMutation.mutate(f.id)} title="Remove">
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Action buttons */}
+          {/* Action buttons — write actions only for primary facilitator */}
+          {isPrimary && (
           <div className="flex items-center gap-3 mb-6">
             <Button
               onClick={() => {
@@ -936,6 +1134,7 @@ const FacilitatorCohortDetail: React.FC = () => {
               Send Email
             </Button>
           </div>
+          )}
 
           {/* Participants Table */}
           <div className="bg-white rounded-lg border border-slate-200 mb-8">
@@ -1253,6 +1452,217 @@ const FacilitatorCohortDetail: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* ── Sessions Card ─────────────────────────────────────────────────── */}
+        <div className="bg-white rounded-lg border border-slate-200 mb-8">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-lg font-medium text-slate-800">Session Schedule</h2>
+            {isPrimary && (
+              <Button variant="outline" size="sm" onClick={openAddSession} className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                Add Session
+              </Button>
+            )}
+          </div>
+          {sessionsQuery.isLoading ? (
+            <div className="px-6 py-8 text-center text-slate-400">Loading…</div>
+          ) : sessions.length === 0 ? (
+            <div className="px-6 py-8 text-center text-slate-400 text-sm">
+              No sessions configured.{isPrimary && ' Click "Add Session" to build your schedule.'}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left font-medium">Program</th>
+                    <th className="px-4 py-3 text-left font-medium">Session</th>
+                    <th className="px-4 py-3 text-left font-medium">Format</th>
+                    <th className="px-4 py-3 text-left font-medium">Date</th>
+                    <th className="px-4 py-3 text-left font-medium">Time</th>
+                    <th className="px-4 py-3 text-left font-medium">Links</th>
+                    {isPrimary && <th className="px-4 py-3 text-left font-medium w-16"></th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sessions.map((s) => (
+                    <tr key={s.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 text-slate-600">{s.program || '—'}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-slate-800">{s.session_name}</div>
+                        {s.subtitle && <div className="text-xs text-slate-500 mt-0.5">{s.subtitle}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{s.format || '—'}</td>
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{s.session_date || '—'}</td>
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
+                        {s.start_time || s.end_time ? [s.start_time, s.end_time].filter(Boolean).join('–') : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-1">
+                          {s.meeting_link && (
+                            <a href={s.meeting_link} target="_blank" rel="noopener noreferrer"
+                              className="text-indigo-600 hover:underline text-xs">Meeting</a>
+                          )}
+                          {s.whiteboard_link && (
+                            <a href={s.whiteboard_link} target="_blank" rel="noopener noreferrer"
+                              className="text-indigo-600 hover:underline text-xs">Whiteboard</a>
+                          )}
+                          {!s.meeting_link && !s.whiteboard_link && <span className="text-slate-400">—</span>}
+                        </div>
+                      </td>
+                      {isPrimary && (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <button type="button" onClick={() => openEditSession(s)}
+                              className="p-1 text-slate-400 hover:text-slate-600" title="Edit">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button type="button" onClick={() => deleteSessionMutation.mutate(s.id)}
+                              className="p-1 text-slate-400 hover:text-red-500" title="Delete">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* ── Add/Edit Session Modal ─────────────────────────────────────────── */}
+        <Dialog open={showSessionModal} onOpenChange={(open) => {
+          setShowSessionModal(open);
+          if (!open) { setSessionDraft(BLANK_SESSION); setEditingSessionId(null); }
+        }}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{sessionModalMode === 'add' ? 'Add Session' : 'Edit Session'}</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4 py-2">
+              <div>
+                <Label className="mb-1 block">Program</Label>
+                <input list="program-options" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                  placeholder="e.g. Self Awareness"
+                  value={sessionDraft.program ?? ''}
+                  onChange={(e) => setSessionDraft((d) => ({ ...d, program: e.target.value }))} />
+                <datalist id="program-options">
+                  <option value="Self Awareness" />
+                  <option value="Imaginal Agility" />
+                  <option value="AllStarTeams" />
+                </datalist>
+              </div>
+              <div>
+                <Label className="mb-1 block">Session Name <span className="text-red-500">*</span></Label>
+                <input className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                  placeholder="e.g. Session 1"
+                  value={sessionDraft.session_name}
+                  onChange={(e) => setSessionDraft((d) => ({ ...d, session_name: e.target.value }))} />
+              </div>
+              <div>
+                <Label className="mb-1 block">Subtitle</Label>
+                <input className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                  placeholder="e.g. Part One"
+                  value={sessionDraft.subtitle ?? ''}
+                  onChange={(e) => setSessionDraft((d) => ({ ...d, subtitle: e.target.value }))} />
+              </div>
+              <div>
+                <Label className="mb-1 block">Format</Label>
+                <input list="format-options" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                  placeholder="e.g. Web App"
+                  value={sessionDraft.format ?? ''}
+                  onChange={(e) => setSessionDraft((d) => ({ ...d, format: e.target.value }))} />
+                <datalist id="format-options">
+                  <option value="Web App" />
+                  <option value="Whiteboard Workshop" />
+                  <option value="Video Call" />
+                  <option value="In Person" />
+                </datalist>
+              </div>
+              <div>
+                <Label className="mb-1 block">Date</Label>
+                <input type="date" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                  value={sessionDraft.session_date ?? ''}
+                  onChange={(e) => setSessionDraft((d) => ({ ...d, session_date: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="mb-1 block">Start Time</Label>
+                  <input type="time" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                    value={sessionDraft.start_time ?? ''}
+                    onChange={(e) => setSessionDraft((d) => ({ ...d, start_time: e.target.value }))} />
+                </div>
+                <div>
+                  <Label className="mb-1 block">End Time</Label>
+                  <input type="time" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                    value={sessionDraft.end_time ?? ''}
+                    onChange={(e) => setSessionDraft((d) => ({ ...d, end_time: e.target.value }))} />
+                </div>
+              </div>
+              <div className="col-span-2">
+                <Label className="mb-1 block">Meeting / Zoom Link</Label>
+                <input type="url" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                  placeholder="https://zoom.us/j/..."
+                  value={sessionDraft.meeting_link ?? ''}
+                  onChange={(e) => setSessionDraft((d) => ({ ...d, meeting_link: e.target.value }))} />
+              </div>
+              <div className="col-span-2">
+                <Label className="mb-1 block">Whiteboard Link</Label>
+                <input type="url" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                  placeholder="https://miro.com/..."
+                  value={sessionDraft.whiteboard_link ?? ''}
+                  onChange={(e) => setSessionDraft((d) => ({ ...d, whiteboard_link: e.target.value }))} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSessionModal(false)}>Cancel</Button>
+              <Button
+                disabled={!sessionDraft.session_name.trim() || saveSessionMutation.isPending}
+                onClick={() => saveSessionMutation.mutate({ id: editingSessionId, data: sessionDraft })}
+              >
+                {saveSessionMutation.isPending ? 'Saving…' : 'Save'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Add Co-facilitator Modal ───────────────────────────────────────── */}
+        <Dialog open={showCoFacilitatorModal} onOpenChange={(open) => {
+          setShowCoFacilitatorModal(open);
+          if (!open) setCoFacilitatorEmail('');
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Co-facilitator</DialogTitle>
+              <DialogDescription>
+                Enter the email address of the facilitator to add as a read-only co-facilitator.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-2">
+              <Label className="mb-1 block">Email address</Label>
+              <input type="email" className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm"
+                placeholder="facilitator@example.com"
+                value={coFacilitatorEmail}
+                onChange={(e) => setCoFacilitatorEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && coFacilitatorEmail.trim()) {
+                    addCoFacilitatorMutation.mutate(coFacilitatorEmail.trim());
+                  }
+                }} />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCoFacilitatorModal(false)}>Cancel</Button>
+              <Button
+                disabled={!coFacilitatorEmail.trim() || addCoFacilitatorMutation.isPending}
+                onClick={() => addCoFacilitatorMutation.mutate(coFacilitatorEmail.trim())}
+              >
+                {addCoFacilitatorMutation.isPending ? 'Adding…' : 'Add'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* ── Invite Modal ──────────────────────────────────────────────────── */}
         <Dialog open={showInviteModal} onOpenChange={(open) => {
