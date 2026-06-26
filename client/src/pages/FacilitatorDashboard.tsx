@@ -312,18 +312,23 @@ const FacilitatorDashboard: React.FC = () => {
                   onClick={() => navigate(`/facilitator/cohorts/${cohort.id}`)}
                 >
                   <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <CardTitle className="text-base">{cohort.name}</CardTitle>
-                      <Badge
-                        variant={cohort.status === 'active' ? 'default' : 'secondary'}
-                        className={
-                          cohort.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                            : ''
-                        }
-                      >
-                        {cohort.status}
-                      </Badge>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {cohort.is_primary === false && (
+                          <Badge variant="outline" className="text-xs border-indigo-300 text-indigo-600">Co-facilitator</Badge>
+                        )}
+                        <Badge
+                          variant={cohort.status === 'active' ? 'default' : 'secondary'}
+                          className={
+                            cohort.status === 'active'
+                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                              : ''
+                          }
+                        >
+                          {cohort.status}
+                        </Badge>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>

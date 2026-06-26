@@ -74,6 +74,9 @@ class EmailVariableService {
     if (invite.astAccess) workshopNames.push('AllStarTeams');
     if (invite.iaAccess) workshopNames.push('Imaginal Agility');
 
+    // Build session schedule variables from the cohort's sessions
+    const { sessionSchedule, sessionScheduleHtml } = await this.buildSessionSchedule(invite.cohortId);
+
     return {
       invite_code: formatted,
       invite_code_raw: raw,
@@ -91,6 +94,98 @@ class EmailVariableService {
       platform_url: platformUrl,
       support_email: process.env.SUPPORT_EMAIL || 'support@heliotropeimaginal.com',
       current_year: new Date().getFullYear().toString(),
+      session_schedule: sessionSchedule,
+      session_schedule_html: sessionScheduleHtml,
+    };
+  }
+
+  /**
+   * Build plain-text and HTML schedule strings from a cohort's sessions.
+   * Groups by program, sorted by sort_order / date / time.
+   */
+  private async buildSessionSchedule(cohortId: number | null | undefined): Promise<{ sessionSchedule: string; sessionScheduleHtml: string }> {
+    if (!cohortId) return { sessionSchedule: '', sessionScheduleHtml: '' };
+
+    const rows = await db.execute(sql`
+      SELECT program, session_name, subtitle, format, session_date, start_time, end_time, meeting_link, whiteboard_link
+      FROM cohort_sessions
+      WHERE cohort_id = ${cohortId}
+      ORDER BY sort_order ASC, session_date ASC NULLS LAST, start_time ASC NULLS LAST
+    `);
+
+    const sessions: any[] = (rows as any).rows ?? rows ?? [];
+    if (!sessions.length) return { sessionSchedule: '', sessionScheduleHtml: '' };
+
+    // Group by program
+    const groups = new Map<string, any[]>();
+    for (const s of sessions) {
+      const key = s.program || '';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(s);
+    }
+
+    // ── Plain text ──────────────────────────────────────────────────────────
+    const textLines: string[] = [];
+    for (const [program, items] of groups) {
+      if (program) textLines.push(program.toUpperCase(), '');
+      for (const s of items) {
+        const name = s.subtitle ? `${s.session_name} (${s.subtitle})` : s.session_name;
+        const fmt = s.format ? ` – ${s.format}` : '';
+        const date = s.session_date ? ` – ${new Date(s.session_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}` : '';
+        const time = (s.start_time || s.end_time) ? ` – ${[s.start_time, s.end_time].filter(Boolean).join('–')}` : '';
+        textLines.push(`${name}${fmt}${date}${time}`);
+        if (s.meeting_link) textLines.push(`Meeting: ${s.meeting_link}`);
+        if (s.whiteboard_link) textLines.push(`Whiteboard: ${s.whiteboard_link}`);
+        textLines.push('');
+      }
+    }
+
+    // ── HTML table ──────────────────────────────────────────────────────────
+    const tableRows: string[] = [];
+    tableRows.push(
+      '<table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:14px;">',
+      '<thead><tr style="background:#f1f5f9;text-align:left;">',
+      '<th style="padding:8px 12px;border:1px solid #e2e8f0;">Program</th>',
+      '<th style="padding:8px 12px;border:1px solid #e2e8f0;">Session</th>',
+      '<th style="padding:8px 12px;border:1px solid #e2e8f0;">Format</th>',
+      '<th style="padding:8px 12px;border:1px solid #e2e8f0;">Date</th>',
+      '<th style="padding:8px 12px;border:1px solid #e2e8f0;">Time</th>',
+      '<th style="padding:8px 12px;border:1px solid #e2e8f0;">Links</th>',
+      '</tr></thead><tbody>',
+    );
+
+    let prevProgram = '';
+    for (const s of sessions) {
+      const prog = s.program || '';
+      const programCell = prog !== prevProgram
+        ? `<td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600;">${prog}</td>`
+        : '<td style="padding:8px 12px;border:1px solid #e2e8f0;color:#94a3b8;"></td>';
+      prevProgram = prog;
+
+      const name = s.subtitle ? `${s.session_name}<br><span style="color:#64748b;font-size:12px;">${s.subtitle}</span>` : s.session_name;
+      const dateStr = s.session_date ? new Date(s.session_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const timeStr = (s.start_time || s.end_time) ? [s.start_time, s.end_time].filter(Boolean).join('–') : '—';
+
+      const links: string[] = [];
+      if (s.meeting_link) links.push(`<a href="${s.meeting_link}" style="color:#4f46e5;">Meeting Link</a>`);
+      if (s.whiteboard_link) links.push(`<a href="${s.whiteboard_link}" style="color:#4f46e5;">Whiteboard</a>`);
+
+      tableRows.push(
+        '<tr>',
+        programCell,
+        `<td style="padding:8px 12px;border:1px solid #e2e8f0;">${name}</td>`,
+        `<td style="padding:8px 12px;border:1px solid #e2e8f0;">${s.format || '—'}</td>`,
+        `<td style="padding:8px 12px;border:1px solid #e2e8f0;">${dateStr}</td>`,
+        `<td style="padding:8px 12px;border:1px solid #e2e8f0;white-space:nowrap;">${timeStr}</td>`,
+        `<td style="padding:8px 12px;border:1px solid #e2e8f0;">${links.join('<br>') || '—'}</td>`,
+        '</tr>',
+      );
+    }
+    tableRows.push('</tbody></table>');
+
+    return {
+      sessionSchedule: textLines.join('\n').trim(),
+      sessionScheduleHtml: tableRows.join(''),
     };
   }
 
