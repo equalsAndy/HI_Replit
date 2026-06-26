@@ -71,6 +71,10 @@ export const cohorts = pgTable('cohorts', {
   astAccess: boolean('ast_access').default(false).notNull(),
   iaAccess: boolean('ia_access').default(false).notNull(),
   pmAccess: boolean('pm_access').default(false).notNull(),
+  // Participant flags — applied to all invites and participants in this cohort
+  isTestCohort: boolean('is_test_cohort').default(false).notNull(),
+  isBetaCohort: boolean('is_beta_cohort').default(false).notNull(),
+  showDemoDataButtons: boolean('show_demo_data_buttons').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -133,6 +137,7 @@ export const users: any = pgTable('users', {
   // Auth0 integration
   auth0Sub: varchar('auth0_sub', { length: 255 }),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  disabledAt: timestamp('disabled_at', { withTimezone: true }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -245,6 +250,7 @@ export const invites = pgTable('invites', {
   usedBy: integer('used_by'),
   cohortId: integer('cohort_id'),
   organizationId: varchar('organization_id', { length: 255 }),
+  isTestUser: boolean('is_test_user').default(false).notNull(),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
   astAccess: boolean('ast_access').default(true).notNull(),
   iaAccess: boolean('ia_access').default(true).notNull(),
@@ -897,3 +903,19 @@ export type EmailImage = typeof emailImages.$inferSelect;
 export type InsertEmailImage = z.infer<typeof insertEmailImageSchema>;
 export type TemplateVariable = typeof templateVariables.$inferSelect;
 export type InsertTemplateVariable = z.infer<typeof insertTemplateVariableSchema>;
+
+// Workshop survey completions — one row per user per workshop slug
+export const workshopSurveyCompletions = pgTable('workshop_survey_completions', {
+  id:           serial('id').primaryKey(),
+  userId:       integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workshopSlug: varchar('workshop_slug', { length: 20 }).notNull(),
+  responses:    jsonb('responses').notNull().default('{}'),
+  submittedAt:  timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uniqueUserWorkshop: unique('unique_user_workshop_survey').on(table.userId, table.workshopSlug),
+  userIdIdx:          index('idx_wsc_user_id').on(table.userId),
+  workshopSlugIdx:    index('idx_wsc_workshop_slug').on(table.workshopSlug),
+}));
+export const insertWorkshopSurveyCompletionSchema = createInsertSchema(workshopSurveyCompletions);
+export type WorkshopSurveyCompletion = typeof workshopSurveyCompletions.$inferSelect;
+export type InsertWorkshopSurveyCompletion = z.infer<typeof insertWorkshopSurveyCompletionSchema>;

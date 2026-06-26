@@ -16,7 +16,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Plus, Building2, Users, Calendar, ArrowLeft } from 'lucide-react';
+import { Plus, Building2, Users, Calendar, ArrowLeft, Mail } from 'lucide-react';
+import EmailTemplateManagement from '@/components/admin/email/EmailTemplateManagement';
 import { useLocation } from 'wouter';
 
 // ── API helpers ──────────────────────────────────────────────────────────────
@@ -47,9 +48,12 @@ async function createOrganization(data: { name: string; description: string }) {
 async function createCohort(data: {
   name: string;
   description: string;
-  organizationId: number | null;
+  organizationId: string | null;
   astAccess: boolean;
   iaAccess: boolean;
+  isTestCohort?: boolean;
+  isBetaCohort?: boolean;
+  showDemoDataButtons?: boolean;
   startDate: string;
   endDate: string;
 }) {
@@ -80,9 +84,12 @@ const FacilitatorDashboard: React.FC = () => {
   // Form state — cohorts
   const [cohortName, setCohortName] = useState('');
   const [cohortDescription, setCohortDescription] = useState('');
-  const [cohortOrgId, setCohortOrgId] = useState<number | null>(null);
+  const [cohortOrgId, setCohortOrgId] = useState<string | null>(null);
   const [cohortAst, setCohortAst] = useState(true);
   const [cohortIa, setCohortIa] = useState(true);
+  const [cohortIsTest, setCohortIsTest] = useState(false);
+  const [cohortIsBeta, setCohortIsBeta] = useState(false);
+  const [cohortShowDemo, setCohortShowDemo] = useState(false);
   const [cohortStartDate, setCohortStartDate] = useState('');
   const [cohortEndDate, setCohortEndDate] = useState('');
 
@@ -120,6 +127,9 @@ const FacilitatorDashboard: React.FC = () => {
       setCohortOrgId(null);
       setCohortAst(true);
       setCohortIa(true);
+      setCohortIsTest(false);
+      setCohortIsBeta(false);
+      setCohortShowDemo(false);
       setCohortStartDate('');
       setCohortEndDate('');
     },
@@ -142,6 +152,9 @@ const FacilitatorDashboard: React.FC = () => {
       organizationId: cohortOrgId,
       astAccess: cohortAst,
       iaAccess: cohortIa,
+      isTestCohort: cohortIsTest,
+      isBetaCohort: cohortIsBeta,
+      showDemoDataButtons: cohortShowDemo,
       startDate: cohortStartDate,
       endDate: cohortEndDate,
     });
@@ -191,6 +204,10 @@ const FacilitatorDashboard: React.FC = () => {
               <Users className="h-4 w-4" />
               Cohorts
             </TabsTrigger>
+            <TabsTrigger value="email-templates" className="gap-2">
+              <Mail className="h-4 w-4" />
+              Email Templates
+            </TabsTrigger>
           </TabsList>
 
           {/* ── Organizations Tab ──────────────────────────────────────── */}
@@ -222,9 +239,19 @@ const FacilitatorDashboard: React.FC = () => {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {organizations.map((org: any) => (
-                  <Card key={org.id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={org.id}
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/facilitator/organizations/${org.id}`)}
+                  >
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base">{org.name}</CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">{org.name}</CardTitle>
+                        <span className="flex items-center gap-1 text-xs text-slate-400">
+                          <Users className="h-3 w-3" />
+                          {org.cohort_count ?? 0} cohort{org.cohort_count !== 1 ? 's' : ''}
+                        </span>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       {org.description && (
@@ -266,72 +293,93 @@ const FacilitatorDashboard: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {cohorts.map((cohort: any) => (
-                  <Card
-                    key={cohort.id}
-                    className="hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => navigate(`/facilitator/cohorts/${cohort.id}`)}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">{cohort.name}</CardTitle>
-                        <Badge
-                          variant={cohort.status === 'active' ? 'default' : 'secondary'}
-                          className={
-                            cohort.status === 'active'
-                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
-                              : ''
-                          }
-                        >
-                          {cohort.status}
-                        </Badge>
+            ) : (() => {
+              // Group cohorts by organization name
+              const grouped: Record<string, any[]> = {};
+              cohorts.forEach((cohort: any) => {
+                const key = cohort.organization_name || '\u2014 No Organization';
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(cohort);
+              });
+              const orgNames = Object.keys(grouped).sort((a, b) =>
+                a.startsWith('\u2014') ? 1 : b.startsWith('\u2014') ? -1 : a.localeCompare(b)
+              );
+
+              const CohortCard = ({ cohort }: { cohort: any }) => (
+                <Card
+                  key={cohort.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/facilitator/cohorts/${cohort.id}`)}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">{cohort.name}</CardTitle>
+                      <Badge
+                        variant={cohort.status === 'active' ? 'default' : 'secondary'}
+                        className={
+                          cohort.status === 'active'
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                            : ''
+                        }
+                      >
+                        {cohort.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {cohort.description && (
+                      <p className="text-sm text-slate-400 mb-3">{cohort.description}</p>
+                    )}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex gap-2">
+                        {cohort.ast_access && (
+                          <Badge variant="outline" className="text-xs border-slate-300">AST</Badge>
+                        )}
+                        {cohort.ia_access && (
+                          <Badge variant="outline" className="text-xs border-slate-300">IA</Badge>
+                        )}
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      {cohort.organization_name && (
-                        <p className="text-sm text-slate-500 mb-2">{cohort.organization_name}</p>
-                      )}
-                      {cohort.description && (
-                        <p className="text-sm text-slate-400 mb-3">{cohort.description}</p>
-                      )}
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex gap-2">
-                          {cohort.ast_access && (
-                            <Badge variant="outline" className="text-xs border-slate-300">
-                              AST
-                            </Badge>
-                          )}
-                          {cohort.ia_access && (
-                            <Badge variant="outline" className="text-xs border-slate-300">
-                              IA
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="flex items-center gap-1 text-xs text-slate-400">
-                          <Users className="h-3 w-3" />
-                          {cohort.participant_count ?? 0} participant{cohort.participant_count !== 1 ? 's' : ''}
-                        </span>
+                      <span className="flex items-center gap-1 text-xs text-slate-400">
+                        <Users className="h-3 w-3" />
+                        {cohort.participant_count ?? 0} participant{cohort.participant_count !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    {(cohort.start_date || cohort.end_date) && (
+                      <div className="flex items-center text-xs text-slate-400 gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {cohort.start_date ? new Date(cohort.start_date).toLocaleDateString() : '...'}
+                        {' \u2013 '}
+                        {cohort.end_date ? new Date(cohort.end_date).toLocaleDateString() : '...'}
                       </div>
-                      {(cohort.start_date || cohort.end_date) && (
-                        <div className="flex items-center text-xs text-slate-400 gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {cohort.start_date
-                            ? new Date(cohort.start_date).toLocaleDateString()
-                            : '...'}
-                          {' \u2013 '}
-                          {cohort.end_date
-                            ? new Date(cohort.end_date).toLocaleDateString()
-                            : '...'}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                    )}
+                  </CardContent>
+                </Card>
+              );
+
+              return (
+                <div className="space-y-8">
+                  {orgNames.map((orgName) => (
+                    <div key={orgName}>
+                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                        {orgName}
+                      </h3>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {grouped[orgName].map((cohort: any) => (
+                          <CohortCard key={cohort.id} cohort={cohort} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
+
+          {/* ── Email Templates Tab ──────────────────────────────────────── */}
+          <TabsContent value="email-templates">
+            <EmailTemplateManagement />
+          </TabsContent>
+
         </Tabs>
       </div>
 
@@ -420,7 +468,7 @@ const FacilitatorDashboard: React.FC = () => {
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={cohortOrgId ?? ''}
                 onChange={(e) =>
-                  setCohortOrgId(e.target.value ? Number(e.target.value) : null)
+                  setCohortOrgId(e.target.value || null)
                 }
               >
                 <option value="">None</option>
@@ -451,6 +499,23 @@ const FacilitatorDashboard: React.FC = () => {
                   checked={cohortIa}
                   onCheckedChange={setCohortIa}
                 />
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm text-slate-600 mb-2 block">Participant Flags</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                  <Label htmlFor="cohort-is-test" className="text-sm cursor-pointer">Test</Label>
+                  <Switch id="cohort-is-test" checked={cohortIsTest} onCheckedChange={setCohortIsTest} />
+                </div>
+                <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                  <Label htmlFor="cohort-is-beta" className="text-sm cursor-pointer">Beta</Label>
+                  <Switch id="cohort-is-beta" checked={cohortIsBeta} onCheckedChange={setCohortIsBeta} />
+                </div>
+                <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                  <Label htmlFor="cohort-show-demo" className="text-sm cursor-pointer">Demo Data</Label>
+                  <Switch id="cohort-show-demo" checked={cohortShowDemo} onCheckedChange={setCohortShowDemo} />
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
