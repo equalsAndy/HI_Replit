@@ -22,6 +22,7 @@ const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard-new'));
 const AiTrainingPage = React.lazy(() => import('@/pages/ai-training'));
 const FacilitatorDashboard = React.lazy(() => import('@/pages/FacilitatorDashboard'));
 const FacilitatorCohortDetail = React.lazy(() => import('@/pages/FacilitatorCohortDetail'));
+const FacilitatorOrgDetail = React.lazy(() => import('@/pages/FacilitatorOrgDetail'));
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import ResetTestPage from '@/pages/reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -352,7 +353,18 @@ const App: React.FC = () => {
                         </Suspense>
                       </ProtectedRoute>
                     </Route>
-                    {/* Facilitator routes — specific path first for wouter Switch matching */}
+                    {/* Facilitator routes — specific paths first for wouter Switch matching */}
+                    <Route path="/facilitator/organizations/:orgId">
+                      <ProtectedRoute requireFacilitator={true}>
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+                          </div>
+                        }>
+                          <FacilitatorOrgDetail />
+                        </Suspense>
+                      </ProtectedRoute>
+                    </Route>
                     <Route path="/facilitator/cohorts/:cohortId">
                       <ProtectedRoute requireFacilitator={true}>
                         <Suspense fallback={

@@ -12,9 +12,12 @@ const EnhancedVideoManagement = React.lazy(() =>
 );
 const VideoTranscriptAdmin = React.lazy(() => import('@/components/admin/VideoTranscriptAdmin'));
 const EmailTemplateManagement = React.lazy(() => import('@/components/admin/email/EmailTemplateManagement'));
+const CohortManagementPanel = React.lazy(() =>
+  import('@/components/admin/CohortManagement').then(m => ({ default: m.CohortManagement }))
+);
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
-import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Send, Video, FileText, Database } from 'lucide-react';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Send, Video, FileText, Database, GraduationCap, ExternalLink } from 'lucide-react';
 import VersionInfo from '@/components/ui/VersionInfo';
 import { FeedbackTrigger } from '@/components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '@/utils/pageContext';
@@ -1538,6 +1541,11 @@ export default function AdminDashboardWorkshop() {
             )}
             Imaginal Agility
           </a>
+          <a href="/facilitator" target="_blank" rel="noopener noreferrer" style={{...styles.button, display: 'flex', alignItems: 'center', gap: '6px'}}>
+            <GraduationCap size={16} />
+            Facilitator Console
+            <ExternalLink size={12} />
+          </a>
           <button style={styles.logoutButton} onClick={handleLogout}>
             Logout
           </button>
@@ -1549,6 +1557,7 @@ export default function AdminDashboardWorkshop() {
           {[
             { id: 'users', label: 'Users', icon: Users },
             { id: 'invites', label: 'Invites', icon: Mail },
+            { id: 'cohorts', label: 'Cohorts', icon: GraduationCap },
             { id: 'videos', label: 'Videos', icon: Video, adminOnly: true },
             { id: 'ai', label: 'AI', icon: Bot },
             { id: 'pods', label: 'Pods', icon: Database, adminOnly: true },
@@ -1583,6 +1592,7 @@ export default function AdminDashboardWorkshop() {
           <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div></div>}>
             {activeTab === 'users' && <UserManagement />}
             {activeTab === 'invites' && <InviteManagement />}
+            {activeTab === 'cohorts' && <CohortManagementPanel />}
             {activeTab === 'videos' && isAdmin && (
               <div>
                 <div style={styles.subTabsContainer}>

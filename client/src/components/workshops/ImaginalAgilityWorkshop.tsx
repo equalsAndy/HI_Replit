@@ -20,6 +20,8 @@ import { useWelcomeVideo } from '@/hooks/useWelcomeVideo';
 import ImaginalAgilityWelcomeVideoModal from '@/components/modals/ImaginalAgilityWelcomeVideoModal';
 import { useStepContextSafe } from '@/contexts/StepContext';
 import ContactModal from '@/components/modals/ContactModal';
+import WorkshopSurveyModal from '@/components/surveys/WorkshopSurveyModal';
+import { iaSurveyConfig } from '@/components/surveys/surveyConfig';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -32,6 +34,9 @@ export default function ImaginalAgilityWorkshop() {
   const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(true);
+  const [iaSurveySubmitted, setIaSurveySubmitted] = useState<boolean | null>(null);
+  const [showIaSurveyBanner, setShowIaSurveyBanner] = useState(false);
+  const [showIaSurveyModalFromBanner, setShowIaSurveyModalFromBanner] = useState(false);
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
   const { setCurrentStepId } = useStepContextSafe();
@@ -61,6 +66,19 @@ export default function ImaginalAgilityWorkshop() {
 
   // Use navigation progress state
   const completedSteps = navProgress?.completedSteps || [];
+
+  // Fetch IA survey status once ia-4-7 is complete — drives dashboard banner
+  const ia47Complete = completedSteps.includes('ia-4-7');
+  useEffect(() => {
+    if (!ia47Complete) return;
+    fetch('/api/surveys/status/ia', { credentials: 'include' })
+      .then(r => r.json())
+      .then(j => {
+        setIaSurveySubmitted(Boolean(j?.submitted));
+        if (!j?.submitted) setShowIaSurveyBanner(true);
+      })
+      .catch(() => setIaSurveySubmitted(false));
+  }, [ia47Complete]);
 
   // Set app type and check authentication on component mount
   useEffect(() => {
@@ -407,6 +425,32 @@ export default function ImaginalAgilityWorkshop() {
         <div className="flex-1 overflow-auto p-6">
           {/* Anchor for scroll-to-top navigation */}
           <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
+
+          {/* IA end-of-course survey banner — shows after ia-4-7 if survey not yet submitted */}
+          {showIaSurveyBanner && iaSurveySubmitted === false && (
+            <div className="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-purple-800">One last thing</p>
+                <p className="text-xs text-purple-600 mt-0.5">Share your experience with the IA team.</p>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <button
+                  onClick={() => setShowIaSurveyBanner(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                  aria-label="Dismiss banner"
+                >
+                  ✕
+                </button>
+                <button
+                  onClick={() => setShowIaSurveyModalFromBanner(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-1.5 rounded-lg font-medium transition-colors"
+                >
+                  Take the survey →
+                </button>
+              </div>
+            </div>
+          )}
+
           <ContentViews
             currentContent={currentContent}
             navigate={navigate}
@@ -514,6 +558,18 @@ export default function ImaginalAgilityWorkshop() {
                 setIsAssessmentModalOpen(false);
               }
             }}
+          />
+
+          {/* Banner survey modal */}
+          <WorkshopSurveyModal
+            open={showIaSurveyModalFromBanner}
+            config={iaSurveyConfig}
+            onSubmitted={() => {
+              setShowIaSurveyModalFromBanner(false);
+              setShowIaSurveyBanner(false);
+              setIaSurveySubmitted(true);
+            }}
+            onDismissed={() => setShowIaSurveyModalFromBanner(false)}
           />
         </div>
       </div>

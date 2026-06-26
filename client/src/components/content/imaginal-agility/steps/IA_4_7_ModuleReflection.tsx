@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import ScrollIndicator from '@/components/ui/ScrollIndicator';
-import IA_ClosingReflectionModal from '../IA_ClosingReflectionModal';
+import WorkshopSurveyModal from '@/components/surveys/WorkshopSurveyModal';
+import { iaSurveyConfig } from '@/components/surveys/surveyConfig';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -216,22 +217,18 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch('/api/workshop-data/step/ia/ia-survey', {
-          credentials: 'include',
-        });
+        const r = await fetch('/api/surveys/status/ia', { credentials: 'include' });
         if (cancelled) return;
-        if (!r.ok) {
-          setSurveyAlreadySubmitted(false);
-          return;
-        }
+        if (!r.ok) { setSurveyAlreadySubmitted(false); return; }
         const j = await r.json();
-        setSurveyAlreadySubmitted(Boolean(j?.success && j?.data));
+        setSurveyAlreadySubmitted(Boolean(j?.submitted));
       } catch {
         if (!cancelled) setSurveyAlreadySubmitted(false);
       }
     })();
     return () => { cancelled = true; };
   }, []);
+
 
   // ── Fetch prior exercise data ──────────────────────────────────────────────
   useEffect(() => {
@@ -311,6 +308,13 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
   const rungSummaries = data.rungSummaries || [];
   const selectedAnchor = data.selectedAnchor;
   const isComplete = selectedAnchor !== null;
+
+  // Fire survey modal immediately when step becomes complete (anchor selected)
+  useEffect(() => {
+    if (isComplete && surveyAlreadySubmitted === false && !isStepLocked) {
+      setShowSurveyModal(true);
+    }
+  }, [isComplete, surveyAlreadySubmitted, isStepLocked]);
 
   // Check which exercises have data for anchor cards
   const hasExercise = useMemo(() => ({
@@ -496,11 +500,6 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
         <div className="flex justify-end mb-8">
           <button
             onClick={async () => {
-              // Show closing reflection modal on first completion of ia-4-7
-              if (surveyAlreadySubmitted === false && !isStepLocked) {
-                setShowSurveyModal(true);
-                return;
-              }
               if (!iaCompleted) {
                 const result = await completeWorkshop('ia');
                 if (result.success) {
@@ -511,7 +510,7 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
               }
               onNext?.('ia-5-1');
             }}
-            disabled={saving || surveyAlreadySubmitted === null}
+            disabled={saving}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Continue to Module 5 →'}
@@ -519,12 +518,25 @@ const IA_4_7_ModuleReflection: React.FC<IA47ContentProps> = ({ onNext }) => {
         </div>
       )}
 
-      {/* ── Closing reflection modal (first ia-4-7 completion only) ── */}
-      <IA_ClosingReflectionModal
+      {/* ── End-of-course survey (fires immediately on first anchor selection) ── */}
+      <WorkshopSurveyModal
         open={showSurveyModal}
+        config={iaSurveyConfig}
         onSubmitted={async () => {
           setShowSurveyModal(false);
           setSurveyAlreadySubmitted(true);
+          if (!iaCompleted) {
+            const result = await completeWorkshop('ia');
+            if (result.success) {
+              console.log('✅ IA workshop completed — modules 1-4 now locked');
+            } else {
+              console.warn('⚠️ IA workshop completion not ready:', result.error);
+            }
+          }
+          onNext?.('ia-5-1');
+        }}
+        onDismissed={async () => {
+          setShowSurveyModal(false);
           if (!iaCompleted) {
             const result = await completeWorkshop('ia');
             if (result.success) {

@@ -197,6 +197,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     userName: string;
     username: string;
   } | null>(null);
+  const [actionsCollapsed, setActionsCollapsed] = useState(false);
 
   // Query for current user profile to get role information
   const { data: userProfile } = useQuery({
@@ -1082,7 +1083,16 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                           <TableHead className="w-[50px]">Beta</TableHead>
                           <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
-                          <TableHead className="min-w-[240px] sticky right-0 bg-white border-l">Actions</TableHead>
+                          <TableHead className={`${actionsCollapsed ? 'w-[40px]' : 'min-w-[240px]'} sticky right-0 bg-white border-l`}>
+                            <button
+                              onClick={() => setActionsCollapsed(v => !v)}
+                              className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                              title={actionsCollapsed ? 'Show actions' : 'Hide actions'}
+                            >
+                              {actionsCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                              {!actionsCollapsed && 'Actions'}
+                            </button>
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                     <TableBody>
@@ -1320,7 +1330,16 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                               );
                             })()}
                           </TableCell>
-                          <TableCell className="min-w-[240px] sticky right-0 bg-white border-l">
+                          <TableCell className={`${actionsCollapsed ? 'w-[40px]' : 'min-w-[240px]'} sticky right-0 bg-white border-l`}>
+                            {actionsCollapsed ? (
+                              <button
+                                onClick={() => setActionsCollapsed(false)}
+                                className="text-muted-foreground hover:text-foreground"
+                                title="Show actions"
+                              >
+                                <ChevronDown size={14} />
+                              </button>
+                            ) : (
                             <TooltipProvider>
                               <div className="flex items-center gap-1 justify-start">
                                 {!user.isDeleted && (
@@ -1516,6 +1535,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 )}
                               </div>
                             </TooltipProvider>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

@@ -1,7 +1,7 @@
 import Handlebars from 'handlebars';
 import { db } from '../db.js';
 import { templateVariables, invites, users } from '../../shared/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 // Sender identity display names & emails — all use imaginalmail.com
 export const SENDER_IDENTITIES = {
@@ -47,6 +47,20 @@ class EmailVariableService {
       throw new Error(`Invite ${inviteId} not found`);
     }
 
+    // Look up the facilitator who created the invite
+    let facilitatorName = 'Your Facilitator';
+    let facilitatorEmail = '';
+    if (invite.createdBy) {
+      const facilitatorRows = await db.execute(sql`
+        SELECT first_name, last_name, email FROM users WHERE id = ${invite.createdBy} LIMIT 1
+      `);
+      const f = ((facilitatorRows as any).rows ?? facilitatorRows ?? [])[0];
+      if (f) {
+        facilitatorName = [f.first_name, f.last_name].filter(Boolean).join(' ') || 'Your Facilitator';
+        facilitatorEmail = f.email || '';
+      }
+    }
+
     const platformUrl = process.env.PLATFORM_URL || 'https://app2.heliotropeimaginal.com';
 
     // Format invite code with hyphens (XXX-XXX-XXXX pattern)
@@ -66,6 +80,8 @@ class EmailVariableService {
       invite_url: `${platformUrl}/register/${formatted}`,
       invite_email: invite.email,
       invite_name: invite.name || 'there',
+      facilitator_name: facilitatorName,
+      facilitator_email: facilitatorEmail,
       invite_expires_at: invite.expiresAt ? new Date(invite.expiresAt).toLocaleDateString() : '',
       has_ast_access: !!invite.astAccess,
       has_ia_access: !!invite.iaAccess,

@@ -41,6 +41,11 @@ export const clientFeatureFlags: Record<string, ClientFeatureFlag> = {
     enabled: import.meta.env.VITE_FEATURE_EMAIL_TEMPLATES === 'true',
     environment: 'all',
     description: 'Email invitation system with templates and AWS SES delivery'
+  },
+  productMindset: {
+    enabled: false,
+    environment: 'all',
+    description: 'Product Mindset workshop access (hidden until ready for release)'
   }
 };
 

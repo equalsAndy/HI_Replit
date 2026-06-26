@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor, Wrench, MessageSquareText, Users, Lightbulb, TrendingUp, MessageSquare } from 'lucide-react';
@@ -7,6 +7,8 @@ import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 import { BetaFeedbackSurveyModal } from '../beta-testing/BetaFeedbackSurveyModal';
 import { useCurrentUser } from '../../hooks/use-current-user';
+import WorkshopSurveyModal from '@/components/surveys/WorkshopSurveyModal';
+import { astSurveyConfig } from '@/components/surveys/surveyConfig';
 
 interface HolisticReportViewProps {
   navigate: (path: string) => void;
@@ -75,6 +77,10 @@ export default function HolisticReportView({
   const [hasViewedReport, setHasViewedReport] = useState(false);
   const [countdown, setCountdown] = useState<number>(0);
   const [activeTimer, setActiveTimer] = useState<'standard' | 'personal' | null>(null);
+  const [astSurveySubmitted, setAstSurveySubmitted] = useState<boolean | null>(null);
+  const [showAstSurveyModal, setShowAstSurveyModal] = useState(false);
+  const reportStatusInitialized = useRef(false);
+  const prevReportStatus = useRef<string | undefined>(undefined);
 
   // React Query hooks must be declared BEFORE useEffect hooks that depend on them
   const queryClient = useQueryClient();
@@ -150,6 +156,30 @@ export default function HolisticReportView({
       setCountdown(0);
     }
   }, [personalProgress?.overallStatus, activeTimer]);
+
+  // Fetch AST survey status once when user is known
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch('/api/surveys/status/ast', { credentials: 'include' })
+      .then(r => r.json())
+      .then(j => setAstSurveySubmitted(Boolean(j?.submitted)))
+      .catch(() => setAstSurveySubmitted(false));
+  }, [user?.id]);
+
+  // Detect first-ever completion of the personal report and open survey modal
+  useEffect(() => {
+    const status = personalProgress?.overallStatus;
+    if (!status) return;
+    if (!reportStatusInitialized.current) {
+      prevReportStatus.current = status;
+      reportStatusInitialized.current = true;
+      return;
+    }
+    if (prevReportStatus.current !== 'completed' && status === 'completed' && astSurveySubmitted === false) {
+      setShowAstSurveyModal(true);
+    }
+    prevReportStatus.current = status;
+  }, [personalProgress?.overallStatus, astSurveySubmitted]);
 
   const formatCountdown = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -1070,6 +1100,17 @@ export default function HolisticReportView({
       <BetaFeedbackSurveyModal
         isOpen={isFeedbackModalOpen}
         onClose={() => setIsFeedbackModalOpen(false)}
+      />
+
+      {/* AST end-of-course survey — fires on first personal report completion */}
+      <WorkshopSurveyModal
+        open={showAstSurveyModal}
+        config={astSurveyConfig}
+        onSubmitted={() => {
+          setShowAstSurveyModal(false);
+          setAstSurveySubmitted(true);
+        }}
+        onDismissed={() => setShowAstSurveyModal(false)}
       />
     </>
   );

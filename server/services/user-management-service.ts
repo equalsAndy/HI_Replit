@@ -172,11 +172,18 @@ class UserManagementService {
       
       // Verify the password
       const isPasswordValid = await bcrypt.compare(password, user.password as string);
-      
+
       if (!isPasswordValid) {
         return {
           success: false,
           error: 'Invalid username or password'
+        };
+      }
+
+      if (user.disabled_at) {
+        return {
+          success: false,
+          error: 'This account has been disabled. Please contact your facilitator.'
         };
       }
       

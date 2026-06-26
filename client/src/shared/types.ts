@@ -39,9 +39,21 @@ export interface Cohort {
   id: number;
   name: string;
   description?: string;
-  facilitatorId: number;
-  participants: number[]; // User IDs
+  facilitatorId?: number;
+  facilitatorName?: string;
+  memberCount?: number;
+  cohortType?: 'leadership' | 'team' | 'standard';
+  parentCohortId?: number;
+  status?: 'active' | 'upcoming' | 'completed';
+  startDate?: string;
+  endDate?: string;
+  astAccess?: boolean;
+  iaAccess?: boolean;
+  pmAccess?: boolean;
+  organizationId?: string;
+  participants?: number[];
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Workshop {

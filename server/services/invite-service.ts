@@ -17,6 +17,7 @@ class InviteService {
     organizationId?: string | null;
     createdBy: number;
     expiresAt?: Date;
+    isTestUser?: boolean;
     isBetaTester?: boolean;
     astAccess?: boolean;
     iaAccess?: boolean;
@@ -59,7 +60,7 @@ class InviteService {
 
       // Insert the invite into the database with cohort and organization assignment
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, job_title, organization, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, pm_access, show_demo_data_buttons)
+        INSERT INTO invites (invite_code, email, role, name, job_title, organization, created_by, expires_at, cohort_id, organization_id, is_test_user, is_beta_tester, ast_access, ia_access, pm_access, show_demo_data_buttons)
         VALUES (
           ${inviteCode},
           ${data.email.toLowerCase()},
@@ -71,6 +72,7 @@ class InviteService {
           ${expiresAtStr},
           ${data.cohortId || null},
           ${data.organizationId || null},
+          ${data.isTestUser ?? false},
           ${data.isBetaTester || false},
           ${data.astAccess ?? true},
           ${data.iaAccess ?? true},
@@ -126,6 +128,7 @@ class InviteService {
     expiresAt?: Date;
     cohortId?: string;
     organizationId?: string;
+    isTestUser?: boolean;
     isBetaTester?: boolean;
     astAccess?: boolean;
     iaAccess?: boolean;
@@ -144,18 +147,18 @@ class InviteService {
 
       // Generate a unique invite code (remove hyphens to fit 12-char limit)
       const inviteCode = generateInviteCode().replace(/-/g, '');
-      
+
       // Ensure code fits database constraint (max 12 characters)
       if (inviteCode.length > 12) {
         throw new Error('Generated invite code exceeds database limit');
       }
-      
+
       // Convert Date to ISO string for raw SQL compatibility
       const expiresAtStr = data.expiresAt ? data.expiresAt.toISOString() : null;
 
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester, ast_access, ia_access, pm_access, show_demo_data_buttons)
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_test_user, is_beta_tester, ast_access, ia_access, pm_access, show_demo_data_buttons)
         VALUES (
           ${inviteCode},
           ${data.email.toLowerCase()},
@@ -165,6 +168,7 @@ class InviteService {
           ${expiresAtStr},
           ${data.cohortId ? parseInt(data.cohortId) : null},
           ${data.organizationId || null},
+          ${data.isTestUser ?? false},
           ${data.isBetaTester || false},
           ${data.astAccess ?? true},
           ${data.iaAccess ?? true},
