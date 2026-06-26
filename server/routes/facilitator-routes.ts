@@ -91,13 +91,12 @@ router.get('/organizations/:orgId', requireAuth, isFacilitatorOrAdmin, async (re
 });
 
 /**
- * Get facilitator's cohorts
+ * Get facilitator's cohorts (primary and co-facilitated)
  */
 router.get('/cohorts', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
     const userId = (req.session as any).userId;
-    
-    // Get cohorts where this user is the facilitator
+
     const result = await db.execute(sql`
       SELECT
         c.id,
@@ -109,25 +108,22 @@ router.get('/cohorts', requireAuth, isFacilitatorOrAdmin, async (req: Request, r
         c.ast_access,
         c.ia_access,
         o.name as organization_name,
-        (SELECT COUNT(*) FROM cohort_participants cp WHERE cp.cohort_id = c.id)::int as participant_count
+        (SELECT COUNT(*) FROM cohort_participants cp WHERE cp.cohort_id = c.id)::int as participant_count,
+        (c.facilitator_id = ${userId}) as is_primary
       FROM cohorts c
       LEFT JOIN organizations o ON c.organization_id = o.id
       WHERE c.facilitator_id = ${userId}
+         OR EXISTS (
+           SELECT 1 FROM cohort_facilitators cf
+           WHERE cf.cohort_id = c.id AND cf.facilitator_id = ${userId}
+         )
       ORDER BY c.name ASC
     `);
-    
-    const cohortsData = result || [];
-    
-    res.json({
-      success: true,
-      cohorts: cohortsData
-    });
+
+    res.json({ success: true, cohorts: result || [] });
   } catch (error) {
     console.error('Error fetching facilitator cohorts:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch cohorts'
-    });
+    res.status(500).json({ success: false, error: 'Failed to fetch cohorts' });
   }
 });
 
@@ -250,9 +246,16 @@ router.post('/cohorts', requireAuth, isFacilitatorOrAdmin, async (req: Request, 
 // ── Cohort Detail ────────────────────────────────────────────────────────────
 
 /**
- * Helper: verify cohort belongs to requesting facilitator (or user is admin)
+ * Helper: verify the requesting facilitator (or admin) can access this cohort.
+ * Returns { cohort, isPrimary } on success, or null (after writing the error response) on failure.
+ * isPrimary is true when the caller owns the cohort (facilitator_id) or is admin.
+ * Secondary facilitators pass the check but get isPrimary=false.
  */
-async function verifyCohortOwnership(cohortId: number, req: Request, res: Response) {
+async function verifyCohortAccess(
+  cohortId: number,
+  req: Request,
+  res: Response,
+): Promise<{ cohort: any; isPrimary: boolean } | null> {
   const userId = (req.session as any).userId;
   const userRole = (req.session as any).userRole;
 
@@ -271,12 +274,21 @@ async function verifyCohortOwnership(cohortId: number, req: Request, res: Respon
     return null;
   }
 
-  if (userRole !== 'admin' && cohort.facilitator_id !== userId) {
-    res.status(403).json({ success: false, error: 'You do not have access to this cohort' });
-    return null;
+  const isPrimary = userRole === 'admin' || cohort.facilitator_id === userId;
+  if (!isPrimary) {
+    const secRows = await db.execute(sql`
+      SELECT 1 FROM cohort_facilitators
+      WHERE cohort_id = ${cohortId} AND facilitator_id = ${userId}
+    `);
+    const sec = (secRows as any).rows ?? secRows;
+    if (!sec?.length) {
+      res.status(403).json({ success: false, error: 'You do not have access to this cohort' });
+      return null;
+    }
   }
 
-  return cohort;
+  cohort.is_primary = isPrimary;
+  return { cohort, isPrimary };
 }
 
 /**
@@ -285,10 +297,10 @@ async function verifyCohortOwnership(cohortId: number, req: Request, res: Respon
 router.get('/cohorts/:cohortId', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
     const cohortId = parseInt(req.params.cohortId);
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
 
-    res.json({ success: true, cohort });
+    res.json({ success: true, cohort: access.cohort });
   } catch (error) {
     console.error('Error fetching cohort detail:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch cohort detail' });
@@ -301,8 +313,10 @@ router.get('/cohorts/:cohortId', requireAuth, isFacilitatorOrAdmin, async (req: 
 router.patch('/cohorts/:cohortId', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
     const cohortId = parseInt(req.params.cohortId);
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can edit cohort settings' });
+    const cohort = access.cohort;
 
     const { name, description, organizationId, startDate, endDate,
             astAccess, iaAccess,
@@ -393,8 +407,8 @@ router.patch('/cohorts/:cohortId', requireAuth, isFacilitatorOrAdmin, async (req
 router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
     const cohortId = parseInt(req.params.cohortId);
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
 
     const result = await db.execute(sql`
       SELECT
@@ -474,8 +488,9 @@ router.delete('/cohorts/:cohortId/participants/:userId', requireAuth, isFacilita
   try {
     const cohortId = parseInt(req.params.cohortId);
     const participantId = parseInt(req.params.userId);
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can remove participants' });
 
     await db.execute(sql`
       DELETE FROM cohort_participants
@@ -496,8 +511,9 @@ router.patch('/cohorts/:cohortId/participants/:userId/disable', requireAuth, isF
   try {
     const cohortId = parseInt(req.params.cohortId);
     const participantId = parseInt(req.params.userId);
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can disable participants' });
 
     // Confirm participant is in this cohort
     const membership = await db.execute(sql`
@@ -530,8 +546,9 @@ router.patch('/cohorts/:cohortId/participants/:userId/profile', requireAuth, isF
   try {
     const cohortId = parseInt(req.params.cohortId);
     const participantId = parseInt(req.params.userId);
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can edit participant profiles' });
 
     const membership = await db.execute(sql`
       SELECT 1 FROM cohort_participants
@@ -572,8 +589,10 @@ router.post('/cohorts/:cohortId/invites', requireAuth, isFacilitatorOrAdmin, asy
   try {
     const cohortId = parseInt(req.params.cohortId);
     const userId = (req.session as any).userId;
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can create invites' });
+    const cohort = access.cohort;
 
     const { email, name, expiresAt } = req.body;
 
@@ -618,8 +637,10 @@ router.post('/cohorts/:cohortId/invites/bulk', requireAuth, isFacilitatorOrAdmin
   try {
     const cohortId = parseInt(req.params.cohortId);
     const userId = (req.session as any).userId;
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can create invites' });
+    const cohort = access.cohort;
 
     const { invitees } = req.body; // [{ email, name, jobTitle?, organization? }]
     if (!Array.isArray(invitees) || invitees.length === 0) {
@@ -671,8 +692,8 @@ router.post('/cohorts/:cohortId/invites/bulk', requireAuth, isFacilitatorOrAdmin
 router.get('/cohorts/:cohortId/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
     const cohortId = parseInt(req.params.cohortId);
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
 
     const result = await db.execute(sql`
       SELECT
@@ -709,8 +730,9 @@ router.delete('/cohorts/:cohortId/invites/:inviteId', requireAuth, isFacilitator
     const inviteId  = parseInt(req.params.inviteId);
     const userId    = (req.session as any).userId;
 
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can delete invites' });
 
     const rows = (await db.execute(sql`
       SELECT id, used_at, created_by FROM invites
@@ -741,8 +763,9 @@ router.patch('/cohorts/:cohortId/invites/:inviteId/remove', requireAuth, isFacil
     const cohortId = parseInt(req.params.cohortId);
     const inviteId = parseInt(req.params.inviteId);
 
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can remove invites' });
 
     await db.execute(sql`
       UPDATE invites SET cohort_id = NULL WHERE id = ${inviteId} AND cohort_id = ${cohortId}
@@ -755,7 +778,7 @@ router.patch('/cohorts/:cohortId/invites/:inviteId/remove', requireAuth, isFacil
 });
 
 /**
- * Move a pending invite to a different cohort (must own both cohorts).
+ * Move a pending invite to a different cohort (must be primary on both cohorts).
  * Body: { targetCohortId: number }
  */
 router.patch('/cohorts/:cohortId/invites/:inviteId/move', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
@@ -771,11 +794,13 @@ router.patch('/cohorts/:cohortId/invites/:inviteId/move', requireAuth, isFacilit
       return res.status(400).json({ success: false, error: 'Target cohort must be different' });
     }
 
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can move invites' });
 
-    const targetCohort = await verifyCohortOwnership(targetCohortId, req, res);
-    if (!targetCohort) return;
+    const targetAccess = await verifyCohortAccess(targetCohortId, req, res);
+    if (!targetAccess) return;
+    if (!targetAccess.isPrimary) return res.status(403).json({ success: false, error: 'You must be primary facilitator on the target cohort' });
 
     await db.execute(sql`
       UPDATE invites SET cohort_id = ${targetCohortId}
@@ -789,7 +814,7 @@ router.patch('/cohorts/:cohortId/invites/:inviteId/move', requireAuth, isFacilit
 });
 
 /**
- * Move a participant to a different cohort (must own both). Also moves any invite.
+ * Move a participant to a different cohort (must be primary on both). Also moves any invite.
  * Body: { targetCohortId: number }
  */
 router.patch('/cohorts/:cohortId/participants/:userId/move', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
@@ -805,11 +830,13 @@ router.patch('/cohorts/:cohortId/participants/:userId/move', requireAuth, isFaci
       return res.status(400).json({ success: false, error: 'Target cohort must be different' });
     }
 
-    const cohort = await verifyCohortOwnership(cohortId, req, res);
-    if (!cohort) return;
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can move participants' });
 
-    const targetCohort = await verifyCohortOwnership(targetCohortId, req, res);
-    if (!targetCohort) return;
+    const targetAccess = await verifyCohortAccess(targetCohortId, req, res);
+    if (!targetAccess) return;
+    if (!targetAccess.isPrimary) return res.status(403).json({ success: false, error: 'You must be primary facilitator on the target cohort' });
 
     // Move cohort_participants record
     await db.execute(sql`
@@ -833,6 +860,261 @@ router.patch('/cohorts/:cohortId/participants/:userId/move', requireAuth, isFaci
   } catch (error) {
     console.error('Error moving participant:', error);
     res.status(500).json({ success: false, error: 'Failed to move participant' });
+  }
+});
+
+// ── Cohort Sessions ──────────────────────────────────────────────────────────
+
+/**
+ * List sessions for a cohort (primary + secondary facilitators can view).
+ */
+router.get('/cohorts/:cohortId/sessions', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+
+    const rows = await db.execute(sql`
+      SELECT id, cohort_id, program, session_name, subtitle, format,
+             session_date, start_time, end_time, meeting_link, whiteboard_link, sort_order
+      FROM cohort_sessions
+      WHERE cohort_id = ${cohortId}
+      ORDER BY sort_order ASC, session_date ASC NULLS LAST, start_time ASC NULLS LAST
+    `);
+
+    res.json({ success: true, sessions: (rows as any).rows ?? rows ?? [] });
+  } catch (error) {
+    console.error('Error fetching cohort sessions:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch sessions' });
+  }
+});
+
+/**
+ * Create a session (primary only).
+ */
+router.post('/cohorts/:cohortId/sessions', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can add sessions' });
+
+    const { program, sessionName, subtitle, format, sessionDate, startTime, endTime, meetingLink, whiteboardLink, sortOrder } = req.body;
+    if (!sessionName?.trim()) return res.status(400).json({ success: false, error: 'Session name is required' });
+
+    // Default sort_order to next available
+    const nextOrderRows = await db.execute(sql`
+      SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM cohort_sessions WHERE cohort_id = ${cohortId}
+    `);
+    const nextOrder = sortOrder ?? (((nextOrderRows as any).rows ?? nextOrderRows)?.[0]?.next_order ?? 0);
+
+    const result = await db.execute(sql`
+      INSERT INTO cohort_sessions
+        (cohort_id, program, session_name, subtitle, format, session_date, start_time, end_time, meeting_link, whiteboard_link, sort_order, created_at, updated_at)
+      VALUES
+        (${cohortId}, ${program || null}, ${sessionName.trim()}, ${subtitle || null}, ${format || null},
+         ${sessionDate || null}, ${startTime || null}, ${endTime || null},
+         ${meetingLink || null}, ${whiteboardLink || null}, ${nextOrder}, NOW(), NOW())
+      RETURNING *
+    `);
+
+    const session = ((result as any).rows ?? result)?.[0];
+    res.json({ success: true, session });
+  } catch (error) {
+    console.error('Error creating cohort session:', error);
+    res.status(500).json({ success: false, error: 'Failed to create session' });
+  }
+});
+
+/**
+ * Update a session (primary only).
+ */
+router.patch('/cohorts/:cohortId/sessions/:sessionId', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const sessionId = parseInt(req.params.sessionId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can edit sessions' });
+
+    const { program, sessionName, subtitle, format, sessionDate, startTime, endTime, meetingLink, whiteboardLink, sortOrder } = req.body;
+
+    if (!sessionName?.trim()) {
+      return res.status(400).json({ success: false, error: 'Session name cannot be empty' });
+    }
+
+    await db.execute(sql`
+      UPDATE cohort_sessions SET
+        program         = ${program || null},
+        session_name    = ${sessionName.trim()},
+        subtitle        = ${subtitle || null},
+        format          = ${format || null},
+        session_date    = ${sessionDate || null},
+        start_time      = ${startTime || null},
+        end_time        = ${endTime || null},
+        meeting_link    = ${meetingLink || null},
+        whiteboard_link = ${whiteboardLink || null},
+        sort_order      = ${sortOrder ?? 0},
+        updated_at      = NOW()
+      WHERE id = ${sessionId} AND cohort_id = ${cohortId}
+    `);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating cohort session:', error);
+    res.status(500).json({ success: false, error: 'Failed to update session' });
+  }
+});
+
+/**
+ * Delete a session (primary only).
+ */
+router.delete('/cohorts/:cohortId/sessions/:sessionId', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const sessionId = parseInt(req.params.sessionId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can delete sessions' });
+
+    await db.execute(sql`DELETE FROM cohort_sessions WHERE id = ${sessionId} AND cohort_id = ${cohortId}`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting cohort session:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete session' });
+  }
+});
+
+// ── Co-facilitator management ────────────────────────────────────────────────
+
+/**
+ * List all facilitators for a cohort (primary + secondary).
+ */
+router.get('/cohorts/:cohortId/facilitators', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+
+    const { cohort } = access;
+
+    // Primary facilitator
+    const primaryRows = await db.execute(sql`
+      SELECT id, first_name, last_name, email FROM users WHERE id = ${cohort.facilitator_id}
+    `);
+    const primaryData = ((primaryRows as any).rows ?? primaryRows)?.[0];
+
+    // Secondary facilitators
+    const secRows = await db.execute(sql`
+      SELECT u.id, u.first_name, u.last_name, u.email, cf.created_at
+      FROM cohort_facilitators cf
+      JOIN users u ON cf.facilitator_id = u.id
+      WHERE cf.cohort_id = ${cohortId}
+      ORDER BY cf.created_at ASC
+    `);
+    const secondaryData = (secRows as any).rows ?? secRows ?? [];
+
+    const facilitators = [
+      primaryData && {
+        id: primaryData.id,
+        name: `${primaryData.first_name || ''} ${primaryData.last_name || ''}`.trim() || primaryData.email,
+        email: primaryData.email,
+        role: 'primary' as const,
+      },
+      ...(secondaryData as any[]).map((r: any) => ({
+        id: r.id,
+        name: `${r.first_name || ''} ${r.last_name || ''}`.trim() || r.email,
+        email: r.email,
+        role: 'secondary' as const,
+      })),
+    ].filter(Boolean);
+
+    res.json({ success: true, facilitators });
+  } catch (error) {
+    console.error('Error fetching cohort facilitators:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch facilitators' });
+  }
+});
+
+/**
+ * Add a secondary facilitator to a cohort (primary only, max 2 secondary).
+ * Body: { email: string }
+ */
+router.post('/cohorts/:cohortId/facilitators', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can add co-facilitators' });
+
+    const { email } = req.body;
+    if (!email?.trim()) return res.status(400).json({ success: false, error: 'Email is required' });
+
+    // Look up the user by email
+    const userRows = await db.execute(sql`
+      SELECT id, first_name, last_name, email, role FROM users WHERE LOWER(email) = LOWER(${email.trim()})
+    `);
+    const userData = ((userRows as any).rows ?? userRows)?.[0];
+
+    if (!userData) return res.status(404).json({ success: false, error: 'No user found with that email address' });
+    if (!['facilitator', 'admin'].includes(userData.role)) {
+      return res.status(400).json({ success: false, error: 'That user does not have facilitator access' });
+    }
+    if (userData.id === access.cohort.facilitator_id) {
+      return res.status(400).json({ success: false, error: 'That user is already the primary facilitator for this cohort' });
+    }
+
+    // Check max 2 secondary facilitators
+    const countRows = await db.execute(sql`
+      SELECT COUNT(*)::int as cnt FROM cohort_facilitators WHERE cohort_id = ${cohortId}
+    `);
+    const count = ((countRows as any).rows ?? countRows)?.[0]?.cnt ?? 0;
+    if (count >= 2) {
+      return res.status(400).json({ success: false, error: 'A cohort can have at most 2 co-facilitators' });
+    }
+
+    // Insert (ignore if duplicate)
+    await db.execute(sql`
+      INSERT INTO cohort_facilitators (cohort_id, facilitator_id, role, created_at)
+      VALUES (${cohortId}, ${userData.id}, 'secondary', NOW())
+      ON CONFLICT (cohort_id, facilitator_id) DO NOTHING
+    `);
+
+    res.json({
+      success: true,
+      facilitator: {
+        id: userData.id,
+        name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.email,
+        email: userData.email,
+        role: 'secondary',
+      },
+    });
+  } catch (error) {
+    console.error('Error adding co-facilitator:', error);
+    res.status(500).json({ success: false, error: 'Failed to add co-facilitator' });
+  }
+});
+
+/**
+ * Remove a secondary facilitator from a cohort (primary only).
+ */
+router.delete('/cohorts/:cohortId/facilitators/:facilId', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const facilId  = parseInt(req.params.facilId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+    if (!access.isPrimary) return res.status(403).json({ success: false, error: 'Only the primary facilitator can remove co-facilitators' });
+
+    await db.execute(sql`
+      DELETE FROM cohort_facilitators
+      WHERE cohort_id = ${cohortId} AND facilitator_id = ${facilId}
+    `);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error removing co-facilitator:', error);
+    res.status(500).json({ success: false, error: 'Failed to remove co-facilitator' });
   }
 });
 

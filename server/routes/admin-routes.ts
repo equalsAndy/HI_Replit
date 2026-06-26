@@ -595,6 +595,26 @@ router.delete('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Res
 });
 
 /**
+ * Disable or re-enable a user account (admin only)
+ */
+router.patch('/users/:id/disable', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: 'Invalid user ID' });
+    const { disabled } = req.body;
+    if (disabled) {
+      await db.execute(sql`UPDATE users SET disabled_at = NOW() WHERE id = ${id} AND disabled_at IS NULL`);
+    } else {
+      await db.execute(sql`UPDATE users SET disabled_at = NULL WHERE id = ${id}`);
+    }
+    res.json({ success: true, disabled: !!disabled });
+  } catch (error) {
+    console.error('Error toggling user disable:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * Delete a user completely (admin only)
  */
 router.delete('/users/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {

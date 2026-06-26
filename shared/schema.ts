@@ -203,11 +203,12 @@ export const insertVideoSchema = createInsertSchema(videos);
 export type Video = typeof videos.$inferSelect;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 
-// Cohort facilitators junction table
+// Cohort facilitators junction table — secondary facilitators (primary is cohorts.facilitator_id)
 export const cohortFacilitators = pgTable('cohort_facilitators', {
   id: serial('id').primaryKey(),
   cohortId: integer('cohort_id').references(() => cohorts.id, { onDelete: 'cascade' }),
   facilitatorId: integer('facilitator_id').references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 20 }).default('secondary').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -233,6 +234,26 @@ export const insertCohortParticipantSchema = createInsertSchema(cohortParticipan
 // Type definitions for cohort participants
 export type CohortParticipant = typeof cohortParticipants.$inferSelect;
 export type InsertCohortParticipant = z.infer<typeof insertCohortParticipantSchema>;
+
+// Cohort sessions — scheduled sessions with meeting/whiteboard links, used as email variables
+export const cohortSessions = pgTable('cohort_sessions', {
+  id: serial('id').primaryKey(),
+  cohortId: integer('cohort_id').notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
+  program: varchar('program', { length: 100 }),
+  sessionName: varchar('session_name', { length: 100 }).notNull(),
+  subtitle: varchar('subtitle', { length: 200 }),
+  format: varchar('format', { length: 100 }),
+  sessionDate: varchar('session_date', { length: 20 }),
+  startTime: varchar('start_time', { length: 20 }),
+  endTime: varchar('end_time', { length: 20 }),
+  meetingLink: text('meeting_link'),
+  whiteboardLink: text('whiteboard_link'),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type CohortSession = typeof cohortSessions.$inferSelect;
 
 // Invite codes table schema
 export const invites = pgTable('invites', {
