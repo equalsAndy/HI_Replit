@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useEditor, EditorContent, Extension } from '@tiptap/react';
+import { useEditor, EditorContent, Extension, Node } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle, Color } from '@tiptap/extension-text-style';
 import { Underline } from '@tiptap/extension-underline';
@@ -7,8 +7,64 @@ import { TextAlign } from '@tiptap/extension-text-align';
 import { Link } from '@tiptap/extension-link';
 import { Placeholder } from '@tiptap/extension-placeholder';
 import { CharacterCount } from '@tiptap/extension-character-count';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { Image } from '@tiptap/extension-image';
 import { VariableNode } from './VariableNode';
 import VariablePicker from './VariablePicker';
+
+// Div node — preserves <div> blocks (including inline styles) instead of converting them to <p>
+const Div = Node.create({
+  name: 'div',
+  group: 'block',
+  content: 'block+',
+  parseHTML() {
+    return [{ tag: 'div' }];
+  },
+  renderHTML({ HTMLAttributes }: any) {
+    return ['div', HTMLAttributes, 0];
+  },
+  addAttributes() {
+    return {
+      style: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('style') || null,
+        renderHTML: (attrs: Record<string, any>) => attrs.style ? { style: attrs.style } : {},
+      },
+      class: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('class') || null,
+        renderHTML: (attrs: Record<string, any>) => attrs.class ? { class: attrs.class } : {},
+      },
+    };
+  },
+});
+
+// StylePreservation — carry inline style + class through to block nodes (p, h1-h6, etc.)
+const StylePreservation = Extension.create({
+  name: 'stylePreservation',
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem', 'blockquote'],
+        attributes: {
+          style: {
+            default: null,
+            parseHTML: (el: HTMLElement) => el.getAttribute('style') || null,
+            renderHTML: (attrs: Record<string, any>) => attrs.style ? { style: attrs.style } : {},
+          },
+          class: {
+            default: null,
+            parseHTML: (el: HTMLElement) => el.getAttribute('class') || null,
+            renderHTML: (attrs: Record<string, any>) => attrs.class ? { class: attrs.class } : {},
+          },
+        },
+      },
+    ];
+  },
+});
 
 // FontSize extension — allows setting font-size via textStyle mark
 const FontSize = Extension.create({
@@ -92,16 +148,24 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
       FontSize,
       Color,
       Underline,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TextAlign.configure({ types: ['heading', 'paragraph', 'div'] }),
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: 'Compose your email template...' }),
       CharacterCount,
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableCell,
+      TableHeader,
+      Image.configure({ inline: true }),
+      Div,
+      StylePreservation,
       VariableNode,
     ],
     content: initHtml,
     editorProps: {
       attributes: {
         style: 'outline: none; min-height: 350px; padding: 16px; font-size: 16px; line-height: 1.7;',
+        class: 'tiptap-email-editor',
       },
     },
   });
@@ -314,6 +378,10 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
           content: attr(data-placeholder); float: left; color: #adb5bd; pointer-events: none; height: 0;
         }
         .variable-node { display: inline-block; background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; border-radius: 4px; padding: 1px 6px; font-size: 0.85em; font-family: monospace; }
+        .tiptap table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        .tiptap table td, .tiptap table th { border: 1px solid #d1d5db; padding: 4px 8px; vertical-align: top; box-sizing: border-box; position: relative; }
+        .tiptap table th { background-color: #f3f4f6; font-weight: 600; }
+        .tiptap img { max-width: 100%; height: auto; }
       `}</style>
     </div>
   );
