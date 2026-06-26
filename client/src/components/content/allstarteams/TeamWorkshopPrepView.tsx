@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { trpc } from "@/utils/trpc";
 import VideoTranscriptGlossary from '../../common/VideoTranscriptGlossary';
@@ -17,11 +16,6 @@ export default function TeamWorkshopPrepView({
   setCurrentContent
 }: TeamWorkshopPrepViewProps) {
   const stepId = "4-4";
-
-  const handleComplete = () => {
-    markStepCompleted(stepId);
-    setCurrentContent('extra-stuff');
-  };
 
   // Fetch video from database using tRPC
   const { data: videoData, isLoading: videoLoading, error } = trpc.lesson.byStep.useQuery({
@@ -110,16 +104,6 @@ export default function TeamWorkshopPrepView({
             </ul>
           </CardContent>
         </Card>
-
-        {/* Complete Step Button */}
-        <div className="flex justify-end pt-4">
-          <Button
-            onClick={handleComplete}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
-          >
-            Complete Step →
-          </Button>
-        </div>
       </div>
     </div>
   );
