@@ -119,7 +119,25 @@ docker buildx build --platform linux/amd64 \
   --tag $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG \
   --load \
   .
-docker push $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG
+
+# Push with retry loop — VPNKit proxy (192.168.65.1:3128) drops TCP connections
+# during large parallel uploads. DOCKER_BUILDKIT=0 forces the classic daemon push
+# which respects max-concurrent-uploads:1 in daemon.json and pushes layers serially.
+echo "📤 Pushing image to ECR (retry-safe)..."
+PUSH_SUCCESS=false
+for i in 1 2 3 4 5; do
+  echo "   Push attempt $i/5..."
+  if DOCKER_BUILDKIT=0 docker push "$ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG"; then
+    PUSH_SUCCESS=true
+    break
+  fi
+  echo "   Attempt $i failed (VPNKit proxy drop), retrying in 5s..."
+  sleep 5
+done
+if ! $PUSH_SUCCESS; then
+  echo "❌ Failed to push image after 5 attempts"
+  exit 1
+fi
 
 # Step 2: Deploy to Lightsail PRODUCTION
 echo "🚢 Deploying to Lightsail PRODUCTION..."
