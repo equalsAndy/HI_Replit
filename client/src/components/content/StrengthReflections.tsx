@@ -101,6 +101,9 @@ export default function StrengthReflections({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saved'>('idle');
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const autoSaveStatusTimer = useRef<ReturnType<typeof setTimeout>>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -243,6 +246,14 @@ export default function StrengthReflections({
     }
   }, [reflectionConfigs]);
 
+  // Cleanup auto-save timers on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(autoSaveTimer.current);
+      clearTimeout(autoSaveStatusTimer.current);
+    };
+  }, []);
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -255,28 +266,38 @@ export default function StrengthReflections({
   const currentResponse = responses[currentReflection?.id] || '';
   const isCurrentComplete = currentResponse.trim().length >= (currentReflection?.minLength || 25);
 
-  const handleResponseChange = async (value: string) => {
-    if (!currentReflection) return;
-    setResponses(prev => ({ ...prev, [currentReflection.id]: value }));
+  const triggerAutoSaveIndicator = () => {
+    setAutoSaveStatus('saved');
+    clearTimeout(autoSaveStatusTimer.current);
+    autoSaveStatusTimer.current = setTimeout(() => setAutoSaveStatus('idle'), 3000);
+  };
 
-    // Auto-save when editing completed reflections (but don't auto-complete)
-    if (allReflectionsCompleted && isEditing) {
-      const updatedResponses = { ...responses, [currentReflection.id]: value };
-      try {
-        await saveStrengthReflections(updatedResponses);
-        console.log('✅ Auto-saved reflection:', currentReflection.id);
-      } catch (error) {
-        console.error('❌ Auto-save failed:', error);
-      }
-    }
+  const handleResponseChange = (value: string) => {
+    if (!currentReflection) return;
+    const updatedResponses = { ...responses, [currentReflection.id]: value };
+    setResponses(updatedResponses);
+
+    // Debounced auto-save: 2 seconds after last keystroke
+    clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      saveStrengthReflections(updatedResponses)
+        .then(result => { if (result.success) triggerAutoSaveIndicator(); })
+        .catch(err => console.error('❌ Auto-save failed:', err));
+    }, 2000);
   };
 
   const handleNext = () => {
     if (!isCurrentComplete) return;
-    
+
+    // Flush any pending debounced save immediately with current responses
+    clearTimeout(autoSaveTimer.current);
+    saveStrengthReflections(responses)
+      .then(result => { if (result.success) triggerAutoSaveIndicator(); })
+      .catch(err => console.error('❌ Save on Next failed:', err));
+
     // Mark current as completed
     setCompletedIndices(prev => new Set([...prev, currentIndex]));
-    
+
     // Move to next reflection or stay if at end
     if (currentIndex < reflectionConfigs.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -552,6 +573,9 @@ export default function StrengthReflections({
                   {currentResponse.trim().length} characters
                   {currentReflection.minLength && (
                     <span className="ml-2">(minimum {currentReflection.minLength})</span>
+                  )}
+                  {autoSaveStatus === 'saved' && (
+                    <span className="ml-3 text-green-600 text-sm">✓ Saved</span>
                   )}
                 </div>
                 {isCurrentComplete && (
