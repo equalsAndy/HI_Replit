@@ -91,7 +91,7 @@ router.put('/:id', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid invite ID' });
     }
 
-    const { role, name, isBetaTester, astAccess, iaAccess, pmAccess, showDemoDataButtons } = req.body;
+    const { role, name, jobTitle, isBetaTester, astAccess, iaAccess, pmAccess, showDemoDataButtons } = req.body;
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
 
@@ -119,6 +119,7 @@ router.put('/:id', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
     const updateResult = await inviteService.updateInvite(id, {
       role,
       name,
+      jobTitle,
       isBetaTester,
       astAccess,
       iaAccess,

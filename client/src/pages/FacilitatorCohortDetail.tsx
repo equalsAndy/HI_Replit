@@ -1,4 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { AdminStarCardModal } from '@/components/admin/AdminStarCardModal';
+import { TeamStarCardMatrix } from '@/components/facilitator/TeamStarCardMatrix';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { useRoute, useLocation } from 'wouter';
@@ -72,6 +74,7 @@ import {
   MoreHorizontal,
   ArrowRight,
   X,
+  Loader2,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -334,6 +337,9 @@ const FacilitatorCohortDetail: React.FC = () => {
   // Change organization modal state
   const [showChangeOrgModal, setShowChangeOrgModal] = useState(false);
   const [changeOrgId, setChangeOrgId] = useState<string>('');
+  const [starCardModalState, setStarCardModalState] = useState<{ userId: number; userName: string; username: string } | null>(null);
+  const [downloadingZip, setDownloadingZip] = useState(false);
+  const [showTeamMatrix, setShowTeamMatrix] = useState(false);
 
   // Edit cohort modal state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -809,6 +815,35 @@ const FacilitatorCohortDetail: React.FC = () => {
     bulkInviteMutation.mutate(valid);
   }
 
+  async function handleDownloadAllStarCards() {
+    setDownloadingZip(true);
+    try {
+      const res = await fetch(`/api/facilitator/cohorts/${cohortId}/starcards/download-zip`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Download failed');
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const disposition = res.headers.get('Content-Disposition') || '';
+      const filenameMatch = disposition.match(/filename="([^"]+)"/);
+      a.download = filenameMatch?.[1] ?? `starcards-cohort-${cohortId}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast({ title: 'Downloaded', description: 'StarCards ZIP downloaded successfully.' });
+    } catch (error) {
+      toast({ title: 'Download failed', description: (error as Error).message, variant: 'destructive' });
+    } finally {
+      setDownloadingZip(false);
+    }
+  }
+
   function downloadTemplate() {
     const csv = 'Full name,Email,Job title,Organization\nJane Smith,jane@example.com,Product Manager,Acme Corp\n';
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -1175,7 +1210,7 @@ const FacilitatorCohortDetail: React.FC = () => {
 
           {/* Participants Table */}
           <div className="bg-white rounded-lg border border-slate-200 mb-8">
-            <div className="px-6 py-4 border-b border-slate-100">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="text-lg font-medium text-slate-800">
                 Participants
                 {participants.length > 0 && (
@@ -1184,6 +1219,53 @@ const FacilitatorCohortDetail: React.FC = () => {
                   </span>
                 )}
               </h2>
+              {participants.length > 0 && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleDownloadAllStarCards}
+                        disabled={downloadingZip}
+                      >
+                        {downloadingZip ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4" />
+                            Download All StarCards
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Download a ZIP of all saved StarCard PNGs for this cohort</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setShowTeamMatrix(true)}
+                      >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        Team Matrix
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View and download the team strengths and flow matrix</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
             </div>
 
             {participantsQuery.isLoading ? (
@@ -1309,7 +1391,7 @@ const FacilitatorCohortDetail: React.FC = () => {
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0 text-slate-400 hover:text-indigo-600"
-                                  onClick={() => window.open(`/api/star-card/admin/download/${p.id}`, '_blank')}
+                                  onClick={() => setStarCardModalState({ userId: p.id, userName: p.name, username: p.email.split('@')[0] })}
                                 >
                                   <Download className="h-4 w-4" />
                                 </Button>
@@ -2574,6 +2656,25 @@ const FacilitatorCohortDetail: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Team Matrix Modal ──────────────────────────────────────────────── */}
+      <TeamStarCardMatrix
+        cohortId={parseInt(cohortId!)}
+        cohortName={cohort.name || `Cohort ${cohortId}`}
+        isOpen={showTeamMatrix}
+        onClose={() => setShowTeamMatrix(false)}
+      />
+
+      {/* ── StarCard Modal ──────────────────────────────────────────────────── */}
+      {starCardModalState && (
+        <AdminStarCardModal
+          userId={starCardModalState.userId}
+          userName={starCardModalState.userName}
+          username={starCardModalState.username}
+          isOpen={true}
+          onClose={() => setStarCardModalState(null)}
+        />
+      )}
 
       </div>
     </TooltipProvider>

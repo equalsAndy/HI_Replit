@@ -53,6 +53,7 @@ SESSION_SECRET=$(aws ssm get-parameter --name "/prod/hi-replit/SESSION_SECRET" -
 FEATURE_DEBUG_PANEL=$(aws ssm get-parameter --name "/prod/hi-replit/FEATURE_DEBUG_PANEL" --with-decryption --query "Parameter.Value" --output text)
 ENVIRONMENT=$(aws ssm get-parameter --name "/prod/hi-replit/ENVIRONMENT" --with-decryption --query "Parameter.Value" --output text)
 FEATURE_HOLISTIC_REPORTS=$(aws ssm get-parameter --name "/prod/hi-replit/FEATURE_HOLISTIC_REPORTS" --with-decryption --query "Parameter.Value" --output text)
+FEATURE_EMAIL_TEMPLATES=$(aws ssm get-parameter --name "/prod/hi-replit/FEATURE_EMAIL_TEMPLATES" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "false")
 OPENAI_API_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/OPENAI_API_KEY" --with-decryption --query "Parameter.Value" --output text)
 OPENAI_KEY_IA=$(aws ssm get-parameter --name "/prod/hi-replit/OPENAI_KEY_IA" --with-decryption --query "Parameter.Value" --output text)
 IMAGINAL_AGILITY_PROJECT_ID=$(aws ssm get-parameter --name "/prod/hi-replit/IMAGINAL_AGILITY_PROJECT_ID" --with-decryption --query "Parameter.Value" --output text)
@@ -63,6 +64,10 @@ AI_PROVIDER=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER" --with-
 AI_PROVIDER_IA=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER_IA" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 CLAUDE_MODEL=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_MODEL" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "claude-haiku-4-5-20251001")
 TRAINING_DOC_SYNC_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/TRAINING_DOC_SYNC_KEY" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
+
+# AWS credentials for SES email sending from within the container
+SES_AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --name "/prod/hi-replit/AWS_ACCESS_KEY_ID" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
+SES_AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/AWS_SECRET_ACCESS_KEY" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
 
 # Auth0 Configuration - Main app credentials
 AUTH0_DOMAIN=$(aws ssm get-parameter --name "/prod/hi-replit/AUTH0_DOMAIN" --with-decryption --query "Parameter.Value" --output text)
@@ -162,6 +167,7 @@ aws lightsail create-container-service-deployment \
         \"FEATURE_DEBUG_PANEL\": \"${FEATURE_DEBUG_PANEL}\",
         \"ENVIRONMENT\": \"${ENVIRONMENT}\",
         \"FEATURE_HOLISTIC_REPORTS\": \"${FEATURE_HOLISTIC_REPORTS}\",
+        \"FEATURE_EMAIL_TEMPLATES\": \"${FEATURE_EMAIL_TEMPLATES}\",
         \"OPENAI_API_KEY\": \"${OPENAI_API_KEY}\",
         \"OPENAI_KEY_IA\": \"${OPENAI_KEY_IA}\",
         \"IMAGINAL_AGILITY_PROJECT_ID\": \"${IMAGINAL_AGILITY_PROJECT_ID}\",
@@ -180,6 +186,9 @@ aws lightsail create-container-service-deployment \
         \"AI_PROVIDER_IA\": \"${AI_PROVIDER_IA}\",
         \"CLAUDE_MODEL\": \"${CLAUDE_MODEL}\",
         \"TRAINING_DOC_SYNC_KEY\": \"${TRAINING_DOC_SYNC_KEY}\",
+        \"AWS_ACCESS_KEY_ID\": \"${SES_AWS_ACCESS_KEY_ID}\",
+        \"AWS_SECRET_ACCESS_KEY\": \"${SES_AWS_SECRET_ACCESS_KEY}\",
+        \"AWS_REGION\": \"us-west-2\",
         \"NODE_ENV\": \"production\",
         \"PORT\": \"8080\"
       }

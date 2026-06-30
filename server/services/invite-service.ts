@@ -501,6 +501,7 @@ class InviteService {
     pmAccess?: boolean;
     showDemoDataButtons?: boolean;
     name?: string;
+    jobTitle?: string | null;
     role?: 'admin' | 'facilitator' | 'participant' | 'student';
     expiresAt?: Date | null;
     cohortId?: number | null;
@@ -536,6 +537,7 @@ class InviteService {
       if (updates.pmAccess !== undefined) updateData.pmAccess = updates.pmAccess;
       if (updates.showDemoDataButtons !== undefined) updateData.showDemoDataButtons = updates.showDemoDataButtons;
       if (updates.name !== undefined) updateData.name = updates.name || null;
+      if (updates.jobTitle !== undefined) updateData.jobTitle = updates.jobTitle || null;
       if (updates.role !== undefined) updateData.role = updates.role;
       if (updates.expiresAt !== undefined) updateData.expiresAt = updates.expiresAt || null;
       if (updates.cohortId !== undefined) updateData.cohortId = updates.cohortId || null;

@@ -1118,4 +1118,223 @@ router.delete('/cohorts/:cohortId/facilitators/:facilId', requireAuth, isFacilit
   }
 });
 
+// ── ZIP utilities ─────────────────────────────────────────────────────────────
+
+function crc32(buf: Buffer): number {
+  const table: number[] = [];
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) {
+      c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[i] = c;
+  }
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) {
+    crc = (crc >>> 8) ^ table[(crc ^ buf[i]) & 0xFF];
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function buildZip(files: Array<{ name: string; data: Buffer }>): Buffer {
+  const localParts: Buffer[] = [];
+  const centralParts: Buffer[] = [];
+  const fileOffsets: number[] = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const nameBytes = Buffer.from(file.name, 'utf8');
+    const checksum = crc32(file.data);
+    const dataLen = file.data.length;
+
+    const local = Buffer.alloc(30 + nameBytes.length);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0, 6);
+    local.writeUInt16LE(0, 8);  // stored (no compression — PNGs are already compressed)
+    local.writeUInt16LE(0, 10);
+    local.writeUInt16LE(0, 12);
+    local.writeUInt32LE(checksum, 14);
+    local.writeUInt32LE(dataLen, 18);
+    local.writeUInt32LE(dataLen, 22);
+    local.writeUInt16LE(nameBytes.length, 26);
+    local.writeUInt16LE(0, 28);
+    nameBytes.copy(local, 30);
+
+    fileOffsets.push(offset);
+    offset += local.length + dataLen;
+    localParts.push(local, file.data);
+
+    const central = Buffer.alloc(46 + nameBytes.length);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0, 8);
+    central.writeUInt16LE(0, 10);
+    central.writeUInt16LE(0, 12);
+    central.writeUInt16LE(0, 14);
+    central.writeUInt32LE(checksum, 16);
+    central.writeUInt32LE(dataLen, 20);
+    central.writeUInt32LE(dataLen, 24);
+    central.writeUInt16LE(nameBytes.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE(0, 38);
+    central.writeUInt32LE(fileOffsets[fileOffsets.length - 1], 42);
+    nameBytes.copy(central, 46);
+    centralParts.push(central);
+  }
+
+  const centralDir = Buffer.concat(centralParts);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(files.length, 8);
+  eocd.writeUInt16LE(files.length, 10);
+  eocd.writeUInt32LE(centralDir.length, 12);
+  eocd.writeUInt32LE(offset, 16);
+  eocd.writeUInt16LE(0, 20);
+
+  return Buffer.concat([...localParts, centralDir, eocd]);
+}
+
+/**
+ * Download a ZIP of all saved StarCard PNGs for a cohort
+ */
+router.get('/cohorts/:cohortId/starcards/download-zip', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+
+    const result = await db.execute(sql`
+      SELECT
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.username,
+        ps.photo_data,
+        ps.mime_type
+      FROM cohort_participants cp
+      JOIN users u ON cp.participant_id = u.id
+      LEFT JOIN LATERAL (
+        SELECT photo_data, mime_type
+        FROM photo_storage
+        WHERE uploaded_by = u.id
+          AND is_thumbnail = false
+          AND image_type = 'starcard_generated'
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) ps ON true
+      WHERE cp.cohort_id = ${cohortId}
+      ORDER BY u.first_name, u.last_name
+    `);
+
+    const rows = (result as any).rows ?? result ?? [];
+    const withPhotos = (rows as any[]).filter((r: any) => r.photo_data);
+
+    if (withPhotos.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No saved StarCards found for participants in this cohort'
+      });
+    }
+
+    const files = withPhotos.map((row: any) => {
+      const raw: string = row.photo_data;
+      const base64 = raw.includes(',') ? raw.split(',')[1] : raw;
+      const data = Buffer.from(base64, 'base64');
+      const safeName = [row.first_name, row.last_name]
+        .filter(Boolean).join('-').toLowerCase().replace(/[^a-z0-9-]/g, '-')
+        || row.username || `user-${row.id}`;
+      const ext = row.mime_type?.split('/')[1] || 'png';
+      return { name: `${safeName}-starcard.${ext}`, data };
+    });
+
+    const cohortResult = await db.execute(sql`SELECT name FROM cohorts WHERE id = ${cohortId}`);
+    const cohortRows = (cohortResult as any).rows ?? cohortResult ?? [];
+    const cohortName = (cohortRows[0]?.name as string | undefined) || `cohort-${cohortId}`;
+    const zipFilename = `${cohortName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-starcards.zip`;
+
+    const zipBuffer = buildZip(files);
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${zipFilename}"`);
+    res.setHeader('Content-Length', zipBuffer.length);
+    res.send(zipBuffer);
+  } catch (error) {
+    console.error('Error creating StarCard ZIP:', error);
+    res.status(500).json({ success: false, error: 'Failed to create StarCard download' });
+  }
+});
+
+/**
+ * Team matrix data: all cohort participants with their starcard scores and flow attributes
+ */
+router.get('/cohorts/:cohortId/team-matrix', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+
+    const result = await db.execute(sql`
+      SELECT
+        u.id,
+        u.first_name,
+        u.last_name,
+        sc.results AS starcard_data,
+        fa.results AS flow_data
+      FROM cohort_participants cp
+      JOIN users u ON cp.participant_id = u.id
+      LEFT JOIN LATERAL (
+        SELECT results FROM user_assessments
+        WHERE user_id = u.id AND assessment_type = 'starCard'
+        ORDER BY created_at DESC LIMIT 1
+      ) sc ON true
+      LEFT JOIN LATERAL (
+        SELECT results FROM user_assessments
+        WHERE user_id = u.id AND assessment_type = 'flowAttributes'
+        ORDER BY created_at DESC LIMIT 1
+      ) fa ON true
+      WHERE cp.cohort_id = ${cohortId}
+      ORDER BY u.first_name, u.last_name
+    `);
+
+    const rows = (result as any).rows ?? result ?? [];
+
+    const members = (rows as any[]).map((row: any) => {
+      const name = [row.first_name, row.last_name].filter(Boolean).join(' ') || 'Unknown';
+
+      let strengths: Array<{ type: string; score: number }> = [];
+      if (row.starcard_data) {
+        const sc = typeof row.starcard_data === 'string' ? JSON.parse(row.starcard_data) : row.starcard_data;
+        strengths = [
+          { type: 'thinking', score: sc.thinking || 0 },
+          { type: 'feeling',  score: sc.feeling  || 0 },
+          { type: 'acting',   score: sc.acting   || 0 },
+          { type: 'planning', score: sc.planning  || 0 },
+        ].sort((a, b) => b.score - a.score);
+      }
+
+      let flowAttributes: string[] = [];
+      if (row.flow_data) {
+        const fd = typeof row.flow_data === 'string' ? JSON.parse(row.flow_data) : row.flow_data;
+        flowAttributes = (fd.attributes || []).slice(0, 4).map((a: any) =>
+          typeof a === 'string' ? a : (a.name || a.text || String(a))
+        );
+      }
+
+      return { id: row.id, name, strengths, flowAttributes, hasData: strengths.length > 0 };
+    });
+
+    res.json({ success: true, members });
+  } catch (error) {
+    console.error('Error fetching team matrix:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch team matrix data' });
+  }
+});
+
 export const facilitatorRouter = router;

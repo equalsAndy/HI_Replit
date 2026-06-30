@@ -172,10 +172,10 @@ export default function GrowthPlanView({
       <Card className="border-purple-300 bg-purple-50">
         <CardContent className="p-4">
           <p className="text-sm text-purple-800">
-            <strong>📋 Prototype Feature:</strong> This Quarterly Growth Plan is currently a prototype.
-            Your responses are saved to your profile and you can review them anytime, but this data
-            is not yet integrated with other features or reports. We're developing this tool to help
-            you connect your workshop insights to ongoing personal development.
+            <strong>📋 Prototype Feature:</strong> This Quarterly Growth Plan is currently a prototype mockup.
+            Your responses are NOT saved to your profile and this data is not yet integrated with other
+            features or reports. We're developing this tool to help you connect your workshop insights
+            to ongoing personal development.
           </p>
         </CardContent>
       </Card>

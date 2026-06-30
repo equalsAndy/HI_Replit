@@ -452,6 +452,8 @@ const InviteManagement: React.FC = () => {
     setEditValues({
       name: invite.name || '',
       role: invite.role || 'participant',
+      jobTitle: invite.jobTitle ?? invite.job_title ?? '',
+      organization: invite.organization ?? '',
       isBetaTester: invite.isBetaTester ?? invite.is_beta_tester ?? false,
       astAccess: invite.astAccess ?? invite.ast_access ?? true,
       iaAccess: invite.iaAccess ?? invite.ia_access ?? true,
@@ -764,8 +766,10 @@ const InviteManagement: React.FC = () => {
                       style={styles.input}
                       type="text"
                       placeholder="Senior Manager"
-                      value={newInvite.jobTitle}
-                      onChange={(e) => setNewInvite({ ...newInvite, jobTitle: e.target.value })}
+                      value={editingInvite ? editValues?.jobTitle ?? '' : newInvite.jobTitle}
+                      onChange={(e) => editingInvite
+                        ? setEditValues({ ...editValues, jobTitle: e.target.value })
+                        : setNewInvite({ ...newInvite, jobTitle: e.target.value })}
                       disabled={isSendingInvite}
                     />
                   </div>
@@ -775,8 +779,10 @@ const InviteManagement: React.FC = () => {
                       style={styles.input}
                       type="text"
                       placeholder="Acme Corporation"
-                      value={newInvite.organization}
-                      onChange={(e) => setNewInvite({ ...newInvite, organization: e.target.value })}
+                      value={editingInvite ? editValues?.organization ?? '' : newInvite.organization}
+                      onChange={(e) => editingInvite
+                        ? setEditValues({ ...editValues, organization: e.target.value })
+                        : setNewInvite({ ...newInvite, organization: e.target.value })}
                       disabled={isSendingInvite}
                     />
                   </div>
