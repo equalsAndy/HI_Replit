@@ -70,6 +70,7 @@ import {
   Download,
   Upload,
   LogIn,
+  FileText,
   FileSpreadsheet,
   MoreHorizontal,
   ArrowRight,
@@ -1397,6 +1398,23 @@ const FacilitatorCohortDetail: React.FC = () => {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent><p>Download star card</p></TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-slate-400 hover:text-indigo-600 disabled:opacity-30 disabled:hover:text-slate-400"
+                                  disabled={!p.astAccess || p.astStatus !== 'complete'}
+                                  onClick={() => window.open(`/api/facilitator/cohorts/${cohortId}/participants/${p.id}/holistic-report?reportType=ast_personal`, '_blank')}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{p.astAccess && p.astStatus === 'complete' ? 'View holistic report' : 'Report not yet completed'}</p>
+                              </TooltipContent>
                             </Tooltip>
 
                             <Tooltip>
