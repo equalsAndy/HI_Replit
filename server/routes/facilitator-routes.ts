@@ -6,6 +6,7 @@ import { db } from '../db.js';
 import { organizations, cohorts, users } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { inviteService } from '../services/invite-service.js';
+import { astSectionalReportService } from '../services/ast-sectional-report-service.js';
 
 const router = express.Router();
 
@@ -1268,6 +1269,52 @@ router.get('/cohorts/:cohortId/starcards/download-zip', requireAuth, isFacilitat
   } catch (error) {
     console.error('Error creating StarCard ZIP:', error);
     res.status(500).json({ success: false, error: 'Failed to create StarCard download' });
+  }
+});
+
+/**
+ * View a specific cohort participant's holistic (final assembled) report as HTML,
+ * so a facilitator can open it and print/save it to PDF from the browser.
+ */
+router.get('/cohorts/:cohortId/participants/:userId/holistic-report', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const participantId = parseInt(req.params.userId);
+    const reportType = (req.query.reportType as string) || 'ast_personal';
+
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+
+    if (!['ast_personal', 'ast_professional'].includes(reportType)) {
+      return res.status(400).json({ success: false, error: 'Invalid report type. Must be "ast_personal" or "ast_professional"' });
+    }
+
+    const membership = await db.execute(sql`
+      SELECT 1 FROM cohort_participants
+      WHERE cohort_id = ${cohortId} AND participant_id = ${participantId}
+    `);
+    const memberRows = (membership as any).rows ?? membership ?? [];
+    if (!memberRows.length) {
+      return res.status(404).json({ success: false, error: 'Participant not found in this cohort' });
+    }
+
+    const result = await astSectionalReportService.getAssembledReport(
+      req.params.userId,
+      reportType as 'ast_personal' | 'ast_professional',
+      'html'
+    );
+
+    if (!result.success) {
+      return res.status(400).json({ success: false, error: result.content });
+    }
+
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Content-Disposition', 'inline');
+    res.send(result.content);
+  } catch (error) {
+    console.error('Error fetching participant holistic report:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch participant holistic report' });
   }
 });
 
