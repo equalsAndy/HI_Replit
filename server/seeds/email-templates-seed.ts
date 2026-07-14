@@ -3,21 +3,17 @@ import { emailTemplates } from '../../shared/schema.js';
 import { sql } from 'drizzle-orm';
 
 /**
- * Seed 4 default system email templates.
- * Uses admin user (id=1) as creator. Safe to re-run — skips if templates already exist.
+ * Seed the default system email templates.
+ * Uses admin user (id=1) as creator. Safe to re-run — each template is matched by
+ * name, so re-running adds any newly-defined templates without touching existing ones.
  */
 export async function seedEmailTemplates(adminUserId = 1) {
-  // Check if any system templates already exist
   const existing = await db
-    .select({ id: emailTemplates.id })
+    .select({ name: emailTemplates.name })
     .from(emailTemplates)
-    .where(sql`${emailTemplates.isSystemTemplate} = true`)
-    .limit(1);
+    .where(sql`${emailTemplates.isSystemTemplate} = true`);
 
-  if (existing.length > 0) {
-    console.log('[email-seed] System templates already exist — skipping seed.');
-    return;
-  }
+  const existingNames = new Set(existing.map(t => t.name));
 
   const templates = [
     {
@@ -253,9 +249,66 @@ Invite code: {{invite_code}}
 — The {{platform_name}} Team
 {{support_email}}`,
     },
+    {
+      // Generalised from the original pilot-cohort welcome email. All cohort-specific
+      // details (school name, facilitator names, timezone, dates, Zoom links) are now
+      // variables: the schedule table is generated from the cohort's own sessions.
+      name: 'Cohort Welcome — Schedule & Access',
+      description: 'Welcome email for a cohort: introduces the facilitator, shares the invite code, and renders the cohort session schedule',
+      subject: 'Welcome to {{platform_name}} — Your Schedule and Access',
+      templateCategory: 'welcome' as const,
+      workshopType: 'both' as 'both',
+      isDefault: false,
+      htmlContent: `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: rgb(51, 51, 51);">
+<p>Hi {{invite_name}},</p>
+<p>We're looking forward to our upcoming sessions with you. We wanted to share the schedule and your access information ahead of time so you're all set.</p>
+<p>I'm {{facilitator_name}} — your point of contact for the platform.{{#if facilitator_email}} If you need any help, reach me directly at <a href="mailto:{{facilitator_email}}">{{facilitator_email}}</a>.{{/if}}</p>
+<p>During our first session, we'll provide a brief overview and then share the link to begin your exploration in the app.</p>
+<p>Your invite code: <strong>{{invite_code}}</strong> — we'll walk you through how to use it in our first session.</p>
+<p>You can also get started any time at <a href="{{invite_url}}">{{invite_url}}</a>.</p>
+{{#if session_schedule_html}}
+<p><strong>Session Schedule</strong></p>
+{{{session_schedule_html}}}
+{{/if}}
+<p>If you have any questions before we begin, don't hesitate to reach out.</p>
+<p>We look forward to seeing you soon.</p>
+<p>{{facilitator_name}}<br>{{platform_name}}</p>
+<p><a href="https://www.heliotropeimaginal.com"><img src="https://www.heliotropeimaginal.com/images/Heliotrope-Imaginal-logo.horizongal.black-text.png" alt="Heliotrope Imaginal" width="200"></a></p>
+<hr>
+<p style="font-size: 12px; color: rgb(136, 136, 136);">This message is from imaginalmail.com, part of the Heliotrope Imaginal platform. You may also see references to our data partner selfactual.ai or our microcourse product allstarteams.co. If you're not receiving expected emails, please check your spam or junk folder.</p>
+</div>`,
+      plainTextContent: `Hi {{invite_name}},
+
+We're looking forward to our upcoming sessions with you. We wanted to share the schedule and your access information ahead of time so you're all set.
+
+I'm {{facilitator_name}} — your point of contact for the platform.{{#if facilitator_email}} If you need any help, reach me directly at {{facilitator_email}}.{{/if}}
+
+During our first session, we'll provide a brief overview and then share the link to begin your exploration in the app.
+
+Your invite code: {{invite_code}} — we'll walk you through how to use it in our first session.
+You can also get started any time at {{invite_url}}
+
+{{#if session_schedule}}SESSION SCHEDULE
+
+{{session_schedule}}{{/if}}
+
+If you have any questions before we begin, don't hesitate to reach out.
+
+We look forward to seeing you soon.
+
+{{facilitator_name}}
+{{platform_name}}`,
+    },
   ];
 
-  for (const t of templates) {
+  const toInsert = templates.filter(t => !existingNames.has(t.name));
+
+  if (toInsert.length === 0) {
+    console.log('[email-seed] All system templates already present — nothing to seed.');
+    return;
+  }
+
+  for (const t of toInsert) {
     await db.insert(emailTemplates).values({
       name: t.name,
       description: t.description,
@@ -273,5 +326,50 @@ Invite code: {{invite_code}}
     });
   }
 
-  console.log(`[email-seed] Seeded ${templates.length} default email templates.`);
+  console.log(`[email-seed] Seeded ${toInsert.length} email template(s): ${toInsert.map(t => t.name).join(', ')}`);
+}
+
+/**
+ * Seed the Handlebars variable definitions that power the editor's variable picker
+ * and preview rendering. Keys must match what emailVariableService.buildVariableContext()
+ * actually returns. Safe to re-run — conflicts on variable_key are ignored.
+ */
+export async function seedTemplateVariables() {
+  const vars: Array<[string, string, string, string, string, string]> = [
+    // key, name, description, category, dataType, exampleValue
+    ['invite_code', 'Invite Code', 'Formatted invite code with hyphens', 'invite', 'string', 'ABCD-EFGH-IJKL'],
+    ['invite_code_raw', 'Invite Code (Raw)', 'Raw invite code without formatting', 'invite', 'string', 'ABCDEFGHIJKL'],
+    ['invite_url', 'Invite URL', 'Full registration URL with invite code', 'invite', 'string', 'https://app2.heliotropeimaginal.com/register/ABCD-EFGH-IJKL'],
+    ['invite_email', 'Recipient Email', 'Email address of the invite recipient', 'invite', 'string', 'user@example.com'],
+    ['invite_name', 'Recipient Name', 'Name of the invite recipient', 'invite', 'string', 'Jane Smith'],
+    ['invite_expires_at', 'Invite Expiry', 'When the invite expires', 'invite', 'date', '5/1/2026'],
+    ['facilitator_name', 'Facilitator Name', 'Name of the facilitator who created the invite', 'user', 'string', 'Brad Topliff'],
+    ['facilitator_email', 'Facilitator Email', 'Email of the facilitator who created the invite', 'user', 'string', 'brad@allstarteams.co'],
+    ['has_ast_access', 'Has AST Access', 'Whether the invite grants AllStarTeams access', 'workshop', 'boolean', 'true'],
+    ['has_ia_access', 'Has IA Access', 'Whether the invite grants Imaginal Agility access', 'workshop', 'boolean', 'true'],
+    ['workshop_names', 'Workshop Names', 'Comma-separated list of granted workshop names', 'workshop', 'string', 'AllStarTeams, Imaginal Agility'],
+    ['is_beta_tester', 'Is Beta Tester', 'Whether the recipient is a beta tester', 'user', 'boolean', 'false'],
+    // category is constrained to user|invite|workshop|platform|conditional
+    ['session_schedule', 'Session Schedule (Text)', "The cohort's session schedule as plain text", 'workshop', 'string', 'SELF AWARENESS\n\nSession 1 – Web App – Mon, Jun 29, 2026 – 4:00 PM–5:30 PM'],
+    ['session_schedule_html', 'Session Schedule (Table)', "The cohort's session schedule as an HTML table. Insert with triple braces to render as a table.", 'workshop', 'string', '<table><tr><td>Session 1</td></tr></table>'],
+    ['platform_name', 'Platform Name', 'Name of the platform', 'platform', 'string', 'Heliotrope Imaginal'],
+    ['platform_url', 'Platform URL', 'URL of the platform', 'platform', 'string', 'https://app2.heliotropeimaginal.com'],
+    ['support_email', 'Support Email', 'Support contact email', 'platform', 'string', 'support@heliotropeimaginal.com'],
+    ['current_year', 'Current Year', 'Current calendar year', 'platform', 'string', new Date().getFullYear().toString()],
+  ];
+
+  for (const [key, name, description, category, dataType, exampleValue] of vars) {
+    await db.execute(sql`
+      INSERT INTO template_variables (variable_key, variable_name, description, category, data_type, example_value)
+      VALUES (${key}, ${name}, ${description}, ${category}, ${dataType}, ${exampleValue})
+      ON CONFLICT (variable_key) DO UPDATE
+        SET variable_name = EXCLUDED.variable_name,
+            description   = EXCLUDED.description,
+            category      = EXCLUDED.category,
+            data_type     = EXCLUDED.data_type,
+            example_value = EXCLUDED.example_value
+    `);
+  }
+
+  console.log(`[email-seed] Seeded ${vars.length} template variables.`);
 }
