@@ -15,7 +15,12 @@ echo "🏗️ Building locally with production environment variables..."
   export VITE_AUTH0_AUDIENCE=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_AUDIENCE" --with-decryption --query "Parameter.Value" --output text)
   export VITE_AUTH0_REDIRECT_URI=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUTH0_REDIRECT_URI" --with-decryption --query "Parameter.Value" --output text)
 
+  # Client feature flags are baked into the bundle at build time, so they must be
+  # exported here — the container's runtime env cannot switch them on later.
+  export VITE_FEATURE_EMAIL_TEMPLATES=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_FEATURE_EMAIL_TEMPLATES" --query "Parameter.Value" --output text 2>/dev/null || echo "false")
+
   echo "✅ Production environment variables set (in isolated subshell):"
+  echo "   VITE_FEATURE_EMAIL_TEMPLATES: $VITE_FEATURE_EMAIL_TEMPLATES"
   echo "   VITE_AUTH0_CLIENT_ID: $VITE_AUTH0_CLIENT_ID"
   echo "   VITE_AUTH0_DOMAIN: $VITE_AUTH0_DOMAIN"
   echo "   VITE_AUTH0_AUDIENCE: $VITE_AUTH0_AUDIENCE"

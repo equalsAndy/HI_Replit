@@ -26,6 +26,7 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "db:push": "drizzle-kit push",
+    "seed:email": "tsx server/seeds/run-email-seed.ts",
     "version:update": "./update-version.sh",
     "version:patch": "./update-version.sh patch",
     "version:minor": "./update-version.sh minor",
