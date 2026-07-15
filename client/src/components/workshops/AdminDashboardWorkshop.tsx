@@ -402,6 +402,7 @@ const InviteManagement: React.FC = () => {
         });
         setSendModalTargets(null);
         setSelectedInviteIds([]);
+        fetchInvites(); // refresh so the "email sent" indicator updates
       } else {
         toast({ title: 'Send failed', description: response.error || response.message || 'Failed to send emails', variant: 'destructive' });
       }
@@ -1172,6 +1173,7 @@ const InviteManagement: React.FC = () => {
                       <th style={styles.th}>Demo</th>
                       <th style={styles.th}>Code</th>
                       <th style={styles.th}>Status</th>
+                      {emailFeatureEnabled && <th style={styles.th}>Email</th>}
                       <th style={styles.th}>Created</th>
                       <th style={styles.th}>Actions</th>
                     </tr>
@@ -1241,6 +1243,26 @@ const InviteManagement: React.FC = () => {
                             {invite.isUsed || invite.used_at ? 'Used' : 'Pending'}
                           </span>
                         </td>
+                        {emailFeatureEnabled && (
+                          <td style={styles.td}>
+                            {(invite.emailSentAt || invite.email_sent_at) ? (
+                              <span
+                                style={{ ...styles.badge, backgroundColor: '#ede9fe', color: '#6d28d9' }}
+                                title={`Last sent ${formatDate(invite.emailSentAt || invite.email_sent_at)}${
+                                  Number(invite.emailSendCount ?? invite.email_send_count) > 1
+                                    ? ` (${invite.emailSendCount ?? invite.email_send_count} times)`
+                                    : ''
+                                }`}
+                              >
+                                ✓ Sent {new Date(invite.emailSentAt || invite.email_sent_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </span>
+                            ) : (
+                              <span style={{ ...styles.badge, backgroundColor: '#f3f4f6', color: '#6b7280' }}>
+                                Not sent
+                              </span>
+                            )}
+                          </td>
+                        )}
                         <td style={styles.td}>
                           {formatDate(invite.createdAt || invite.created_at)}
                         </td>

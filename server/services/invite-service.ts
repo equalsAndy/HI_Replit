@@ -330,13 +330,23 @@ class InviteService {
           invited_user.is_test_user,
           invited_user.is_beta_tester as user_is_beta_tester,
           CONCAT(used_user.first_name, ' ', COALESCE(used_user.last_name, '')) as used_by_name,
-          used_user.email as used_by_email
+          used_user.email as used_by_email,
+          last_send.sent_at as email_sent_at,
+          last_send.send_count as email_send_count
         FROM invites i
         LEFT JOIN users creator ON i.created_by = creator.id
         LEFT JOIN cohorts c ON i.cohort_id = c.id
         LEFT JOIN organizations o ON i.organization_id = o.id
         LEFT JOIN users invited_user ON i.email = invited_user.email
         LEFT JOIN users used_user ON i.used_by = used_user.id
+        LEFT JOIN LATERAL (
+          -- Most recent successful send for this invite. Match on invite_id, falling
+          -- back to recipient email for logs written before invite_id was populated.
+          SELECT MAX(esl.sent_at) as sent_at, COUNT(*) as send_count
+          FROM email_send_log esl
+          WHERE esl.status = 'sent'
+            AND (esl.invite_id = i.id OR (esl.invite_id IS NULL AND esl.recipient_email = i.email))
+        ) last_send ON true
       `;
       const where: any[] = [];
       if (creatorId) where.push(sql`i.created_by = ${creatorId}`);
@@ -382,13 +392,23 @@ class InviteService {
           invited_user.is_test_user,
           invited_user.is_beta_tester as user_is_beta_tester,
           CONCAT(used_user.first_name, ' ', COALESCE(used_user.last_name, '')) as used_by_name,
-          used_user.email as used_by_email
+          used_user.email as used_by_email,
+          last_send.sent_at as email_sent_at,
+          last_send.send_count as email_send_count
         FROM invites i
         LEFT JOIN users creator ON i.created_by = creator.id
         LEFT JOIN cohorts c ON i.cohort_id = c.id
         LEFT JOIN organizations o ON i.organization_id = o.id
         LEFT JOIN users invited_user ON i.email = invited_user.email
         LEFT JOIN users used_user ON i.used_by = used_user.id
+        LEFT JOIN LATERAL (
+          -- Most recent successful send for this invite. Match on invite_id, falling
+          -- back to recipient email for logs written before invite_id was populated.
+          SELECT MAX(esl.sent_at) as sent_at, COUNT(*) as send_count
+          FROM email_send_log esl
+          WHERE esl.status = 'sent'
+            AND (esl.invite_id = i.id OR (esl.invite_id IS NULL AND esl.recipient_email = i.email))
+        ) last_send ON true
       `;
 
       let finalQuery: any = base;
