@@ -17,7 +17,7 @@ const CohortManagementPanel = React.lazy(() =>
 );
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
-import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Send, Video, FileText, Database, GraduationCap, ExternalLink } from 'lucide-react';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video, FileText, Database, GraduationCap, ExternalLink } from 'lucide-react';
 import VersionInfo from '@/components/ui/VersionInfo';
 import { FeedbackTrigger } from '@/components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '@/utils/pageContext';
@@ -341,15 +341,77 @@ const InviteManagement: React.FC = () => {
   const [sendWelcomeEmail, setSendWelcomeEmail] = React.useState(false);
   const [emailTemplateId, setEmailTemplateId] = React.useState<number | ''>('');
   const [senderIdentity, setSenderIdentity] = React.useState('heliotrope');
-  const [emailTemplates, setEmailTemplates] = React.useState<Array<{ id: number; name: string; templateCategory: string }>>([]);
+  const [emailTemplates, setEmailTemplates] = React.useState<Array<{ id: number; name: string; templateCategory: string; isDefault?: boolean }>>([]);
 
-  // Fetch email templates once on mount (only if feature enabled)
-  React.useEffect(() => {
+  // Bulk-send state for the Manage Invites tab
+  const [selectedInviteIds, setSelectedInviteIds] = React.useState<number[]>([]);
+  const [sendModalTargets, setSendModalTargets] = React.useState<any[] | null>(null);
+  const [modalTemplateId, setModalTemplateId] = React.useState<number | ''>('');
+  const [modalSender, setModalSender] = React.useState('heliotrope');
+  const [isSendingEmails, setIsSendingEmails] = React.useState(false);
+
+  const fetchEmailTemplates = React.useCallback(() => {
     if (!emailFeatureEnabled) return;
     apiRequest('/api/email-templates')
       .then(data => { if (data.success) setEmailTemplates(data.templates || []); })
       .catch(() => {});
   }, [emailFeatureEnabled]);
+
+  // Fetch email templates on mount, and again whenever we leave the templates tab —
+  // the admin may have just created or deleted one there.
+  React.useEffect(() => {
+    if (activeTab !== 'templates') fetchEmailTemplates();
+  }, [activeTab, fetchEmailTemplates]);
+
+  // An invite is "pending" while it has not been redeemed.
+  const isPending = (invite: any) => !(invite.isUsed || invite.used_at);
+  const pendingInvites = invites.filter(isPending);
+
+  /** Open the send modal for a set of invites, preselecting the default template. */
+  const openSendModal = (targets: any[]) => {
+    if (!emailTemplates.length) {
+      toast({ title: 'No templates', description: 'Create an email template first.', variant: 'destructive' });
+      return;
+    }
+    const preferred = emailTemplates.find(t => t.isDefault) || emailTemplates[0];
+    setModalTemplateId(preferred.id);
+    setModalSender('heliotrope');
+    setSendModalTargets(targets);
+  };
+
+  const handleSendEmails = async () => {
+    if (!sendModalTargets || !modalTemplateId) return;
+    const inviteIds = sendModalTargets.map(i => i.id);
+
+    setIsSendingEmails(true);
+    try {
+      const response = await apiRequest('/api/email-send/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ inviteIds, templateId: modalTemplateId, senderIdentity: modalSender }),
+      });
+
+      if (response.success) {
+        const sent = response.sent ?? 0;
+        const failed = response.failed ?? 0;
+        toast({
+          title: failed > 0 ? 'Sent with errors' : 'Emails sent',
+          description: failed > 0
+            ? `${sent} sent, ${failed} failed. Check the send history for details.`
+            : `${sent} ${sent === 1 ? 'email' : 'emails'} sent.`,
+          variant: failed > 0 ? 'destructive' : undefined,
+        });
+        setSendModalTargets(null);
+        setSelectedInviteIds([]);
+      } else {
+        toast({ title: 'Send failed', description: response.error || response.message || 'Failed to send emails', variant: 'destructive' });
+      }
+    } catch (error) {
+      console.error('Error sending invite emails:', error);
+      toast({ title: 'Send failed', description: 'Failed to send emails', variant: 'destructive' });
+    } finally {
+      setIsSendingEmails(false);
+    }
+  };
 
   const fetchInvites = async () => {
     setIsLoading(true);
@@ -382,6 +444,7 @@ const InviteManagement: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
+    setSelectedInviteIds([]);
     fetchInvites();
   }, [filterStatus]);
 
@@ -721,6 +784,17 @@ const InviteManagement: React.FC = () => {
           >
             Manage Invites ({invites.length})
           </button>
+          {emailFeatureEnabled && (
+            <button
+              style={{
+                ...styles.tab,
+                ...(activeTab === 'templates' ? styles.activeTab : {})
+              }}
+              onClick={() => setActiveTab('templates')}
+            >
+              Email Templates
+            </button>
+          )}
         </div>
 
         <div style={styles.tabContent}>
@@ -1019,22 +1093,44 @@ const InviteManagement: React.FC = () => {
                   </span>
                 </div>
 
-                <button
-                  onClick={handleDeleteAllUsedInvites}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#fee2e2',
-                    color: '#dc2626',
-                    border: '1px solid #fecaca',
-                    borderRadius: '6px',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    cursor: 'pointer'
-                  }}
-                  title="Delete all used invites"
-                >
-                  Delete All Used
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {emailFeatureEnabled && (
+                    <button
+                      onClick={() => openSendModal(pendingInvites.filter(i => selectedInviteIds.includes(i.id)))}
+                      disabled={selectedInviteIds.length === 0}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: selectedInviteIds.length === 0 ? '#f3f4f6' : '#ede9fe',
+                        color: selectedInviteIds.length === 0 ? '#9ca3af' : '#6d28d9',
+                        border: `1px solid ${selectedInviteIds.length === 0 ? '#e5e7eb' : '#ddd6fe'}`,
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        cursor: selectedInviteIds.length === 0 ? 'not-allowed' : 'pointer'
+                      }}
+                      title={selectedInviteIds.length === 0 ? 'Select one or more pending invites first' : 'Send an invite email to the selected invites'}
+                    >
+                      Send Invite Email{selectedInviteIds.length > 0 ? ` (${selectedInviteIds.length})` : ''}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleDeleteAllUsedInvites}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      border: '1px solid #fecaca',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer'
+                    }}
+                    title="Delete all used invites"
+                  >
+                    Delete All Used
+                  </button>
+                </div>
               </div>
 
               {invites.length === 0 ? (
@@ -1051,6 +1147,24 @@ const InviteManagement: React.FC = () => {
                 <table style={styles.table}>
                   <thead>
                     <tr>
+                      {emailFeatureEnabled && (
+                        <th style={{ ...styles.th, width: '40px' }}>
+                          <input
+                            type="checkbox"
+                            title="Select all pending invites"
+                            disabled={pendingInvites.length === 0}
+                            checked={pendingInvites.length > 0 && selectedInviteIds.length === pendingInvites.length}
+                            ref={(el) => {
+                              if (el) {
+                                el.indeterminate = selectedInviteIds.length > 0 && selectedInviteIds.length < pendingInvites.length;
+                              }
+                            }}
+                            onChange={(e) => setSelectedInviteIds(
+                              e.target.checked ? pendingInvites.map(i => i.id) : []
+                            )}
+                          />
+                        </th>
+                      )}
                       <th style={styles.th}>Email</th>
                       <th style={styles.th}>Name</th>
                       <th style={styles.th}>Role</th>
@@ -1065,6 +1179,22 @@ const InviteManagement: React.FC = () => {
                   <tbody>
                     {invites.map((invite) => (
                       <tr key={invite.id}>
+                        {emailFeatureEnabled && (
+                          <td style={styles.td}>
+                            {isPending(invite) && (
+                              <input
+                                type="checkbox"
+                                title={`Select ${invite.email}`}
+                                checked={selectedInviteIds.includes(invite.id)}
+                                onChange={(e) => setSelectedInviteIds(prev =>
+                                  e.target.checked
+                                    ? [...prev, invite.id]
+                                    : prev.filter(id => id !== invite.id)
+                                )}
+                              />
+                            )}
+                          </td>
+                        )}
                         <td style={styles.td}>{invite.email}</td>
                         <td style={styles.td}>{invite.name || 'N/A'}</td>
                         <td style={styles.td}>
@@ -1125,22 +1255,11 @@ const InviteManagement: React.FC = () => {
                                 >
                                   Edit
                                 </button>
-                                {emailFeatureEnabled && emailTemplates.length > 0 && (
+                                {emailFeatureEnabled && (
                                   <button
                                     style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                                    onClick={async () => {
-                                      const defaultTemplate = emailTemplates.find((t: any) => t.isDefault) || emailTemplates[0];
-                                      if (!defaultTemplate) return;
-                                      if (!confirm(`Send welcome email to ${invite.email}?`)) return;
-                                      const res = await apiRequest('/api/email-send/invite', {
-                                        method: 'POST',
-                                        body: JSON.stringify({ inviteId: invite.id, templateId: defaultTemplate.id, senderIdentity: 'heliotrope' }),
-                                      });
-                                      toast(res.success
-                                        ? { title: 'Email sent', description: invite.email }
-                                        : { title: 'Send failed', description: res.error, variant: 'destructive' as const });
-                                    }}
-                                    title="Send welcome email"
+                                    onClick={() => openSendModal([invite])}
+                                    title="Send an invite email to this recipient"
                                   >
                                     Send
                                   </button>
@@ -1174,8 +1293,130 @@ const InviteManagement: React.FC = () => {
               )}
             </div>
           )}
+
+          {activeTab === 'templates' && emailFeatureEnabled && (
+            <Suspense fallback={<div style={{ textAlign: 'center', padding: '50px', color: '#6b7280' }}>Loading email templates…</div>}>
+              {/* Templates created here are what the Send Invite Email action offers. */}
+              <EmailTemplateManagement />
+            </Suspense>
+          )}
         </div>
       </div>
+
+      {sendModalTargets && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => { if (!isSendingEmails) setSendModalTargets(null); }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              padding: '24px',
+              width: '480px',
+              maxWidth: '90vw',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>Send Invite Email</h3>
+            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>
+              Sending to {sendModalTargets.length} pending {sendModalTargets.length === 1 ? 'invite' : 'invites'}.
+              Each recipient gets their own invite code.
+            </p>
+
+            <div style={{
+              maxHeight: '120px',
+              overflowY: 'auto',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '6px',
+              padding: '10px 12px',
+              marginBottom: '20px',
+              fontSize: '13px',
+              color: '#374151',
+            }}>
+              {sendModalTargets.map(i => (
+                <div key={i.id}>{i.name ? `${i.name} — ` : ''}{i.email}</div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '16px' }}>
+              <label style={styles.label}>Template</label>
+              <select
+                style={styles.select}
+                value={modalTemplateId}
+                onChange={(e) => setModalTemplateId(Number(e.target.value))}
+                disabled={isSendingEmails}
+              >
+                {emailTemplates.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '24px' }}>
+              <label style={styles.label}>Send From</label>
+              <select
+                style={styles.select}
+                value={modalSender}
+                onChange={(e) => setModalSender(e.target.value)}
+                disabled={isSendingEmails}
+              >
+                <option value="heliotrope">Heliotrope Imaginal</option>
+                <option value="allstarteams">AllStarTeams</option>
+                <option value="imaginalagility">Imaginal Agility</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                onClick={() => setSendModalTargets(null)}
+                disabled={isSendingEmails}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: isSendingEmails ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendEmails}
+                disabled={isSendingEmails || !modalTemplateId}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: isSendingEmails ? '#a5b4fc' : '#7c3aed',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: isSendingEmails ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {isSendingEmails
+                  ? 'Sending…'
+                  : `Send ${sendModalTargets.length} ${sendModalTargets.length === 1 ? 'Email' : 'Emails'}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1194,7 +1435,12 @@ export default function AdminDashboardWorkshop() {
       return JSON.parse(localStorage.getItem('adminDashboard_state') || '{}');
     } catch { return {}; }
   }, []);
-  const [activeTab, setActiveTab] = React.useState(savedAdminState.tab || 'users');
+  // Ignore a persisted tab id that no longer exists (e.g. the retired 'email-templates'
+  // top-level tab), which would otherwise restore to an empty panel.
+  const ADMIN_TAB_IDS = ['users', 'invites', 'cohorts', 'videos', 'ai', 'pods', 'feedback'];
+  const [activeTab, setActiveTab] = React.useState(
+    ADMIN_TAB_IDS.includes(savedAdminState.tab) ? savedAdminState.tab : 'users'
+  );
   const [activeAITab, setActiveAITab] = React.useState(savedAdminState.aiTab || 'overview');
   const [activeVideoTab, setActiveVideoTab] = React.useState(savedAdminState.videoTab || 'manage');
 
@@ -1567,7 +1813,7 @@ export default function AdminDashboardWorkshop() {
             { id: 'videos', label: 'Videos', icon: Video, adminOnly: true },
             { id: 'ai', label: 'AI', icon: Bot },
             { id: 'pods', label: 'Pods', icon: Database, adminOnly: true },
-            ...(isFeatureEnabled('emailInvitationSystem') ? [{ id: 'email-templates', label: 'Email', icon: Send, adminOnly: true }] : []),
+            // Email templates now live as a sub-tab under Invites, alongside Create/Manage Invites.
             { id: 'feedback', label: 'Feedback', icon: null }
           ].map((tab) => (
             <button
@@ -1658,7 +1904,6 @@ export default function AdminDashboardWorkshop() {
               </div>
             )}
             {activeTab === 'pods' && isAdmin && <VaultSyncPanel />}
-            {activeTab === 'email-templates' && isAdmin && <EmailTemplateManagement />}
             {activeTab === 'feedback' && <FeedbackManagement />}
           </Suspense>
         </div>
