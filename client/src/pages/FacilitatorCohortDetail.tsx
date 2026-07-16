@@ -76,6 +76,7 @@ import {
   ArrowRight,
   X,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -98,6 +99,7 @@ interface Participant {
   astStepCount: number;
   iaStepCount: number;
   inviteUsed: boolean;
+  reportStatus: 'none' | 'generating' | 'completed';
 }
 
 interface PendingInvite {
@@ -324,6 +326,8 @@ const FacilitatorCohortDetail: React.FC = () => {
   const [emailSelectedIds, setEmailSelectedIds] = useState<Set<number>>(new Set());
   const [emailCc, setEmailCc] = useState<string>('');
   const [emailBcc, setEmailBcc] = useState<string>('');
+  const [emailNote, setEmailNote] = useState<string>('');
+  const EMAIL_NOTE_MAX = 1000;
 
   // Session modal state
   const [showSessionModal, setShowSessionModal] = useState(false);
@@ -369,6 +373,8 @@ const FacilitatorCohortDetail: React.FC = () => {
     queryKey: ['facilitator', 'cohort', cohortId, 'participants'],
     queryFn: () => fetchParticipants(cohortId),
     enabled: !!cohortId,
+    refetchInterval: (query) =>
+      (query.state.data?.participants ?? []).some((p: Participant) => p.reportStatus === 'generating') ? 5000 : false,
   });
 
   const invitesQuery = useQuery({
@@ -452,6 +458,28 @@ const FacilitatorCohortDetail: React.FC = () => {
       setDisableTarget(null);
       queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'participants'] });
     },
+  });
+
+  const generateReportMutation = useMutation({
+    mutationFn: ({ userId }: { userId: number }) =>
+      fetch(`/api/facilitator/cohorts/${cohortId}/participants/${userId}/holistic-report/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ reportType: 'ast_personal' }),
+      }).then(async (r) => {
+        const data = await r.json();
+        if (!r.ok || !data.success) throw new Error(data.error || 'Failed to start report generation');
+        return data;
+      }),
+    onSuccess: () => {
+      toast({
+        title: 'Report generation started',
+        description: 'This usually takes a few minutes. The report will be viewable here once it completes.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'participants'] });
+    },
+    onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
   });
 
   const updateProfileMutation = useMutation({
@@ -664,20 +692,27 @@ const FacilitatorCohortDetail: React.FC = () => {
   });
 
   const sendEmailMutation = useMutation({
-    mutationFn: async ({ inviteIds, templateId, cc, bcc }: { inviteIds: number[]; templateId: number; cc?: string[]; bcc?: string[] }) => {
+    mutationFn: async ({ inviteIds, templateId, cc, bcc, personalNote }: { inviteIds: number[]; templateId: number; cc?: string[]; bcc?: string[]; personalNote?: string }) => {
       const res = await fetch('/api/email-send/bulk', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inviteIds, templateId, senderIdentity: 'heliotrope', cc, bcc }),
+        body: JSON.stringify({ inviteIds, templateId, senderIdentity: 'heliotrope', cc, bcc, personalNote }),
       });
       if (!res.ok) throw new Error('Failed to send email');
       return res.json();
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (data: any) => {
+      const sent = data?.sent ?? 0;
+      const skipped = data?.skipped ?? 0;
+      const failed = data?.failed ?? 0;
+      const parts = [`${sent} sent`];
+      if (skipped > 0) parts.push(`${skipped} already sent`);
+      if (failed > 0) parts.push(`${failed} failed`);
       toast({
-        title: 'Email sent',
-        description: `Invite email sent to ${vars.inviteIds.length} recipient${vars.inviteIds.length !== 1 ? 's' : ''}.`,
+        title: failed > 0 ? 'Sent with errors' : 'Email sent',
+        description: parts.join(', ') + '.',
+        variant: failed > 0 ? 'destructive' : undefined,
       });
       setShowEmailModal(false);
       setEmailTargetInvite(null);
@@ -689,6 +724,7 @@ const FacilitatorCohortDetail: React.FC = () => {
       setSelectedTemplateId('');
       setEmailCc('');
       setEmailBcc('');
+      setEmailNote('');
       queryClient.invalidateQueries({ queryKey: ['facilitator', 'cohort', cohortId, 'invites'] });
     },
     onError: () => {
@@ -699,6 +735,7 @@ const FacilitatorCohortDetail: React.FC = () => {
   function openEmailModal(invite: PendingInvite | null) {
     setEmailTargetInvite(invite);
     setSelectedTemplateId('');
+    setEmailNote('');
     setEmailSelectedIds(invite ? new Set([invite.id]) : new Set(pendingInvites.map((i) => i.id)));
     setShowEmailModal(true);
   }
@@ -720,6 +757,7 @@ const FacilitatorCohortDetail: React.FC = () => {
       templateId,
       cc: parseEmailList(emailCc),
       bcc: parseEmailList(emailBcc),
+      personalNote: emailNote.trim() || undefined,
     });
   }
 
@@ -1400,22 +1438,68 @@ const FacilitatorCohortDetail: React.FC = () => {
                               <TooltipContent><p>Download star card</p></TooltipContent>
                             </Tooltip>
 
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-slate-400 hover:text-indigo-600 disabled:opacity-30 disabled:hover:text-slate-400"
-                                  disabled={!p.astAccess || p.astStatus !== 'complete'}
-                                  onClick={() => window.open(`/api/facilitator/cohorts/${cohortId}/participants/${p.id}/holistic-report?reportType=ast_personal`, '_blank')}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{p.astAccess && p.astStatus === 'complete' ? 'View holistic report' : 'Report not yet completed'}</p>
-                              </TooltipContent>
-                            </Tooltip>
+                            {(!p.astAccess || p.astStatus !== 'complete') ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-slate-400 opacity-30"
+                                    disabled
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Workshop not yet completed</p></TooltipContent>
+                              </Tooltip>
+                            ) : p.reportStatus === 'completed' ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-slate-400 hover:text-indigo-600"
+                                    onClick={() => window.open(`/api/facilitator/cohorts/${cohortId}/participants/${p.id}/holistic-report?reportType=ast_personal`, '_blank')}
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>View holistic report</p></TooltipContent>
+                              </Tooltip>
+                            ) : p.reportStatus === 'generating' ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-slate-400 opacity-60"
+                                    disabled
+                                  >
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Generating report&hellip; (a few minutes)</p></TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-slate-400 hover:text-indigo-600 disabled:opacity-30"
+                                    disabled={generateReportMutation.isPending && generateReportMutation.variables?.userId === p.id}
+                                    onClick={() => generateReportMutation.mutate({ userId: p.id })}
+                                  >
+                                    {generateReportMutation.isPending && generateReportMutation.variables?.userId === p.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Sparkles className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Generate holistic report</p></TooltipContent>
+                              </Tooltip>
+                            )}
 
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -1935,6 +2019,20 @@ const FacilitatorCohortDetail: React.FC = () => {
                             className="mt-1 w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           />
                         </div>
+                        <div>
+                          <div className="flex items-baseline justify-between">
+                            <label className="text-xs font-medium text-slate-600">Personal note <span className="text-slate-400 font-normal">(optional)</span></label>
+                            <span className={`text-xs ${emailNote.length > EMAIL_NOTE_MAX ? 'text-red-500' : 'text-slate-400'}`}>{emailNote.length}/{EMAIL_NOTE_MAX}</span>
+                          </div>
+                          <textarea
+                            value={emailNote}
+                            maxLength={EMAIL_NOTE_MAX}
+                            onChange={(e) => setEmailNote(e.target.value)}
+                            placeholder="Added to the top of the email, above the template content."
+                            rows={3}
+                            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1953,6 +2051,7 @@ const FacilitatorCohortDetail: React.FC = () => {
                         templateId,
                         cc: parseEmailList(emailCc),
                         bcc: parseEmailList(emailBcc),
+                        personalNote: emailNote.trim() || undefined,
                       });
                     }}
                     disabled={!selectedTemplateId || sendEmailMutation.isPending}
@@ -2325,7 +2424,7 @@ const FacilitatorCohortDetail: React.FC = () => {
         {/* ── Send Email Modal ──────────────────────────────────────────────── */}
         <Dialog open={showEmailModal} onOpenChange={(open) => {
           setShowEmailModal(open);
-          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); setEmailSelectedIds(new Set()); setEmailCc(''); setEmailBcc(''); }
+          if (!open) { setEmailTargetInvite(null); setSelectedTemplateId(''); setEmailSelectedIds(new Set()); setEmailCc(''); setEmailBcc(''); setEmailNote(''); }
         }}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -2426,6 +2525,22 @@ const FacilitatorCohortDetail: React.FC = () => {
                   onChange={(e) => setEmailBcc(e.target.value)}
                   placeholder="bcc@example.com"
                   className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <Label htmlFor="email-note">Personal note <span className="text-xs text-slate-400 font-normal">(optional)</span></Label>
+                  <span className={`text-xs ${emailNote.length > EMAIL_NOTE_MAX ? 'text-red-500' : 'text-slate-400'}`}>{emailNote.length}/{EMAIL_NOTE_MAX}</span>
+                </div>
+                <textarea
+                  id="email-note"
+                  value={emailNote}
+                  maxLength={EMAIL_NOTE_MAX}
+                  onChange={(e) => setEmailNote(e.target.value)}
+                  placeholder="Added to the top of the email, above the template content."
+                  rows={3}
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
                 />
               </div>
             </div>

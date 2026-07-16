@@ -432,7 +432,10 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
         np_ia.completed_steps as ia_completed_steps,
         (SELECT used_at FROM invites
            WHERE email = u.email AND cohort_id = ${cohortId}
-           ORDER BY created_at DESC LIMIT 1) as invite_used_at
+           ORDER BY created_at DESC LIMIT 1) as invite_used_at,
+        (SELECT hr.generation_status FROM holistic_reports hr
+           WHERE hr.user_id = u.id AND hr.report_type = 'personal'
+           ORDER BY hr.updated_at DESC LIMIT 1) as ast_personal_report_status
       FROM cohort_participants cp
       JOIN users u ON cp.participant_id = u.id
       LEFT JOIN navigation_progress np_ast ON np_ast.user_id = u.id AND np_ast.app_type = 'ast'
@@ -454,6 +457,12 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
       try { astStepCount = hasAstProgress ? JSON.parse(astSteps).length : 0; } catch {}
       try { iaStepCount = hasIaProgress ? JSON.parse(iaSteps).length : 0; } catch {}
 
+      const rawReportStatus = row.ast_personal_report_status;
+      const reportStatus: 'none' | 'generating' | 'completed' =
+        rawReportStatus === 'completed' ? 'completed'
+        : rawReportStatus === 'generating' ? 'generating'
+        : 'none';
+
       return {
         id: row.id,
         firstName: row.first_name || '',
@@ -472,6 +481,7 @@ router.get('/cohorts/:cohortId/participants', requireAuth, isFacilitatorOrAdmin,
         astStepCount,
         iaStepCount,
         inviteUsed: !!row.invite_used_at,
+        reportStatus,
       };
     });
 
@@ -1315,6 +1325,65 @@ router.get('/cohorts/:cohortId/participants/:userId/holistic-report', requireAut
   } catch (error) {
     console.error('Error fetching participant holistic report:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch participant holistic report' });
+  }
+});
+
+/**
+ * Trigger holistic report generation for a cohort participant who doesn't have one yet.
+ * Only allowed when no report currently exists (or a prior attempt failed) — refuses if a
+ * completed report already exists or generation is already in progress.
+ */
+router.post('/cohorts/:cohortId/participants/:userId/holistic-report/generate', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const cohortId = parseInt(req.params.cohortId);
+    const participantId = parseInt(req.params.userId);
+    const reportType = (req.body?.reportType as string) || 'ast_personal';
+
+    const access = await verifyCohortAccess(cohortId, req, res);
+    if (!access) return;
+
+    if (!['ast_personal', 'ast_professional'].includes(reportType)) {
+      return res.status(400).json({ success: false, error: 'Invalid report type. Must be "ast_personal" or "ast_professional"' });
+    }
+
+    const membership = await db.execute(sql`
+      SELECT 1 FROM cohort_participants
+      WHERE cohort_id = ${cohortId} AND participant_id = ${participantId}
+    `);
+    const memberRows = (membership as any).rows ?? membership ?? [];
+    if (!memberRows.length) {
+      return res.status(404).json({ success: false, error: 'Participant not found in this cohort' });
+    }
+
+    const progress = await astSectionalReportService.getReportProgress(
+      req.params.userId,
+      reportType as 'ast_personal' | 'ast_professional'
+    );
+
+    if (progress.overallStatus === 'completed') {
+      return res.status(409).json({ success: false, error: 'A report already exists for this participant' });
+    }
+    if (progress.overallStatus === 'generating') {
+      return res.status(409).json({ success: false, error: 'Report generation is already in progress' });
+    }
+
+    // Retry a previously failed/partial attempt; otherwise this is a first-time generation.
+    const shouldRegenerate = progress.overallStatus === 'failed' || progress.overallStatus === 'partial_failure';
+
+    const result = await astSectionalReportService.initiateReportGeneration(
+      req.params.userId,
+      reportType as 'ast_personal' | 'ast_professional',
+      { regenerate: shouldRegenerate }
+    );
+
+    if (!result.success) {
+      return res.status(400).json({ success: false, error: result.message });
+    }
+
+    res.json({ success: true, message: result.message });
+  } catch (error) {
+    console.error('Error triggering participant holistic report generation:', error);
+    res.status(500).json({ success: false, error: 'Failed to trigger report generation' });
   }
 });
 
