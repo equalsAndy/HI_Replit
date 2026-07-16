@@ -7,9 +7,61 @@ import { emailTemplateService } from './email-template-service.js';
 
 const ses = new SESClient({ region: process.env.AWS_REGION || 'us-west-2' });
 
+const MAX_PERSONAL_NOTE = 1000;
+
+/** Escape HTML special chars so a personal note can't inject markup. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Normalise a personal note: trim and cap length. Returns '' if empty. */
+function normalizeNote(note?: string | null): string {
+  if (!note) return '';
+  return note.trim().slice(0, MAX_PERSONAL_NOTE);
+}
+
+/** Insert a rendered note block at the top of the email body. */
+function injectNoteHtml(html: string, note: string): string {
+  if (!note) return html;
+  const block =
+    `<div style="background:#f8f7ff;border-left:4px solid #7c3aed;padding:12px 16px;` +
+    `margin:0 0 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;` +
+    `line-height:1.6;color:#333;">${escapeHtml(note).replace(/\n/g, '<br>')}</div>`;
+  const bodyMatch = html.match(/<body[^>]*>/i);
+  if (bodyMatch && bodyMatch.index !== undefined) {
+    const idx = bodyMatch.index + bodyMatch[0].length;
+    return html.slice(0, idx) + block + html.slice(idx);
+  }
+  return block + html;
+}
+
+function injectNoteText(text: string, note: string): string {
+  if (!note) return text;
+  return `${note}\n\n----------\n\n${text}`;
+}
+
 class EmailSendService {
   /**
+   * Whether a given invite already has a successful ('sent') email in the log.
+   */
+  async hasBeenSent(inviteId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ id: emailSendLog.id })
+      .from(emailSendLog)
+      .where(and(eq(emailSendLog.inviteId, inviteId), eq(emailSendLog.status, 'sent')))
+      .limit(1);
+    return !!row;
+  }
+
+  /**
    * Send an email for a specific invite using a template and sender identity.
+   * Skips (without sending) if the invite already has a successful send, unless
+   * `resend` is set. An optional `personalNote` is inserted at the top of the email.
    */
   async sendInviteEmail(opts: {
     inviteId: number;
@@ -18,7 +70,14 @@ class EmailSendService {
     sentBy: number;
     cc?: string[];
     bcc?: string[];
-  }): Promise<{ success: boolean; logId?: number; error?: string }> {
+    personalNote?: string;
+    resend?: boolean;
+  }): Promise<{ success: boolean; logId?: number; error?: string; skipped?: boolean }> {
+    // Duplicate guard: don't re-send a previously-sent invite unless explicitly resending.
+    if (!opts.resend && (await this.hasBeenSent(opts.inviteId))) {
+      return { success: false, skipped: true, error: 'already-sent' };
+    }
+
     // Build variables from the invite
     let variables: Record<string, any>;
     try {
@@ -35,11 +94,14 @@ class EmailSendService {
 
     // Render subject, HTML, and plain text
     const subject = emailVariableService.renderTemplate(template.subject, variables);
-    const { html, plainText } = emailVariableService.renderBoth(
+    const note = normalizeNote(opts.personalNote);
+    let { html, plainText } = emailVariableService.renderBoth(
       template.htmlContent,
       template.plainTextContent,
       variables,
     );
+    html = injectNoteHtml(html, note);
+    plainText = injectNoteText(plainText, note);
 
     const sender = SENDER_IDENTITIES[opts.senderIdentity];
     const recipientEmail = variables.invite_email as string;
@@ -210,10 +272,13 @@ class EmailSendService {
     sentBy: number;
     cc?: string[];
     bcc?: string[];
-  }): Promise<{ sent: number; failed: number; results: Array<{ inviteId: number; success: boolean; error?: string }> }> {
-    const results: Array<{ inviteId: number; success: boolean; error?: string }> = [];
+    personalNote?: string;
+    resend?: boolean;
+  }): Promise<{ sent: number; failed: number; skipped: number; results: Array<{ inviteId: number; success: boolean; skipped?: boolean; error?: string }> }> {
+    const results: Array<{ inviteId: number; success: boolean; skipped?: boolean; error?: string }> = [];
     let sent = 0;
     let failed = 0;
+    let skipped = 0;
 
     for (const inviteId of opts.inviteIds) {
       const result = await this.sendInviteEmail({
@@ -223,10 +288,13 @@ class EmailSendService {
         sentBy: opts.sentBy,
         cc: opts.cc,
         bcc: opts.bcc,
+        personalNote: opts.personalNote,
+        resend: opts.resend,
       });
 
-      results.push({ inviteId, success: result.success, error: result.error });
+      results.push({ inviteId, success: result.success, skipped: result.skipped, error: result.error });
       if (result.success) sent++;
+      else if (result.skipped) skipped++;
       else failed++;
 
       // Small delay to stay under SES rate limit (14/sec)
@@ -235,7 +303,30 @@ class EmailSendService {
       }
     }
 
-    return { sent, failed, results };
+    return { sent, failed, skipped, results };
+  }
+
+  /**
+   * Full email history for a single invite, newest first, with template name.
+   */
+  async getInviteSendHistory(inviteId: number) {
+    return db
+      .select({
+        id: emailSendLog.id,
+        templateId: emailSendLog.templateId,
+        templateName: emailTemplates.name,
+        senderIdentity: emailSendLog.senderIdentity,
+        subject: emailSendLog.subject,
+        status: emailSendLog.status,
+        sentAt: emailSendLog.sentAt,
+        queuedAt: emailSendLog.queuedAt,
+        errorMessage: emailSendLog.errorMessage,
+        sentBy: emailSendLog.sentBy,
+      })
+      .from(emailSendLog)
+      .leftJoin(emailTemplates, eq(emailSendLog.templateId, emailTemplates.id))
+      .where(eq(emailSendLog.inviteId, inviteId))
+      .orderBy(desc(emailSendLog.queuedAt));
   }
 
   /**

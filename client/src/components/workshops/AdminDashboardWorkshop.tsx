@@ -348,7 +348,18 @@ const InviteManagement: React.FC = () => {
   const [sendModalTargets, setSendModalTargets] = React.useState<any[] | null>(null);
   const [modalTemplateId, setModalTemplateId] = React.useState<number | ''>('');
   const [modalSender, setModalSender] = React.useState('heliotrope');
+  const [modalNote, setModalNote] = React.useState('');
+  const [modalResend, setModalResend] = React.useState(false);
   const [isSendingEmails, setIsSendingEmails] = React.useState(false);
+
+  // Per-invite "Sent" details popup state
+  const [detailsInvite, setDetailsInvite] = React.useState<any | null>(null);
+  const [detailsHistory, setDetailsHistory] = React.useState<any[]>([]);
+  const [detailsLoading, setDetailsLoading] = React.useState(false);
+
+  const NOTE_MAX = 1000;
+  // True once an invite has at least one successful send.
+  const wasSent = (invite: any) => !!(invite.emailSentAt || invite.email_sent_at);
 
   const fetchEmailTemplates = React.useCallback(() => {
     if (!emailFeatureEnabled) return;
@@ -368,36 +379,54 @@ const InviteManagement: React.FC = () => {
   const pendingInvites = invites.filter(isPending);
 
   /** Open the send modal for a set of invites, preselecting the default template. */
-  const openSendModal = (targets: any[]) => {
+  const openSendModal = (targets: any[], opts?: { resend?: boolean; note?: string; templateId?: number }) => {
     if (!emailTemplates.length) {
       toast({ title: 'No templates', description: 'Create an email template first.', variant: 'destructive' });
       return;
     }
     const preferred = emailTemplates.find(t => t.isDefault) || emailTemplates[0];
-    setModalTemplateId(preferred.id);
+    const requested = opts?.templateId != null ? emailTemplates.find(t => t.id === opts.templateId) : undefined;
+    setModalTemplateId((requested || preferred).id);
     setModalSender('heliotrope');
+    setModalNote(opts?.note ?? '');
+    // Default to resend when explicitly resending, or when every target was already sent.
+    setModalResend(opts?.resend ?? (targets.length > 0 && targets.every(wasSent)));
     setSendModalTargets(targets);
   };
 
   const handleSendEmails = async () => {
     if (!sendModalTargets || !modalTemplateId) return;
-    const inviteIds = sendModalTargets.map(i => i.id);
+    // When not resending, only send to invites that haven't been emailed yet.
+    const recipients = modalResend ? sendModalTargets : sendModalTargets.filter(i => !wasSent(i));
+    if (recipients.length === 0) {
+      toast({ title: 'Nothing to send', description: 'All selected invites were already emailed. Enable resend to send again.', variant: 'destructive' });
+      return;
+    }
+    const inviteIds = recipients.map(i => i.id);
 
     setIsSendingEmails(true);
     try {
       const response = await apiRequest('/api/email-send/bulk', {
         method: 'POST',
-        body: JSON.stringify({ inviteIds, templateId: modalTemplateId, senderIdentity: modalSender }),
+        body: JSON.stringify({
+          inviteIds,
+          templateId: modalTemplateId,
+          senderIdentity: modalSender,
+          personalNote: modalNote.trim() || undefined,
+          resend: modalResend,
+        }),
       });
 
       if (response.success) {
         const sent = response.sent ?? 0;
         const failed = response.failed ?? 0;
+        const skipped = response.skipped ?? 0;
+        const parts = [`${sent} sent`];
+        if (skipped > 0) parts.push(`${skipped} already sent`);
+        if (failed > 0) parts.push(`${failed} failed`);
         toast({
           title: failed > 0 ? 'Sent with errors' : 'Emails sent',
-          description: failed > 0
-            ? `${sent} sent, ${failed} failed. Check the send history for details.`
-            : `${sent} ${sent === 1 ? 'email' : 'emails'} sent.`,
+          description: parts.join(', ') + '.',
           variant: failed > 0 ? 'destructive' : undefined,
         });
         setSendModalTargets(null);
@@ -411,6 +440,21 @@ const InviteManagement: React.FC = () => {
       toast({ title: 'Send failed', description: 'Failed to send emails', variant: 'destructive' });
     } finally {
       setIsSendingEmails(false);
+    }
+  };
+
+  /** Open the "Sent" details popup for one invite and load its full send history. */
+  const openSendDetails = async (invite: any) => {
+    setDetailsInvite(invite);
+    setDetailsHistory([]);
+    setDetailsLoading(true);
+    try {
+      const res = await apiRequest(`/api/email-send/invite/${invite.id}/history`);
+      setDetailsHistory(res.success ? (res.history || []) : []);
+    } catch {
+      setDetailsHistory([]);
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -1278,13 +1322,23 @@ const InviteManagement: React.FC = () => {
                                   Edit
                                 </button>
                                 {emailFeatureEnabled && (
-                                  <button
-                                    style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#ede9fe', color: '#7c3aed' }}
-                                    onClick={() => openSendModal([invite])}
-                                    title="Send an invite email to this recipient"
-                                  >
-                                    Send
-                                  </button>
+                                  wasSent(invite) ? (
+                                    <button
+                                      style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#ede9fe', color: '#6d28d9', fontWeight: 600 }}
+                                      onClick={() => openSendDetails(invite)}
+                                      title="Email already sent — click for details and to resend"
+                                    >
+                                      ✓ Sent
+                                    </button>
+                                  ) : (
+                                    <button
+                                      style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#ede9fe', color: '#7c3aed' }}
+                                      onClick={() => openSendModal([invite])}
+                                      title="Send an invite email to this recipient"
+                                    >
+                                      Send
+                                    </button>
+                                  )
                                 )}
                                 {emailFeatureEnabled && <button
                                   style={{ ...styles.codeButton, padding: '6px 10px', backgroundColor: '#f0fdf4', color: '#16a34a' }}
@@ -1325,7 +1379,11 @@ const InviteManagement: React.FC = () => {
         </div>
       </div>
 
-      {sendModalTargets && (
+      {sendModalTargets && (() => {
+        const alreadySentTargets = sendModalTargets.filter(wasSent);
+        const notSentTargets = sendModalTargets.filter(i => !wasSent(i));
+        const recipientCount = modalResend ? sendModalTargets.length : notSentTargets.length;
+        return (
         <div
           style={{
             position: 'fixed',
@@ -1351,26 +1409,53 @@ const InviteManagement: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>Send Invite Email</h3>
-            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>
-              Sending to {sendModalTargets.length} pending {sendModalTargets.length === 1 ? 'invite' : 'invites'}.
-              Each recipient gets their own invite code.
+            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '16px' }}>
+              {recipientCount === 0
+                ? 'All selected invites have already been emailed.'
+                : `Sending to ${recipientCount} ${recipientCount === 1 ? 'invite' : 'invites'}. Each recipient gets their own invite code.`}
+              {alreadySentTargets.length > 0 && !modalResend && recipientCount > 0 && (
+                <> {alreadySentTargets.length} already-sent {alreadySentTargets.length === 1 ? 'invite is' : 'invites are'} skipped.</>
+              )}
             </p>
 
             <div style={{
-              maxHeight: '120px',
+              maxHeight: '110px',
               overflowY: 'auto',
               backgroundColor: '#f9fafb',
               border: '1px solid #e5e7eb',
               borderRadius: '6px',
               padding: '10px 12px',
-              marginBottom: '20px',
+              marginBottom: '16px',
               fontSize: '13px',
               color: '#374151',
             }}>
-              {sendModalTargets.map(i => (
-                <div key={i.id}>{i.name ? `${i.name} — ` : ''}{i.email}</div>
-              ))}
+              {sendModalTargets.map(i => {
+                const sent = wasSent(i);
+                const willSkip = sent && !modalResend;
+                return (
+                  <div key={i.id} style={{ opacity: willSkip ? 0.5 : 1, display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                    <span>{i.name ? `${i.name} — ` : ''}{i.email}</span>
+                    {sent && (
+                      <span style={{ fontSize: '11px', color: willSkip ? '#9ca3af' : '#6d28d9', whiteSpace: 'nowrap' }}>
+                        {willSkip ? 'already sent (skip)' : 'resending'}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
+            {alreadySentTargets.length > 0 && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontSize: '13px', color: '#374151', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={modalResend}
+                  onChange={(e) => setModalResend(e.target.checked)}
+                  disabled={isSendingEmails}
+                />
+                Resend to invites that were already emailed ({alreadySentTargets.length})
+              </label>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '16px' }}>
               <label style={styles.label}>Template</label>
@@ -1386,7 +1471,7 @@ const InviteManagement: React.FC = () => {
               </select>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '16px' }}>
               <label style={styles.label}>Send From</label>
               <select
                 style={styles.select}
@@ -1398,6 +1483,23 @@ const InviteManagement: React.FC = () => {
                 <option value="allstarteams">AllStarTeams</option>
                 <option value="imaginalagility">Imaginal Agility</option>
               </select>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <label style={styles.label}>Personal note <span style={{ fontWeight: 400, color: '#9ca3af' }}>(optional)</span></label>
+                <span style={{ fontSize: '12px', color: modalNote.length > NOTE_MAX ? '#dc2626' : '#9ca3af' }}>
+                  {modalNote.length}/{NOTE_MAX}
+                </span>
+              </div>
+              <textarea
+                style={{ ...styles.input, minHeight: '72px', resize: 'vertical', fontFamily: 'inherit' }}
+                value={modalNote}
+                maxLength={NOTE_MAX}
+                onChange={(e) => setModalNote(e.target.value)}
+                placeholder="Added to the top of the email, above the template content."
+                disabled={isSendingEmails}
+              />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -1419,21 +1521,88 @@ const InviteManagement: React.FC = () => {
               </button>
               <button
                 onClick={handleSendEmails}
-                disabled={isSendingEmails || !modalTemplateId}
+                disabled={isSendingEmails || !modalTemplateId || recipientCount === 0}
                 style={{
                   padding: '10px 20px',
-                  backgroundColor: isSendingEmails ? '#a5b4fc' : '#7c3aed',
+                  backgroundColor: (isSendingEmails || recipientCount === 0) ? '#a5b4fc' : '#7c3aed',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '14px',
                   fontWeight: '500',
-                  cursor: isSendingEmails ? 'not-allowed' : 'pointer',
+                  cursor: (isSendingEmails || recipientCount === 0) ? 'not-allowed' : 'pointer',
                 }}
               >
                 {isSendingEmails
                   ? 'Sending…'
-                  : `Send ${sendModalTargets.length} ${sendModalTargets.length === 1 ? 'Email' : 'Emails'}`}
+                  : `${modalResend && alreadySentTargets.length > 0 ? 'Resend' : 'Send'} ${recipientCount} ${recipientCount === 1 ? 'Email' : 'Emails'}`}
+              </button>
+            </div>
+          </div>
+        </div>
+        );
+      })()}
+
+      {detailsInvite && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          }}
+          onClick={() => setDetailsInvite(null)}
+        >
+          <div
+            style={{ backgroundColor: 'white', borderRadius: '8px', padding: '24px', width: '520px', maxWidth: '90vw', maxHeight: '85vh', overflowY: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>Email history</h3>
+            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>
+              {detailsInvite.name ? `${detailsInvite.name} — ` : ''}{detailsInvite.email}
+            </p>
+
+            {detailsLoading ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+            ) : detailsHistory.length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No sends recorded.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                {detailsHistory.map((h: any) => (
+                  <div key={h.id} style={{ border: '1px solid #e5e7eb', borderRadius: '6px', padding: '10px 12px', fontSize: '13px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                      <strong>{h.templateName || `Template #${h.templateId ?? '—'}`}</strong>
+                      <span style={{
+                        ...styles.badge,
+                        backgroundColor: h.status === 'sent' ? '#d1fae5' : h.status === 'failed' ? '#fee2e2' : '#fef3c7',
+                        color: h.status === 'sent' ? '#059669' : h.status === 'failed' ? '#dc2626' : '#d97706',
+                      }}>{h.status}</span>
+                    </div>
+                    <div style={{ color: '#6b7280', marginTop: '4px' }}>
+                      {formatDate(h.sentAt || h.queuedAt)} · from {h.senderIdentity}
+                    </div>
+                    {h.errorMessage && <div style={{ color: '#dc2626', marginTop: '4px' }}>{h.errorMessage}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                onClick={() => setDetailsInvite(null)}
+                style={{ padding: '10px 20px', backgroundColor: 'white', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  const inv = detailsInvite;
+                  // Reuse the last template sent, if known, when resending.
+                  const lastTemplateId = detailsHistory.find((h: any) => h.templateId)?.templateId;
+                  setDetailsInvite(null);
+                  openSendModal([inv], { resend: true, templateId: lastTemplateId });
+                }}
+                style={{ padding: '10px 20px', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+              >
+                Resend…
               </button>
             </div>
           </div>
