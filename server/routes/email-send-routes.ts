@@ -19,7 +19,7 @@ router.use((_req: Request, res: Response, next) => {
 /** POST /api/email-send/invite — send an email for a single invite */
 router.post('/invite', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
-    const { inviteId, templateId, senderIdentity, cc, bcc } = req.body;
+    const { inviteId, templateId, senderIdentity, cc, bcc, personalNote, resend } = req.body;
     const sentBy = (req.session as any).userId;
 
     if (!inviteId || !templateId) {
@@ -38,10 +38,15 @@ router.post('/invite', requireAuth, isFacilitatorOrAdmin, async (req: Request, r
       sentBy,
       cc: Array.isArray(cc) ? cc : undefined,
       bcc: Array.isArray(bcc) ? bcc : undefined,
+      personalNote: typeof personalNote === 'string' ? personalNote : undefined,
+      resend: resend === true,
     });
 
     if (result.success) {
       res.json({ success: true, logId: result.logId, message: 'Email sent successfully' });
+    } else if (result.skipped) {
+      // Already sent and not a resend — not an error, just nothing to do.
+      res.json({ success: false, skipped: true, message: 'This invite has already been emailed. Use resend to send again.' });
     } else {
       res.status(500).json({ success: false, error: result.error, logId: result.logId });
     }
@@ -54,7 +59,7 @@ router.post('/invite', requireAuth, isFacilitatorOrAdmin, async (req: Request, r
 /** POST /api/email-send/bulk — send emails for multiple invites */
 router.post('/bulk', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
-    const { inviteIds, templateId, senderIdentity, cc, bcc } = req.body;
+    const { inviteIds, templateId, senderIdentity, cc, bcc, personalNote, resend } = req.body;
     const sentBy = (req.session as any).userId;
 
     if (!inviteIds || !Array.isArray(inviteIds) || inviteIds.length === 0) {
@@ -71,6 +76,8 @@ router.post('/bulk', requireAuth, isFacilitatorOrAdmin, async (req: Request, res
       sentBy,
       cc: Array.isArray(cc) ? cc : undefined,
       bcc: Array.isArray(bcc) ? bcc : undefined,
+      personalNote: typeof personalNote === 'string' ? personalNote : undefined,
+      resend: resend === true,
     });
 
     res.json({ success: true, ...result });
@@ -138,6 +145,21 @@ router.get('/history', requireAuth, isFacilitatorOrAdmin, async (req: Request, r
   } catch (error: any) {
     console.error('Error fetching send history:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch send history' });
+  }
+});
+
+/** GET /api/email-send/invite/:inviteId/history — full send history for one invite */
+router.get('/invite/:inviteId/history', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  try {
+    const inviteId = parseInt(req.params.inviteId, 10);
+    if (isNaN(inviteId)) {
+      return res.status(400).json({ success: false, message: 'Invalid invite ID' });
+    }
+    const history = await emailSendService.getInviteSendHistory(inviteId);
+    res.json({ success: true, history });
+  } catch (error: any) {
+    console.error('Error fetching invite send history:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch invite send history' });
   }
 });
 
