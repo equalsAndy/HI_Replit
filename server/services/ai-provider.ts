@@ -68,8 +68,17 @@ let openaiProviderInstance: AIProvider | null = null;
 
 async function getClaudeProvider(): Promise<AIProvider> {
   if (!claudeProviderInstance) {
-    const { ClaudeProvider } = await import('./claude-provider.js');
-    claudeProviderInstance = new ClaudeProvider();
+    // Flag-gated transport swap: route Claude calls through AWS Bedrock when
+    // AI_USE_BEDROCK=true (uses dedicated BEDROCK_* IAM creds). Defaults to the
+    // direct Anthropic API so nothing changes unless the flag is set.
+    if (process.env.AI_USE_BEDROCK?.toLowerCase().trim() === 'true') {
+      const { BedrockProvider } = await import('./bedrock-provider.js');
+      claudeProviderInstance = new BedrockProvider();
+      console.log('[ai-provider] Claude routed via AWS Bedrock (AI_USE_BEDROCK=true)');
+    } else {
+      const { ClaudeProvider } = await import('./claude-provider.js');
+      claudeProviderInstance = new ClaudeProvider();
+    }
   }
   return claudeProviderInstance;
 }
