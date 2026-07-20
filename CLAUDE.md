@@ -249,6 +249,8 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 **Key Storage**: Keys managed in `keys/` directory (do not commit)  
 **Guidelines**: Validate responses, rate limiting, caching, fallback content
 
+**Provider/model routing — read the catalog, don't hardcode.** `server/config/ai-slot-catalog.ts` is the source of truth for which provider + model each AI feature uses. Slots with `controlType === 'gateway'` resolve per-slot from the selfActual **model-control plane** (`resolveModel(slot)`); non-slotted paths fall back to `getProvider('ia')` and the `AI_PROVIDER_*` env vars (`AI_PROVIDER_IA` — currently Claude Haiku — `AI_PROVIDER_COACHING`, `AI_PROVIDER_REPORTS`). Image generation uses OpenAI `gpt-image-1` directly (its `fallbackModel`). A static "IA = Claude / coaching = OpenAI" mental model is stale — the catalog governs.
+
 ## 🚀 Deployment
 
 **Infrastructure**: AWS Lightsail service `hi-replit-v2`, container `allstarteams-app`, port 8080  
@@ -288,6 +290,18 @@ curl http://localhost:8080/health  # ⚠️ Use /health NOT /api/health
 **Naming Convention**: Descriptive kebab-case (e.g., `typescript-server-cleanup.md`, `ia-4-3-responsive-layout-fix.md`)  
 **Format**: Markdown files with clear title, summary, labels, and acceptance criteria  
 **Legacy**: Old Jira items exist in `/JiraTickets/` folder (historical reference only — not actively used)
+
+## 📧 Auth0 Email & Password Reset
+
+selfActual owns the Auth0 email layer (SES from `noreply@selfactual.ai`); **HI sends its own user-facing emails** from `noreply@imaginalmail.com`. The SA-side pieces (Auth0 templates, provisioning M2M grants, branded page shells) are already done — the remaining work is **HI-side**.
+
+**Password reset — Phase 3 (PENDING, HI-side).** The `/forgot-password` route on `app2.heliotropeimaginal.com` must:
+1. Call the Auth0 **Management tickets API** — `POST /api/v2/tickets/password-change` with `result_url: "https://app2.heliotropeimaginal.com"` and `ttl_sec: 3600`.
+2. Send an **HI-branded SES email** from `noreply@imaginalmail.com` containing the returned ticket URL.
+
+**⚠️ Never call `/dbconnections/change_password` (or any Auth0 built-in password-reset endpoint).** That fires Auth0's tenant-default email, which is **SA-branded** — to an HI user who's never heard of selfActual, it reads as phishing. This is the exact bug the cleanup exists to fix. Reset must flow *only* through the tickets API + HI's own SES send.
+
+**Files:** `server/src/auth0/management.ts` (Auth0 mgmt client) · `server/services/email-send-service.ts` + `email-variable-service.ts` (HI's SES sender).
 
 ## 🔐 Security & Standards
 
