@@ -1,6 +1,6 @@
 import express from 'express';
 import OpenAI from 'openai';
-import { getProvider } from '../services/ai-provider.js';
+import { getProvider, resolveModel } from '../services/ai-provider.js';
 import { photoStorageService, ImageType } from '../services/photo-storage-service.js';
 
 const router = express.Router();
@@ -32,9 +32,9 @@ function getDalleClient(): OpenAI {
  * `b64_json`, so we never pass `response_format`. A `url` fallback is kept in
  * case the API ever returns one instead.
  */
-async function generateDalleImageDataUrl(client: OpenAI, prompt: string): Promise<string> {
+async function generateDalleImageDataUrl(client: OpenAI, prompt: string, model = 'gpt-image-1'): Promise<string> {
   const imageResponse = await client.images.generate({
-    model: 'gpt-image-1',
+    model,
     prompt,
     n: 1,
     size: '1024x1024',
@@ -149,11 +149,14 @@ Nothing else.`,
       return res.status(500).json({ success: false, error: 'Failed to generate image prompt' });
     }
 
-    // Step 2: Generate with DALL-E 3 (OpenAI only — Claude has no image generation)
+    // Step 2: Generate the image (OpenAI only — Claude has no image generation).
+    // The `hi.ia-image` slot is kind:image, so the gateway invariant guarantees an
+    // image model; fall back to gpt-image-1 when unassigned/unreachable.
+    const imageResolved = await resolveModel('hi.ia-image', { provider: 'openai', model: 'gpt-image-1' });
     const dalleClient = getDalleClient();
-    console.log(`[image-gen/stretch] Generating. Title: "${suggestedTitle}". Prompt: ${dallePrompt.substring(0, 100)}...`);
+    console.log(`[image-gen/stretch] Generating. Title: "${suggestedTitle}". model=${imageResolved.model} source=${imageResolved.source}. Prompt: ${dallePrompt.substring(0, 100)}...`);
 
-    const base64DataUrl = await generateDalleImageDataUrl(dalleClient, dallePrompt);
+    const base64DataUrl = await generateDalleImageDataUrl(dalleClient, dallePrompt, imageResolved.model);
 
     // Step 3: Store in photo_storage
     const userId = (req.session as any)?.userId;
@@ -275,11 +278,12 @@ TITLE: [title]`,
       return res.status(500).json({ success: false, error: 'Failed to generate capability stretch' });
     }
 
-    // Step 2: DALL-E generates the image
+    // Step 2: generate the image (see /stretch for the slot invariant note)
+    const imageResolved = await resolveModel('hi.ia-image', { provider: 'openai', model: 'gpt-image-1' });
     const dalleClient = getDalleClient();
-    console.log(`[image-gen/capability] Generating ${capability}. Title: "${title}"`);
+    console.log(`[image-gen/capability] Generating ${capability}. Title: "${title}". model=${imageResolved.model} source=${imageResolved.source}`);
 
-    const base64DataUrl = await generateDalleImageDataUrl(dalleClient, dallePrompt);
+    const base64DataUrl = await generateDalleImageDataUrl(dalleClient, dallePrompt, imageResolved.model);
 
     // Step 3: Store in photo_storage
     const userId = (req.session as any)?.userId;
@@ -340,9 +344,11 @@ router.post('/describe', express.json(), async (req, res) => {
     }
 
     const client = getDalleClient();
+    const describeResolved = await resolveModel('hi.ia-image-describe', { provider: 'openai', model: 'gpt-4o-mini' });
+    console.log(`[image-gen/describe] model=${describeResolved.model} source=${describeResolved.source}`);
 
     const response = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: describeResolved.model || 'gpt-4o-mini',
       max_tokens: 200,
       messages: [{
         role: 'user',

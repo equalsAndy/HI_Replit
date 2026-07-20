@@ -2,7 +2,7 @@ import express from 'express';
 import OpenAI from 'openai';
 import { getTraining, getApiKeyForTraining, TrainingId } from '../config/trainings.js';
 import { getTrainingDoc } from '../config/training-doc-loader.js';
-import { getProvider, getProviderName } from '../services/ai-provider.js';
+import { getProvider, getProviderName, resolveModel, getProviderForResolved } from '../services/ai-provider.js';
 
 const router = express.Router();
 
@@ -60,41 +60,53 @@ router.post('/chat/plain', express.json(), async (req, res) => {
       }
     }
 
-    // ─── Provider-agnostic path ──────────────────────────────────────────────
-    const providerName = getProviderName('ia');
+    // ─── Model-control slot resolution ───────────────────────────────────────
+    // Each training resolves its own slot (`hi.<training_id>`) from the gateway
+    // control plane. The current env-derived selection is passed as the fallback,
+    // so an unassigned slot / unreachable gateway behaves exactly as before.
+    const slot = `hi.${training_id}`;
+    const envProvider = getProviderName('ia');
+    const envModel = envProvider === 'claude'
+      ? (training.claude_model || process.env.CLAUDE_MODEL)
+      : resolvedModel;
+    const resolved = await resolveModel(slot, { provider: envProvider, model: envModel });
+    console.log(`[ai/chat/plain] slot=${slot} → provider=${resolved.provider} model=${resolved.model ?? '(provider default)'} source=${resolved.source}`);
 
-    if (providerName === 'claude') {
+    if (resolved.provider === 'claude') {
       // Extract system prompt from messages (Claude takes it separately)
       const systemMsg = normalized.find(m => m.role === 'system');
       const nonSystemMsgs = normalized.filter(m => m.role !== 'system');
 
-      const provider = await getProvider('ia');
+      // Dispatch to the client the gateway named (Bedrock for a `provider: bedrock`
+      // slot, direct Anthropic for `anthropic`, or env-driven on fallback).
+      const provider = await getProviderForResolved(resolved);
       const response = await provider.complete({
         systemPrompt: systemMsg?.content || '',
         messages: nonSystemMsgs,
         maxTokens: 1024,
         temperature: 0.7,
         cacheSystemPrompt: !!trainingDoc, // Cache when training doc present (static content)
-        model: training.claude_model || process.env.CLAUDE_MODEL,
-        apiKey: undefined, // Uses CLAUDE_API_KEY from env
+        model: resolved.model, // gateway backendModel (e.g. us.anthropic.claude-sonnet-4-6) sent verbatim
+        apiKey: undefined, // Bedrock uses AWS creds; direct Claude uses CLAUDE_API_KEY
       });
 
       console.log(`[ai/chat/plain] Claude response for ${training_id}: ${response.content.length} chars, ${response.usage.inputTokens} in / ${response.usage.outputTokens} out, cache read: ${response.usage.cacheReadTokens}, latency: ${response.latencyMs}ms`);
       return res.json({ success: true, reply: response.content, model: response.model, training_id, provider: 'claude' });
     }
 
-    // ─── OpenAI path (default, unchanged) ────────────────────────────────────
+    // ─── OpenAI path (default) ───────────────────────────────────────────────
+    const openaiModel = resolved.model || resolvedModel;
     const isIATraining = training.id.startsWith('ia-');
     const projectId = isIATraining ? process.env.IMAGINAL_AGILITY_PROJECT_ID : undefined;
     const client = projectId ? new OpenAI({ apiKey, project: projectId }) : new OpenAI({ apiKey });
 
     const completion = await client.chat.completions.create({
-      model: resolvedModel,
+      model: openaiModel,
       messages: normalized,
     });
 
     const reply = completion.choices?.[0]?.message?.content ?? '';
-    return res.json({ success: true, reply, model: resolvedModel, training_id, provider: 'openai' });
+    return res.json({ success: true, reply, model: openaiModel, training_id, provider: 'openai' });
   } catch (error: any) {
     console.error('AI plain chat error:', error);
     return res.status(500).json({ success: false, error: error?.message || 'Server error' });

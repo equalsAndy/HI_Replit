@@ -7,6 +7,7 @@ const FeedbackManagement = React.lazy(() => import('@/components/admin/FeedbackM
 const AIManagement = React.lazy(() => import('@/components/admin/AIManagement'));
 const IAExerciseInstructions = React.lazy(() => import('@/components/admin/IAExerciseInstructions'));
 const ExerciseTrainingDocsAdmin = React.lazy(() => import('@/components/admin/ExerciseTrainingDocsAdmin'));
+const AIRoutingDashboard = React.lazy(() => import('@/components/admin/AIRoutingDashboard'));
 const EnhancedVideoManagement = React.lazy(() =>
   import('@/components/admin/EnhancedVideoManagement').then(m => ({ default: m.EnhancedVideoManagement }))
 );
@@ -17,7 +18,7 @@ const CohortManagementPanel = React.lazy(() =>
 );
 import { useToast } from '@/hooks/use-toast';
 import { useLogout } from '@/hooks/use-logout';
-import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video, FileText, Database, GraduationCap, ExternalLink } from 'lucide-react';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video, FileText, Database, GraduationCap, ExternalLink, Network } from 'lucide-react';
 import VersionInfo from '@/components/ui/VersionInfo';
 import { FeedbackTrigger } from '@/components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '@/utils/pageContext';
@@ -1807,7 +1808,11 @@ export default function AdminDashboardWorkshop() {
       justifyContent: 'center',
       borderRadius: '6px 6px 0 0',
       transition: 'all 0.2s ease',
-      marginRight: '2px'
+      marginRight: '2px',
+      // Always declare borderBottom so the active state only changes its color
+      // rather than adding/removing the property (which conflicts with the
+      // `border` shorthand and triggers a React style-rerender warning).
+      borderBottom: '2px solid transparent'
     },
     activeSubTab: {
       backgroundColor: 'white',
@@ -2070,6 +2075,7 @@ export default function AdminDashboardWorkshop() {
                   <div style={styles.subTabsList}>
                     {[
                       { id: 'overview', label: 'Overview', icon: Bot },
+                      { id: 'routing', label: 'Model Routing', icon: Network },
                       { id: 'training-docs', label: 'Training Docs', icon: BookOpen },
                       { id: 'exercise-instructions', label: 'Exercise Instructions', icon: Brain },
                     ].map((subTab) => (
@@ -2089,6 +2095,7 @@ export default function AdminDashboardWorkshop() {
                 </div>
                 <div style={styles.subTabContent}>
                   {activeAITab === 'overview' && <AIManagement />}
+                  {activeAITab === 'routing' && <AIRoutingDashboard />}
                   {activeAITab === 'training-docs' && <ExerciseTrainingDocsAdmin />}
                   {activeAITab === 'exercise-instructions' && <IAExerciseInstructions />}
                 </div>
