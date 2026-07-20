@@ -63,6 +63,11 @@ CLAUDE_API_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_API_KEY" -
 AI_PROVIDER=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 AI_PROVIDER_IA=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER_IA" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 CLAUDE_MODEL=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_MODEL" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "claude-haiku-4-5-20251001")
+# Model control plane (selfActual gateway). Both required for /api/model-control
+# resolution; without them isGatewayConfigured → false and AI features fall back
+# to local env defaults. Base URL defaults to prod gateway; token has no safe default.
+GATEWAY_BASE_URL=$(aws ssm get-parameter --name "/prod/hi-replit/GATEWAY_BASE_URL" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "https://api.selfactual.ai")
+GATEWAY_SERVICE_TOKEN=$(aws ssm get-parameter --name "/prod/hi-replit/GATEWAY_SERVICE_TOKEN" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
 TRAINING_DOC_SYNC_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/TRAINING_DOC_SYNC_KEY" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
 
 # AWS credentials for SES email sending from within the container
@@ -185,6 +190,8 @@ aws lightsail create-container-service-deployment \
         \"AI_PROVIDER\": \"${AI_PROVIDER}\",
         \"AI_PROVIDER_IA\": \"${AI_PROVIDER_IA}\",
         \"CLAUDE_MODEL\": \"${CLAUDE_MODEL}\",
+        \"GATEWAY_BASE_URL\": \"${GATEWAY_BASE_URL}\",
+        \"GATEWAY_SERVICE_TOKEN\": \"${GATEWAY_SERVICE_TOKEN}\",
         \"TRAINING_DOC_SYNC_KEY\": \"${TRAINING_DOC_SYNC_KEY}\",
         \"AWS_ACCESS_KEY_ID\": \"${SES_AWS_ACCESS_KEY_ID}\",
         \"AWS_SECRET_ACCESS_KEY\": \"${SES_AWS_SECRET_ACCESS_KEY}\",

@@ -4,8 +4,8 @@
  * Implements the AIProvider interface using Anthropic models on AWS Bedrock via
  * the AWS SDK (@aws-sdk/client-bedrock-runtime — the same client the platform
  * gateway uses). API-compatible output with ClaudeProvider (same AIResponse +
- * prompt-cache usage), selected by the AI_USE_BEDROCK flag in the ai-provider
- * factory.
+ * prompt-cache usage). Selected per-slot by the gateway control plane: a slot
+ * that resolves to `provider: bedrock` dispatches here via getProviderForResolved().
  *
  * Credentials: reads BEDROCK_ACCESS_KEY_ID / BEDROCK_SECRET_ACCESS_KEY (a
  * dedicated bedrock:InvokeModel-only IAM user) so it never touches the
