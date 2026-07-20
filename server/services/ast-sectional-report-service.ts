@@ -39,6 +39,7 @@ interface SectionStatus {
   status: 'pending' | 'generating' | 'completed' | 'failed';
   content?: string;
   errorMessage?: string;
+  failureClass?: FailureClass;
   completedAt?: Date;
   generationAttempts: number;
 }
@@ -56,6 +57,10 @@ interface ReportProgress {
   startedAt?: Date;
   completedAt?: Date;
   provider?: string;
+  /** Dominant failure class across failed sections, for outage-aware UI. */
+  failureClass?: FailureClass;
+  /** Human-facing message matching failureClass; safe to show a participant. */
+  failureMessage?: string;
 }
 
 interface GenerationOptions {
@@ -63,6 +68,34 @@ interface GenerationOptions {
   specificSections?: number[];
   qualityThreshold?: number;
 }
+
+/**
+ * Classifies why a report section failed, so callers can (a) decide whether a
+ * retry could plausibly help and (b) show the participant a calm, human message
+ * instead of raw provider text like "rate_limit_exceeded - You exceeded your
+ * current quota, please check your plan and billing details."
+ *
+ *   service_unavailable — account/billing/auth is down (quota exhausted, invalid
+ *                         key). NOT retryable; retrying just burns attempts.
+ *   busy                — genuine per-minute rate limiting. Retryable after a wait.
+ *   temporary           — provider 5xx / overloaded / timeout. Retryable shortly.
+ *   content_error       — anything else (parse/RML/unexpected). Not auto-retryable.
+ *
+ * NOTE: OpenAI reports quota exhaustion with code `rate_limit_exceeded` — the same
+ * code as real rate limiting — and only the message distinguishes them. That
+ * masquerade is why this classifier inspects the message for quota/billing wording
+ * BEFORE trusting the code. (See HEL-19.)
+ */
+type FailureClass = 'service_unavailable' | 'busy' | 'temporary' | 'content_error';
+
+const REPORT_FAILURE_MESSAGES: Record<FailureClass, string> = {
+  service_unavailable: 'Our report writer is temporarily unavailable. Your workshop responses are saved — please try again a little later.',
+  busy: 'Our report writer is busy right now. Please try again in a few minutes.',
+  temporary: 'Our report writer is taking a short break. Please check back in a few minutes.',
+  content_error: 'We hit a snag putting this part of your report together. Please try again.',
+};
+
+const RETRYABLE_FAILURE_CLASSES: ReadonlySet<FailureClass> = new Set<FailureClass>(['busy', 'temporary']);
 
 class ASTSectionalReportService {
   /**
@@ -232,9 +265,12 @@ class ASTSectionalReportService {
         return { success: false, message: 'User AST data not found' };
       }
 
-      // Check for existing report
+      // Check for existing report. A COMPLETED report is protected — you must pass
+      // regenerate to overwrite it. But a failed/partial/pending report is now
+      // retryable in place (the "Try Again" button sends regenerate:false), because
+      // we no longer delete failed reports to make room for a retry. (HEL-19)
       const existingReport = await this.getExistingReport(userId, reportType);
-      if (existingReport && !options.regenerate) {
+      if (existingReport && existingReport.generation_status === 'completed' && !options.regenerate) {
         return {
           success: false,
           message: 'Report already exists. Use regenerate option to create new report.',
@@ -333,7 +369,7 @@ class ASTSectionalReportService {
               } else {
                 // Max attempts reached - mark as failed
                 console.error(`❌ Section ${sectionId} failed after ${MAX_SECTION_ATTEMPTS} attempts`);
-                await this.markSectionFailed(userId, reportType, sectionId, result.error || 'Failed after multiple attempts');
+                await this.markSectionFailed(userId, reportType, sectionId, result.error || 'Failed after multiple attempts', result.failureClass);
               }
             }
 
@@ -346,7 +382,9 @@ class ASTSectionalReportService {
               await new Promise(resolve => setTimeout(resolve, 3000));
             } else {
               // Max attempts reached - mark as failed
-              await this.markSectionFailed(userId, reportType, sectionId, error.message);
+              const failureClass: FailureClass = (error as any)?.failureClass
+                ?? this.classifyReportError(error).failureClass;
+              await this.markSectionFailed(userId, reportType, sectionId, error.message, failureClass);
             }
           }
         }
@@ -389,15 +427,18 @@ class ASTSectionalReportService {
           .then(r => { if (r?.ok) console.log(`🔐 Workshop report artifact synced to pod for user ${userId}`); })
           .catch(err => console.error(`🔐 Workshop report artifact sync failed for user ${userId}:`, err));
       } else if (progress.sectionsFailed > 0) {
-        // Check if ALL sections failed (complete failure)
-        if (progress.sectionsFailed === progress.totalSections && progress.sectionsCompleted === 0) {
-          console.log(`❌ All sections failed for user ${userId} - cleaning up failed report data`);
-          await this.cleanupFailedReport(userId, reportType);
-        } else {
-          // Partial failure - keep the data
-          await this.updateReportStatus(userId, reportType, 'failed');
-          console.log(`⚠️ Report generation partially failed for user ${userId}: ${progress.sectionsCompleted}/${progress.totalSections} completed`);
-        }
+        // Total and partial failures are now handled the same way: mark the report
+        // 'failed' and KEEP the rows. We used to DELETE everything on a total
+        // failure, which (a) destroyed the only record that an outage happened and
+        // (b) left the UI rendering stale client-cached failures. Retry still works
+        // because the lifecycle is now idempotent (see createOrUpdateReport). (HEL-19)
+        await this.updateReportStatus(userId, reportType, 'failed');
+        const isTotal = progress.sectionsCompleted === 0;
+        console.log(
+          `${isTotal ? '❌ All' : '⚠️ Some'} sections failed for user ${userId}: ` +
+          `${progress.sectionsCompleted}/${progress.totalSections} completed ` +
+          `(dominant failure: ${progress.failureClass ?? 'unknown'})`
+        );
       }
 
     } catch (error) {
@@ -414,7 +455,7 @@ class ASTSectionalReportService {
     reportType: 'ast_personal' | 'ast_professional',
     sectionId: number,
     userData: any
-  ): Promise<{ success: boolean; content?: string; error?: string }> {
+  ): Promise<{ success: boolean; content?: string; error?: string; failureClass?: FailureClass }> {
     try {
       console.log(`📄 Generating section ${sectionId} for user ${userId}`);
 
@@ -470,10 +511,16 @@ class ASTSectionalReportService {
     } catch (error) {
       console.error(`❌ Error generating section ${sectionId} for user ${userId}:`, error);
 
-      // Mark section as failed
-      await this.markSectionFailed(userId, reportType, sectionId, error.message);
+      // error.failureClass is set when the failure came through
+      // generateSectionContentWithPayload's classifier; otherwise classify here
+      // (covers payload-builder / RML / persistence failures too).
+      const failureClass: FailureClass = (error as any)?.failureClass
+        ?? this.classifyReportError(error).failureClass;
 
-      return { success: false, error: error.message };
+      // Mark section as failed with the participant-safe message + class.
+      await this.markSectionFailed(userId, reportType, sectionId, error.message, failureClass);
+
+      return { success: false, error: error.message, failureClass };
     }
   }
 
@@ -485,7 +532,7 @@ class ASTSectionalReportService {
       // Get sections status
       const sectionsResult = await pool.query(`
         SELECT section_id, section_name, section_title, status, section_content,
-               error_message, completed_at, generation_attempts, created_at
+               error_message, metadata, completed_at, generation_attempts, created_at
         FROM report_sections
         WHERE user_id = $1 AND report_type = $2
         ORDER BY section_id
@@ -509,6 +556,7 @@ class ASTSectionalReportService {
         status: row.status,
         content: row.section_content,
         errorMessage: row.error_message,
+        failureClass: (row.metadata?.failureClass as FailureClass | undefined) ?? undefined,
         completedAt: row.completed_at,
         generationAttempts: row.generation_attempts
       }));
@@ -535,10 +583,28 @@ class ASTSectionalReportService {
         overallStatus = 'in_progress';
       }
 
+      // Dominant failure class across failed sections: if every failed section
+      // shares a class (the usual case for an outage — all say service_unavailable),
+      // surface it so the client can render one calm message instead of N raw rows.
+      let failureClass: FailureClass | undefined;
+      let failureMessage: string | undefined;
+      if (sectionsFailed > 0) {
+        const failedClasses = sections
+          .filter(s => s.status === 'failed')
+          .map(s => s.failureClass ?? 'content_error');
+        // Prefer the most "systemic" class present, since a whole-service outage
+        // should dominate the messaging over an incidental content_error.
+        const priority: FailureClass[] = ['service_unavailable', 'temporary', 'busy', 'content_error'];
+        failureClass = priority.find(c => failedClasses.includes(c)) ?? 'content_error';
+        failureMessage = REPORT_FAILURE_MESSAGES[failureClass];
+      }
+
       return {
         userId,
         reportType,
         overallStatus,
+        failureClass,
+        failureMessage,
         progressPercentage,
         sectionsCompleted,
         sectionsFailed,
@@ -704,6 +770,40 @@ class ASTSectionalReportService {
   /**
    * Extract wait time from OpenAI rate limit error message
    */
+  /**
+   * Classify a failure into a FailureClass + participant-safe message. See the
+   * FailureClass docblock above for the reasoning (esp. the quota/rate-limit
+   * masquerade). Accepts either a raw Error or an OpenAI run's last_error shape.
+   */
+  private classifyReportError(error: any): { failureClass: FailureClass; userMessage: string; retryable: boolean } {
+    const message = String(error?.message ?? error ?? '');
+    const code = String(error?.openaiCode ?? error?.code ?? '');
+    const status = Number(error?.status ?? error?.statusCode ?? 0);
+    const haystack = `${code} ${message}`.toLowerCase();
+
+    let failureClass: FailureClass;
+
+    if (/quota|billing|insufficient_quota|exceeded your current quota|check your plan/.test(haystack)) {
+      // Quota/billing exhaustion — often mislabeled `rate_limit_exceeded` by OpenAI.
+      failureClass = 'service_unavailable';
+    } else if (status === 401 || status === 403 || /invalid_api_key|authentication|permission|unauthorized/.test(haystack)) {
+      failureClass = 'service_unavailable';
+    } else if (code === 'rate_limit_exceeded' || /rate limit|try again in [\d.]+s/.test(haystack)) {
+      failureClass = 'busy';
+    } else if (status === 500 || status === 502 || status === 503 || status === 529 ||
+               /server had an error|overloaded|temporarily unavailable|timeout|timed out|502|503|529/.test(haystack)) {
+      failureClass = 'temporary';
+    } else {
+      failureClass = 'content_error';
+    }
+
+    return {
+      failureClass,
+      userMessage: REPORT_FAILURE_MESSAGES[failureClass],
+      retryable: RETRYABLE_FAILURE_CLASSES.has(failureClass),
+    };
+  }
+
   private parseRateLimitWaitTime(errorMessage: string): number {
     // Error format: "Please try again in 7.76s"
     const match = errorMessage.match(/try again in ([\d.]+)s/i);
@@ -941,7 +1041,11 @@ class ASTSectionalReportService {
           ? `Assistant run failed: ${runStatus.last_error.code} - ${runStatus.last_error.message}`
           : `Assistant run failed with status: ${runStatus.status}`;
 
-        throw new Error(errorMessage);
+        // Preserve the provider's error code so classifyReportError can tell a real
+        // rate limit apart from quota exhaustion (both arrive as rate_limit_exceeded).
+        const runError = new Error(errorMessage);
+        (runError as any).openaiCode = runStatus.last_error?.code;
+        throw runError;
       }
 
       // Get the response
@@ -970,47 +1074,36 @@ class ASTSectionalReportService {
     } catch (error) {
       console.error(`❌ Error generating section content with payload:`, error);
 
-      // Check for rate limit error
-      const isRateLimitError = error?.message?.includes('rate_limit_exceeded') ||
-                               error?.message?.includes('Rate limit reached');
+      const { failureClass, userMessage, retryable } = this.classifyReportError(error);
+      console.error(`🏷️  Classified section ${sectionDef.id} failure as '${failureClass}' (retryable=${retryable})`);
 
-      if (isRateLimitError && retryCount < 3) {
-        // Parse wait time from error message
-        const waitTime = this.parseRateLimitWaitTime(error.message);
-        console.log(`⏳ Rate limit hit. Waiting ${waitTime}ms (150% of suggested time) before retry ${retryCount + 1}/3...`);
-
-        // Wait before retrying
+      // Only retry the classes a retry can actually help (busy/temporary). Quota
+      // exhaustion and auth failures are terminal — retrying them just burns the
+      // remaining attempts against an error that cannot clear on its own. (HEL-19)
+      if (retryable && retryCount < 3) {
+        const waitTime = failureClass === 'busy'
+          ? this.parseRateLimitWaitTime(String(error?.message ?? ''))
+          : 10000; // temporary/5xx: fixed short backoff
+        console.log(`⏳ ${failureClass} error. Waiting ${waitTime}ms before retry ${retryCount + 1}/3...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
-
         console.log(`🔄 Retrying section ${sectionDef.id} generation (attempt ${retryCount + 2}/4)...`);
         return this.generateSectionContentWithPayload(payload, sectionDef, reportType, retryCount + 1);
       }
 
-      // Check if this is an OpenAI 500 error (service temporarily unavailable)
-      const isOpenAI500Error = error?.status === 500 ||
-                                error?.message?.includes('500') ||
-                                error?.message?.includes('server had an error');
-
-      if (isOpenAI500Error) {
-        // Provide a friendly, specific error message for OpenAI service issues
-        const friendlyError = new Error("It looks like our AI Report Writer is taking a virtual break, check back again in a few minutes.");
-        (friendlyError as any).isTemporary = true;
-        (friendlyError as any).originalError = error.message;
-        throw friendlyError;
-      }
-
-      // Log additional details for other OpenAI errors
+      // Log additional details for diagnostics before surfacing a friendly error.
       if (error?.response) {
         console.error('OpenAI API Response:', JSON.stringify(error.response, null, 2));
       }
-      if (error?.message) {
-        console.error('Error message:', error.message);
-      }
-      if (error?.code) {
-        console.error('Error code:', error.code);
+      if (error?.code || error?.openaiCode) {
+        console.error('Error code:', error.openaiCode ?? error.code);
       }
 
-      throw error;
+      // Surface a participant-safe error that also carries the machine-readable
+      // class + original text (for logs / markSectionFailed metadata).
+      const classifiedError = new Error(userMessage);
+      (classifiedError as any).failureClass = failureClass;
+      (classifiedError as any).originalError = String(error?.message ?? error);
+      throw classifiedError;
     }
   }
 
@@ -1139,7 +1232,11 @@ class ASTSectionalReportService {
           ? `Assistant run failed: ${runStatus.last_error.code} - ${runStatus.last_error.message}`
           : `Assistant run failed with status: ${runStatus.status}`;
 
-        throw new Error(errorMessage);
+        // Preserve the provider's error code so classifyReportError can tell a real
+        // rate limit apart from quota exhaustion (both arrive as rate_limit_exceeded).
+        const runError = new Error(errorMessage);
+        (runError as any).openaiCode = runStatus.last_error?.code;
+        throw runError;
       }
 
       // Get the response
@@ -1201,7 +1298,7 @@ class ASTSectionalReportService {
   private async getExistingReport(userId: string, reportType: string) {
     const holisticReportType = this.mapToHolisticReportType(reportType);
     const result = await pool.query(`
-      SELECT id FROM holistic_reports
+      SELECT id, generation_status, generation_mode FROM holistic_reports
       WHERE user_id = $1 AND report_type = $2
       ORDER BY updated_at DESC
       LIMIT 1
@@ -1213,26 +1310,30 @@ class ASTSectionalReportService {
   private async createOrUpdateReport(userId: string, reportType: string, regenerate: boolean): Promise<string> {
     const holisticReportType = this.mapToHolisticReportType(reportType);
 
-    if (regenerate) {
-      // Update existing report
-      const result = await pool.query(`
-        UPDATE holistic_reports
-        SET generation_mode = 'sectional',
-            generation_status = 'generating',
-            sectional_progress = 0,
-            sections_completed = 0,
-            sections_failed = 0,
-            updated_at = NOW()
-        WHERE user_id = $1 AND report_type = $2
-        RETURNING id
-      `, [userId, holisticReportType]);
+    // Idempotent: reuse the existing sectional row if one is present (whether this
+    // is an explicit regenerate OR a retry after a failed run), resetting its
+    // counters. Previously only `regenerate` updated in place and every other call
+    // INSERTed — which is why a failed report had to be DELETEd wholesale before a
+    // retry could run. Keeping the row lets us preserve failure evidence and still
+    // retry cleanly. Scoped to generation_mode='sectional' so a 'traditional' row
+    // for the same user/type is never clobbered. (HEL-19)
+    const updateResult = await pool.query(`
+      UPDATE holistic_reports
+      SET generation_status = 'generating',
+          sectional_progress = 0,
+          sections_completed = 0,
+          sections_failed = 0,
+          error_message = NULL,
+          updated_at = NOW()
+      WHERE user_id = $1 AND report_type = $2 AND generation_mode = 'sectional'
+      RETURNING id
+    `, [userId, holisticReportType]);
 
-      if (result.rows.length > 0) {
-        return result.rows[0].id;
-      }
+    if (updateResult.rows.length > 0) {
+      return updateResult.rows[0].id;
     }
 
-    // Create new report
+    // No existing sectional row — create one
     const result = await pool.query(`
       INSERT INTO holistic_reports (
         user_id, report_type, generation_mode, generation_status,
@@ -1390,16 +1491,21 @@ class ASTSectionalReportService {
     userId: string,
     reportType: string,
     sectionId: number,
-    errorMessage: string
+    errorMessage: string,
+    failureClass: FailureClass = 'content_error'
   ): Promise<void> {
+    // error_message holds the participant-safe text; the machine-readable class is
+    // tucked into metadata so getReportProgress can drive outage-aware UI without
+    // re-parsing prose. (report_sections.metadata is jsonb DEFAULT '{}'.)
     await pool.query(`
       UPDATE report_sections
       SET status = 'failed',
           error_message = $1,
+          metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object('failureClass', $5::text),
           generation_attempts = generation_attempts + 1,
           updated_at = NOW()
       WHERE user_id = $2 AND report_type = $3 AND section_id = $4
-    `, [errorMessage, userId, reportType, sectionId]);
+    `, [errorMessage, userId, reportType, sectionId, failureClass]);
   }
 
   private async updateReportStatus(
@@ -1617,8 +1723,13 @@ class ASTSectionalReportService {
   }
 
   /**
-   * Cleanup failed report data when all sections fail
-   * Deletes the holistic_reports record and all report_sections for this user/report_type
+   * Cleanup failed report data — deletes the holistic_reports record and all
+   * report_sections for this user/report_type.
+   *
+   * NOTE (HEL-19): No longer called on total failure. We now keep failed rows so
+   * the outage is visible and the UI renders real state; the idempotent lifecycle
+   * (createOrUpdateReport) lets a retry reuse the row without a prior delete.
+   * Retained for an explicit hard-reset should one ever be wired up.
    */
   private async cleanupFailedReport(userId: string, reportType: 'ast_personal' | 'ast_professional'): Promise<void> {
     try {

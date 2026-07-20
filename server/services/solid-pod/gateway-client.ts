@@ -29,7 +29,8 @@ async function gatewayRequest<T = unknown>(
   method: string,
   path: string,
   userIdentifier?: string,
-  body?: unknown
+  body?: unknown,
+  timeoutMs?: number
 ): Promise<GatewayResult<T>> {
   const url = `${GATEWAY_BASE_URL}${path}`;
   const headers: Record<string, string> = {
@@ -49,6 +50,9 @@ async function gatewayRequest<T = unknown>(
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      // Bounded timeout for hot-path callers (e.g. model-control resolve); a slow
+      // gateway must not stall the request — the caller degrades to its fallback.
+      signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
     });
 
     let data: T | undefined;
@@ -125,6 +129,38 @@ export async function writeArtifact(
   userIdentifier?: string
 ) {
   return gatewayRequest('POST', `/api/pods/${username}/artifacts`, userIdentifier, payload);
+}
+
+// ── Model Control Plane ────────────────────────────────────────────────────
+
+/** A model record from the gateway's model-control registry. */
+export interface ModelControlModel {
+  id: string;
+  label?: string;
+  /** Dispatch selector + vendor: 'anthropic' | 'openai' | 'bedrock' | 'together' */
+  provider: string;
+  /** The backend model id to send to the provider's SDK */
+  backendModel: string;
+  status?: string;
+}
+
+export interface ResolveSlotResponse {
+  ok: boolean;
+  slot: string;
+  modelId: string | null;
+  /** null when the slot has no assignment and no fallback resolves */
+  model: ModelControlModel | null;
+}
+
+/**
+ * Resolve a model-control slot to its assigned model.
+ * Authenticated-only (the service token suffices — no admin scope needed).
+ * `data.model` is null when the slot is unassigned; callers treat that as
+ * "use my local default".
+ */
+export async function resolveSlot(slot: string): Promise<GatewayResult<ResolveSlotResponse>> {
+  // 2.5s bound: this is on the AI request hot path — degrade to fallback rather than stall.
+  return gatewayRequest('GET', `/api/model-control/resolve/${encodeURIComponent(slot)}`, undefined, undefined, 2500);
 }
 
 /** Health check (no auth required) */

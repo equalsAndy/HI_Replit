@@ -21,6 +21,7 @@ import betaTesterRoutes from './server/routes/beta-tester-routes.js';
 import betaTesterNotesRoutes from './server/routes/beta-tester-notes-routes.js';
 import astSectionalReportRoutes from './server/routes/ast-sectional-reports-routes.ts';
 import imageGenRouter from './server/routes/image-gen.ts';
+import aiRoutingRoutes from './server/routes/ai-routing-routes.ts';
 import { initializeDatabase } from './server/db.js';
 import { db } from './server/db.js';
 import fs from 'fs';
@@ -133,6 +134,8 @@ async function startDevServer() {
   app.use('/api/beta-tester', betaTesterNotesRoutes);
   // DALL-E image generation routes (IA-4-3)
   app.use('/api/ai/image', imageGenRouter);
+  // AI model routing inventory (admin "Model Routing" tab)
+  app.use('/api/admin/ai/routing', aiRoutingRoutes);
 
   // System info endpoint (version, environment, database)
   app.get('/api/system/info', (req, res) => {

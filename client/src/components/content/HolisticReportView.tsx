@@ -26,6 +26,8 @@ interface ReportStatus {
   generatedAt?: string;
 }
 
+type FailureClass = 'service_unavailable' | 'busy' | 'temporary' | 'content_error';
+
 interface SectionalProgress {
   overallStatus: 'pending' | 'generating' | 'in_progress' | 'completed' | 'failed' | 'partial_failure';
   progressPercentage: number;
@@ -39,9 +41,14 @@ interface SectionalProgress {
     status: 'pending' | 'generating' | 'completed' | 'failed';
     content?: string;
     errorMessage?: string;
+    failureClass?: FailureClass;
     completedAt?: Date;
     generationAttempts: number;
   }>;
+  /** Dominant failure class across failed sections (outage-aware messaging). */
+  failureClass?: FailureClass;
+  /** Participant-safe message matching failureClass. */
+  failureMessage?: string;
   estimatedCompletionTime?: number;
   startedAt?: Date;
   completedAt?: Date;
@@ -615,48 +622,55 @@ export default function HolisticReportView({
               {/* Error Status - Show after 2 failed attempts with "Try Again" button */}
               {isFailed && !isStalled && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
-                    <span className="text-red-800 font-semibold">Something went wrong</span>
-                  </div>
-                  <p className="text-red-700 text-sm">
-                    {progress?.sectionsFailed && progress.sectionsFailed > 0 ? (
+                  {/* Branch messaging on failure class. A whole-service outage
+                      (quota/billing/provider-down) is ONE event, not five — show a
+                      single calm message and never surface raw provider text. A
+                      partial failure keeps the "we did X of Y" framing so the
+                      participant knows their finished work is safe. (HEL-19) */}
+                  {(() => {
+                    const isPartial = (progress?.sectionsCompleted ?? 0) > 0;
+                    const isSystemic = progress?.failureClass === 'service_unavailable'
+                      || progress?.failureClass === 'temporary'
+                      || progress?.failureClass === 'busy';
+                    const headerText = !isPartial && isSystemic
+                      ? 'Your report is not ready yet'
+                      : 'Something went wrong';
+                    return (
                       <>
-                        {progress.sectionsCompleted > 0 ? (
-                          <>
-                            We successfully generated {progress.sectionsCompleted} of {progress.totalSections} parts,
-                            but {progress.sectionsFailed} {progress.sectionsFailed === 1 ? 'part' : 'parts'} failed after multiple attempts.
-                          </>
-                        ) : (
-                          <>
-                            Report generation failed. Please try again.
-                          </>
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="h-5 w-5 text-red-600" />
+                          <span className="text-red-800 font-semibold">{headerText}</span>
+                        </div>
+                        <p className="text-red-700 text-sm">
+                          {isPartial ? (
+                            <>
+                              We finished {progress!.sectionsCompleted} of {progress!.totalSections} parts and saved them.
+                              We&apos;ll put together the {progress!.sectionsFailed} remaining {progress!.sectionsFailed === 1 ? 'part' : 'parts'} when you try again.
+                            </>
+                          ) : (
+                            progress?.failureMessage
+                              ?? 'We couldn’t put your report together just now. Your workshop responses are saved — please try again in a few minutes.'
+                          )}
+                        </p>
+
+                        {/* Detailed per-section list ONLY for partial failures, and
+                            titles only — never raw provider error text. */}
+                        {isPartial && progress?.sections?.some(s => s.status === 'failed') && (
+                          <div className="mt-3 text-xs space-y-1">
+                            <p className="text-red-800 font-medium mb-1">Parts still to finish:</p>
+                            {progress.sections
+                              .filter(s => s.status === 'failed')
+                              .map(section => (
+                                <div key={section.id} className="flex items-center gap-2 text-red-700 bg-red-100 px-2 py-1 rounded">
+                                  <AlertCircle className="h-3 w-3" />
+                                  <span>{section.title}</span>
+                                </div>
+                              ))}
+                          </div>
                         )}
                       </>
-                    ) : (
-                      'An error occurred while generating the report.'
-                    )}
-                  </p>
-
-                  {/* Show detailed section status */}
-                  {progress?.sections && progress.sections.some(s => s.status === 'failed') && (
-                    <div className="mt-3 text-xs space-y-1">
-                      <p className="text-red-800 font-medium mb-1">Failed sections:</p>
-                      {progress.sections
-                        .filter(s => s.status === 'failed')
-                        .map(section => (
-                          <div key={section.id} className="flex items-center gap-2 text-red-700 bg-red-100 px-2 py-1 rounded">
-                            <AlertCircle className="h-3 w-3" />
-                            <span>{section.title}</span>
-                            {section.errorMessage && (
-                              <span className="text-[10px] text-red-600 italic truncate">
-                                ({section.errorMessage})
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Try Again Button - Resumes from last successful section */}
                   <Button
