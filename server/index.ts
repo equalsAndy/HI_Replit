@@ -35,6 +35,7 @@ import featureFlagRoutes from './routes/feature-flag-routes.ts';
 import jiraRoutes from './routes/jira-routes.ts';
 import feedbackRoutes from './routes/feedback-routes.ts';
 import aiManagementRoutes from './routes/ai-management-routes.ts';
+import aiRoutingRoutes from './routes/ai-routing-routes.ts';
 // import personaManagementRoutes from './routes/persona-management-routes.ts'; // Temporarily disabled - causes startup hang
 import betaTesterRoutes from './routes/beta-tester-routes.ts';
 import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.ts';
@@ -500,6 +501,7 @@ app.use('/api/admin/transcript-images', transcriptImageUploadRoutes);
       // ARCHIVED: RAG pipeline route, not used by exercise training docs
       // app.use('/api/training', trainingRoutes);
       app.use('/api/admin/ai', aiManagementRoutes);
+      app.use('/api/admin/ai/routing', aiRoutingRoutes);
       // app.use('/api/admin/ai', personaManagementRoutes); // Temporarily disabled - causes startup hang
       // ARCHIVED: RAG pipeline route, not used by exercise training docs
       // app.use('/api/admin/chat', adminChatRoutes);

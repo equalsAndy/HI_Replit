@@ -258,3 +258,9 @@ scripts/create-icie-ia-invites.ts
 
 # Asset staging area
 newimagestoadd/
+
+# Anthony Billoni AST responses (local doc, not tracked)
+docs/anthony-billoni-allstarteams-responses.md
+
+# Local env backups (may contain secrets) — never commit
+.env.bak*
