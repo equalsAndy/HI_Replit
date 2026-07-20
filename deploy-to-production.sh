@@ -201,7 +201,11 @@ aws lightsail create-container-service-deployment \
       }
     }
   }" \
-  --public-endpoint "{\"containerName\": \"$CONTAINER_NAME\", \"containerPort\": 8080}"
+  --public-endpoint "{\"containerName\": \"$CONTAINER_NAME\", \"containerPort\": 8080}" \
+  --query 'containerService.state' --output text
+# ^ --query limits stdout to the service state. Without it the CLI echoes the full
+#   deployment response, which includes the container `environment` block — every
+#   secret (DB URL, session secret, API keys, gateway token) in plaintext.
 
 echo "✅ PRODUCTION deployment initiated successfully!"
 echo "📊 Check deployment status with:"
