@@ -69,18 +69,12 @@ let claudeProviderInstance: AIProvider | null = null;
 let openaiProviderInstance: AIProvider | null = null;
 
 async function getClaudeProvider(): Promise<AIProvider> {
+  // Direct Anthropic API. Bedrock is no longer selected by an env flag — it is
+  // driven exclusively by the gateway: a `provider: bedrock` slot resolves to the
+  // Bedrock transport via getProviderForResolved().
   if (!claudeProviderInstance) {
-    // Flag-gated transport swap: route Claude calls through AWS Bedrock when
-    // AI_USE_BEDROCK=true (uses dedicated BEDROCK_* IAM creds). Defaults to the
-    // direct Anthropic API so nothing changes unless the flag is set.
-    if (process.env.AI_USE_BEDROCK?.toLowerCase().trim() === 'true') {
-      const { BedrockProvider } = await import('./bedrock-provider.js');
-      claudeProviderInstance = new BedrockProvider();
-      console.log('[ai-provider] Claude routed via AWS Bedrock (AI_USE_BEDROCK=true)');
-    } else {
-      const { ClaudeProvider } = await import('./claude-provider.js');
-      claudeProviderInstance = new ClaudeProvider();
-    }
+    const { ClaudeProvider } = await import('./claude-provider.js');
+    claudeProviderInstance = new ClaudeProvider();
   }
   return claudeProviderInstance;
 }
@@ -93,11 +87,9 @@ async function getOpenAIProvider(): Promise<AIProvider> {
   return openaiProviderInstance;
 }
 
-// Dedicated instances for a transport the control plane names explicitly. When
-// the gateway says `provider: bedrock` (or `anthropic`), honor that regardless
-// of the AI_USE_BEDROCK env flag — the flag only governs the env-fallback path.
+// Bedrock instance for a slot the gateway resolves to `provider: bedrock`.
+// Bedrock is gateway-driven only — there is no env-flag path anymore.
 let bedrockProviderInstance: AIProvider | null = null;
-let claudeDirectProviderInstance: AIProvider | null = null;
 
 async function getBedrockProvider(): Promise<AIProvider> {
   if (!bedrockProviderInstance) {
@@ -105,14 +97,6 @@ async function getBedrockProvider(): Promise<AIProvider> {
     bedrockProviderInstance = new BedrockProvider();
   }
   return bedrockProviderInstance;
-}
-
-async function getClaudeDirectProvider(): Promise<AIProvider> {
-  if (!claudeDirectProviderInstance) {
-    const { ClaudeProvider } = await import('./claude-provider.js');
-    claudeDirectProviderInstance = new ClaudeProvider();
-  }
-  return claudeDirectProviderInstance;
 }
 
 // ─── Factory ─────────────────────────────────────────────────────────────────
@@ -172,8 +156,8 @@ export async function getBothProviders(): Promise<{ openai: AIProvider; claude: 
 /**
  * The client a slot dispatches to. `openai`/`anthropic` map 1:1 to their SDKs;
  * `bedrock` uses the AWS Bedrock runtime with the gateway-supplied `us.anthropic.*`
- * backendModel. Undefined `transport` (env-fallback path) means "use the env-driven
- * Claude client" (which honors AI_USE_BEDROCK).
+ * backendModel. Undefined `transport` (env-fallback path) means "use the direct
+ * Anthropic client" — Bedrock is reached only via an explicit gateway `bedrock` transport.
  */
 export type Transport = 'anthropic' | 'bedrock' | 'openai';
 
@@ -229,14 +213,8 @@ function mapGatewayProvider(
  */
 export async function getProviderForResolved(resolved: ResolvedModel): Promise<AIProvider> {
   if (resolved.provider === 'openai') return getOpenAIProvider();
-  switch (resolved.transport) {
-    case 'bedrock':
-      return getBedrockProvider();
-    case 'anthropic':
-      return getClaudeDirectProvider();
-    default:
-      return getClaudeProvider(); // env fallback → AI_USE_BEDROCK decides
-  }
+  // Claude family: Bedrock only when the gateway named it; otherwise direct Anthropic.
+  return resolved.transport === 'bedrock' ? getBedrockProvider() : getClaudeProvider();
 }
 
 /** Throttled (once/60s per slot) warning when a slot degrades to the env default. */
