@@ -33,8 +33,16 @@ export function mapModelId(model: string): string {
   const map: Record<string, string> = {
     'claude-haiku-4-5-20251001': 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
   };
-  // Best-effort fallback for models not explicitly mapped.
-  return map[model] ?? `us.anthropic.${model}`;
+  const mapped = map[model];
+  if (mapped) return mapped;
+  // Best-effort fallback. Versioned Anthropic names need a `-v1:0` suffix on Bedrock,
+  // so this guess is often wrong — warn rather than fail with an opaque Bedrock error.
+  const guess = `us.anthropic.${model}`;
+  console.warn(
+    `[BedrockProvider] no inference-profile mapping for "${model}" — guessing "${guess}". ` +
+    `Add it to mapModelId() if Bedrock rejects it.`,
+  );
+  return guess;
 }
 
 interface BedrockAnthropicResponse {
