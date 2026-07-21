@@ -24,8 +24,19 @@ REGION="us-west-2"
 DATE_TAG=$(date +%Y.%m.%d)
 TIME_TAG=$(date +%H%M)
 
-# For production, use semantic versioning or date-based production tags
-PRODUCTION_TAG="v${DATE_TAG}.${TIME_TAG}"
+# For production, use semantic versioning or date-based production tags.
+# Override to redeploy an image already in ECR: PRODUCTION_TAG=v2026.07.21.1049
+PRODUCTION_TAG="${PRODUCTION_TAG:-v${DATE_TAG}.${TIME_TAG}}"
+
+# SKIP_BUILD=1 skips build + ECR push and deploys the existing PRODUCTION_TAG.
+# Uploads to ECR from this network drop large layers intermittently, so a build
+# can succeed while the push needs many attempts; without this the whole script
+# would rebuild from scratch each retry. Requires PRODUCTION_TAG to be set.
+SKIP_BUILD="${SKIP_BUILD:-0}"
+if [[ "$SKIP_BUILD" == "1" && -z "${PRODUCTION_TAG:-}" ]]; then
+  echo "❌ SKIP_BUILD=1 requires PRODUCTION_TAG to name an image already in ECR"
+  exit 1
+fi
 
 echo "🚀 Starting PRODUCTION deployment for $(date)"
 echo "📦 Using image tag: $PRODUCTION_TAG"
@@ -116,6 +127,14 @@ VITE_AUTH0_REDIRECT_URI=$(aws ssm get-parameter --name "/prod/hi-replit/VITE_AUT
 : "${VITE_AUTH0_REDIRECT_URI:?VITE_AUTH0_REDIRECT_URI must be set}"
 
 # Step 1: Build and push the Docker image
+if [[ "$SKIP_BUILD" == "1" ]]; then
+  echo "⏭️  SKIP_BUILD=1 — deploying existing image $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG"
+  if ! aws ecr describe-images --repository-name "$REPO_NAME" --region "$REGION" \
+       --image-ids imageTag="$PRODUCTION_TAG" >/dev/null 2>&1; then
+    echo "❌ $PRODUCTION_TAG is not in ECR — cannot skip build"
+    exit 1
+  fi
+else
 echo "🔨 Building & pushing Docker image for linux/amd64..."
 export BUILDKIT_PARALLELISM=1
 echo "🔑 Authenticating with ECR..."
@@ -151,8 +170,15 @@ for i in 1 2 3 4 5; do
 done
 if ! $PUSH_SUCCESS; then
   echo "❌ Failed to push image after 5 attempts"
+  echo "   The image is built locally. Rather than rebuilding, push it directly"
+  echo "   and then deploy the existing tag:"
+  echo "     docker save -o /tmp/img.tar $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG"
+  echo "     aws ecr get-login-password --region $REGION | crane auth login --username AWS --password-stdin $ECR_REGISTRY"
+  echo "     crane push /tmp/img.tar $ECR_REGISTRY/$REPO_NAME:$PRODUCTION_TAG   # repeat until it lands"
+  echo "     SKIP_BUILD=1 PRODUCTION_TAG=$PRODUCTION_TAG ./deploy-to-production.sh -y"
   exit 1
 fi
+fi  # end SKIP_BUILD guard
 
 # Step 2: Deploy to Lightsail PRODUCTION
 echo "🚢 Deploying to Lightsail PRODUCTION..."
