@@ -1,10 +1,13 @@
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Upgrade npm to the latest version for production builds
-RUN npm install -g npm@latest
+# Use the npm bundled with the Node image (11.x on node:24). Do NOT `npm install -g
+# npm@latest`: npm 12 gates install scripts behind `allowScripts`, so the `npm rebuild`
+# below silently skips canvas's native build and the image ships without canvas.node.
+# chart-generation-service.ts imports it, so that fails at runtime, not build time.
+# Pinning to the bundled npm also keeps builds reproducible.
 
 # Create app directory
 WORKDIR /app
