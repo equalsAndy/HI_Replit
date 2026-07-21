@@ -48,10 +48,15 @@ From anywhere, with the same token (do not print it):
 ```bash
 curl -s -H "Authorization: Bearer $GATEWAY_SERVICE_TOKEN" \
      -H "x-sa-app: hi-replit" \
-     https://api.selfactual.ai/api/model-control/resolve/hi.ia-collab
-# expect: {"ok":true,"slot":"hi.ia-collab","modelId":"...","model":{...}}
+     https://api.selfactual.ai/api/model-control/resolve/hi.ia-4-3
+# expect: {"ok":true,"slot":"hi.ia-4-3","modelId":"...","model":{...}}
 # 401  → token missing/mismatched
 # 404 on a real slot → base URL wrong (hitting something else)
+#
+# NOTE: a successful resolve does NOT prove the slot is registered — unregistered
+# names resolve to a catch-all default. To check registration, list the registry:
+#   curl -s -H "Authorization: Bearer $GATEWAY_SERVICE_TOKEN" -H "x-sa-app: hi-replit" \
+#        https://api.selfactual.ai/api/model-control | jq '.slots[].key'
 ```
 
 ## SSM parameter creation (reference, run once with the heliotrope profile)

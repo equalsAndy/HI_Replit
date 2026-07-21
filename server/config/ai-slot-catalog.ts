@@ -86,7 +86,8 @@ const IA_EXERCISE_SLOTS: AISlotCatalogEntry[] = [
   },
   sourceFile: 'server/routes/ai.ts:67',
   notes:
-    'Provider/model resolved from gateway slot; falls back to AI_PROVIDER_IA (currently Claude Haiku) on miss.',
+    'Provider/model resolved from gateway slot; falls back to AI_PROVIDER_IA (Claude Haiku on Bedrock) on miss. ' +
+    'CLAUDE_API_KEY is unset by design, so the Claude family dispatches via Bedrock on both the gateway and fallback paths.',
 }));
 
 export const AI_SLOT_CATALOG: AISlotCatalogEntry[] = [
@@ -105,11 +106,13 @@ export const AI_SLOT_CATALOG: AISlotCatalogEntry[] = [
     fallbackModel: 'gpt-image-1',
     trainingDocs: {
       location: 'Inline DALL·E prompt builder (route)',
-      pointer: 'server/routes/image-gen.ts (prompt built by hi.ia-collab step 1)',
+      pointer: 'server/routes/image-gen.ts:91,230 (prompt built by getProvider(\'ia\') → Bedrock, NOT a gateway slot)',
     },
     sourceFile: 'server/routes/image-gen.ts:155',
     notes:
-      'kind:image — gateway invariant guarantees an image model. Prompt text is first built by the IA exercise slot (Claude), then this slot generates the image (OpenAI). Image spend is unpriced in gateway telemetry.',
+      'kind:image — gateway invariant guarantees an image model. Step 1 (prompt text) is built by getProvider(\'ia\') → ' +
+      'Claude on Bedrock, which is env-driven and NOT slotted; only step 2 (this slot) is gateway-controlled. ' +
+      'Image spend is unpriced in gateway telemetry.',
   },
   {
     id: 'ia-image-describe',
@@ -144,7 +147,9 @@ export const AI_SLOT_CATALOG: AISlotCatalogEntry[] = [
     },
     sourceFile: 'server/routes/ia-chat-routes.ts:46',
     notes:
-      'Not gateway-slotted. OpenAI branch uses the Assistants API (asst_ujxKbOaEw5HCiFygwxGR6XP4 / asst_T2PHoj8DJ6sWHlfoWyba2Wq0); Claude branch is stateless in-memory.',
+      'Not gateway-slotted — no such slot exists in the gateway registry, so this is env-only by design. ' +
+      'OpenAI branch uses the Assistants API (asst_ujxKbOaEw5HCiFygwxGR6XP4 / asst_T2PHoj8DJ6sWHlfoWyba2Wq0, ' +
+      'both scoped to IMAGINAL_AGILITY_PROJECT_ID); Claude branch is stateless in-memory and runs on Bedrock.',
   },
   {
     id: 'ia-module-reflection',

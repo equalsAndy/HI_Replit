@@ -29,7 +29,9 @@ FEATURE_HOLISTIC_REPORTS=$(aws ssm get-parameter --name "/prod/hi-replit/FEATURE
 OPENAI_API_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/OPENAI_API_KEY" --with-decryption --query "Parameter.Value" --output text)
 OPENAI_KEY_IA=$(aws ssm get-parameter --name "/prod/hi-replit/OPENAI_KEY_IA" --with-decryption --query "Parameter.Value" --output text)
 IMAGINAL_AGILITY_PROJECT_ID=$(aws ssm get-parameter --name "/prod/hi-replit/IMAGINAL_AGILITY_PROJECT_ID" --with-decryption --query "Parameter.Value" --output text)
-CLAUDE_API_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_API_KEY" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
+# CLAUDE_API_KEY intentionally not passed — Claude runs on Bedrock (see deploy-to-production.sh).
+BEDROCK_ACCESS_KEY_ID=$(aws ssm get-parameter --name "/prod/hi-replit/BEDROCK_ACCESS_KEY_ID" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
+BEDROCK_SECRET_ACCESS_KEY=$(aws ssm get-parameter --name "/prod/hi-replit/BEDROCK_SECRET_ACCESS_KEY" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "")
 AI_PROVIDER=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 AI_PROVIDER_IA=$(aws ssm get-parameter --name "/prod/hi-replit/AI_PROVIDER_IA" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "openai")
 CLAUDE_MODEL=$(aws ssm get-parameter --name "/prod/hi-replit/CLAUDE_MODEL" --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo "claude-haiku-4-5-20251001")
@@ -79,7 +81,8 @@ aws lightsail create-container-service-deployment \
         \"VITE_AUTH0_DOMAIN\": \"${VITE_AUTH0_DOMAIN}\",
         \"VITE_AUTH0_AUDIENCE\": \"${VITE_AUTH0_AUDIENCE}\",
         \"VITE_AUTH0_REDIRECT_URI\": \"${VITE_AUTH0_REDIRECT_URI}\",
-        \"CLAUDE_API_KEY\": \"${CLAUDE_API_KEY}\",
+        \"BEDROCK_ACCESS_KEY_ID\": \"${BEDROCK_ACCESS_KEY_ID}\",
+        \"BEDROCK_SECRET_ACCESS_KEY\": \"${BEDROCK_SECRET_ACCESS_KEY}\",
         \"AI_PROVIDER\": \"${AI_PROVIDER}\",
         \"AI_PROVIDER_IA\": \"${AI_PROVIDER_IA}\",
         \"CLAUDE_MODEL\": \"${CLAUDE_MODEL}\",
