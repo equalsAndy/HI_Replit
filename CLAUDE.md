@@ -28,7 +28,7 @@ npm run build                 # Production build
 npm test                      # Run tests
 ```
 
-**Requirements:** Node.js 18+, Port 8080 (NOT 5000), PostgreSQL
+**Requirements:** Node.js 22+ (containers run 24), Port 8080 (NOT 5000), PostgreSQL
 **Environment Files:** `server/.env.*` and `client/.env.*`
 **Server-only note:** `npm run dev` runs only the Express API (no Vite/HMR). Use for backend-only work or when serving a prebuilt client.
 
