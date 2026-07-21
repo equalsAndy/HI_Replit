@@ -35,7 +35,7 @@ Changing a model means editing env and redeploying. There is no way to see, per
 feature, what is running, and no way to change it without a deploy.
 
 The control plane moves that decision to the gateway. A **slot** (a named
-consumption point, e.g. `hi.ia-collab`) is assigned a **model** in the console;
+consumption point, e.g. `hi.ia-4-3`) is assigned a **model** in the console;
 HI asks the gateway "what model for this slot?" and dispatches on the answer.
 The model record is the complete dispatch spec — it carries both the provider
 and the backend model id — so it replaces `AI_PROVIDER_{FEATURE}` **and**
@@ -68,7 +68,7 @@ Response:
 ```json
 {
   "ok": true,
-  "slot": "hi.ia-collab",
+  "slot": "hi.ia-4-3",
   "modelId": "sonnet",
   "model": {
     "id": "sonnet",
@@ -113,13 +113,37 @@ HI does not need this at runtime; useful for a health/debug view.
 Registered HI slots (group `HI` in the registry). Assignments shown are the
 current staging values; production is set independently in its own console.
 
-| Slot                          | HI feature                                              | Route / service (file)                                              | kind  | staging assignment |
+Verified against the live registry 2026-07-21 (`GET /api/model-control`); staging
+and production carry the same eight `hi.*` slots.
+
+| Slot                          | HI feature                                              | Route / service (file)                                              | kind  | assignment |
 |-------------------------------|--------------------------------------------------------|--------------------------------------------------------------------|-------|--------------------|
-| `hi.ia-collab`                | IA inline chat / exercise assistants                   | `server/routes/ai.ts` (`/chat/plain`, `/chat/rag`)                 | text  | sonnet             |
+| `hi.ia-4-2`                   | IA 4-2: Reframe with AI                                 | `server/routes/ai.ts` (`/chat/plain`)                              | text  | sonnet (`us.anthropic.claude-sonnet-4-6`) |
+| `hi.ia-4-3`                   | IA 4-3: Stretch Potential                               | `server/routes/ai.ts` (`/chat/plain`)                              | text  | sonnet |
+| `hi.ia-4-4`                   | IA 4-4: Higher Purpose → World Challenges               | `server/routes/ai.ts` (`/chat/plain`)                              | text  | sonnet |
+| `hi.ia-4-5`                   | IA 4-5: Inviting the Muse                               | `server/routes/ai.ts` (`/chat/plain`)                              | text  | sonnet |
+| `hi.ia-4-7-synopsis`          | IA 4-7: Module 4 Reflection Synopsis                    | `server/routes/ai.ts` (`/chat/plain`)                              | text  | sonnet |
 | `hi.ia-image`                 | IA image generation (stretch / capability-stretch)     | `server/routes/image-gen.ts` (`/image/stretch`, `/capability-stretch`) | image | gpt-image (gpt-image-1) |
 | `hi.ia-image-describe`        | IA image description (vision)                           | `server/routes/image-gen.ts` (`/image/describe`)                   | text  | gpt-mini (gpt-4o-mini) |
-| `hi.exercise-training-docs`   | Admin: exercise training-docs test harness             | `server/routes/exercise-training-docs-routes.ts` (`/test`)         | text  | haiku              |
 | `hi.ast-reports`              | AST sectional reports — **hardwired, not controlled**  | `server/services/ast-sectional-report-service.ts`                  | —     | (marked `controlled:false`) |
+
+**Retired slots** (de-registered in the console — do not reintroduce):
+- **`hi.ia-collab`** — the original single umbrella slot in front of every
+  training, i.e. one assignment setting the model for all IA exercises at once.
+  Rejected in §8 Q1 in favour of the five per-training slots above. Retired.
+- **`hi.exercise-training-docs`** — never adopted. The admin training-docs
+  harness (`exercise-training-docs-routes.ts:195`) calls `getProvider('ia')`
+  directly and is env-driven, not slotted.
+
+> ⚠️ **A retired slot does not stop resolving.** `resolve/<slot>` returns
+> `ok:true` with a catch-all default (currently haiku) for *any* unregistered
+> name — `hi.ia-collab`, `hi.totally-made-up-slot`, and a typo'd `hi.ia-4-2-typo`
+> all return the same thing. So `resolveModel()` can never see `model: null`, its
+> `unassigned → env fallback` branch is effectively dead, and a mistyped slot
+> silently runs on haiku while the admin Model Routing tab reports it as a
+> healthy `source: 'gateway'`. Cross-check catalog slots against the registry
+> rather than trusting a successful resolve — `scripts/ai-gateway-smoke-test.ts`
+> does this.
 
 Notes:
 - **`hi.ast-reports` is intentionally excluded** from control-plane resolution.
@@ -134,7 +158,8 @@ Notes:
 ### 3.1 The nine trainings — **[HI confirm]**
 
 `server/config/trainings.ts` gives each of nine trainings its own
-`model_default`. `hi.ia-collab` currently stands in front of all of them. Five
+`model_default`. `hi.ia-collab` stood in front of all of them *(historical — that
+umbrella slot was rejected below and is now retired; see §3)*. Five
 are IA exercises that share one model (`gpt-4.1-mini`); four are Talia
 assistants that differ (`gpt-4.1`, `o4-mini`). Open question in §8 on whether
 these become per-training slots or keep a single slot with a group default.

@@ -48,6 +48,25 @@ interface Row {
 
 const rows: Row[] = [];
 
+/** The set of slot keys actually registered in the gateway console, or null if unreadable. */
+async function fetchRegisteredSlots(): Promise<Set<string> | null> {
+  try {
+    const res = await fetch(`${process.env.GATEWAY_BASE_URL}/api/model-control`, {
+      headers: {
+        Authorization: `Bearer ${process.env.GATEWAY_SERVICE_TOKEN}`,
+        'X-SA-App': 'hi_replit',
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const body = await res.json() as { slots?: Array<{ key: string }> };
+    return body.slots ? new Set(body.slots.map(s => s.key)) : null;
+  } catch {
+    return null;
+  }
+}
+
 function record(r: Row) {
   rows.push(r);
   const mark = r.dispatch === 'PASS' ? '✅' : r.dispatch === 'FAIL' ? '❌' : '⏭️ ';
@@ -61,6 +80,23 @@ async function main() {
   console.log(`health:  ${health.ok ? 'ok' : `UNREACHABLE (${health.status} ${health.statusText})`}`);
   console.log(`env:     AI_PROVIDER=${process.env.AI_PROVIDER} AI_PROVIDER_IA=${process.env.AI_PROVIDER_IA} AI_PROVIDER_REPORTS=${process.env.AI_PROVIDER_REPORTS} AI_PROVIDER_COACHING=${process.env.AI_PROVIDER_COACHING}`);
   console.log(`bedrock: creds ${process.env.BEDROCK_ACCESS_KEY_ID ? 'explicit' : 'default chain'} region=${process.env.BEDROCK_REGION || process.env.AWS_REGION}`);
+
+  // The gateway resolves ANY name — registered or not — to a catch-all default,
+  // so a successful resolve proves nothing about registration. A retired or
+  // typo'd slot silently runs on the default model and still reports
+  // source:'gateway'. Only the registry can tell us, so check it up front.
+  const registered = await fetchRegisteredSlots();
+  if (registered) {
+    const unregistered = AI_SLOT_CATALOG
+      .filter(e => e.controlType === 'gateway' && e.slot && !registered.has(e.slot))
+      .map(e => e.slot);
+    if (unregistered.length) {
+      console.log(`\n⚠️  catalog slots NOT in the gateway registry: ${unregistered.join(', ')}`);
+      console.log('   These still resolve (catch-all default) but are not console-controlled.');
+    } else {
+      console.log(`registry: all ${AI_SLOT_CATALOG.filter(e => e.controlType === 'gateway').length} catalog slots registered`);
+    }
+  }
   console.log('');
 
   for (const entry of AI_SLOT_CATALOG) {
